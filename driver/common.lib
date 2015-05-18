@@ -1,0 +1,36 @@
+#!/bin/bash
+# common.lib
+
+next_date()
+{
+  y=$1
+  m=$2
+  d=$3
+  
+  # determine daymax for this month
+  if [ $m -eq 4 ] || [ $m -eq 6 ] || [ $m -eq 9 ] || [ $m -eq 11 ]
+  then
+    daymax=30
+  elif [ $m -eq 2 ] && [ $[$y % 4] -eq 0 ]
+  then
+    daymax=29
+  elif [ $m -eq 2 ] && [ $[$y % 4] -ne 0 ]
+  then
+    daymax=28
+  else
+    daymax=31
+  fi
+  d=$[10#$d + 1]
+  if [ $d -gt $daymax ]
+  then
+    d=1
+    m=$[10#$m + 1]
+    if [ $m -gt 12 ]
+    then
+      m=1
+      y=$[10#$y + 1]
+    fi
+  fi
+  D=$[10#$y*10000 + 10#$m*100 + 10#$d]
+}
+  
