@@ -98,10 +98,10 @@ do
   cd $LO_parent"/forcing/dot_in"
   source $HOME"/.bashrc"
   if [ $D = $D0 ] && [ $start_type = "new" ] ; then
-    python ./make_dot_in.py $start_type $DD
+    python ./make_dot_in.py $start_type $run_type $DD
     cd $R_parent/makefiles/cas1_baseM_tideramp
   else
-    python ./make_dot_in.py continuation $DD
+    python ./make_dot_in.py continuation $run_type $DD
     cd $R_parent/makefiles/cas1_baseM
   fi
 

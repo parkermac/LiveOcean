@@ -11,6 +11,7 @@ import argparse
 parser = argparse.ArgumentParser()
 # positional arguments
 parser.add_argument("start_type", type=str, help="new or continuation")
+parser.add_argument("run_type", type=str, help="forecast or backfill")
 parser.add_argument("date_string", type=str, help="e.g. 2014.02.14")
 args = parser.parse_args()
 
@@ -38,12 +39,16 @@ else:
     exit
 
 multi_core = True # use more than one core
-	
-days_to_run = 1.0  
+
+if args.run_type == 'backfill':
+    days_to_run = 1.0
+else:
+    days_to_run = 3.0
+    
 dtsec = 20 # time step in seconds INTEGER (should fit evenly into 3600 sec)
 restart_nrrec = '-1' # '-1' for a non-crash restart file, otherwise '1' or '2'
 his_interval = 3600 # seconds to define and write to history files
-rst_interval = 1 # days between writing to the restart file (e.g. 5)
+rst_interval = 10 # days between writing to the restart file (e.g. 5)
         
 zqt_height = '2.0d0' 
 zw_height = '10.0d0'
@@ -99,7 +104,8 @@ tide_dir = 'tide/' # which tide forcing files to use
 
 if args.start_type == 'continuation':
     nrrec = '-1' # '-1' for a hot restart
-    ininame = 'ocean_rst.nc' # for a hot restart
+    #ininame = 'ocean_rst.nc' # for a hot restart
+    ininame = 'ocean_his_0025.nc' # for a hot restart
     ini_fullname = out_dir0 + f_string_yesterday + '/' + ininame
 elif args.start_type == 'new':
     nrrec = '0' # '0' for a history or ini file

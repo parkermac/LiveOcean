@@ -37,9 +37,8 @@ td_next = td_now + 1;
 
 %% create the output time vector
 
-hr_vec = 0:24; % this gives 25 hourly values (one day, including endpoints)
-% NOTE 2/13/2015 using one day is the right choice for backfill, but
-% later when we want to forecasts to be longer we will want a longer time.
+hr_vec = 0:72; % this gives 73 hourly values (three days, including endpoints)
+% NOTE 5/25/2015 Originally this was 0:24 (one day).
 %
 dt_out = datenum(yr,mo,dy,hr_vec,0,0);
 vartime = (dt_out - datenum(1970,1,1))*86400; % seconds since 1/1/1970

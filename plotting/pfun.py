@@ -39,7 +39,7 @@ def roms_basic(fn, alp, fn_coast='', show_plot=True, save_plot=False,
     aa = [lonp.min(), lonp.max(), latp.min(), latp.max()]   
     depth_levs = [100, 200, 500, 1000, 2000, 3000]
     salt_lims = (28, 34)
-    temp_lims = (0, 14)
+    temp_lims = (6, 18)
         
     # get coastline
     if len(fn_coast) != 0:

@@ -50,7 +50,8 @@ blob_service.set_container_acl(containername, x_ms_blob_public_access='container
 if False: # testing
     nend = 3
 else:
-    nend = 26
+    #nend = 26
+    nend = 74
     
 result_dict = dict()
 try:        
