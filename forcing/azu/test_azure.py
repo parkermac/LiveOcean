@@ -24,7 +24,8 @@ Ldir = Lfun.Lstart(alp)
 
 import azure.storage as az
 
-azu_dict = Lfun.csv_to_dict(Ldir['data'] + 'accounts/azure_rob_2015.04.24.csv')
+#azu_dict = Lfun.csv_to_dict(Ldir['data'] + 'accounts/azure_rob_2015.04.24.csv')
+azu_dict = Lfun.csv_to_dict(Ldir['data'] + 'accounts/azure_pm_2015.05.25.csv')
 account = azu_dict['account']
 key = azu_dict['key']
 

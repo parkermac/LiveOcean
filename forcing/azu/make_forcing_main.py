@@ -36,7 +36,8 @@ f_string = 'f' + args.date_string
 ff_string = f_string.replace('.','')
 
 # account name and key
-azu_dict = Lfun.csv_to_dict(Ldir['data'] + 'accounts/azure_rob_2015.04.24.csv')
+#azu_dict = Lfun.csv_to_dict(Ldir['data'] + 'accounts/azure_rob_2015.04.24.csv')
+azu_dict = Lfun.csv_to_dict(Ldir['data'] + 'accounts/azure_pm_2015.05.25.csv')
 account = azu_dict['account']
 key = azu_dict['key']
 
@@ -51,7 +52,7 @@ if False: # testing
     nend = 3
 else:
     #nend = 26
-    nend = 74
+    nend = 74 # new three-day forecast 5/25/2015
     
 result_dict = dict()
 try:        
