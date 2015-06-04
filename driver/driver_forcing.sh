@@ -32,7 +32,7 @@ run_type=$2
 
 # check command line inputs
 if [ $# -eq 2 ] ; then
-  if [ $frc = "atm" ] || [ $frc = "ocn" ] || [ $frc = "riv" ] || [ $frc = "tide" ] || [ $frc = "azu" ]
+  if [ $frc = "atm" ] || [ $frc = "ocn" ] || [ $frc = "riv" ] || [ $frc = "tide" ] || [ $frc = "azu" ] || [ $frc = "bio" ]
   then
     # do forecast
     ymd0=$(date "+%Y%m%d")
@@ -42,7 +42,7 @@ if [ $# -eq 2 ] ; then
     exit
   fi
 elif [ $# -eq 4 ] ; then
-  if [ $frc = "atm" ] || [ $frc = "ocn" ] || [ $frc = "riv" ] || [ $frc = "tide" ] || [ $frc = "azu" ] && [ $run_type = "backfill" ]
+  if [ $frc = "atm" ] || [ $frc = "ocn" ] || [ $frc = "riv" ] || [ $frc = "tide" ] || [ $frc = "azu" ] || [ $frc = "bio" ] && [ $run_type = "backfill" ]
   then
     # do backfill
     ymd0=$3 # first date

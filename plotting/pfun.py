@@ -16,6 +16,24 @@ def roms_basic(fn, alp, fn_coast='', show_plot=True, save_plot=False,
     
     # OUTPUT
     # either a screen image or a graphics file
+    
+    # scaling choices
+    #sname = 'south_sound'
+    sname = 'cascadia'
+    if sname == 'south_sound':
+        salt_lims = (27,31)
+        temp_lims = (10,22)  
+        v_scl = 30 # scale velocity vector (smaller to get longer arrows)
+        v_leglen = 1 # m/s for velocity vector legend
+        t_scl = .2 # scale windstress vector (smaller to get longer arrows)
+        t_leglen = 0.1 # Pa for wind stress vector legend
+    elif sname == 'cascadia':
+        salt_lims = (28, 34)
+        temp_lims = (6, 18)    
+        v_scl = 3 # scale velocity vector (smaller to get longer arrows)
+        v_leglen = 0.5 # m/s for velocity vector legend
+        t_scl = .2 # scale windstress vector (smaller to get longer arrows)
+        t_leglen = 0.1 # Pa for wind stress vector legend
         
     # setup
     import sys
@@ -23,6 +41,7 @@ def roms_basic(fn, alp, fn_coast='', show_plot=True, save_plot=False,
         sys.path.append(alp)    
     import zfun; reload(zfun) # utility functions
     import matfun; reload(matfun) # functions for working with mat files
+    import numpy as np
 
     # GET DATA
     G, S, T = zfun.get_basic_info(fn)
@@ -33,14 +52,14 @@ def roms_basic(fn, alp, fn_coast='', show_plot=True, save_plot=False,
     temp = ds.variables['temp'][0, -1, :, :].squeeze()
     u = ds.variables['u'][0, -1, :, :].squeeze()
     v = ds.variables['v'][0, -1, :, :].squeeze()  
+    taux = ds.variables['sustr'][:].squeeze()
+    tauy = ds.variables['svstr'][:].squeeze()  
     ds.close()     
     lonp = G['lon_psi']
     latp = G['lat_psi']
     aa = [lonp.min(), lonp.max(), latp.min(), latp.max()]   
     depth_levs = [100, 200, 500, 1000, 2000, 3000]
-    salt_lims = (28, 34)
-    temp_lims = (6, 18)
-        
+       
     # get coastline
     if len(fn_coast) != 0:
         # get the coastline
@@ -49,6 +68,7 @@ def roms_basic(fn, alp, fn_coast='', show_plot=True, save_plot=False,
     # PLOTTING       
     import matplotlib.pyplot as plt
     plt.close()
+    #fig = plt.figure(figsize=(14, 8))
     fig = plt.figure(figsize=(14, 8))
     
     # 1. surface salinity    
@@ -74,10 +94,26 @@ def roms_basic(fn, alp, fn_coast='', show_plot=True, save_plot=False,
     ax.set_title('Surface Salinity')
     fig.colorbar(cs)
     # put info on plot
-    ax.text(.95, .1, T['tm'].strftime('%Y-%m-%d'),
+    ax.text(.95, .07, T['tm'].strftime('%Y-%m-%d'),
         horizontalalignment='right', transform=ax.transAxes)
-    ax.text(.95, .05, T['tm'].strftime('%H:%M'),
+    ax.text(.95, .04, T['tm'].strftime('%H:%M') + ' UTC',
         horizontalalignment='right', transform=ax.transAxes)
+        
+    # ADD MEAN WINDSTRESS VECTOR
+    tauxm = taux.mean()
+    tauym = tauy.mean()
+    ax.quiver([.85, .85] , [.25, .25], [tauxm, tauxm], [tauym, tauym],
+        units='y', scale=t_scl, scale_units='y', color='k', transform=ax.transAxes)
+    tt = 1./np.sqrt(2)
+    t_alpha = 0.3
+    ax.quiver([.85, .85] , [.25, .25],
+        t_leglen*np.array([0,tt,1,tt,0,-tt,-1,-tt]),
+        t_leglen*np.array([1,tt,0,-tt,-1,-tt,0,tt]),
+        units='y', scale=t_scl, scale_units='y', color='k', alpha=t_alpha, transform=ax.transAxes)
+    ax.text(.85, .12,'Windstress',
+        horizontalalignment='center', alpha=t_alpha, transform=ax.transAxes)
+    ax.text(.85, .15, str(t_leglen) + ' Pa',
+        horizontalalignment='center', alpha=t_alpha, transform=ax.transAxes)
     
     # 2. surface temperature    
     ax = fig.add_subplot(122)
@@ -119,17 +155,15 @@ def roms_basic(fn, alp, fn_coast='', show_plot=True, save_plot=False,
     uu = ui(x, y)
     vv = vi(x, y) 
     mask = uu != 0    
-    # plot velocity vectors 
-    scl = 3
+    # plot velocity vectors  
     ax.quiver(xx[mask], yy[mask], uu[mask], vv[mask],
-        units='y', scale=scl, scale_units='y', color='k')
-    leglen = 0.5
-    ax.quiver([.85, .85] , [.1, .1], [leglen, leglen], [leglen, leglen],
-        units='y', scale=scl, scale_units='y', color='k', transform=ax.transAxes)
-    ax.text(.95, .05, str(leglen) + ' $ms^{-1}$',
-        horizontalalignment='right', transform=ax.transAxes)
+        units='y', scale=v_scl, scale_units='y', color='k')
+    ax.quiver([.7, .7] , [.05, .05], [v_leglen, v_leglen], [v_leglen, v_leglen],
+        units='y', scale=v_scl, scale_units='y', color='k', transform=ax.transAxes)
+    ax.text(.75, .05, str(v_leglen) + ' $ms^{-1}$',
+        horizontalalignment='left', transform=ax.transAxes)
     # END OF VELOCITY VECTOR SECTION
-    
+         
     if show_plot==True:
         plt.show()   
     if save_plot==True:
@@ -553,7 +587,7 @@ def nest_plot(fn, alp, fn_coast='', show_plot=True, save_plot=False,
     # make full data field (extrapolate top and bottom)
     fld = zfun.make_full((fld_mid,))
     # INTERPOLATION
-    import numpy as np
+    #import numpy as np
     which_z = zlev * np.ones(1)
     lay = zfun.get_layer(fld, zr, which_z)
     # make masking on layers to be plotted (to work with pcolormesh)

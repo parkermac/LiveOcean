@@ -18,7 +18,7 @@ import pfun; reload(pfun) # local module of plot routines
 # choose the type of list to make
 print 30*'*' + ' pan_plot ' + 30*'*'
 print '\n%s\n' % '** Choose List type **'
-lt_list = ['hand_selection','hindcast', 'mixed_hindcast', 'forecast', 'pnwtox']
+lt_list = ['test','hand_selection', 'three_day', 'hindcast', 'mixed_hindcast', 'forecast', 'pnwtox']
 Nlt = len(lt_list)
 lt_dict = dict(zip(range(Nlt), lt_list))
 for nlt in range(Nlt):
@@ -41,7 +41,7 @@ my_npt = int(raw_input('-- Input number -- '))
 plot_type = pt_dict[my_npt]
 whichplot = getattr(pfun, plot_type)
 
-def make_fn_list(dt0,dt1,Ldir): # a helpful function
+def make_fn_list(dt0,dt1,Ldir, hourmax=24): # a helpful function
     from datetime import timedelta
     del_dt = timedelta(1)
     date_list = []
@@ -52,7 +52,7 @@ def make_fn_list(dt0,dt1,Ldir): # a helpful function
         dt = dt + del_dt
     for dl in date_list:    
         f_string = 'f' + dl
-        for nhis in range(2, 26): # range(2, 26) for a typical forecast              
+        for nhis in range(2, hourmax+2): # range(2, 26) for a typical forecast              
             nhiss = ('0000' + str(nhis))[-4:]                        
             fn = (Ldir['roms'] + 'output/' + Ldir['gtag'] + '/'
                 + f_string + '/ocean_his_' + nhiss + '.nc')
@@ -60,8 +60,9 @@ def make_fn_list(dt0,dt1,Ldir): # a helpful function
     return fn_list
 
 # choose which file(s) to plot
-fn_list = []
-if list_type == 'hand_selection':
+if list_type == 'test':
+    fn_list = ['/Users/PM5/Documents/LiveOcean_roms/output/cascadia1_base/f2015.05.27/ocean_his_0002.nc']
+elif list_type == 'hand_selection':
     # select one or more files using a dialog box
     from PySide import QtGui
     # unfortunately this kills the kernel in Anaconda
@@ -91,7 +92,15 @@ elif list_type == 'forecast':
     ndays = 7
     dt0 = datetime.now() - timedelta(ndays) # first day
     dt1 = datetime.now() # last day
-    fn_list = make_fn_list(dt0,dt1,Ldir)                    
+    fn_list = make_fn_list(dt0,dt1,Ldir)
+elif list_type == 'three_day':
+    if False:
+        dt0 = datetime(2015,6,1) # first day
+        dt1 = datetime(2015,6,1) # last day
+    else:
+        dt0 = datetime.now()
+        dt1 = datetime.now()
+    fn_list = make_fn_list(dt0,dt1,Ldir, hourmax=72)                      
 elif list_type == 'pnwtox':
     # make a pnwtox-style list of files
     for nhis in range(1800, 1824): # have 1800 to 1929
