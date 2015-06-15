@@ -180,7 +180,7 @@ def roms_layer(fn, alp, fn_coast='', show_plot=True, save_plot=False,
     import zfun; reload(zfun) # utility functions
     import matfun; reload(matfun) # functions for working with mat files
     
-    zlev = -500. # z (m) of layer to plot
+    zlev = -200. # z (m) of layer to plot
     which_var = 'salt'
     
     # IMPORTS
@@ -275,7 +275,7 @@ def roms_layer(fn, alp, fn_coast='', show_plot=True, save_plot=False,
     # color limits
     if which_var == 'salt':
         clim_top = (29,34)
-        clim = (34,35)
+        clim = (33.4,34)
     else:
         clim_top = ( np.floor(laym_top.min()), np.ceil(laym_top.max()) )
         clim= ( np.floor(laym.min()), np.ceil(laym.max()) )
