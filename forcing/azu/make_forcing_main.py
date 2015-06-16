@@ -51,8 +51,10 @@ blob_service.set_container_acl(containername, x_ms_blob_public_access='container
 if False: # testing
     nend = 3
 else:
-    #nend = 26
-    nend = 74 # new three-day forecast 5/25/2015
+    if run_type == 'backfill':
+        nend = 26
+    elif run_type == 'forecast':
+        nend = 74 # new three-day forecast 5/25/2015
     
 result_dict = dict()
 try:        
