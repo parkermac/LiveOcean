@@ -5,9 +5,12 @@ This is the main program for making the AZU forcing file.
 import argparse
 parser = argparse.ArgumentParser()
 # positional arguments
+# (we should do these as keyword arguments or input parameters)
 parser.add_argument("frc", type=str, help="atm, ocn, riv, or tide")
 parser.add_argument("run_type", type=str, help="forecast or backfill")
 parser.add_argument("date_string", type=str, help="e.g. 2014.02.14")
+# and this is an optional input parameter
+parser.add_argument("-x", "--ex_name", type=str, help="e.g. lo1")
 args = parser.parse_args()
 
 # setup
@@ -19,7 +22,8 @@ import Lfun; reload(Lfun)
 Ldir = Lfun.Lstart(alp)
 Ldir['LOogf_f'] = (Ldir['LOo'] + Ldir['gtag'] +
     '/f' + args.date_string + '/' + args.frc + '/')
-    
+Ldir['gtagex'] = Ldir['gtag'] + '_' + args.ex_name
+
 # screen output
 from datetime import datetime
 print('MAIN: frc = ' + args.frc + ', run_type = ' + args.run_type
@@ -62,7 +66,7 @@ try:
         ncpad = '0000' + str(ii)
         ncpad = ncpad[-4:]
         hisname = 'ocean_his_' + ncpad + '.nc'
-        dirname = Ldir['roms'] + 'output/' + Ldir['gtag'] + '/' + f_string + '/'
+        dirname = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/' + f_string + '/'
         fname = dirname + hisname   
         bname = open(fname, 'r')
         blob_service.put_block_blob_from_file(containername, hisname, bname)

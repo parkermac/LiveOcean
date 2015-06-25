@@ -36,6 +36,8 @@ containername = ff_string
 
 # get a handle to your account
 blob_service = az.BlobService(account_name=account, account_key=key)
+# when you create the container is works even if the container exists.  I suspect it does not
+# clobber existing files, so that could be a problem in some instances.
 blob_service.create_container(containername)
 blob_service.set_container_acl(containername, x_ms_blob_public_access='container')
 
