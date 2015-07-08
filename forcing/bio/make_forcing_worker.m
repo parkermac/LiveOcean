@@ -1,11 +1,11 @@
-function make_forcing_worker(date_string, outdir)
+function make_forcing_worker(gridname, tag, date_string, outdir)
 %% make_forcing_worker.m
 %
 % ****************** for bio ***********************
 %
 % makes [].nc using data created by make_forcing_main.py
 
-addpath('../../alpha'); Ldir = Lstart;
+addpath('../../alpha'); Ldir = Lstart(gridname, tag);
 start_time = datenum(now);
 
 %% bio-specific code
@@ -13,7 +13,7 @@ start_time = datenum(now);
 addpath('./bio_fun');
 
 % define and load preamble files
-indir = [Ldir.res,Ldir.gtag,'/'];
+indir = [Ldir.res,Ldir.gridname,'/'];
 grdname = [indir,'grid.nc'];
 
 % define locations of existing ocn and riv files

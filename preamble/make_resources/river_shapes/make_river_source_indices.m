@@ -1,5 +1,6 @@
+function make_river_source_indices(gridname)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% make_river_source_indices.m  3/14/2014  Parker MacCready
+% make_river_source_indices.m Parker MacCready
 %
 % based on Z_river_channels.m  3/2009 Dave Sutherland
 %
@@ -26,9 +27,10 @@
 %           and sign and ID
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-clear; addpath('../../../alpha'); Ldir = Lstart;
+tag = 'not_needed';
+addpath('../../../alpha'); Ldir = Lstart(gridname, tag);
 
-outdir = [Ldir.res,Ldir.gtag,'/'];
+outdir = [Ldir.res,Ldir.gridname,'/'];
 outname = [outdir,'river_indices.mat'];
 
 gfile = [outdir,'grid.nc'];

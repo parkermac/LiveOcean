@@ -1,4 +1,4 @@
-function make_forcing_worker(date_string, outdir)
+function make_forcing_worker(gridname, tag, date_string, outdir)
 %% make_forcing_worker.m
 %
 % ****************** for tide ***********************
@@ -6,13 +6,13 @@ function make_forcing_worker(date_string, outdir)
 % This makes the tidal NetCDF forcing file for a ROMS 3.# simulation, and
 % NOTE that you need the TPXO model files (tmd_toolbox/)
 
-addpath('../../alpha'); Ldir = Lstart;
+addpath('../../alpha'); Ldir = Lstart(gridname, tag);
 start_time = datenum(now);
 
 %% tide-specific code
 
 % define needed files
-indir = [Ldir.res,Ldir.gtag,'/'];
+indir = [Ldir.res,Ldir.gridname,'/'];
 gridfile = [indir,'grid.nc']; 
 t_dir = [Ldir.data,'tide/TPXO/'];
 ncfile_out = [outdir,'tides.nc'];  % tide forcing file name

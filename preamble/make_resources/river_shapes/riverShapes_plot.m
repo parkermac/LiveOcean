@@ -1,10 +1,10 @@
-% riverShapes_plot.m  3/14/2014  Parker MacCready
+function riverShapes_plot(gridname)
+% riverShapes_plot.m Parker MacCready
 %
 % exploratory plots of the river files
 
-clear; close all;
-addpath('../../../alpha')
-Ldir = Lstart;
+tag = 'not_needed';
+addpath('../../../alpha'); Ldir = Lstart(gridname, tag);
 
 rsname = ['riverShapes_',Ldir.gridname,'.mat'];
 load(rsname); % loads the structure "rivers" with fields
@@ -16,6 +16,7 @@ for ii = 1:length(rivers)
         ' sign = ',num2str(rivers(ii).sign)]);
 end
 
+close all
 Z_fig(14);
 
 for ii = 1:length(rivers)

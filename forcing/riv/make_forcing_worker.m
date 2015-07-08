@@ -1,17 +1,17 @@
-function make_forcing_worker(date_string, outdir)
+function make_forcing_worker(gridname, tag, date_string, outdir)
 %% make_forcing_worker.m
 %
 % ****************** for riv ***********************
 %
 % makes rivers.nc using data created by make_forcing_main.py
 
-addpath('../../alpha'); Ldir = Lstart;
+addpath('../../alpha'); Ldir = Lstart(gridname, tag);
 start_time = datenum(now);
 
 %% river-specific code
 addpath('./riv_fun');
 % define and load preamble files
-indir = [Ldir.res,Ldir.gtag,'/'];
+indir = [Ldir.res,Ldir.gridname,'/'];
 gridfile = [indir,'grid.nc'];
 load([indir,'S.mat']); % get structure "S"
 

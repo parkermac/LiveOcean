@@ -2,14 +2,16 @@
 Functions for LiveOcean.
 """
 
-def Lstart(path_to_alpha):    
+def Lstart(gridname, tag):    
     """
     This is to set environment variables in the LiveOcean system
     using values in a csv file.  It is similar to Lstart.m in the
     MATLAB code, but it returns a dictionary instead of a structure.
     """   
-    # read top level information from RUN_INFO.csv into a dict
-    Ldir = csv_to_dict(path_to_alpha + '/RUN_INFO.csv')
+    # put top level information from input into a dict
+    Ldir = dict()
+    Ldir['gridname'] = gridname
+    Ldir['tag'] = tag
     
     # Build information on the directory structure.
     import os
@@ -74,6 +76,8 @@ def run_worker(date_string, Ldir, worker_type='matlab'):
         # pass arguments to a matlab program
         import subprocess
         func = ("make_forcing_worker(\'" +
+            Ldir['gridname'] + "\',\'" +
+            Ldir['tag'] + "\',\'" +
             date_string + "\',\'" +
             Ldir['LOogf_f'] + "\')")
         #cmd = "/Applications/MATLAB_R2014b.app/bin/matlab"

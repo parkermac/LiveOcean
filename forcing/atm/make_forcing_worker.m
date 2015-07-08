@@ -1,4 +1,4 @@
-function make_forcing_worker(date_string, outdir)
+function make_forcing_worker(gridname, tag, date_string, outdir)
 %% make_forcing_worker.m
 %
 % ****************** for atm ***********************
@@ -17,7 +17,7 @@ function make_forcing_worker(date_string, outdir)
 % Notes: need to tell this where to find the WRF files, and
 % specify year, month, day
 
-addpath('../../alpha'); Ldir = Lstart;
+addpath('../../alpha'); Ldir = Lstart(gridname, tag);
 start_time = datenum(now);
 
 %% atm-specific code
@@ -78,7 +78,7 @@ invar_list = {'PSFC','RAINC','RAINNC','SWDOWN','GLW', ...
 %% grids
 
 % the ROMS grid
-gdir = [Ldir.res,Ldir.gtag,'/'];
+gdir = [Ldir.res,Ldir.gridname,'/'];
 fng = [gdir,'grid.nc'];
 lon = nc_varget(fng,'lon_rho');
 lat = nc_varget(fng,'lat_rho');

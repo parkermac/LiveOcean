@@ -1,10 +1,12 @@
-% make_S.m  2/3/2014  Parker MacCready
+function make_S(gridname)
+% make_S.m Parker MacCready
 %
 % makes and saves the structure "S" for a given run
 
-clear; addpath('../../alpha'); Ldir = Lstart;
+tag = 'not_needed';
+addpath('../../alpha'); Ldir = Lstart(gridname, tag);
 
-outdir = [Ldir.res,Ldir.gtag,'/'];
+outdir = [Ldir.res,Ldir.gridname,'/'];
 if ~exist(outdir,'dir'); mkdir(outdir); end;
 outname = [outdir,'S.mat'];
 
@@ -37,7 +39,7 @@ end
 
 % create and save the structure S
 S = Z_scoord(theta_s,theta_b,tcline,hmin,N,Vtransform,Vstretching);
-save([outdir,'S.mat'],'S');
+save(outname,'S');
 
 % ****** Notes on S-coordinate parameters *********************
 % ** THESE MUST BE IDENTICAL IN THE .IN FILE ******************

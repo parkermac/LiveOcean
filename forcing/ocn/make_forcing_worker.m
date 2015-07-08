@@ -1,4 +1,4 @@
-function make_forcing_worker(date_string, outdir)
+function make_forcing_worker(gridname, tag, date_string, outdir)
 %% make_forcing_worker.m
 %
 % ****************** for ocn ***********************
@@ -9,14 +9,14 @@ function make_forcing_worker(date_string, outdir)
 % It makes: a ROMS input climatology file
 % with Information on T, S, u, v, ubar, vbar and zeta
 
-addpath('../../alpha'); Ldir = Lstart;
+addpath('../../alpha'); Ldir = Lstart(gridname, tag);
 start_time = datenum(now);
 
 %% atm-specific code
 addpath('./ocn_fun');
 
 % the ROMS grid Info
-resdir = [Ldir.res,Ldir.gtag,'/'];
+resdir = [Ldir.res,Ldir.gridname,'/'];
 gridfile = [resdir,'grid.nc'];
 load([resdir,'S.mat']);
 

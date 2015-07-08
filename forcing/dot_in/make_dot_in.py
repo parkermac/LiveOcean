@@ -10,18 +10,21 @@ This revised version uses command line arguments.
 import argparse
 parser = argparse.ArgumentParser()
 # positional arguments
+parser.add_argument("gridname", type=str, help="cascadia1, etc.")
+parser.add_argument("tag", type=str, help="base, etc.")
 parser.add_argument("start_type", type=str, help="new or continuation")
 parser.add_argument("run_type", type=str, help="forecast or backfill")
 parser.add_argument("date_string", type=str, help="e.g. 2014.02.14")
+# and this is an optional input parameter
+parser.add_argument("-x", "--ex_name", type=str, help="e.g. lo1")
 args = parser.parse_args()
-
 # setup
 import os; import sys
 alp = os.path.abspath('../../alpha')
 if alp not in sys.path:
     sys.path.append(alp)
 import Lfun; reload(Lfun)
-Ldir = Lfun.Lstart(alp)
+Ldir = Lfun.Lstart(args.gridname, args.tag)
 
 from datetime import datetime, timedelta    
 fdt = datetime.strptime(args.date_string, '%Y.%m.%d')
@@ -32,11 +35,8 @@ print('\nCreates files for LiveOcean for ' + args.date_string + '\n')
 #### USER DEFINED VALUES ####
 
 gtag = Ldir['gtag']
-if gtag == 'cascadia1_base':
-    cpp_flag = 'cas1_base'
-else:
-    print 'missing cpp_flag!'
-    exit
+gtagex = gtag + '_' + args.ex_name
+EX_NAME = args.ex_name.upper()
 
 multi_core = True # use more than one core
 
@@ -82,19 +82,19 @@ f_string_yesterday = 'f'+ date_string_yesterday
 # where forcing files live (fjord)
 lo_dir = '/fjdata1/parker/LiveOcean/'
 loo_dir = '/fjdata1/parker/LiveOcean_output/'
-grid_dir = lo_dir + 'preamble/make_resources/' + gtag + '/'
+grid_dir = lo_dir + 'preamble/make_resources/' + args.gridname + '/'
 force_dir = loo_dir + gtag + '/' + f_string + '/'
 roms_dir = '/pmr1/parker/LiveOcean_roms/'
 
 # the .in file
 dot_in_name = 'liveocean.in' # name of the .in file
-dot_in_dir0 = Ldir['roms'] + 'output/' + gtag + '/'
+dot_in_dir0 = Ldir['roms'] + 'output/' + gtagex + '/'
 Lfun.make_dir(dot_in_dir0) # make sure it exists
 dot_in_dir = dot_in_dir0 + f_string +'/'
 Lfun.make_dir(dot_in_dir, clean=True) # make sure it exists and is empty
 
 # where to put the output files according to the .in file
-out_dir0 = roms_dir + 'output/' + gtag + '/'
+out_dir0 = roms_dir + 'output/' + gtagex + '/'
 out_dir = out_dir0 + f_string + '/'
 
 atm_dir = 'atm/' # which atm forcing files to use
@@ -116,12 +116,12 @@ elif args.start_type == 'new':
 
 ## create .in ##########################
 
-f = open(cpp_flag + '_BLANK.in','r')
+f = open('BLANK.in','r')
 f2 = open(dot_in_dir + dot_in_name,'w')
 in_varlist = ['base_dir','ntilei','ntilej','ntimes','dt','nrrec','ninfo',
     'nhis','dstart','ndefhis','nrst','force_dir','grid_dir','roms_dir',
     'atm_dir','ocn_dir','riv_dir','tide_dir',
-    'zqt_height','zw_height','ini_fullname','out_dir']
+    'zqt_height','zw_height','ini_fullname','out_dir','EX_NAME']
 for line in f:
     for var in in_varlist:
         if '$'+var+'$' in line: 

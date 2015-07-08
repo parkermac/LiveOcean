@@ -61,13 +61,26 @@ def make_fn_list(dt0,dt1,Ldir, hourmax=24): # a helpful function
 
 # choose which file(s) to plot
 if list_type == 'test':
-    fn_list = ['/Users/PM5/Documents/LiveOcean_roms/output/cascadia1_base/f2015.05.27/ocean_his_0002.nc']
+    #fn_list = ['/Users/PM5/Documents/LiveOcean_roms/output/cascadia1_base/f2015.05.27/ocean_his_0002.nc']
+    fn_list = ['/Users/PM5/Documents/roms/output/T2006.ssound.200.it.Dforcing/ocean_his_1000.nc']
 elif list_type == 'hand_selection':
+    
     # select one or more files using a dialog box
-    from PySide import QtGui
-    # unfortunately this kills the kernel in Anaconda
-    fn_list, _ = QtGui.QFileDialog.getOpenFileNames(None, 'Choose File(s)',
-        Ldir['roms'] + 'output/' + Ldir['gtag'] + '/')
+    if False:
+        # this version works in Canopy
+        from PySide import QtGui
+        # unfortunately this kills the kernel in Anaconda
+        fn_list, _ = QtGui.QFileDialog.getOpenFileNames(None, 'Choose File(s)',
+            Ldir['roms'] + 'output/' + Ldir['gtag'] + '/')
+    else:
+        # this version may work in Anaconda 7/2/2015
+        import Tkinter
+        from tkFileDialog import askopenfilename
+        root = Tkinter.Tk()
+        root.withdraw()
+        filename = askopenfilename(parent=root)
+        fn_list = [filename]
+        
 elif list_type == 'hindcast':
     dt0 = datetime(2015,4,15) # first day
     dt1 = datetime(2015,4,15) # last day
