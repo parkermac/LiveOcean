@@ -33,7 +33,7 @@ def Lstart(gridname, tag):
     Ldir['LOo'] = Ldir['parent'] + 'LiveOcean_output/'
     Ldir['data'] = Ldir['parent'] + 'LiveOcean_data/'
     Ldir['res'] = Ldir['LO'] + 'preamble/make_resources/'
-    Ldir['run'] = Ldir['res'] + Ldir['gtag'] +'/'
+    Ldir['run'] = Ldir['res'] + Ldir['gridname'] +'/'
        
     return Ldir
     
