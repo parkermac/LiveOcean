@@ -54,7 +54,7 @@ for which_forecast in f_df.index:
             f_df.ix[which_forecast, which_force] = '--'
 
 # what .in files exist
-r_dir0 = Ldir['roms'] + 'output/' + Ldir['gtag'] + '/'
+r_dir0 = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/'
 r_dir0_list = []
 for item in os.listdir(r_dir0):
     if item[0] == 'f' and len(item) == 11:
