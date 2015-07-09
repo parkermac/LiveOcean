@@ -4,13 +4,22 @@ the status of LiveOcean.  For each forecast day, what forcing files have been
 created?  Has the day run successfully? Etc.
 """
 
+# get command line arguments if any
+import argparse
+parser = argparse.ArgumentParser()
+# optional arguments
+parser.add_argument("-g", "--gridname", type=str, default='cascadia1', help="cascadia1, etc.")
+parser.add_argument("-t", "--tag", type=str, default='base', help="base, etc.")
+parser.add_argument("-x", "--ex_name", type=str, default='lo1', help="e.g. lo1")
+args = parser.parse_args()
 # setup
 import os; import sys
 alp = os.path.abspath('../alpha')
 if alp not in sys.path:
     sys.path.append(alp)
 import Lfun; reload(Lfun)
-Ldir = Lfun.Lstart(alp)
+Ldir = Lfun.Lstart(args.gridname, args.tag)
+Ldir['gtagex'] = Ldir['gtag'] + '_' + args.ex_name
 
 import pandas as pd
 
@@ -60,7 +69,7 @@ for ii in range(2,26):
     ncpad = ncpad[-4:]
     hisname = 'ocean_his_' + ncpad + '.nc'
     out_list.append(hisname)
-ro_dir0 = Ldir['roms'] + 'output/' + Ldir['gtag'] + '/'
+ro_dir0 = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/'
 for item in os.listdir(ro_dir0):
     if item[0] == 'f' and len(item) == 11:
         if set(out_list).issubset(set(os.listdir(ro_dir0 + item))):
@@ -78,12 +87,13 @@ f_df = f_df.sort_index()
 pd.set_option('display.max_rows', 1000)
 print f_df
 
-# and save in an html file
-from datetime import datetime
-fn = open(Ldir['LOo'] + 'forecast_state_' +
-    datetime.now().strftime('%Y.%m.%d') + '.html','w')
-fn.write(f_df.to_html())
-fn.close()
+if False:
+    # and save in an html file
+    from datetime import datetime
+    fn = open(Ldir['LOo'] + 'forecast_state_' +
+        datetime.now().strftime('%Y.%m.%d') + '.html','w')
+    fn.write(f_df.to_html())
+    fn.close()
 
 
 
