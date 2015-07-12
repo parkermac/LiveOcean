@@ -64,7 +64,7 @@ def make_fn_list(dt0,dt1,Ldir, hourmax=24): # a helpful function
         f_string = 'f' + dl
         for nhis in range(2, hourmax+2): # range(2, 26) for a typical forecast              
             nhiss = ('0000' + str(nhis))[-4:]                        
-            fn = (Ldir['roms'] + 'output/' + Ldir['gtag'] + '/'
+            fn = (Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/'
                 + f_string + '/ocean_his_' + nhiss + '.nc')
             fn_list.append(fn)
     return fn_list
