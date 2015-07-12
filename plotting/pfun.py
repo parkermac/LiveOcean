@@ -18,8 +18,8 @@ def roms_basic(fn, alp, fn_coast='', show_plot=True, save_plot=False,
     # either a screen image or a graphics file
     
     # scaling choices
-    sname = 'south_sound'
-    #sname = 'cascadia'
+    #sname = 'south_sound'
+    sname = 'cascadia'
     if sname == 'south_sound':
         salt_lims = (29.5,30.5)
         temp_lims = (13,17)  

@@ -4,13 +4,23 @@ Plot fields in one or more history files.
 On fjord this needs to be run with an X window.
 """
 
+# get command line arguments if any
+import argparse
+parser = argparse.ArgumentParser()
+# optional arguments
+parser.add_argument("-g", "--gridname", type=str, default='cascadia1', help="cascadia1, etc.")
+parser.add_argument("-t", "--tag", type=str, default='base', help="base, etc.")
+parser.add_argument("-x", "--ex_name", type=str, default='lo1', help="e.g. lo1")
+args = parser.parse_args()
 # setup
 import os; import sys
 alp = os.path.abspath('../alpha')
 if alp not in sys.path:
     sys.path.append(alp)
 import Lfun; reload(Lfun)
-Ldir = Lfun.Lstart(alp)
+Ldir = Lfun.Lstart(args.gridname, args.tag)
+Ldir['gtagex'] = Ldir['gtag'] + '_' + args.ex_name
+
 from datetime import datetime, timedelta
 coast_file = Ldir['data'] + 'coast/pnw_coast_combined.mat'
 import pfun; reload(pfun) # local module of plot routines
@@ -66,7 +76,7 @@ if list_type == 'test':
 elif list_type == 'hand_selection':
     
     # select one or more files using a dialog box
-    if False:
+    if True:
         # this version works in Canopy
         from PySide import QtGui
         # unfortunately this kills the kernel in Anaconda
@@ -74,6 +84,7 @@ elif list_type == 'hand_selection':
             Ldir['roms'] + 'output/' + Ldir['gtag'] + '/')
     else:
         # this version may work in Anaconda 7/2/2015
+        # but it crashes Canopy 7/12/2015
         import Tkinter
         from tkFileDialog import askopenfilename
         root = Tkinter.Tk()
