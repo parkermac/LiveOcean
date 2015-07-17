@@ -56,5 +56,5 @@ for fn in fn_list:
 # ******************************************************* 
 
 # run the code to create the forcing files
-#Lfun.run_worker(args.date_string, Ldir)
+Lfun.run_worker(args.date_string, Ldir)
 print('MAIN end time = ' + str(datetime.now()))

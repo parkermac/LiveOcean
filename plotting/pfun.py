@@ -53,6 +53,16 @@ def roms_basic(fn, alp, fn_coast='', show_plot=True, save_plot=False,
     h = G['h']
     salt = ds.variables['salt'][0, -1, :, :].squeeze()
     temp = ds.variables['temp'][0, -1, :, :].squeeze()
+    
+    # automatic color limits
+    def auto_lims(fld):            
+        flo = np.floor(fld.mean() - fld.std())
+        fhi = np.ceil(fld.mean() + fld.std())
+        return (flo, fhi)
+    salt_lims = auto_lims(salt)
+    temp_lims = auto_lims(temp)
+    # need a way to make this permanent across all frames in a movie
+        
     u = ds.variables['u'][0, -1, :, :].squeeze()
     v = ds.variables['v'][0, -1, :, :].squeeze()  
     taux = ds.variables['sustr'][:].squeeze()

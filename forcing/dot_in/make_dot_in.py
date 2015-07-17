@@ -38,6 +38,13 @@ gtag = Ldir['gtag']
 gtagex = gtag + '_' + args.ex_name
 EX_NAME = args.ex_name.upper()
 
+# account for differences when using biology
+# NOTE: this is not  robust because it depends on a specific ex_name
+if args.ex_name == 'lobio1':
+    do_bio = True
+else:
+    do_bio = False
+
 multi_core = True # use more than one core
 
 if args.run_type == 'backfill':
@@ -86,6 +93,13 @@ grid_dir = lo_dir + 'preamble/make_resources/' + args.gridname + '/'
 force_dir = loo_dir + gtag + '/' + f_string + '/'
 roms_dir = '/pmr1/parker/LiveOcean_roms/'
 
+if do_bio:
+    roms_name = 'ROMS_WOAC'
+    bio_tag = '_bio'
+else:
+    roms_name = 'ROMS'
+    bio_tag = ''
+
 # the .in file
 dot_in_name = 'liveocean.in' # name of the .in file
 dot_in_dir0 = Ldir['roms'] + 'output/' + gtagex + '/'
@@ -109,7 +123,7 @@ if args.start_type == 'continuation':
     ini_fullname = out_dir0 + f_string_yesterday + '/' + ininame
 elif args.start_type == 'new':
     nrrec = '0' # '0' for a history or ini file
-    ininame = 'ocean_ini.nc' # could be an ini or history file
+    ininame = 'ocean_ini' + bio_tag + '.nc' # could be an ini or history file
     ini_fullname = force_dir + ocn_dir + ininame
 
 # END DERIVED VALUES
@@ -121,7 +135,7 @@ f2 = open(dot_in_dir + dot_in_name,'w')
 in_varlist = ['base_dir','ntilei','ntilej','ntimes','dt','nrrec','ninfo',
     'nhis','dstart','ndefhis','nrst','force_dir','grid_dir','roms_dir',
     'atm_dir','ocn_dir','riv_dir','tide_dir',
-    'zqt_height','zw_height','ini_fullname','out_dir','EX_NAME']
+    'zqt_height','zw_height','ini_fullname','out_dir','EX_NAME','roms_name','bio_tag']
 for line in f:
     for var in in_varlist:
         if '$'+var+'$' in line: 

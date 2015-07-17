@@ -71,8 +71,8 @@ def make_fn_list(dt0,dt1,Ldir, hourmax=24): # a helpful function
 
 # choose which file(s) to plot
 if list_type == 'test':
-    #fn_list = ['/Users/PM5/Documents/LiveOcean_roms/output/cascadia1_base/f2015.05.27/ocean_his_0002.nc']
-    fn_list = ['/Users/PM5/Documents/roms/output/T2006.ssound.200.it.Dforcing/ocean_his_1000.nc']
+    fn_list = ['/Users/PM5/Documents/LiveOcean_roms/output/cascadia1_base/f2015.05.27/ocean_his_0002.nc']
+    #fn_list = ['/Users/PM5/Documents/roms/output/T2006.ssound.200.it.Dforcing/ocean_his_1000.nc']
 elif list_type == 'hand_selection':
     
     # select one or more files using a dialog box

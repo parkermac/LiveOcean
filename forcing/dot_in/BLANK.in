@@ -20,7 +20,8 @@
 ! Input variable information file name.  This file needs to be processed
 ! first so all information arrays can be initialized properly.
 
-     VARNAME = $roms_dir$ROMS/ROMS/External/varinfo.dat
+     VARNAME = $roms_dir$$roms_name$/ROMS/External/varinfo.dat
+     
 
 ! Number of nested grids.
 
@@ -554,8 +555,8 @@ Dout(iTvdif) == T T     ! temp_vdiff, ...    vertical diffusion
 ! line per entry with a vertical bar (|) symbol after each entry,
 ! except the last one.
 
-     BRYNAME == $force_dir$$ocn_dir$ocean_bry.nc
-     CLMNAME == $force_dir$$ocn_dir$ocean_clm.nc
+     BRYNAME == $force_dir$$ocn_dir$ocean_bry$bio_tag$.nc
+     CLMNAME == $force_dir$$ocn_dir$ocean_clm$bio_tag$.nc
 
 ! Input climatology nudging coefficients file name.
 
@@ -563,7 +564,7 @@ Dout(iTvdif) == T T     ! temp_vdiff, ...    vertical diffusion
 
 ! Input Sources/Sinks forcing (like river runoff) file name.
 
-     SSFNAME == $force_dir$$riv_dir$rivers.nc
+     SSFNAME == $force_dir$$riv_dir$rivers$bio_tag$.nc
 
      NFFILES == 9                          ! number of unique forcing files
 
@@ -583,6 +584,9 @@ Dout(iTvdif) == T T     ! temp_vdiff, ...    vertical diffusion
      HISNAME == $out_dir$ocean_his.nc
      AVGNAME == $out_dir$ocean_avg.nc
      DIANAME == $out_dir$ocean_dia.nc
+     
+! Input ASCII parameter filenames.
+     BPARNAM = $roms_dir$$roms_name$/ROMS/External/npzd2o_banas.in
 
 
 
