@@ -1,6 +1,7 @@
 """
 Module of plotting functions.
 """
+       
 def roms_basic(fn, alp, fn_coast='', show_plot=True, save_plot=False,
     fn_out='test.png'):    
     # This creates, and optionally saves, a basic plot of surface fields
@@ -22,7 +23,7 @@ def roms_basic(fn, alp, fn_coast='', show_plot=True, save_plot=False,
     sname = 'cascadia'
     if sname == 'south_sound':
         salt_lims = (29.5,30.5)
-        temp_lims = (13,17)  
+        temp_lims = (10,17)  
         v_scl = 30 # scale velocity vector (smaller to get longer arrows)
         v_leglen = 1 # m/s for velocity vector legend
         t_scl = .2 # scale windstress vector (smaller to get longer arrows)
@@ -30,7 +31,7 @@ def roms_basic(fn, alp, fn_coast='', show_plot=True, save_plot=False,
         fig_size = (21, 8) # figure size
     elif sname == 'cascadia':
         salt_lims = (28, 34)
-        temp_lims = (12, 20)#(6, 18)    
+        temp_lims = (0, 20)#(6, 18)    
         v_scl = 3 # scale velocity vector (smaller to get longer arrows)
         v_leglen = 0.5 # m/s for velocity vector legend
         t_scl = .2 # scale windstress vector (smaller to get longer arrows)
@@ -49,19 +50,14 @@ def roms_basic(fn, alp, fn_coast='', show_plot=True, save_plot=False,
     G, S, T = zfun.get_basic_info(fn)
     import netCDF4 as nc   
     ds = nc.Dataset(fn,'r')
-    #zfun.ncd(ds) # debugging
+    zfun.ncd(ds) # debugging
     h = G['h']
     salt = ds.variables['salt'][0, -1, :, :].squeeze()
     temp = ds.variables['temp'][0, -1, :, :].squeeze()
     
     # automatic color limits
-    def auto_lims(fld):            
-        flo = np.floor(fld.mean() - fld.std())
-        fhi = np.ceil(fld.mean() + fld.std())
-        return (flo, fhi)
-    salt_lims = auto_lims(salt)
-    temp_lims = auto_lims(temp)
-    # need a way to make this permanent across all frames in a movie
+    salt_lims = zfun.auto_lims(salt)
+    temp_lims = zfun.auto_lims(temp)
         
     u = ds.variables['u'][0, -1, :, :].squeeze()
     v = ds.variables['v'][0, -1, :, :].squeeze()  
@@ -178,6 +174,56 @@ def roms_basic(fn, alp, fn_coast='', show_plot=True, save_plot=False,
         horizontalalignment='left', transform=ax.transAxes)
     # END OF VELOCITY VECTOR SECTION
          
+    if show_plot==True:
+        plt.show()   
+    if save_plot==True:
+        plt.savefig(fn_out)
+        
+def bio_basic(fn, alp, fn_coast='', show_plot=True, save_plot=False,
+    fn_out='test.png'):    
+    # This creates, and optionally saves, a basic plot of surface fields
+    # from a ROMS history file, focusing on bio fields.
+    import sys
+    if alp not in sys.path:
+        sys.path.append(alp)    
+    import zfun; reload(zfun) # utility functions
+    # grid info
+    G, S, T = zfun.get_basic_info(fn)
+    lonp = G['lon_psi']
+    latp = G['lat_psi']
+    aa = [lonp.min(), lonp.max(), latp.min(), latp.max()]   
+    # fields
+    import netCDF4 as nc   
+    ds = nc.Dataset(fn,'r')
+    #zfun.ncd(ds) # debugging
+    # list of surface fields to get and plot    
+    vn_list = ['salt','temp','NO3','phytoplankton','oxygen',
+        'TIC','alkalinity','CaCO3']   
+    fdict = dict()
+    for vn in vn_list:
+        fdict[vn] =  ds.variables[vn][0, -1, :, :].squeeze()
+    ds.close()          
+    # PLOTTING       
+    import matplotlib.pyplot as plt
+    plt.close()  
+    NR = 2; NC = 4
+    fig, axes = plt.subplots(nrows=NR, ncols=NC, figsize=(14,8), squeeze=False)    
+    cmap = plt.get_cmap(name='jet')    
+    count = 0
+    for rr in range(NR):
+        for cc in range(NC):           
+            vn = vn_list[count]
+            fld = fdict[vn]
+            c_lims = zfun.auto_lims(fld)            
+            ax = axes[rr,cc]            
+            cs = ax.pcolormesh(lonp, latp, fld[1:-1,1:-1],
+                vmin=c_lims[0], vmax=c_lims[1],  cmap = cmap)
+            plt.axes(ax) # needed for the separate colorbars to work         
+            fig.colorbar(cs)
+            ax.axis(aa)
+            zfun.dar(ax)        
+            ax.set_title(vn)
+            count += 1
     if show_plot==True:
         plt.show()   
     if save_plot==True:
@@ -650,4 +696,138 @@ def nest_plot(fn, alp, fn_coast='', show_plot=True, save_plot=False,
         plt.show()   
     if save_plot==True:
         plt.savefig(fn_out)
+        
+def tracks(fn, alp, fn_coast='', show_plot=True, save_plot=False,
+    fn_out='test.png'):    
+
+    """
+    Code to experiment with ways to create particle tracks.  Aimed at
+    quick interactive visualization.
+    """
+    
+    # setup
+    import os; import sys
+    if alp not in sys.path:
+        sys.path.append(alp)
+    #import Lfun; reload(Lfun)
+    import zfun; reload(zfun) # utility functions
+    #import matfun; reload(matfun) # functions for working with mat files
+    
+    
+    # GET DATA
+    # run some code
+    G, S, T = zfun.get_basic_info(fn)
+    import netCDF4 as nc   
+    ds = nc.Dataset(fn,'r')
+    u = ds.variables['u'][0, -1, :, :].squeeze()
+    v = ds.variables['v'][0, -1, :, :].squeeze()
+    salt = ds.variables['salt'][0, -1, :, :].squeeze()
+    ds.close()
+    # set masked values to 0
+    ud = u.data; ud[G['mask_u']==False] = 0
+    vd = v.data; vd[G['mask_v']==False] = 0 
+    
+    # make initial track locations
+    import numpy as np
+    aa = (G['lon_rho'][0,0],G['lon_rho'][0,-1],
+        G['lat_rho'][0,0],G['lat_rho'][-1,0])  
+    daax = aa[1] - aa[0]
+    daay = aa[3] - aa[2]
+    mlat = np.mean(aa[2:])
+    clat = np.cos(np.deg2rad(mlat))
+    axrat = clat * daax / daay
+    nngrid = 80
+    nr = nngrid
+    nc = round(nngrid * axrat)
+    npts = nr * nc
+    if False:
+        #random grid
+        x = np.random.uniform(aa[0], aa[1], npts)
+        y = np.random.uniform(aa[2], aa[3], npts)
+    else:
+        xx = np.linspace(aa[0], aa[1], nc)
+        yy = np.linspace(aa[2], aa[3], nr)
+        XX,YY = np.meshgrid(xx,yy)
+        x = XX.flatten()
+        y = YY.flatten()
+    
+    # set track integration parameters
+    dt = 1*3600. # time step (sec)
+    nt = 48 # number of time steps
+    RE = zfun.earth_rad(mlat)
+    lonu = G['lon_u'][0, :]
+    latu = G['lat_u'][:, 0]
+    lonv = G['lon_v'][0, :]
+    latv = G['lat_v'][:, 0]
+    
+    # initialize output arrays
+    # the last time level of the locations will be nan, so
+    # that we can plot tracks efficiently
+    x2 = np.nan * np.ones((npts,nt+1))
+    y2 = x2.copy()
+    t2 = np.zeros((npts,nt+1))
+    x2[:,0] = x   
+    y2[:,0] = y
+    t2[:,0] = 0.  
+    
+    for ii in range(1,nt):   
+        # get velocities at track locations
+        ui = zfun.interp_scattered_on_plaid(x, y, lonu, latu, ud)
+        vi = zfun.interp_scattered_on_plaid(x, y, lonv, latv, vd)    
+        # create distance step (m)
+        dx = ui * dt
+        dy = vi * dt    
+        # calculate new positions (degrees)
+        dlon =  (dx/(clat*RE)) * (180./np.pi)
+        dlat =  (dy/RE) * (180./np.pi)
+        x = x + dlon
+        y = y + dlat   
+        # store results
+        x2[:,ii] = x   
+        y2[:,ii] = y
+        t2[:,ii] = float(ii)    
+    
+    # START PLOTTING     
+    import matplotlib.pyplot as plt
+    plt.close()
+    fig = plt.figure(figsize=(8,10))
+    ax = fig.add_subplot(111)
+    
+    # PLOT SALT FIELD
+    cmap = plt.get_cmap(name='jet')    
+    salt_lims = zfun.auto_lims(salt)
+    cs = ax.pcolormesh(G['lon_psi'], G['lat_psi'], salt[1:-1,1:-1],
+        vmin=salt_lims[0], vmax=salt_lims[1],  cmap = cmap, alpha=.1)    
+    ax.axis(aa)
+    zfun.dar(ax)
+    ax.set_xlabel('Longitude')
+    ax.set_ylabel('Latitude')
+    
+    # PLOT TRACKS
+    # plots lines with varying width
+    from matplotlib.collections import LineCollection
+    xx = x2.flatten()
+    yy = y2.flatten()
+    tt = t2.flatten()
+    maxwidth = 1. 
+    lwidths = tt[:-1]*(maxwidth/nt) # drop last point
+    points = np.array([xx, yy]).T.reshape(-1, 1, 2)
+    segments = np.concatenate([points[:-1], points[1:]], axis=1)
+    lc = LineCollection(segments, linewidths=lwidths,colors='blue')
+    ax.add_collection(lc)
+    
+    # plot a dot
+    #hr = np.mod(int(fn[-7:-3]),12)
+    #ax.plot(x2[:,hr],y2[:,hr],'.r',markersize=2)
+    
+    if show_plot==True:
+        plt.show()   
+    if save_plot==True:
+        plt.savefig(fn_out)
+        
+
+
+
+
+
 

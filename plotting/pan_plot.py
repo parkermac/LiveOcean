@@ -10,7 +10,7 @@ parser = argparse.ArgumentParser()
 # optional arguments
 parser.add_argument("-g", "--gridname", type=str, default='cascadia1', help="cascadia1, etc.")
 parser.add_argument("-t", "--tag", type=str, default='base', help="base, etc.")
-parser.add_argument("-x", "--ex_name", type=str, default='lo1', help="e.g. lo1")
+parser.add_argument("-x", "--ex_name", type=str, default='lobio1', help="e.g. lo1")
 args = parser.parse_args()
 # setup
 import os; import sys
@@ -71,17 +71,16 @@ def make_fn_list(dt0,dt1,Ldir, hourmax=24): # a helpful function
 
 # choose which file(s) to plot
 if list_type == 'test':
-    fn_list = ['/Users/PM5/Documents/LiveOcean_roms/output/cascadia1_base/f2015.05.27/ocean_his_0002.nc']
+    fn_list = ['/Users/PM5/Documents/LiveOcean_roms/output/cascadia1_base_lobio1/f2013.01.01/ocean_his_0025.nc']
     #fn_list = ['/Users/PM5/Documents/roms/output/T2006.ssound.200.it.Dforcing/ocean_his_1000.nc']
-elif list_type == 'hand_selection':
-    
+elif list_type == 'hand_selection':   
     # select one or more files using a dialog box
     if True:
         # this version works in Canopy
         from PySide import QtGui
         # unfortunately this kills the kernel in Anaconda
         fn_list, _ = QtGui.QFileDialog.getOpenFileNames(None, 'Choose File(s)',
-            Ldir['roms'] + 'output/' + Ldir['gtag'] + '/')
+            Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/')
     else:
         # this version may work in Anaconda 7/2/2015
         # but it crashes Canopy 7/12/2015

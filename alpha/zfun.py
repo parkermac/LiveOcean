@@ -3,6 +3,111 @@ This module contains functions for extracting data from ROMS history files.
 
 Parker MacCready
 """
+def interp_scattered_on_plaid(x, y, xvec, yvec, u):
+    """
+    Gets values of the field u at locations (x,y).
+    
+    All inputs and outputs are numpy arrays.
+    
+    Field u is defined on a plaid grid defined by vectors xvec and yvec.
+    
+    Locations (x,y) are defined by vectors whose elements specify
+    individual points.  They are not a plaid grid, but can be
+    scattered arbitrarily throughout the domain.
+    
+    Returns a vector ui the same length at x and y.
+    
+    Note that because it relies on "get_interpolant_fast" out-of-bounds
+    values default to the edge values of field u. 
+    """
+    # get interpolants
+    xint = get_interpolant_fast(x,xvec)
+    yint = get_interpolant_fast(y,yvec)
+    
+    # and use these to get the interpolated u and v
+    xi0 = xint[:,0].astype(int)  
+    yi0 = yint[:,0].astype(int)   
+    xi1 = xint[:,1].astype(int)  
+    yi1 = yint[:,1].astype(int)   
+    xf = xint[:,2]
+    yf = yint[:,2]
+    
+    # bi linear interpolation
+    u00 = u[yi0,xi0]
+    u10 = u[yi1,xi0]
+    u01 = u[yi0,xi1]
+    u11 = u[yi1,xi1]
+    ui = (1-yf)*((1-xf)*u00 + xf*u01) + yf*((1-xf)*u10 + xf*u11)
+    
+    return ui
+
+def get_interpolant_fast(x, xvec):
+    """
+    Returns info to allow fast interpolation.
+    
+    Re-coded from get_interpolant to be cleaner and faster. In an
+    informal benchmark it was about 6-7 times faster than
+    get_interpolant.
+    
+    Input: data point(s) x and coordinate vector xvec
+    (both must be 1-D numpy arrays)
+    
+    Output: indices into xvec that surround x,
+    and the fraction 'a' into that segment to find x
+    which I call "interpolants"
+    returned as a 3-column numpy array with columns:
+    [index below, index above, fraction]
+    """
+    import numpy as np
+            
+    # input error checking
+    if isinstance(x, np.ndarray) and isinstance(xvec, np.ndarray):
+        pass # input type is good
+    else:
+        print('WARNING from get_interpolant_array(): ' +
+            'Inputs must be numpy arrays')
+                
+    # some preconditioning of the input
+    x = x.flatten()
+    xvec = xvec.flatten()
+    
+    # more error checking
+    if not np.all(np.diff(xvec) > 0):
+        print('WARNING from get_interpolant_array(): ' +
+            'xvec must be monotonic and increasing')
+    
+    nx = len(x)
+    nxvec = len(xvec)
+    
+    X = x.reshape(nx, 1) # column vector
+    xvec = xvec.reshape(1, nxvec)
+    XVEC = xvec.repeat(nx, axis=0) # matrix
+    
+    # preallocate results array
+    itp = np.zeros((nx,3))
+    
+    # calculate index columns
+    mask = X > XVEC
+    # the above line broadcasts correctly even of nx = nxvec
+    # because we forced X to be a column vector
+    itp[:,0] = mask.sum(axis=1) - 1
+    # these masks are used to handle values of x beyond the limits
+    # of xvec
+    lomask = itp[:,0] < 0
+    himask = itp[:,0] > nxvec - 2
+    itp[lomask, 0] = 0
+    itp[himask, 0] = nxvec - 2
+    itp[:,1] = itp[:,0] + 1
+    
+    xvec0 = xvec[0,itp[:,0].astype(int)]
+    xvec1 = xvec[0,itp[:,1].astype(int)]
+    frac = (x - xvec0)/(xvec1 - xvec0)
+    itp[:,2] = frac
+    itp[lomask, 2] = 0
+    itp[himask, 2] = 1
+    
+    return itp
+
 
 def get_interpolant(x, xvec):
     """
@@ -19,7 +124,7 @@ def get_interpolant(x, xvec):
     """
     import numpy as np
         
-    # input error checking
+    # input error checking (could also use "isinstance")
     if type(x) != np.ndarray or type(xvec) != np.ndarray:
         print 'WARNING from get_interpolant(): Inputs must be numpy arrays'
         ind0 = ind1 = a = np.nan
@@ -45,7 +150,7 @@ def get_interpolant(x, xvec):
     
     # calculate results
     n = 0 # a counter
-    for xx in x:
+    for xx in x: # surely we could find a faster way to to this!
         # calculate indices, with some choices about edge and out-of-bounds values
         if xx <= xvec[0]:
             ind0[n] = 0; ind1[n] = 1; a[n] = 0.
@@ -481,19 +586,63 @@ def filt_hanning(data, n=40):
   
     return smooth
     
-def ncd(ds, pat=''):
+def ncd(fn_ds, pat=''):
     """
-    Prints info on varibles in a NetCDF dataset ds. Accepts a string 'pat' that
+    Prints info on varibles in a NetCDF file or NetCDF dataset. Accepts a string 'pat' that
     can be used to filter the output.
     
-    Example: zfun.ncd(ds, pat='time')
+    Example: zfun.ncd(fn_ds, pat='time')
     """
+    # determine input type
+    import netCDF4 as nc
+    if isinstance(fn_ds, nc.Dataset):
+        ds = fn_ds
+    elif isinstance(fn_ds, (str, unicode)):
+        try:
+            ds = nc.Dataset(fn_ds)
+        except:
+            print('Input was not a NetCDF file')
+            return
+    else:
+        print('Bad input type')
+        return # exit the function
+        
+    # print information    
     for vn in ds.variables:
         if len(pat) > 0:
             if pat in vn:
                 print ds.variables[vn]
         else:
             print ds.variables[vn]
+                  
+def auto_lims(fld):
+    """
+    A convenience function for automatically setting color limits.
+    Input: a numpy array (masked OK)
+    Output: tuple of good-guess colorsclae limits for a pcolormesh plot.
+    """
+    import numpy as np           
+    flo = np.floor(fld.mean() - fld.std())
+    fhi = np.ceil(fld.mean() + fld.std())
+    return (flo, fhi)
+    
+def earth_rad(lat_deg):
+    """
+    Calculate the Earth radius (m) at a latitude
+    (from http://en.wikipedia.org/wiki/Earth_radius) for oblate spheroid
+    
+    INPUT: latitude in degrees
+    
+    OUTPUT: Earth radius (m) at that latitute
+    """    
+    a = 6378.137 * 1000; # equatorial radius (m)
+    b = 6356.7523 * 1000; # polar radius (m)
+    import numpy as np
+    cl = np.cos(np.pi*lat_deg/180)
+    sl = np.sin(np.pi*lat_deg/180)
+    RE = np.sqrt(((a*a*cl)**2 + (b*b*sl)**2) / ((a*cl)**2 + (b*sl)**2))
+    return RE
+
 
     
     
