@@ -151,6 +151,7 @@ f2.close()
 
 f = open('npzd2o_Banas_BLANK.in','r')
 bio_dot_in_name = Ldir['roms'] + roms_name + '/ROMS/External/npzd2o_Banas.in'
+print(bio_dot_in_name) # debugging
 f3 = open(bio_dot_in_name,'w')
 in_varlist = ['force_dir','riv_dir','bio_tag']
 for line in f:
