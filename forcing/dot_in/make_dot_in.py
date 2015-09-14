@@ -146,3 +146,20 @@ for line in f:
     f2.write(line2)
 f.close()
 f2.close()
+
+## Hack 9/14/2015: create ROMS_WOAC/ROMS/External/npxd2o_Banas.in ###########
+
+f = open('npzd2o_Banas_BLANK.in','r')
+bio_dot_in_name = Ldir['roms'] + roms_name + '/ROMS/External/npzd2o_Banas.in'
+f3 = open(bio_dot_in_name,'w')
+in_varlist = ['force_dir','riv_dir','bio_tag']
+for line in f:
+    for var in in_varlist:
+        if '$'+var+'$' in line: 
+            line2 = line.replace('$'+var+'$', str(eval(var)))
+            line = line2
+        else:
+            line2 = line
+    f3.write(line2)
+f.close()
+f3.close()

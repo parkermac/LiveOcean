@@ -98,8 +98,8 @@ if args.run_type == 'forecast':
             Ofun.process_extrap(vn, nc_dir)
             Ofun.process_time_filter(vn, nc_dir)
     except:
-        # NOTE: 2015/06/15 the problem with this is that sometimes we get fiels, but
-        # not enought of them to do a three-day forecast.  In that case plan B
+        # NOTE: 2015/06/15 the problem with this is that sometimes we get fields, but
+        # not enough of them to do a three-day forecast.  In that case plan B
         # would have helped, but it is never executed.
         #
         # do this if geting the hycom forecast fields failed
