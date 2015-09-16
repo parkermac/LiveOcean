@@ -1,8 +1,7 @@
 function make_bio_BCsfast_withDIC(grdname, clmname, bryname, ininame, rivname, NO3_method);
 %function make_bio_BCsfast_withDIC(out_dir, cname, bname, rname, NO3_method, iname)
-
 %
-% make_bio_BCs.m  12/22/2011 Samantha Siedlecki
+% basedon make_bio_BCs.m  12/22/2011 Samantha Siedlecki
 %
 % This code edits the ROMS forcing files (clm, bry, ini, and river) created
 % previously by make_clim.m, clm2bry.m, and clm2ini.m, and make_rivers.m
@@ -24,7 +23,10 @@ function make_bio_BCsfast_withDIC(grdname, clmname, bryname, ininame, rivname, N
 % iname: name of ini file - for example, iname='ocean_ini_test.nc';
 % gname: name of the grid file  - needs to be in the out_dir too.
 
-% Updated 5/27/2015 by PM to fit into LiveOcean framework
+% Updated 5/27/2015 by PM to fit into LiveOcean framework.
+
+% Updated 9/16/2015 by PM to work with new regressions.  In particular
+% we no longer use temperature in the DIC/TAlk regressions.
 
 %-----------------------------------------------------------------------
 
@@ -54,7 +56,7 @@ if exist(clmname,'file')
     %Create time fields
     vartime = netcdf.getVar(ncid,salt_time_id,'double'); % basing bio time field off salt_time
     clm_salt = netcdf.getVar(ncid,salt_id,'double');
-    clm_temp = netcdf.getVar(ncid,temp_id,'double');
+    %clm_temp = netcdf.getVar(ncid,temp_id,'double');
     
     % Create NO3 field
     if strcmp(NO3_method,'PL_Salt')
@@ -62,7 +64,8 @@ if exist(clmname,'file')
         NO3 = make_NO3_field(NO3_method,clm_salt);
         % Calculate oxygen
         oxygen = make_oxy_field(NO3_method,clm_salt);
-        [DIC, Talk] = make_DIC_field(NO3_method,clm_salt,clm_temp);
+        %[DIC, Talk] = make_DIC_field(NO3_method,clm_salt,clm_temp);
+        [DIC, Talk] = make_DIC_field(NO3_method,clm_salt);
     end
     %NO3=-1000*ones(size(clm_salt)); % what? PM
     
@@ -110,7 +113,6 @@ if exist(clmname,'file')
     varidp=netcdf.defVar(ncid, 'phytoplankton', xtype,dimids);
     varidz=netcdf.defVar(ncid, 'zooplankton',  xtype,dimids);
     varidd=netcdf.defVar(ncid, 'detritus',  xtype,dimids);
-    %varidLd=netcdf.defVar(ncid, 'Ldetritus',  xtype,dimids);
     varidLd=netcdf.defVar(ncid, 'Ldetritus',  xtype,dimids);
     varidPIC=netcdf.defVar(ncid, 'CaCO3',  xtype,dimids);
     varido=netcdf.defVar(ncid, 'oxygen',  xtype,dimids);
@@ -232,10 +234,10 @@ if exist(bryname,'file')
     bry_ssalt = netcdf.getVar(ncid,ssalt_id,'double');
     bry_esalt = netcdf.getVar(ncid,esalt_id,'double');
     bry_wsalt = netcdf.getVar(ncid,wsalt_id,'double');
-    bry_ntemp = netcdf.getVar(ncid,ntemp_id,'double');
-    bry_stemp = netcdf.getVar(ncid,stemp_id,'double');
-    bry_etemp = netcdf.getVar(ncid,etemp_id,'double');
-    bry_wtemp = netcdf.getVar(ncid,wtemp_id,'double');
+%     bry_ntemp = netcdf.getVar(ncid,ntemp_id,'double');
+%     bry_stemp = netcdf.getVar(ncid,stemp_id,'double');
+%     bry_etemp = netcdf.getVar(ncid,etemp_id,'double');
+%     bry_wtemp = netcdf.getVar(ncid,wtemp_id,'double');
     
     
     % Create NO3 field
@@ -251,10 +253,14 @@ if exist(bryname,'file')
         oxygenS = make_oxy_field(NO3_method,bry_ssalt);
         oxygenE = make_oxy_field(NO3_method,bry_esalt);
         oxygenW = make_oxy_field(NO3_method,bry_wsalt);
-        [DIC_N, Talk_N]= make_DIC_field(NO3_method,bry_nsalt,bry_ntemp);
-        [DIC_S, Talk_S] = make_DIC_field(NO3_method,bry_ssalt,bry_stemp);
-        [DIC_E, Talk_E] = make_DIC_field(NO3_method,bry_esalt,bry_etemp);
-        [DIC_W,Talk_W] = make_DIC_field(NO3_method,bry_wsalt,bry_wtemp);
+%         [DIC_N, Talk_N]= make_DIC_field(NO3_method,bry_nsalt,bry_ntemp);
+%         [DIC_S, Talk_S] = make_DIC_field(NO3_method,bry_ssalt,bry_stemp);
+%         [DIC_E, Talk_E] = make_DIC_field(NO3_method,bry_esalt,bry_etemp);
+%         [DIC_W,Talk_W] = make_DIC_field(NO3_method,bry_wsalt,bry_wtemp);
+        [DIC_N, Talk_N]= make_DIC_field(NO3_method,bry_nsalt);
+        [DIC_S, Talk_S] = make_DIC_field(NO3_method,bry_ssalt);
+        [DIC_E, Talk_E] = make_DIC_field(NO3_method,bry_esalt);
+        [DIC_W, Talk_W] = make_DIC_field(NO3_method,bry_wsalt);
     end
     
     %Create phytoplankton field
@@ -280,6 +286,7 @@ if exist(bryname,'file')
     LdetritusS = zeros(size(bry_ssalt)); % Initializing with no detritus
     LdetritusE = zeros(size(bry_esalt)); % Initializing with no detritus
     LdetritusW = zeros(size(bry_wsalt)); % Initializing with no detritus
+    
     % Create PIC field
     PICN = zeros(size(bry_nsalt)); % Initializing with no detritus
     PICS = zeros(size(bry_ssalt)); % Initializing with no detritus
@@ -506,11 +513,9 @@ if exist(bryname,'file')
     netcdf.putVar(ncid, variddicE, DIC_E);
     netcdf.putVar(ncid, variddicW, DIC_W);
     
-    
     %close the netcdf file
     netcdf.close(ncid);
-    
-    
+       
 end % END if exist(bryname)
 %
 % % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -520,8 +525,7 @@ end % END if exist(bryname)
 %ininame = [out_dir, iname];
 
 if exist(bryname,'file')
-    
-    
+        
     %%open ini file to write to it
     fileattrib(ininame,'+w');
     ncidi=netcdf.open(ininame, 'NC_WRITE');
@@ -553,6 +557,7 @@ if exist(bryname,'file')
     if strcmp(NO3_method,'PL_Salt')
         %Calculate NO3
         NO3 = make_NO3_field(NO3_method,ini_salt);
+        
         % Now set nitrate in Salish Sea
         % Read in the grid matrices
         lon_rho = nc_varget(grdname,'lon_rho')';
@@ -560,7 +565,8 @@ if exist(bryname,'file')
         [iB1,jB1] = find(and(lat_rho>=49,lon_rho>=-125.25)); %Box 1
         [iB2,jB2] = find(and(and(lat_rho<49,lat_rho>=48.5),lon_rho>=-124)); %Box 2
         [iB3,jB3] = find(and(and(lat_rho<48.5,lat_rho>=47),lon_rho>=-123.5)); %Box 3
-        salt_corr = 0.9276*ini_salt + 2.746; % NCOM salinity correction
+        %salt_corr = 0.9276*ini_salt + 2.746; % NCOM salinity correction
+        salt_corr = ini_salt; % HYCOM does not need correcting
         NO3(iB1,jB1,:) = 3.26*salt_corr(iB1,jB1,:) -76.44; % line from Neil's fit to Eastern SJDF data
         NO3(iB2,jB2,:) = 3.26*salt_corr(iB2,jB2,:) -76.44; % line from Neil's fit to Eastern SJDF data
         NO3(iB3,jB3,:) = 3.26*salt_corr(iB3,jB3,:) -76.44; % line from Neil's fit to Eastern SJDF data
@@ -572,7 +578,8 @@ if exist(bryname,'file')
         
         %Calculate oxygen
         oxygen = make_oxy_field(NO3_method,ini_salt);
-        [DIC, Talk] = make_DIC_field(NO3_method,ini_salt,ini_temp);
+        %[DIC, Talk] = make_DIC_field(NO3_method,ini_salt,ini_temp);
+        [DIC, Talk] = make_DIC_field(NO3_method,ini_salt);
         
     end
     

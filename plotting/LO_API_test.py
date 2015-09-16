@@ -1,4 +1,8 @@
-import json
+"""
+Code to test Rob Fatland's API call.
+"""
+
+#import json
 import urlparse
 import requests
  

@@ -12,7 +12,7 @@ function make_forcing_worker(gridname, tag, date_string, outdir)
 addpath('../../alpha'); Ldir = Lstart(gridname, tag);
 start_time = datenum(now);
 
-%% atm-specific code
+%% ocn-specific code
 addpath('./ocn_fun');
 
 % the ROMS grid Info
@@ -40,7 +40,7 @@ varname_list={'s3d';'t3d';'u3d';'v3d'}; % all except ssh
 for ivv = 1:length(varname_list) % start of VARNAME LOOP
     tstart = tic;
     varname = varname_list{ivv};
-        
+    
     ts_to_get_uv = nc_varget([indir0,varname,'.nc'],'dt');
     nts_uv = length(ts_to_get_uv);
     
@@ -75,13 +75,20 @@ for ivv = 1:length(varname_list) % start of VARNAME LOOP
     AN = length(inz);
     
     for tt = 1:nts_uv % start of TIME LOOP
-        fn = [indir0,varname,'.nc'];       
+        fn = [indir0,varname,'.nc'];
         if tt == 1
-            % NCOM grid
+            % HYCOM grid
             Alon = nc_varget(fn, 'lon');
             Alon = Alon(1,:);
             Alat = nc_varget(fn, 'lat');
             Alat = Alat(:,1);
+            % 9/16/2015 make a 3d z grid for HYCOM
+            % to compute pressure for potential temp
+            disp([' -- saving Apress for time ',num2str(tt)])
+            Az3 = repmat(-inz(:),1,length(Alat),length(Alon));
+            Alat_mean = nanmean(Alat(:));
+            Apress = sw_pres(Az3,Alat_mean);
+            % end of Az3 code
             [ALON,ALAT] = meshgrid(Alon,Alat);
             % ROMS grid
             [z_rho,z_w] = Z_s2z(hh,0*hh,S);
@@ -91,7 +98,7 @@ for ivv = 1:length(varname_list) % start of VARNAME LOOP
         % reinitialize the storage arrays
         % AA is the empty matrix on the ROMS grid in which to put
         % the field from this time step, BUT it has the vertical grid
-        % of the NCOM file
+        % of the HYCOM file
         AA = NaN * ones(AN,M,L);
         % AAA is the empty matrix on the ROMS grid in which to put
         % the field from this time step, and it has the vertical grid
@@ -104,6 +111,19 @@ for ivv = 1:length(varname_list) % start of VARNAME LOOP
         % if there is ANY data on that level)
         A = nc_varget(fn, V.invarname,[tt-1 0 0 0],...
             [1 -1 -1 -1]);
+        % 9/16/2015 Change in situ temperature to potential temperature
+        switch varname
+            case 's3d'
+                disp([' -- saving Asalt for time ',num2str(tt)])
+                Asalt(tt,:,:,:) = A; % to use in sw_ptmp call below
+                % we are assuming that s3d comes before t3d, as it should
+                % (should preallocate)
+            case 't3d'
+                disp([' -- calculating ptmp for time ',num2str(tt)])
+                Aorig = A;
+                A = sw_ptmp(squeeze(Asalt(tt,:,:,:)),Aorig,Apress,0*Apress);
+        end
+        
         for zz = 1:AN % start of Z-LOOP
             this_A = squeeze(A(zz,:,:));
             AA(zz,:,:) = interp2(ALON,ALAT,this_A,AAlon,AAlat);
@@ -251,7 +271,7 @@ clm2bry(outdir,clmname,'ocean_bry.nc');
 
 % add more tracers
 
-%% things to use for checking result 
+%% things to use for checking result
 outvar_list = {'ocean_clm','ocean_ini','ocean_bry'};
 t_datenum = ts_to_get/86400 + datenum(1970,1,1);
 

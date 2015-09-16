@@ -586,7 +586,7 @@ Dout(iTvdif) == T T     ! temp_vdiff, ...    vertical diffusion
      DIANAME == $out_dir$ocean_dia.nc
      
 ! Input ASCII parameter filenames.
-     BPARNAM = $roms_dir$$roms_name$/ROMS/External/npzd2o_Banas.in
+     BPARNAM = $dot_in_dir$npzd2o_Banas.in
 
 
 

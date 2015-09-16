@@ -1,35 +1,53 @@
-function oxygen = make_oxy_field(NO3_method,clm_salt)
-% make_oxy_field.m  4/1/2011 Samantha Siedlecki after Kristen Davis'
-% Nitrate function
+function oxygen = make_oxy_field(NO3_method,salt)
 %
-% This code estimates nitrate according to the method chosen by the user
-% This is a list of methods and required inputs:
-% 1. "PL_Salt" - This is a Piece-wise Linear fit to Salinity and
-% requires the input field of salinity
+% make_oxy_field.m
 %
-% NOTE: Currently only one method!
+% This code estimates oxygen according to the method chosen by the user.
+% 
+% Supported methods:
+%
+%  PL_salt = piecewise-linear regression on salt
+%
+% Recoded 9/16/2015 by PM to clean up and use of new regressions
+% from Ryan McCabe of 8/2015.
 
-if strcmp(NO3_method,'PL_Salt') % Piece-wise linear fit to salinity (pg 60 in PNWTOX A Notebook)
-    salt_corr=clm_salt; % legacy code from when we needed to correct NCOM salt bias
+%-----------------------------------------------------------------------
+
+if strcmp(NO3_method,'PL_Salt') && (nanmax(salt(:)) < 35)
     
-    oxygen = zeros(size(salt_corr)); %initializing oxygen
+    % Salinity vs. oxygen [uM], Ryan McCabe 8/2015
+    % oxygen = mm*salt + bb;
+        
+    mm = zeros(size(salt));
+    bb = zeros(size(salt));
     
-    oxygen= (salt_corr)*-129.23 + 4482.4;
+    ind = (salt < 32.167);
+    mm(ind) = 0;
+    bb(ind) = 300;
+    ind = ((salt >= 32.167) & (salt < 33.849));
+    mm(ind) = -113.9481;
+    bb(ind) = 3965.3897;
+    ind = ((salt >= 33.849) & (salt < 34.131));
+    mm(ind) = -278.3006;
+    bb(ind) = 9528.5742;
+    ind = ((salt >= 34.131) & (salt < 34.29));
+    mm(ind) = -127.2707;
+    bb(ind) = 4373.7895;
+    ind = ((salt >= 34.29) & (salt < 34.478));
+    mm(ind) = 34.7556;
+    bb(ind) = -1182.0779;
+    ind = ((salt >= 34.478) & (salt < 35));
+    mm(ind) = 401.7916;
+    bb(ind) = -13836.8132;
+        
+    oxygen = mm.*salt + bb;
     
-    index=find(and(salt_corr>=33.9,salt_corr<34.5));
-    oxygen(index)=511.42*salt_corr(index).^2-35084*salt_corr(index)+601730;
-    clear index
+    % Limit values.
+    oxygen(oxygen > 450) = 450;
+    oxygen(oxygen < 0) = 0;
     
-    index = find(salt_corr>=34.5);
-    oxygen(index) = 4e-100*exp(6.7368*(salt_corr(index)));
-    clear index
+else
     
-    % Now set minimum of 0 for oxygen s
-    index = find(oxygen < 0);
-    oxygen(index) = 0;
-    % Now set maximum of 450 for oxygen
-    index = find(oxygen > 450);
-    oxygen(index) = 450;
+    disp('Estimation method not recognized, or salt out of range.')
     
-else disp(['oxygen estimation method not recognized.'])
 end

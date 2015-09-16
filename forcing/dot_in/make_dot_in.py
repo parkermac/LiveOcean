@@ -86,7 +86,7 @@ date_string_yesterday = fdt_yesterday.strftime('%Y.%m.%d')
 dstart = str(int(Lfun.datetime_to_modtime(fdt) / 86400.))
 f_string = 'f' + date_string
 f_string_yesterday = 'f'+ date_string_yesterday
-# where forcing files live (fjord)
+# where forcing files live (fjord, as seen from gaggle)
 lo_dir = '/fjdata1/parker/LiveOcean/'
 loo_dir = '/fjdata1/parker/LiveOcean_output/'
 grid_dir = lo_dir + 'preamble/make_resources/' + args.gridname + '/'
@@ -134,7 +134,7 @@ f = open('BLANK.in','r')
 f2 = open(dot_in_dir + dot_in_name,'w')
 in_varlist = ['base_dir','ntilei','ntilej','ntimes','dt','nrrec','ninfo',
     'nhis','dstart','ndefhis','nrst','force_dir','grid_dir','roms_dir',
-    'atm_dir','ocn_dir','riv_dir','tide_dir',
+    'atm_dir','ocn_dir','riv_dir','tide_dir','dot_in_dir',
     'zqt_height','zw_height','ini_fullname','out_dir','EX_NAME','roms_name','bio_tag']
 for line in f:
     for var in in_varlist:
@@ -147,12 +147,11 @@ for line in f:
 f.close()
 f2.close()
 
-## Hack 9/14/2015: create ROMS_WOAC/ROMS/External/npxd2o_Banas.in ###########
+## 9/14/2015: create ROMS_WOAC/ROMS/External/npxd2o_Banas.in ###########
 
 f = open('npzd2o_Banas_BLANK.in','r')
-bio_dot_in_name = Ldir['roms'] + roms_name + '/ROMS/External/npzd2o_Banas.in'
-print(bio_dot_in_name) # debugging
-f3 = open(bio_dot_in_name,'w')
+bio_dot_in_name = 'npzd2o_Banas.in'
+f3 = open(dot_in_dir + bio_dot_in_name,'w')
 in_varlist = ['force_dir','riv_dir','bio_tag']
 for line in f:
     for var in in_varlist:

@@ -1,51 +1,61 @@
-function [DIC, TAlk] = make_DIC_field(NO3_method,clm_salt,clm_temp)
-% make_oxy_field.m  4/1/2011 Samantha Siedlecki after Kristen Davis'
-% Nitrate function
+function [DIC, TAlk] = make_DIC_field(NO3_method,salt)
 %
-% This code estimates nitrate according to the method chosen by the user
-% This is a list of methods and required inputs:
-% 1. "PL_Salt" - This is a Piece-wise Linear fit to Salinity and
-% requires the input field of salinity
+% make_DIC_field.m
 %
-% NOTE: Currently only one method!
+% This code estimates DIC & TAlk according to the method chosen by the user.
+% 
+% Supported methods:
+%
+%  PL_salt = piecewise-linear regression on salt
+%
+% Recoded 9/16/2015 by PM to clean up and use of new regressions
+% from Ryan McCabe of 8/2015.
 
-if strcmp(NO3_method,'PL_Salt') % Piece-wise linear fit to salinity (pg 60 in PNWTOX A Notebook)    
-    salt_corr=clm_salt; % legacy code from when we needed to correct NCOM salt bias
+%-----------------------------------------------------------------------
+
+if strcmp(NO3_method,'PL_Salt') && (nanmax(salt(:)) < 35)
+    
+    % Salinity vs. TIC [uM]
+    % TIC = mm*salt + bb;
         
-    oxygen = zeros(size(salt_corr)); %initializing oxygen
+    mm = zeros(size(salt));
+    bb = zeros(size(salt));
     
-    oxygen= (salt_corr)*-129.23 + 4482.4;
+    ind = (salt < 31.887);
+    mm(ind) = 27.7967;
+    bb(ind) = 1112.2027;
+    ind = ((salt >= 31.887) & (salt < 33.926));
+    mm(ind) = 147.002;
+    bb(ind) = -2688.8534;
+    ind = ((salt >= 33.926) & (salt < 34.197));
+    mm(ind) = 352.9123;
+    bb(ind) = -9674.5448;
+    ind = ((salt >= 34.197) & (salt < 34.504));
+    mm(ind) = 195.638;
+    bb(ind) = -4296.2223;
+    ind = ((salt >= 34.504) & (salt < 35));
+    mm(ind) = -12.7457;
+    bb(ind) = 2893.77;
+            
+    DIC = mm.*salt + bb;
+
+    % Salinity vs. TAlk [uM]
+    % TAlk = mm*salt + bb;
     
-    index=find(and(salt_corr>=33.9,salt_corr<34.5));
-    oxygen(index)=511.42*salt_corr(index).^2-35084*salt_corr(index)+601730;
-    clear index
+    ind = (salt < 31.477);
+    mm(ind) = 37.0543;
+    bb(ind) = 1031.0726;
+    ind = ((salt >= 31.477) & (salt < 33.915));
+    mm(ind) = 48.5821;
+    bb(ind) = 668.2143;
+    ind = ((salt >= 33.915) & (salt < 35));
+    mm(ind) = 246.2214;
+    bb(ind) = -6034.6841;
+            
+    TAlk = mm.*salt + bb;
+        
+else
     
-    index = find(salt_corr>=34.5);
-    oxygen(index) = 4e-100*exp(6.7368*(salt_corr(index)));
-    clear index
+    disp('Estimation method not recognized, or salt out of range.')
     
-    %Now set minimum of 0 for oxygen s
-    index = find(oxygen < 0);
-    oxygen(index) = 0;
-    %Now set maximum of 450 for oxygen
-    index = find(oxygen > 450);
-    oxygen(index) = 450;
-    %
-    Tr=8.6538;
-    Sr=33.4106; %oxygen is in umol/kg
-    Or=162.3833;
-    oxyj3_full= oxygen./(1+26.8/1000); %converts oxygen from mmol/m3 to umol/kg
-    temp3_full=clm_temp;
-    
-    
-    DIC= 2149.806-9.2491.*(temp3_full-Tr)+64.26598.*(salt_corr-Sr)-0.552528.*(oxyj3_full-Or);
-    TAlk= 2226.999-3.643.*(temp3_full-Tr)+55.9807.*(salt_corr-Sr)-5.711408.*((temp3_full-Tr).*(salt_corr-Sr));
-    
-    % Now set minimum of 0 for oxygen s
-    index = find(TAlk < 100);
-    TAlk(index) = 1000;
-    % Now set minimum of 0 for oxygen s
-    index = find(DIC < 100);
-    DIC(index) = 1000;
-else disp(['oxygen estimation method not recognized.'])   
 end
