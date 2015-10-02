@@ -132,15 +132,12 @@ vn_list = ['zeta','temp','salt',
     'shflux','latent','sensible']
 
 axn = 1
-for vn in vn_list:
-    
+for vn in vn_list:    
     ax = fig.add_subplot(3,3,axn)
     ax.plot(days, V[vn])
     ax.set_xlim(0, days.max())
     ax.set_title(vn)
     axn += 1
-
-
 
 plt.show()
 

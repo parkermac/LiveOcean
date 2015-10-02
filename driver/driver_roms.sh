@@ -27,7 +27,7 @@ fi
 # -x name of the ROMS executable to use
 # -s new or continuation
 # -r forecast or backfill
-# if backfill, then you must provide two more arguments
+#  if backfill, then you must provide two more arguments
 # -0 start date: yyyymmdd
 # -1 end date: yyyymmdd
 #

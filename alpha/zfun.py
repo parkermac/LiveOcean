@@ -585,7 +585,34 @@ def filt_hanning(data, n=40):
         #smooth[-n:] = np.nan
   
     return smooth
+
+def godin_shape():
+    """    
+    Based on matlab code of 4/8/2013  Parker MacCready    
+    Returns a 71 element numpy array that is the weights
+    for the Godin 24-24-25 tildal averaging filter. This is the shape given in
+    Emery and Thomson (1997) Eqn. (5.10.37)    
+    ** use ONLY with hourly data! **
+    """ 
+    import numpy as np
+    k = np.arange(12)
+    filt = np.NaN * np.ones(71)
+    filt[35:47] = (0.5/(24*24*25))*(1200-(12-k)*(13-k)-(12+k)*(13+k))
+    k = np.arange(12,36)
+    filt[47:71] = (0.5/(24*24*25))*(36-k)*(37-k)
+    filt[:35] = filt[:35:-1]
+    return filt
     
+def hanning_shape(n=40):
+    """    
+    Returns a Hanning window of the specified length.
+    """ 
+    import numpy as np
+    ff = np.cos(np.linspace(-np.pi,np.pi,n+2))[1:-1]
+    filt = (1 + ff)/2
+    filt = filt / filt.sum()
+    return filt
+            
 def ncd(fn_ds, pat=''):
     """
     Prints info on varibles in a NetCDF file or NetCDF dataset. Accepts a string 'pat' that

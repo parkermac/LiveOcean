@@ -10,8 +10,9 @@ parser = argparse.ArgumentParser()
 # optional arguments
 parser.add_argument("-g", "--gridname", type=str, default='cascadia1', help="cascadia1, etc.")
 parser.add_argument("-t", "--tag", type=str, default='base', help="base, etc.")
-parser.add_argument("-x", "--ex_name", type=str, default='lobio1', help="e.g. lo1")
+parser.add_argument("-x", "--ex_name", type=str, default='lo1', help="e.g. lo1")
 args = parser.parse_args()
+
 # setup
 import os; import sys
 alp = os.path.abspath('../alpha')
@@ -69,9 +70,9 @@ def make_fn_list(dt0,dt1,Ldir, hourmax=24): # a helpful function
             fn_list.append(fn)
     return fn_list
 
-# choose which file(s) to plot
+# choose which file(s) to plot (way too complicated)
 if list_type == 'test':
-    fn_list = ['/Users/PM5/Documents/LiveOcean_roms/output/cascadia1_base_lobio1/f2013.01.01/ocean_his_0025.nc']
+    fn_list = ['/Users/PM5/Documents/LiveOcean_roms/output/cascadia1_base_lo1/f2015.09.19/ocean_his_0002.nc']
     #fn_list = ['/Users/PM5/Documents/roms/output/T2006.ssound.200.it.Dforcing/ocean_his_1000.nc']
 elif list_type == 'hand_selection':   
     # select one or more files using a dialog box
@@ -89,8 +90,7 @@ elif list_type == 'hand_selection':
         root = Tkinter.Tk()
         root.withdraw()
         filename = askopenfilename(parent=root)
-        fn_list = [filename]
-        
+        fn_list = [filename]       
 elif list_type == 'hindcast':
     dt0 = datetime(2015,4,15) # first day
     dt1 = datetime(2015,4,15) # last day

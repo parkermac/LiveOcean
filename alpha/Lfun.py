@@ -7,6 +7,9 @@ def Lstart(gridname, tag):
     This is to set environment variables in the LiveOcean system
     using values in a csv file.  It is similar to Lstart.m in the
     MATLAB code, but it returns a dictionary instead of a structure.
+    
+    We use input parameters to allow for different gridnames and tags to
+    coexist.
     """   
     # put top level information from input into a dict
     Ldir = dict()
@@ -19,7 +22,7 @@ def Lstart(gridname, tag):
     if which_home == '/Users/PM5': # mac version
         Ldir['parent'] = '/Users/PM5/Documents/'
         Ldir['roms'] = Ldir['parent'] + 'LiveOcean_roms/'
-        Ldir['which_matlab'] = '/Applications/MATLAB_R2014b.app/bin/matlab'
+        Ldir['which_matlab'] = '/Applications/MATLAB_R2015b.app/bin/matlab'
     elif which_home == '/home/parker': # fjord version
         Ldir['parent'] = '/data1/parker/'
         Ldir['roms'] = '/pmr1/parker/LiveOcean_roms/'
@@ -80,7 +83,6 @@ def run_worker(date_string, Ldir, worker_type='matlab'):
             Ldir['tag'] + "\',\'" +
             date_string + "\',\'" +
             Ldir['LOogf_f'] + "\')")
-        #cmd = "/Applications/MATLAB_R2014b.app/bin/matlab"
         cmd = Ldir['which_matlab']
         run_cmd = [cmd, "-nojvm", "-nodisplay", "-r", func]
         proc = subprocess.Popen(run_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)

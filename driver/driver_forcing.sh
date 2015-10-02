@@ -121,7 +121,8 @@ do
   if [ $frc == "azu" ] ; then
     /home/parker/anaconda/bin/python ./make_forcing_main.py $gridname $tag $frc $run_type $DD -x $ex_name > $LOogf_fi"/screen_out.txt" &
   else
-    python ./make_forcing_main.py $gridname $tag $frc $run_type $DD > $LOogf_fi"/screen_out.txt" &
+    # new version 9/28/2015 (only works with low_pass so far)
+    python ./make_forcing_main.py -g $gridname -t $tag -f $frc -r $run_type -d $DD > $LOogf_fi"/screen_out.txt" &
   fi
 
   # wait a bit to allow main to get rid of the output
@@ -138,7 +139,7 @@ do
     sleep 5
     if [ -e $checkfile ] ; then
       last_line=$(tail -1 $checkfile)
-      if [ "$last_line" = "result,success" ] ; then
+      if [ $last_line = "result,success" ] ; then
         flag=1
       else
         echo "Problem with last line! "$checkfile

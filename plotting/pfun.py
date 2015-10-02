@@ -30,14 +30,13 @@ def roms_basic(fn, alp, fn_coast='', show_plot=True, save_plot=False,
         t_leglen = 0.01 # Pa for wind stress vector legend
         fig_size = (21, 8) # figure size
     elif sname == 'cascadia':
-        salt_lims = (28, 34)
-        temp_lims = (0, 20)#(6, 18)    
+        salt_lims = (28, 33.5)
+        temp_lims = (14, 18)#(6, 18)    
         v_scl = 3 # scale velocity vector (smaller to get longer arrows)
         v_leglen = 0.5 # m/s for velocity vector legend
         t_scl = .2 # scale windstress vector (smaller to get longer arrows)
         t_leglen = 0.1 # Pa for wind stress vector legend
-        fig_size = (14, 8) # figure size
-        
+        fig_size = (14, 8) # figure size        
     # setup
     import sys
     if alp not in sys.path:
@@ -50,14 +49,17 @@ def roms_basic(fn, alp, fn_coast='', show_plot=True, save_plot=False,
     G, S, T = zfun.get_basic_info(fn)
     import netCDF4 as nc   
     ds = nc.Dataset(fn,'r')
-    zfun.ncd(ds) # debugging
+    #zfun.ncd(ds) # debugging
     h = G['h']
     salt = ds.variables['salt'][0, -1, :, :].squeeze()
     temp = ds.variables['temp'][0, -1, :, :].squeeze()
     
     # automatic color limits
-    salt_lims = zfun.auto_lims(salt)
-    temp_lims = zfun.auto_lims(temp)
+    if False:
+        salt_lims = zfun.auto_lims(salt)
+        temp_lims = zfun.auto_lims(temp)
+    else:
+        pass # already set above
         
     u = ds.variables['u'][0, -1, :, :].squeeze()
     v = ds.variables['v'][0, -1, :, :].squeeze()  
@@ -394,7 +396,7 @@ def roms_sect(fn, alp, fn_coast='', show_plot=True, save_plot=False,
     if alp not in sys.path:
         sys.path.append(alp)
     import Lfun; reload(Lfun)
-    Ldir = Lfun.Lstart(alp)
+    Ldir = Lfun.Lstart('cascadia1', 'base')
     
     import matplotlib.pyplot as plt
     import numpy as np   
