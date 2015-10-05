@@ -73,7 +73,7 @@ def csv_to_dict(csv_name):
             dict_name[row[0]] = row[1]
     return dict_name
 
-def run_worker(date_string, Ldir, worker_type='matlab'):
+def run_worker(Ldir, worker_type='matlab'):
     # run the worker code using subprocess
     if worker_type == 'matlab':
         # pass arguments to a matlab program
@@ -81,7 +81,7 @@ def run_worker(date_string, Ldir, worker_type='matlab'):
         func = ("make_forcing_worker(\'" +
             Ldir['gridname'] + "\',\'" +
             Ldir['tag'] + "\',\'" +
-            date_string + "\',\'" +
+            Ldir['date_string'] + "\',\'" +
             Ldir['LOogf_f'] + "\')")
         cmd = Ldir['which_matlab']
         run_cmd = [cmd, "-nojvm", "-nodisplay", "-r", func]

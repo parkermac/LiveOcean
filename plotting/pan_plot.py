@@ -16,8 +16,7 @@ args = parser.parse_args()
 # setup
 import os; import sys
 alp = os.path.abspath('../alpha')
-if alp not in sys.path:
-    sys.path.append(alp)
+if alp not in sys.path: sys.path.append(alp)
 import Lfun; reload(Lfun)
 Ldir = Lfun.Lstart(args.gridname, args.tag)
 Ldir['gtagex'] = Ldir['gtag'] + '_' + args.ex_name
@@ -142,7 +141,7 @@ if len(fn_list) > 1:
 # plot
 if len(fn_list) == 1:
     # plot to screen
-    whichplot(fn_list[0], alp, fn_coast=coast_file)
+    whichplot(fn_list[0], alp, Ldir, fn_coast=coast_file)
 elif len(fn_list) > 1:
     # plot to a folder of files
     jj = 0     
@@ -151,7 +150,7 @@ elif len(fn_list) > 1:
         outname = 'his_' + nouts + '.png'
         outfile = outdir + outname        
         print 'Plotting ' + fn       
-        whichplot(fn, alp, fn_coast=coast_file,
+        whichplot(fn, alp, Ldir, fn_coast=coast_file,
             show_plot=False, save_plot=True, fn_out=outfile)
         jj += 1
         

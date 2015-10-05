@@ -6,6 +6,7 @@ def intro():
     import os; import sys
     alp = os.path.abspath('../../alpha')
     if alp not in sys.path: sys.path.append(alp)
+    # Note: the path "alp" will now also work for the calling function
     import Lfun; reload(Lfun)
     from datetime import datetime
     
@@ -34,6 +35,14 @@ def intro():
     Ldir['date_string'] = args.date_string
     Ldir['gtagex'] = Ldir['gtag'] + '_' + args.ex_name
     
+    # add the arguments to Ldir, because some code needs them
+    Ldir['gridname'] = args.gridname
+    Ldir['tag'] = args.tag
+    Ldir['frc'] = args.frc
+    Ldir['run_type'] = args.run_type
+    Ldir['date_string'] = args.date_string
+    Ldir['ex_name'] = args.ex_name
+    
     # Make the directroy tree for this forcing, if needed. This is redundant
     # with what the driver does (except that it clobbers nothing), and is
     # only included here so that we can test the python code without using
@@ -58,12 +67,9 @@ def intro():
 def finale(result_dict, Ldir, Lfun):
         
     # write results to an output file for the driver
-    
-    # ISSUE the directory might not exist...
-    
-    csv_name_out = Ldir['LOogf_f'] + 'Info/' + 'process_status.csv' 
-    Lfun.dict_to_csv(result_dict, csv_name_out)
-    
+    csv_name_out = Ldir['LOogf_fi'] + 'process_status.csv' 
+    Lfun.dict_to_csv(result_dict, csv_name_out) 
+      
     from datetime import datetime
     print('MAIN end time = ' + str(datetime.now()))
 

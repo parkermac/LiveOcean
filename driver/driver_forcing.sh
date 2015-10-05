@@ -41,7 +41,8 @@ fi
 #
 # note that the --ex_name (or -x) parameter is only needed when calling azu.
 
-while [ "$1" != "" ]; do
+ex_name="placeholder"
+while [ "$1" != "" ] ; do
   case $1 in
     -g | --gridname )  shift
       gridname=$1
@@ -68,8 +69,7 @@ while [ "$1" != "" ]; do
   shift
 done
 
-if [ $run_type = "forecast" ]
-then
+if [ $run_type = "forecast" ] ; then
   # do forecast
   ymd0=$(date "+%Y%m%d")
   ymd1=$ymd0
@@ -103,7 +103,7 @@ do
   LOogf_f=$LOogf"/"$frc
   LOogf_fi=$LOogf_f"/Info"
   LOogf_fd=$LOogf_f"/Data"
-  # tedious... unnecessary?
+  # make sure directories exist
   mkdir $LOo
   mkdir $LOog
   mkdir $LOogf
@@ -118,11 +118,10 @@ do
   # Make the forcing.
   cd $LO_parent"/forcing/"$frc
   source $HOME"/.bashrc"
-  if [ $frc == "azu" ] ; then
-    /home/parker/anaconda/bin/python ./make_forcing_main.py $gridname $tag $frc $run_type $DD -x $ex_name > $LOogf_fi"/screen_out.txt" &
+  if [ $frc = "azu" ] ; then
+    /home/parker/anaconda/bin/python ./make_forcing_main.py -g $gridname -t $tag -f $frc -r $run_type -d $DD -x $ex_name > $LOogf_fi"/screen_out.txt" &
   else
-    # new version 9/28/2015 (only works with low_pass so far)
-    python ./make_forcing_main.py -g $gridname -t $tag -f $frc -r $run_type -d $DD > $LOogf_fi"/screen_out.txt" &
+    python ./make_forcing_main.py -g $gridname -t $tag -f $frc -r $run_type -d $DD -x $ex_name > $LOogf_fi"/screen_out.txt" &
   fi
 
   # wait a bit to allow main to get rid of the output
@@ -132,7 +131,6 @@ do
   # If it has then this file will exist, and its last line should read:
   # result,success
   checkfile=$LOogf_fi"/process_status.csv"
-  
   flag=0
   while [ $flag -ne 1 ]
   do

@@ -1,48 +1,23 @@
 """
 This is the main program for making the AZU forcing file.
 """
-# get command line arguments
-import argparse
-parser = argparse.ArgumentParser()
-# positional arguments
-parser.add_argument("gridname", type=str, help="cascadia1, etc.")
-parser.add_argument("tag", type=str, help="base, etc.")
-parser.add_argument("frc", type=str, help="atm, ocn, riv, or tide")
-parser.add_argument("run_type", type=str, help="forecast or backfill")
-parser.add_argument("date_string", type=str, help="e.g. 2014.02.14")
-# and this is an optional input parameter
-parser.add_argument("-x", "--ex_name", type=str, help="e.g. lo1")
-args = parser.parse_args()
-# setup
-import os; import sys
-alp = os.path.abspath('../../alpha')
-if alp not in sys.path:
-    sys.path.append(alp)
-import Lfun; reload(Lfun)
-Ldir = Lfun.Lstart(args.gridname, args.tag)
-Ldir['LOogf_f'] = (Ldir['LOo'] + Ldir['gtag'] +
-    '/f' + args.date_string + '/' + args.frc + '/')
 
-# screen output
-from datetime import datetime
-print('MAIN: frc = ' + args.frc + ', run_type = ' + args.run_type
-    + ', date_string = ' + args.date_string)
-print('MAIN start time = ' + str(datetime.now()))
+import os; import sys; fpth = os.path.abspath('../')
+if fpth not in sys.path: sys.path.append(fpth)
+import forcing_functions as ffun; reload(ffun)
+Ldir, Lfun = ffun.intro()
+import zfun; reload(zfun)
 
 # ****************** CASE-SPECIFIC CODE *****************
 
-# where to get output from
-Ldir['gtagex'] = Ldir['gtag'] + '_' + args.ex_name
-
 # Azure commands
 import azure.storage as az    
-print('\nPushing forecast files to Azure for ' + args.date_string + '\n')
+print('\nPushing forecast files to Azure for ' + Ldir['date_string'] + '\n')
 # azure does not like dots in container names!
-f_string = 'f' + args.date_string
+f_string = 'f' + Ldir['date_string']
 ff_string = f_string.replace('.','')
 
 # account name and key
-#azu_dict = Lfun.csv_to_dict(Ldir['data'] + 'accounts/azure_rob_2015.04.24.csv')
 azu_dict = Lfun.csv_to_dict(Ldir['data'] + 'accounts/azure_pm_2015.05.25.csv')
 account = azu_dict['account']
 key = azu_dict['key']
@@ -57,9 +32,9 @@ blob_service.set_container_acl(containername, x_ms_blob_public_access='container
 if False: # testing
     nend = 3
 else:
-    if args.run_type == 'backfill':
+    if Ldir['run_type'] == 'backfill':
         nend = 26
-    elif args.run_type == 'forecast':
+    elif Ldir['run_type'] == 'forecast':
         nend = 74 # new three-day forecast 5/25/2015
     
 result_dict = dict()
@@ -77,12 +52,8 @@ try:
     result_dict['result'] = 'success'
 except:
     result_dict['result'] = 'fail'
-    
-# write results to an output file for the driver
-csv_name_out = Ldir['LOogf_f'] + 'Info/' + 'process_status.csv' 
-Lfun.dict_to_csv(result_dict, csv_name_out)
 
-# ******************************************************* 
-# no worker code in this case
-print('MAIN end time = ' + str(datetime.now()))
+# ************** END CASE-SPECIFIC CODE *****************
+
+ffun.finale(result_dict, Ldir, Lfun)
 

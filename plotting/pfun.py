@@ -2,7 +2,7 @@
 Module of plotting functions.
 """
        
-def roms_basic(fn, alp, fn_coast='', show_plot=True, save_plot=False,
+def roms_basic(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
     fn_out='test.png'):    
     # This creates, and optionally saves, a basic plot of surface fields
     # from a ROMS history file.
@@ -39,8 +39,7 @@ def roms_basic(fn, alp, fn_coast='', show_plot=True, save_plot=False,
         fig_size = (14, 8) # figure size        
     # setup
     import sys
-    if alp not in sys.path:
-        sys.path.append(alp)    
+    if alp not in sys.path: sys.path.append(alp)    
     import zfun; reload(zfun) # utility functions
     import matfun; reload(matfun) # functions for working with mat files
     import numpy as np
@@ -181,13 +180,12 @@ def roms_basic(fn, alp, fn_coast='', show_plot=True, save_plot=False,
     if save_plot==True:
         plt.savefig(fn_out)
         
-def bio_basic(fn, alp, fn_coast='', show_plot=True, save_plot=False,
+def bio_basic(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
     fn_out='test.png'):    
     # This creates, and optionally saves, a basic plot of surface fields
     # from a ROMS history file, focusing on bio fields.
     import sys
-    if alp not in sys.path:
-        sys.path.append(alp)    
+    if alp not in sys.path: sys.path.append(alp)    
     import zfun; reload(zfun) # utility functions
     # grid info
     G, S, T = zfun.get_basic_info(fn)
@@ -231,14 +229,13 @@ def bio_basic(fn, alp, fn_coast='', show_plot=True, save_plot=False,
     if save_plot==True:
         plt.savefig(fn_out)
 
-def roms_layer(fn, alp, fn_coast='', show_plot=True, save_plot=False,
+def roms_layer(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
     fn_out='test.png'):
     # plots fields on a specified depth level
            
     # setup
     import sys
-    if alp not in sys.path:
-        sys.path.append(alp)    
+    if alp not in sys.path: sys.path.append(alp)    
     import zfun; reload(zfun) # utility functions
     import matfun; reload(matfun) # functions for working with mat files
     
@@ -295,7 +292,7 @@ def roms_layer(fn, alp, fn_coast='', show_plot=True, save_plot=False,
     lay = zfun.get_layer(fld, zr, which_z)
     
     # get the surface field to plot
-    print str(fld.shape)
+    #print str(fld.shape)
     lay_top = fld[-1].copy() # fld[-1] is shorthand for fld[-1,:,:]
     
     # mask out the bio fields if we are inside the Salish Sea, because
@@ -386,18 +383,13 @@ def roms_layer(fn, alp, fn_coast='', show_plot=True, save_plot=False,
     if save_plot==True:
         plt.savefig(fn_out)
         
-def roms_sect(fn, alp, fn_coast='', show_plot=True, save_plot=False,
+def roms_sect(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
     fn_out='test.png'):
     # plots a section (distance, z)
     
     # setup
-    import os; import sys
-    alp = os.path.abspath('../alpha')
-    if alp not in sys.path:
-        sys.path.append(alp)
-    import Lfun; reload(Lfun)
-    Ldir = Lfun.Lstart('cascadia1', 'base')
-    
+    import sys
+    if alp not in sys.path: sys.path.append(alp)    
     import matplotlib.pyplot as plt
     import numpy as np   
     import zfun; reload(zfun) # plotting functions
@@ -576,17 +568,13 @@ def roms_sect(fn, alp, fn_coast='', show_plot=True, save_plot=False,
     if save_plot==True:
         plt.savefig(fn_out)
         
-def nest_plot(fn, alp, fn_coast='', show_plot=True, save_plot=False,
+def nest_plot(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
     fn_out='test.png'):
     # plots a field nested inside the corresponding HYCOM field
     
     # setup
-    import os; import sys
-    alp = os.path.abspath('../alpha')
-    if alp not in sys.path:
-        sys.path.append(alp)
-    import Lfun; reload(Lfun)
-    Ldir = Lfun.Lstart(alp)
+    import sys
+    if alp not in sys.path: sys.path.append(alp)
     import zfun; reload(zfun)
     import matfun; reload(matfun)
     import netCDF4 as nc
@@ -699,7 +687,7 @@ def nest_plot(fn, alp, fn_coast='', show_plot=True, save_plot=False,
     if save_plot==True:
         plt.savefig(fn_out)
         
-def tracks(fn, alp, fn_coast='', show_plot=True, save_plot=False,
+def tracks(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
     fn_out='test.png'):    
 
     """
@@ -708,14 +696,10 @@ def tracks(fn, alp, fn_coast='', show_plot=True, save_plot=False,
     """
     
     # setup
-    import os; import sys
-    if alp not in sys.path:
-        sys.path.append(alp)
-    #import Lfun; reload(Lfun)
+    import sys
+    if alp not in sys.path: sys.path.append(alp)
     import zfun; reload(zfun) # utility functions
-    #import matfun; reload(matfun) # functions for working with mat files
-    
-    
+       
     # GET DATA
     # run some code
     G, S, T = zfun.get_basic_info(fn)
@@ -798,7 +782,7 @@ def tracks(fn, alp, fn_coast='', show_plot=True, save_plot=False,
     # PLOT SALT FIELD
     cmap = plt.get_cmap(name='jet')    
     salt_lims = zfun.auto_lims(salt)
-    cs = ax.pcolormesh(G['lon_psi'], G['lat_psi'], salt[1:-1,1:-1],
+    ax.pcolormesh(G['lon_psi'], G['lat_psi'], salt[1:-1,1:-1],
         vmin=salt_lims[0], vmax=salt_lims[1],  cmap = cmap, alpha=.1)    
     ax.axis(aa)
     zfun.dar(ax)

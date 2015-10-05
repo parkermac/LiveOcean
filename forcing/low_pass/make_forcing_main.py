@@ -10,7 +10,6 @@ import os; import sys; fpth = os.path.abspath('../')
 if fpth not in sys.path: sys.path.append(fpth)
 import forcing_functions as ffun; reload(ffun)
 Ldir, Lfun = ffun.intro()
-# I think we can get zfun because ffun.intro() added alpha to the path.
 import zfun; reload(zfun)
 
 # ****************** CASE-SPECIFIC CODE *****************
