@@ -4,9 +4,10 @@
 # Designed to be run on fjord
 
 dir00="/pmraid3/darr/tstwrf/tmpwrf/"
-dmissing="TEST_2014010700"
-mkdir $dmissing
+dmissing="2014010700"
+tag="TEST"
 cd $dir00
+mkdir $tag$dmissing
 
 dir1="2014010612" # get f12 to f24 and rename as f00 to f12 in dmissing
 nout=0
@@ -18,7 +19,7 @@ do
   else
     pad=""
   fi
-  outfile=$dmissing"/wrfout.ocean_d2."$dmissing".f"$pad$nout".0000"
+  outfile=$tag$dmissing"/wrfout.ocean_d2."$dmissing".f"$pad$nout".0000"
   
   nin=$[$nout + 12]
   if [ $nin -le 9 ] ; then
@@ -46,7 +47,7 @@ do
   else
     pad=""
   fi
-  outfile=$dmissing"/wrfout.ocean_d2."$dmissing".f"$pad$nout".0000"
+  outfile=$tag$dmissing"/wrfout.ocean_d2."$dmissing".f"$pad$nout".0000"
   
   nin=$[$nout - 12]
   if [ $nin -le 9 ] ; then
@@ -58,7 +59,7 @@ do
   
   echo "copying "$infile" to "$outfile
   
-  #cp $infile $outfile
+  cp $infile $outfile
   
   nout=$[$nout + 1]
   
