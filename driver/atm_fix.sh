@@ -4,9 +4,8 @@
 # Designed to be run on fjord
 
 dir00="/pmraid3/darr/tstwrf/tmpwrf/"
-dir11="/data1/parker/LiveOcean_output/"
 dmissing="2014010700"
-mkdir $dir11$dmissing
+# mkdir $dir00$dmissing # not needed in this case
 
 dir1="2014010612" # get f12 to f24 and rename as f00 to f12 in dmissing
 nout=0
@@ -30,7 +29,7 @@ do
   
   echo "copying "$infile" to "$outfile
   
-  cp $dir00$infile $dir11$outfile
+  cp $dir00$infile $dir00$outfile
   
   nout=$[$nout + 1]
   
@@ -58,7 +57,7 @@ do
   
   echo "copying "$infile" to "$outfile
   
-  cp $dir00$infile $dir11$outfile
+  cp $dir00$infile $dir00$outfile
   
   nout=$[$nout + 1]
   
