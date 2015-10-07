@@ -1,4 +1,4 @@
-function make_forcing_worker(gridname, tag, date_string, outdir)
+function make_forcing_worker(gridname, tag, date_string, run_type, outdir)
 %% make_forcing_worker.m
 %
 % ****************** for ocn ***********************

@@ -82,6 +82,7 @@ def run_worker(Ldir, worker_type='matlab'):
             Ldir['gridname'] + "\',\'" +
             Ldir['tag'] + "\',\'" +
             Ldir['date_string'] + "\',\'" +
+            Ldir['run_type'] + "\',\'" +
             Ldir['LOogf_f'] + "\')")
         cmd = Ldir['which_matlab']
         run_cmd = [cmd, "-nojvm", "-nodisplay", "-r", func]

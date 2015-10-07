@@ -1,4 +1,4 @@
-function make_forcing_worker(gridname, tag, date_string, outdir)
+function make_forcing_worker(gridname, tag, date_string, run_type, outdir)
 %% make_forcing_worker.m
 %
 % ****************** for atm ***********************
@@ -37,8 +37,17 @@ td_next = td_now + 1;
 
 %% create the output time vector
 
-hr_vec = 0:72; % this gives 73 hourly values (three days, including endpoints)
+if strcmp(run_type,'backfill')
+    % This deals with a single case where we only have 24 hours of WRF
+    % output, because we mad this day by hand using overlap from
+    % surrounding days. It also makes the backfill process faster.
+    hr_vec = 0:24;
+elif strcmp(run_type,'forecast')
+    hr_vec = 0:72;
+end
+% this gives 73 hourly values (three days, including endpoints)
 % NOTE 5/25/2015 Originally this was 0:24 (one day).
+
 %
 dt_out = datenum(yr,mo,dy,hr_vec,0,0);
 vartime = (dt_out - datenum(1970,1,1))*86400; % seconds since 1/1/1970
@@ -61,7 +70,7 @@ end
 indir00 = [Info.wrf_dir,yrs,mos,dys,'00/'];
 % indir12 = [Info.wrf_dir,yrs,mos,dys,'12/']; don't use
 
-% just use the 00 forecast, and use hours 0:24
+% just use the 00 forecast
 for tt = 1:length(hr_vec)
     hr = hr_vec(tt);
         hrs = ['00',num2str(hr)]; hrs = hrs(end-1:end);
