@@ -39,14 +39,14 @@ td_next = td_now + 1;
 
 if strcmp(run_type,'backfill')
     % This deals with a single case where we only have 24 hours of WRF
-    % output, because we mad this day by hand using overlap from
-    % surrounding days. It also makes the backfill process faster.
+    % output, because we made this day by hand using overlap from
+    % surrounding days. It also makes the backfill process faster in
+    % general.
     hr_vec = 0:24;
-elif strcmp(run_type,'forecast')
+elseif strcmp(run_type,'forecast')
     hr_vec = 0:72;
+    % this gives 73 hourly values (three days, including endpoints)
 end
-% this gives 73 hourly values (three days, including endpoints)
-% NOTE 5/25/2015 Originally this was 0:24 (one day).
 
 %
 dt_out = datenum(yr,mo,dy,hr_vec,0,0);
@@ -73,13 +73,13 @@ indir00 = [Info.wrf_dir,yrs,mos,dys,'00/'];
 % just use the 00 forecast
 for tt = 1:length(hr_vec)
     hr = hr_vec(tt);
-        hrs = ['00',num2str(hr)]; hrs = hrs(end-1:end);
-        infile_list_d2{tt} = [indir00,'wrfout.ocean_d2.',yrs,mos,dys, ...
-            '00.f',hrs,'.0000'];
+    hrs = ['00',num2str(hr)]; hrs = hrs(end-1:end);
+    infile_list_d2{tt} = [indir00,'wrfout.ocean_d2.',yrs,mos,dys, ...
+        '00.f',hrs,'.0000'];
     forecast_hour{tt} = hrs; % used for rain calculation
 end
 
-%% variable name lists 
+%% variable name lists
 
 invar_list = {'PSFC','RAINC','RAINNC','SWDOWN','GLW', ...
     'T2','Q2','U10','V10'};
@@ -114,7 +114,7 @@ nmat2 = NaN * ones(NT,NR2,NC2); % sized for input
 
 for tt = 1:NT
     fn2 = infile_list_d2{tt};
-    for vv = 1:length(invar_list) 
+    for vv = 1:length(invar_list)
         VR = invar_list{vv};
         if tt == 1; eval([VR,'2 = nmat2;']); end;
         eval([VR,'2(tt,:,:) = nc_varget(fn2,VR);']);
@@ -180,7 +180,7 @@ outvar_list = {'Pair','rain','swrad','lwrad_down', ...
     'Tair','Qair','Uwind','Vwind'};
 
 for tt = 1:NT
-    for vv = 1:length(invar_list) 
+    for vv = 1:length(invar_list)
         VR = invar_list{vv};
         vr = outvar_list{vv};
         if tt == 1; eval([vr,' = nmat;']); end;
@@ -195,7 +195,7 @@ end
 
 for vv = 1:length(outvar_list);
     
-    ncvarname = outvar_list{vv};    
+    ncvarname = outvar_list{vv};
     
     % get grid size
     [M,L] = size(lon);
@@ -244,7 +244,7 @@ for vv = 1:length(outvar_list);
     % write the variable
     eval(['nc_varput(frcname, ncvarname, ',ncvarname,');']);
     disp(['  -- done filling ',frcname]);
-       
+    
 end % end of variable loop
 
 %% things to use for checking result
