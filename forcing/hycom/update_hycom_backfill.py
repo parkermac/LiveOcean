@@ -9,19 +9,23 @@ Steps:
     
 """
 
+# need to set these
+gridname = 'cascadia1'
+tag = 'base'
+
 # setup
 import os; import sys
 alp = os.path.abspath('../../alpha')
 if alp not in sys.path:
     sys.path.append(alp)
 import Lfun; reload(Lfun)
-Ldir = Lfun.Lstart(alp)
+Ldir = Lfun.Lstart(gridname,tag)
 
 import hfun_backfill as hfb
-hfb.get_hycom(exnum = '91.1')
-hfb.extrapolate_hycom(tag = '91.1')
-hfb.combine_hycom()
-hfb.filter_hycom()
+hfb.get_hycom(Ldir, exnum = '91.1')
+hfb.extrapolate_hycom(Ldir, tag = '91.1')
+hfb.combine_hycom(Ldir)
+hfb.filter_hycom(Ldir)
 
 
 

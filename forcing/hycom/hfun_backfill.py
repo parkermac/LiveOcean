@@ -2,7 +2,7 @@
 Higher level functions for processing HYCOM backfill data.
 """
 
-def get_hycom(exnum = '91.1'):
+def get_hycom(Ldir, exnum = '91.1'):
     """
     This program downloads a regional subset of HYCOM output for a time period,
     and puts it in a NetCDF file.
@@ -32,12 +32,12 @@ def get_hycom(exnum = '91.1'):
     """
     
     # setup
-    import os; import sys
-    alp = os.path.abspath('../../alpha')
-    if alp not in sys.path:
-        sys.path.append(alp)
-    import Lfun; reload(Lfun)
-    Ldir = Lfun.Lstart(alp)
+    # import os; import sys
+    # alp = os.path.abspath('../../alpha')
+    # if alp not in sys.path:
+    #     sys.path.append(alp)
+    # import Lfun; reload(Lfun)
+    # Ldir = Lfun.Lstart(alp)
     import zfun; reload(zfun)
     import hfun; reload(hfun)
     import netCDF4 as nc
@@ -189,19 +189,19 @@ def get_hycom(exnum = '91.1'):
         if Testing == True:
             cc += 1
 
-def extrapolate_hycom(tag = '91.1'):
+def extrapolate_hycom(Ldir, tag = '91.1'):
     """
     Horizontal extrapolation of HYCOM NetCDF files.
     
     Do this BEFORE filtering.
     """
     # setup
-    import os; import sys
-    alp = os.path.abspath('../../alpha')
-    if alp not in sys.path:
-        sys.path.append(alp)
-    import Lfun; reload(Lfun)
-    Ldir = Lfun.Lstart(alp)
+    # import os; import sys
+    # alp = os.path.abspath('../../alpha')
+    # if alp not in sys.path:
+    #     sys.path.append(alp)
+    # import Lfun; reload(Lfun)
+    # Ldir = Lfun.Lstart(alp)
     
     ofp = os.path.abspath('../ocn')
     if ofp not in sys.path:
@@ -223,17 +223,17 @@ def extrapolate_hycom(tag = '91.1'):
         print ' Took %.3f seconds' % (time.time() - tt0)
         sys.stdout.flush()  
         
-def combine_hycom():
+def combine_hycom(Ldir):
     """
     Code to combine NetCDF files from different HYCOM exnum's
     """
     # setup
-    import os; import sys
-    alp = os.path.abspath('../../alpha')
-    if alp not in sys.path:
-        sys.path.append(alp)
-    import Lfun; reload(Lfun)
-    Ldir = Lfun.Lstart(alp)
+    # import os; import sys
+    # alp = os.path.abspath('../../alpha')
+    # if alp not in sys.path:
+    #     sys.path.append(alp)
+    # import Lfun; reload(Lfun)
+    # Ldir = Lfun.Lstart(alp)
     import zfun; reload(zfun)
     import hfun; reload(hfun)
     import netCDF4 as nc
@@ -307,19 +307,19 @@ def combine_hycom():
             foo.close()
             ds.close()
         
-def filter_hycom():
+def filter_hycom(Ldir):
     """
     Time filtering of HYCOM NetCDF files.
     
     Do this AFTER extraploating.
     """
     # setup
-    import os; import sys
-    alp = os.path.abspath('../../alpha')
-    if alp not in sys.path:
-        sys.path.append(alp)
-    import Lfun; reload(Lfun)
-    Ldir = Lfun.Lstart(alp)
+    # import os; import sys
+    # alp = os.path.abspath('../../alpha')
+    # if alp not in sys.path:
+    #     sys.path.append(alp)
+    # import Lfun; reload(Lfun)
+    # Ldir = Lfun.Lstart(alp)
     
     ofp = os.path.abspath('../ocn')
     if ofp not in sys.path:
