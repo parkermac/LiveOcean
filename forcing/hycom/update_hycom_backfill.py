@@ -22,10 +22,10 @@ import Lfun; reload(Lfun)
 Ldir = Lfun.Lstart(gridname,tag)
 
 import hfun_backfill as hfb
-hfb.get_hycom(Ldir, exnum = '91.1')
-hfb.extrapolate_hycom(Ldir, tag = '91.1')
-hfb.combine_hycom(Ldir)
-hfb.filter_hycom(Ldir)
+hfb.get_hycom(Lfun, Ldir, exnum = '91.1')
+hfb.extrapolate_hycom(Lfun, Ldir, tag = '91.1')
+hfb.combine_hycom(Lfun, Ldir)
+hfb.filter_hycom(Lfun, Ldir)
 
 
 
