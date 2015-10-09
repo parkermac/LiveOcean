@@ -32,12 +32,13 @@ def get_hycom(Ldir, exnum = '91.1'):
     """
     
     # setup
-    # import os; import sys
+    import os; import sys
     # alp = os.path.abspath('../../alpha')
     # if alp not in sys.path:
     #     sys.path.append(alp)
     # import Lfun; reload(Lfun)
     # Ldir = Lfun.Lstart(alp)
+    import sys
     import zfun; reload(zfun)
     import hfun; reload(hfun)
     import netCDF4 as nc
@@ -196,7 +197,7 @@ def extrapolate_hycom(Ldir, tag = '91.1'):
     Do this BEFORE filtering.
     """
     # setup
-    # import os; import sys
+    import os; import sys
     # alp = os.path.abspath('../../alpha')
     # if alp not in sys.path:
     #     sys.path.append(alp)
@@ -228,7 +229,7 @@ def combine_hycom(Ldir):
     Code to combine NetCDF files from different HYCOM exnum's
     """
     # setup
-    # import os; import sys
+    import os; import sys
     # alp = os.path.abspath('../../alpha')
     # if alp not in sys.path:
     #     sys.path.append(alp)
@@ -314,7 +315,7 @@ def filter_hycom(Ldir):
     Do this AFTER extraploating.
     """
     # setup
-    # import os; import sys
+    import os; import sys
     # alp = os.path.abspath('../../alpha')
     # if alp not in sys.path:
     #     sys.path.append(alp)
