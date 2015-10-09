@@ -25,7 +25,7 @@ def get_hycom(Ldir, exnum = '91.1'):
     * combine_hycom.py joins together the outputs of extrapolate_hycom.py
     into [ssh,t3d,s3d,u3d,v3d].nc in LiveOcean_data/hycom_combined/.
     
-    * filter_hycom.py applies a 5-day Hanning filterto the results in hycom_combined,
+    * filter_hycom.py applies a 5-day Hanning filter to the results in hycom_combined,
     creating variables with the tag "_filt".
     
     * plot_hycom.py plots the results in e.g. hycom_combined:
@@ -38,7 +38,6 @@ def get_hycom(Ldir, exnum = '91.1'):
     #     sys.path.append(alp)
     # import Lfun; reload(Lfun)
     # Ldir = Lfun.Lstart(alp)
-    import sys
     import zfun; reload(zfun)
     import hfun; reload(hfun)
     import netCDF4 as nc

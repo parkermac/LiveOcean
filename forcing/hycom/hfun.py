@@ -10,11 +10,7 @@ def get_hycom_past(fn, nt0, nt1):
     out_dict = dict()
     ds = nc.Dataset(fn)   
     # NOTE: time is handled by the calling function
-    
-    # debugging
-    import zfun; reload(zfun)
-    zfun.ncd(ds)
-    
+        
     # create z from the depth
     depth = ds.variables['depth'][:]
     z = -depth[::-1] # you reverse an axis with a -1 step!
@@ -48,6 +44,13 @@ def get_hycom_past(fn, nt0, nt1):
 
     ssh = ds.variables['surf_el'][nt0:nt1+1, j0:j1, i0:i1].squeeze()
     out_dict['ssh'] = ssh
+    
+    # debugging
+    print('fn = ' + fn)
+    print('nt0 = ' + str(nt0) + ' nt1 = ' + str(nt1))
+    print('N = ' + str(N))
+    print('j0 = ' + str(j0) + ' j1 = ' + str(j1))
+    print('i0 = ' + str(i0) + ' i1 = ' + str(i1))
 
     t3d = ds.variables['water_temp'][nt0:nt1+1, 0:N, j0:j1, i0:i1].squeeze()
     t3d = t3d[:, ::-1, :, :] # pack bottom to top
