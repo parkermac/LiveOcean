@@ -11,6 +11,10 @@ def get_hycom_past(fn, nt0, nt1):
     ds = nc.Dataset(fn)   
     # NOTE: time is handled by the calling function
     
+    # debugging
+    import zfun; reload(zfun)
+    zfun.ncd(ds)
+    
     # create z from the depth
     depth = ds.variables['depth'][:]
     z = -depth[::-1] # you reverse an axis with a -1 step!
