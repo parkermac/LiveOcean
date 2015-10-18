@@ -2,7 +2,7 @@
 Functions for LiveOcean.
 """
 
-def Lstart(gridname, tag):    
+def Lstart(gridname='BLANK', tag='BLANK'):    
     """
     This is to set environment variables in the LiveOcean system
     using values in a csv file.  It is similar to Lstart.m in the

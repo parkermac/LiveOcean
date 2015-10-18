@@ -51,25 +51,34 @@ try:
     # make input list (full paths)
     flist = []
     # create the list of history files
-    date_string = Ldir['date_string']
-    from datetime import datetime, timedelta
-    dt_now = datetime.strptime(Ldir['date_string'], '%Y.%m.%d')
-    dt_tomorrow = dt_now + timedelta(1)
-    dt_yesterday = dt_now - timedelta(1)
-    dt_list = [dt_yesterday, dt_now, dt_tomorrow]
-    for dt in dt_list:
-        date_string = dt.strftime(format='%Y.%m.%d')
+    if Ldir['run_type'] == 'backfill':
+        date_string = Ldir['date_string']
+        from datetime import datetime, timedelta
+        dt_now = datetime.strptime(Ldir['date_string'], '%Y.%m.%d')
+        dt_tomorrow = dt_now + timedelta(1)
+        dt_yesterday = dt_now - timedelta(1)
+        dt_list = [dt_yesterday, dt_now, dt_tomorrow]
+        for dt in dt_list:
+            date_string = dt.strftime(format='%Y.%m.%d')
+            indir = (Ldir['roms'] + 'output/' + Ldir['gtagex'] +
+                '/f' + date_string + '/')
+            for ii in range(2,26): # use range(2,26) to use Godin 71 hour filter
+                hnum = ('0000' + str(ii))[-4:]
+                flist.append(indir + 'ocean_his_' + hnum + '.nc')
+        # remove the last item
+        flist.pop() # cute
+        # make output name (full path)
+        outfile = (Ldir['roms'] + 'output/' + Ldir['gtagex'] +
+            '/f' + Ldir['date_string'] + '/low_passed.nc')
+    elif Ldir['run_type'] == 'forecast':
         indir = (Ldir['roms'] + 'output/' + Ldir['gtagex'] +
-            '/f' + date_string + '/')
-        for ii in range(2,26): # use range(2,26) to use Godin 71 hour filter
+            '/f' + Ldir['date_string'] + '/')
+        for ii in range(2,73): # for Godin 71 hour filter
             hnum = ('0000' + str(ii))[-4:]
             flist.append(indir + 'ocean_his_' + hnum + '.nc')
-    # remove the last item
-    flist.pop() # cute
-    # make output name (full path)
-    outfile = indir = (Ldir['roms'] + 'output/' + Ldir['gtagex'] +
-        '/f' + Ldir['date_string'] + '/low_passed.nc')
-     
+        # make output name (full path)
+        outfile = (Ldir['roms'] + 'output/' + Ldir['gtagex'] +
+            '/f' + Ldir['date_string'] + '/low_passed_tomorrow.nc')
     # RUN THE FUNCTION
     roms_low_pass(flist, outfile, zfun)
     

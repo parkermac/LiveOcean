@@ -43,7 +43,7 @@ def intro():
     Ldir['date_string'] = args.date_string
     Ldir['ex_name'] = args.ex_name
     
-    # Make the directroy tree for this forcing, if needed. This is redundant
+    # Make the directory tree for this forcing, if needed. This is redundant
     # with what the driver does (except that it clobbers nothing), and is
     # only included here so that we can test the python code without using
     # the driver.

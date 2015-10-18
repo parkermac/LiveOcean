@@ -23,7 +23,7 @@ def roms_basic(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
     sname = 'cascadia'
     if sname == 'south_sound':
         salt_lims = (29.5,30.5)
-        temp_lims = (10,17)  
+        temp_lims = (13,17)  
         v_scl = 30 # scale velocity vector (smaller to get longer arrows)
         v_leglen = 1 # m/s for velocity vector legend
         t_scl = .2 # scale windstress vector (smaller to get longer arrows)
@@ -31,7 +31,7 @@ def roms_basic(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
         fig_size = (21, 8) # figure size
     elif sname == 'cascadia':
         salt_lims = (28, 33.5)
-        temp_lims = (14, 18)#(6, 18)    
+        temp_lims = (10, 17)#(6, 18)    
         v_scl = 3 # scale velocity vector (smaller to get longer arrows)
         v_leglen = 0.5 # m/s for velocity vector legend
         t_scl = .2 # scale windstress vector (smaller to get longer arrows)
