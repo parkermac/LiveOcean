@@ -73,7 +73,7 @@ class River:
             time_str = ('&startDT=' + days[0].strftime('%Y-%m-%d')
                 +'&endDT=' + days[1].strftime('%Y-%m-%d'))            
         else:
-            # This gets the most recent 6 days, likely at 15 minute intervals.
+            # This gets the most recent 6 days (daily intervals?)
             time_str = '&period=P6D'
         gage = self.usgs_code
         if len(self.scale_gage) > 0 and self.scale_gage != 'Hybrid':
@@ -105,6 +105,9 @@ class River:
             self.qt = pd.Series(self.Q, index=self.T)
             self.fix_units()
             self.qt = float(self.scale_factor) * self.qt
+            # Note: this resampling of daily data just moves the timestamp to noon
+            # of the day it started at.  Data is unchanged.
+            self.qt = self.qt.resample('D', how='mean', label='right', loffset='-12h')
             self.got_data = True
             self.memo = 'success'
         except:
@@ -152,6 +155,26 @@ class River:
             self.memo = 'problem parsing data from XML'
         self.memo = (self.memo + ' NWS')
         
+    def get_ec_data(self, days):
+        # gets Environment Canada data, like for the Fraser
+        try:
+            indir = self.Ldir['data'] + 'rivers/data_processed/'
+            s0 = pd.read_pickle(indir + self.name + '_flow_historical.p')
+            s1 = pd.read_pickle(indir + self.name + '_flow_historical_2.p')
+            s2 = pd.read_pickle(indir + self.name + '_flow.p')
+            # trim s1 so there is no overlap
+            s1 = s1[s1.index > s0.index[-1]]
+            s1 = s1[s1.index < s2.index[0]]
+            ss = pd.concat([s0, s1, s2])
+            ss = ss[ss.index >= days[0]]
+            ss = ss[ss.index <= days[1]]
+            self.qt = ss
+            self.got_data = True
+            self.memo = 'success'
+        except:
+            self.memo = 'problem accessing data'
+        self.memo = (self.memo + ' EC')
+      
     def fix_units(self):
         # fix units
         if self.flow_units == 'kcfs':

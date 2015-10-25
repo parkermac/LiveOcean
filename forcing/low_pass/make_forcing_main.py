@@ -3,7 +3,7 @@ This is the main program for making the LOW PASS forcing file.
 
 Also this is the first attempt to use the new forcing functions.
 
-Still have to edit driver_forcing.sh.
+Performance: 44 sec per day (mac) or ~5 hours per year of days.
 """
 
 import os; import sys; fpth = os.path.abspath('../')

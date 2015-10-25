@@ -10,7 +10,7 @@ import Lfun; reload(Lfun)
 Ldir = Lfun.Lstart('cascadia1','base')
 import river_class; reload(river_class)
 
-if True:
+if False:
     # get the list of rivers that we need for a run
     import pandas as pd
     rdf = pd.read_csv(Ldir['run'] + 'rname_list.txt', header=None,
@@ -21,14 +21,14 @@ if True:
     rnames[rnames.index('hammahamma')] = 'hamma'
 else:
     # override for testing
-    rnames = ['skagit']
+    rnames = ['columbia']
 
 run_type = 'forecast'
 
 if run_type == 'backfill':
     from datetime import datetime
-    dt0 = datetime(2013,1,1)
-    dt1 = datetime(2013,12,31)
+    dt0 = datetime(2015,1,1)
+    dt1 = datetime(2015,1,30)
     days = (dt0, dt1)
 elif run_type == 'forecast':
     days = ()
@@ -50,10 +50,10 @@ for rn in rnames:
                 riv.get_usgs_data(days)
     riv.print_info()
    
-    if False:
+    if True and not riv.qt.empty:
         plt.close()
         fig = plt.figure()
-        fig.add_subplot(riv.qt.plot(title=riv.name, style='-*k'))
+        fig.add_subplot(riv.qt.plot(title=riv.name, style='-k'))
         plt.show()
 
 

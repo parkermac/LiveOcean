@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-First code to look at Canadian Fraser River data.
+This concatenates all the daily Fraser files pulled in from gmail.
+It makes separate files for flow and temperature.
 
 Performance: 11 sec to process 600 days of files.
 
@@ -83,8 +84,4 @@ tdf = tdf[tdf.notnull()]
 # save to files
 qdf.to_pickle(outdir + 'fraser_flow.p')
 tdf.to_pickle(outdir + 'fraser_temperature.p')
-
-
-
-        
 
