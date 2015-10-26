@@ -28,7 +28,8 @@ import pfun; reload(pfun) # local module of plot routines
 # choose the type of list to make
 print 30*'*' + ' pan_plot ' + 30*'*'
 print '\n%s\n' % '** Choose List type **'
-lt_list = ['test','hand_selection', 'three_day', 'hindcast', 'mixed_hindcast', 'forecast', 'pnwtox']
+lt_list = ['test','hand_selection', 'low_pass', 'three_day', 'hindcast',
+    'mixed_hindcast', 'forecast', 'pnwtox']
 Nlt = len(lt_list)
 lt_dict = dict(zip(range(Nlt), lt_list))
 for nlt in range(Nlt):
@@ -71,25 +72,16 @@ def make_fn_list(dt0,dt1,Ldir, hourmax=24): # a helpful function
 
 # choose which file(s) to plot (way too complicated)
 if list_type == 'test':
-    fn_list = ['/Users/PM5/Documents/LiveOcean_roms/output/cascadia1_base_lo1/f2015.09.19/ocean_his_0002.nc']
+    fn_list = ['/Users/PM5/Documents/LiveOcean_roms/output/cascadia1_base_lo1' + 
+        '/f2015.09.19/ocean_his_0002.nc']
     #fn_list = ['/Users/PM5/Documents/roms/output/T2006.ssound.200.it.Dforcing/ocean_his_1000.nc']
 elif list_type == 'hand_selection':   
     # select one or more files using a dialog box
-    if True:
-        # this version works in Canopy
-        from PySide import QtGui
-        # unfortunately this kills the kernel in Anaconda
-        fn_list, _ = QtGui.QFileDialog.getOpenFileNames(None, 'Choose File(s)',
-            Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/')
-    else:
-        # this version may work in Anaconda 7/2/2015
-        # but it crashes Canopy 7/12/2015
-        import Tkinter
-        from tkFileDialog import askopenfilename
-        root = Tkinter.Tk()
-        root.withdraw()
-        filename = askopenfilename(parent=root)
-        fn_list = [filename]       
+    # this version works in Canopy
+    from PySide import QtGui
+    # unfortunately this kills the kernel in Anaconda
+    fn_list, _ = QtGui.QFileDialog.getOpenFileNames(None, 'Choose File(s)',
+        Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/') 
 elif list_type == 'hindcast':
     dt0 = datetime(2015,4,15) # first day
     dt1 = datetime(2015,4,15) # last day
@@ -122,7 +114,23 @@ elif list_type == 'three_day':
     else:
         dt0 = datetime.now()
         dt1 = datetime.now()
-    fn_list = make_fn_list(dt0,dt1,Ldir, hourmax=72)                      
+    fn_list = make_fn_list(dt0,dt1,Ldir, hourmax=72)
+elif list_type == 'low_pass': 
+    dt0 = datetime(2013,1,2) # first day
+    dt1 = datetime(2015,6,30) # last day
+    del_dt = timedelta(1)
+    date_list = []
+    fn_list = []
+    dt = dt0
+    while dt <= dt1:
+        date_list.append(dt.strftime('%Y.%m.%d'))
+        dt = dt + del_dt
+    for dl in date_list:    
+        f_string = 'f' + dl
+        fn = (Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/'
+            + f_string + '/low_passed.nc')
+        fn_list.append(fn)
+                    
 elif list_type == 'pnwtox':
     # make a pnwtox-style list of files
     for nhis in range(1800, 1824): # have 1800 to 1929

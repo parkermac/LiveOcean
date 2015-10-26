@@ -4,6 +4,8 @@ This is the main program for making the LOW PASS forcing file.
 Also this is the first attempt to use the new forcing functions.
 
 Performance: 44 sec per day (mac) or ~5 hours per year of days.
+    But, it took 70 sec on fjord, and 12 hours for a year
+    (no bio variables).
 """
 
 import os; import sys; fpth = os.path.abspath('../')
