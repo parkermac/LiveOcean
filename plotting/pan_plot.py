@@ -117,7 +117,7 @@ elif list_type == 'three_day':
     fn_list = make_fn_list(dt0,dt1,Ldir, hourmax=72)
 elif list_type == 'low_pass': 
     dt0 = datetime(2013,1,2) # first day
-    dt1 = datetime(2015,6,30) # last day
+    dt1 = datetime(2015,9,30) # last day
     del_dt = timedelta(1)
     date_list = []
     fn_list = []
