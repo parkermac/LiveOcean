@@ -238,13 +238,16 @@ def roms_layer(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
     if alp not in sys.path: sys.path.append(alp)    
     import zfun; reload(zfun) # utility functions
     import matfun; reload(matfun) # functions for working with mat files
-    
-    zlev = -200. # z (m) of layer to plot
-    which_var = 'salt'
-    
-    # IMPORTS
     import matplotlib.pyplot as plt
     import numpy as np
+    
+    zlev = -30. # z (m) of layer to plot
+    which_var_list = ['salt', 'temp']
+        
+    # get coastline
+    if len(fn_coast) != 0:
+        # get the coastline
+        cmat = matfun.loadmat(fn_coast)
     
     # GET DATA    
     G, S, T = zfun.get_basic_info(fn)
@@ -271,113 +274,100 @@ def roms_layer(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
     zr_top = zeta.reshape(1, M, L).copy()
     zr = zfun.make_full((zr_bot, zr_mid, zr_top))
     
-    # get the data field and its units - if any
-    fld_mid = ds.variables[which_var][:].squeeze()
-    try:
-        fld_units = str(ds.variables[which_var].units)
-    except:
-        fld_units = ''
-    # make full data field (extrapolate top and bottom)
-    fld = zfun.make_full((fld_mid,))
+    laym_dict = dict()
+    for which_var in which_var_list:
+        
+        #print(which_var)
+        
+        # get the data field and its units - if any
+        fld_mid = ds.variables[which_var][:].squeeze()
+        try:
+            fld_units = str(ds.variables[which_var].units)
+        except:
+            fld_units = ''
+        # make full data field (extrapolate top and bottom)
+        fld = zfun.make_full((fld_mid,))
+                
+        # convert units if needed
+        if which_var == 'oxygen':
+            fld = 1000.0 * fld / 44660
+            fld_units = 'mL/L'
+        
+        # INTERPOLATION
+        which_z = zlev * np.ones(1)
+        lay = zfun.get_layer(fld, zr, which_z)
+        
+        # get the surface field to plot
+        #print str(fld.shape)
+        #lay_top = fld[-1].copy() # fld[-1] is shorthand for fld[-1,:,:]
+        
+        # mask out the bio fields if we are inside the Salish Sea, because
+        # we know that those equations were not activated there
+        if which_var in ['NO3', 'phytoplankton', 'zooplankton', 'detritus',
+        'Ldetritus', 'oxygen']:
+            # path made using sal = plt.ginput(0), RETURN to end,
+            # and then adjusted by hand
+            sal = [(-122.0134210053738, 50.1),
+            (-122.0134210053738, 46.8),
+            (-123.33921283879502, 46.9),
+            (-124.57460977448297, 48.249154246315108),
+            (-125.26763732377132, 50.1)]
+            from matplotlib.path import Path
+            p = Path(sal)
+            pin = p.contains_points(np.array(zip(lonr.flatten(), latr.flatten())))
+            pin = pin.reshape(lonr.shape) # a Boolean array
+            #lay_top[pin == True] = np.nan
+            lay[pin == True] = np.nan
+        # make masking on layers to be plotted (to work with pcolormesh)
+        import numpy.ma as ma
+        #lay_top[mask == False] = np.nan
+        #laym_top = ma.masked_where(np.isnan(lay_top), lay_top)
+        # also mask the horizontal slice while we are at it
+        lay[mask == False] = np.nan
+        laym = ma.masked_where(np.isnan(lay), lay)
+        laym_dict[which_var] = laym
     
     ds.close()
-    
-    # convert units if needed
-    if which_var == 'oxygen':
-        fld = 1000.0 * fld / 44660
-        fld_units = 'mL/L'
-    
-    # INTERPOLATION
-    which_z = zlev * np.ones(1)
-    lay = zfun.get_layer(fld, zr, which_z)
-    
-    # get the surface field to plot
-    #print str(fld.shape)
-    lay_top = fld[-1].copy() # fld[-1] is shorthand for fld[-1,:,:]
-    
-    # mask out the bio fields if we are inside the Salish Sea, because
-    # we know that those equations were not activated there
-    if which_var in ['NO3', 'phytoplankton', 'zooplankton', 'detritus',
-    'Ldetritus', 'oxygen']:
-        # path made using sal = plt.ginput(0), RETURN to end,
-        # and then adjusted by hand
-        sal = [(-122.0134210053738, 50.1),
-        (-122.0134210053738, 46.8),
-        (-123.33921283879502, 46.9),
-        (-124.57460977448297, 48.249154246315108),
-        (-125.26763732377132, 50.1)]
-        from matplotlib.path import Path
-        p = Path(sal)
-        pin = p.contains_points(np.array(zip(lonr.flatten(), latr.flatten())))
-        pin = pin.reshape(lonr.shape) # a Boolean array
-        #
-        lay_top[pin == True] = np.nan
-        lay[pin == True] = np.nan
-    # make masking on layers to be plotted (to work with pcolormesh)
-    import numpy.ma as ma
-    lay_top[mask == False] = np.nan
-    laym_top = ma.masked_where(np.isnan(lay_top), lay_top)
-    # also mask the horizontal slice while we are at it
-    lay[mask == False] = np.nan
-    laym = ma.masked_where(np.isnan(lay), lay)
-        
-    # get coastline
-    if len(fn_coast) != 0:
-        # get the coastline
-        cmat = matfun.loadmat(fn_coast)
-               
+                  
     # PLOTTING    
     plt.close()
     fig = plt.figure(figsize=(16, 10))
     cmap = plt.get_cmap(name='rainbow')
     
-    # color limits
-    if which_var == 'salt':
-        clim_top = (29,34)
-        clim = (33.4,34)
-    else:
-        clim_top = ( np.floor(laym_top.min()), np.ceil(laym_top.max()) )
-        clim= ( np.floor(laym.min()), np.ceil(laym.max()) )
-     
-    # (1) map of surface field
-    ax = fig.add_subplot(121)    
-    cs = ax.pcolormesh(lonp, latp, laym_top[1:-1,1:-1], cmap=cmap) 
-    cs.set_clim(clim_top)    
-    # bathymetry
-    ax.contour(G['lon_rho'], G['lat_rho'], h, depth_levs, colors='g')        
-    # add coastline
-    if len(fn_coast) != 0:
-        ax.plot(cmat['lon'],cmat['lat'], '-k', linewidth=.5)    
-    # limits, scaling, and labels
-    ax.axis(aa)
-    zfun.dar(ax)
-    ax.set_xlabel('Longitude')
-    ax.set_ylabel('Latitude')
-    ax.set_title('(a) Surface ' + which_var + ' ' + fld_units)
-    fig.colorbar(cs)    
-    # put info on plot
-    ax.text(.95, .1, T['tm'].strftime('%Y-%m-%d'),
-        horizontalalignment='right', transform=ax.transAxes)
-    ax.text(.95, .05, T['tm'].strftime('%H:%M'),
-        horizontalalignment='right', transform=ax.transAxes)
-       
-    # (2) map of the horizontal layer
-    ax = fig.add_subplot(122)    
-    # plot the field using pcolormesh
-    cs = ax.pcolormesh(lonp, latp, laym[1:-1,1:-1],  cmap=cmap) 
-    cs.set_clim(clim)   
-    # bathymetry
-    ax.contour(G['lon_rho'], G['lat_rho'], h, depth_levs, colors='g')        
-    # add coastline
-    if len(fn_coast) != 0:
-        ax.plot(cmat['lon'],cmat['lat'], '-k', linewidth=.5)    
-    # limits, scaling, and labels
-    ax.axis(aa)
-    zfun.dar(ax)
-    ax.set_xlabel('Longitude')
-    ax.set_title('(b) ' + which_var + ' at ' + str(zlev) + ' m')
-    fig.colorbar(cs)
-    
+    counter = 0
+    for which_var in which_var_list:
+        laym = laym_dict[which_var]
+        # color limits
+        if which_var == 'salt':
+            clim = (31,33)
+        elif which_var == 'temp':
+            clim = (8,16)
+        else:
+            clim = zfun.auto_lims(laym)
+        # map of field
+        ax = fig.add_subplot(1,2,counter+1)    
+        cs = ax.pcolormesh(lonp, latp, laym[1:-1,1:-1], cmap=cmap) 
+        cs.set_clim(clim)    
+        # bathymetry
+        ax.contour(G['lon_rho'], G['lat_rho'], h, depth_levs, colors='g')        
+        # add coastline
+        if len(fn_coast) != 0:
+            ax.plot(cmat['lon'],cmat['lat'], '-k', linewidth=.5)    
+        # limits, scaling, and labels
+        ax.axis(aa)
+        zfun.dar(ax)
+        ax.set_xlabel('Longitude')
+        ax.set_ylabel('Latitude')
+        ax.set_title(which_var + ' at ' + str(zlev) + ' m')
+        fig.colorbar(cs)    
+        # put info on plot
+        ax.text(.95, .1, T['tm'].strftime('%Y-%m-%d'),
+            horizontalalignment='right', transform=ax.transAxes)
+        ax.text(.95, .05, T['tm'].strftime('%H:%M'),
+            horizontalalignment='right', transform=ax.transAxes)
+            
+        counter += 1
+          
     if show_plot==True:
         plt.show()   
     if save_plot==True:
