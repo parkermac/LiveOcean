@@ -82,7 +82,7 @@ def roms_basic(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
     
     # 1. surface salinity    
     ax = fig.add_subplot(121)
-    cmap = plt.get_cmap(name='jet')    
+    cmap = plt.get_cmap(name='rainbow')    
     # pcolormesh is a fast way to make pcolor plots.  By handing it lon_psi
     # and lat_psi and any rho_grid_layer[1:-1,1:-1] the coordinate arrays
     # are one bigger in size (in both dimensions) than the data array, meaning
@@ -128,7 +128,7 @@ def roms_basic(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
     
     # 2. surface temperature    
     ax = fig.add_subplot(122)
-    cmap = plt.get_cmap(name='rainbow')
+    cmap = plt.get_cmap(name='jet')
     cs = ax.pcolormesh(lonp, latp, temp[1:-1,1:-1],
         vmin=temp_lims[0], vmax=temp_lims[1],  cmap = cmap)        
     # bathymetry
