@@ -14,7 +14,7 @@ def intro():
     gridname = 'cascadia1'
     tag = 'base'    
     cwd = os.getcwd(); icwd = cwd.rfind('/'); frc = cwd[icwd+1:]
-    run_type = 'continuation'
+    run_type = 'forecast' # backfill or forecast
     date_string = datetime.now().strftime(format='%Y.%m.%d')
     ex_name = 'lo1'
     

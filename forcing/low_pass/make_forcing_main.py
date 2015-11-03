@@ -73,14 +73,43 @@ try:
         outfile = (Ldir['roms'] + 'output/' + Ldir['gtagex'] +
             '/f' + Ldir['date_string'] + '/low_passed.nc')
     elif Ldir['run_type'] == 'forecast':
-        indir = (Ldir['roms'] + 'output/' + Ldir['gtagex'] +
-            '/f' + Ldir['date_string'] + '/')
-        for ii in range(2,73): # for Godin 71 hour filter
-            hnum = ('0000' + str(ii))[-4:]
-            flist.append(indir + 'ocean_his_' + hnum + '.nc')
+        # use the middle day of the last forecast (= yesterday)
+        # and today and tomorrow from today's forecast
+        date_string = Ldir['date_string']
+        from datetime import datetime, timedelta
+        dt_now = datetime.strptime(Ldir['date_string'], '%Y.%m.%d')
+        dt_yesterday = dt_now - timedelta(1)
+        dt_list = [dt_yesterday, dt_now]
+        for dt in dt_list:
+            if dt == dt_yesterday:
+                date_string = dt.strftime(format='%Y.%m.%d')
+                indir = (Ldir['roms'] + 'output/' + Ldir['gtagex'] +
+                    '/f' + date_string + '/')
+                for ii in range(2,26): # use range(2,26) to use Godin 71 hour filter
+                    hnum = ('0000' + str(ii))[-4:]
+                    flist.append(indir + 'ocean_his_' + hnum + '.nc')
+            elif dt == dt_now:
+                date_string = dt.strftime(format='%Y.%m.%d')
+                indir = (Ldir['roms'] + 'output/' + Ldir['gtagex'] +
+                    '/f' + date_string + '/')
+                for ii in range(2,49): # use range(2,49) to use Godin 71 hour filter
+                    hnum = ('0000' + str(ii))[-4:]
+                    flist.append(indir + 'ocean_his_' + hnum + '.nc')
         # make output name (full path)
         outfile = (Ldir['roms'] + 'output/' + Ldir['gtagex'] +
-            '/f' + Ldir['date_string'] + '/low_passed_tomorrow.nc')
+            '/f' + Ldir['date_string'] + '/low_passed.nc')
+            
+        # Old code that made tomorrow's low pass.  This may come in handy
+        # when we start nesting.
+        #indir = (Ldir['roms'] + 'output/' + Ldir['gtagex'] +
+        #    '/f' + Ldir['date_string'] + '/')
+        #for ii in range(2,73): # for Godin 71 hour filter
+        #    hnum = ('0000' + str(ii))[-4:]
+        #    flist.append(indir + 'ocean_his_' + hnum + '.nc')
+        ## make output name (full path)
+        #outfile = (Ldir['roms'] + 'output/' + Ldir['gtagex'] +
+        #    '/f' + Ldir['date_string'] + '/low_passed_tomorrow.nc')
+        
     # RUN THE FUNCTION
     roms_low_pass(flist, outfile, zfun)
     

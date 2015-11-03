@@ -1,5 +1,18 @@
 """
 Extract a mooring-like record.
+
+For 24 hour days on my mac this is fast, like 1-2 sec per day, but on 
+fjord it takes more like 22 sec per day, or 2 hours per year.
+
+This can be run from the linux command line:
+
+This runs with default vaules (RISE north, three days in September 2015)    
+python roms_moor0.py
+
+This changes the days to run
+python roms_moor0.py -d0 2015.07.10 -d1 2015.08.01
+
+And you can also change the run, the station name and location, etc.
 """
 
 # setup
@@ -11,6 +24,7 @@ import numpy as np
 from datetime import datetime, timedelta
 import zfun; reload(zfun) # plotting functions
 import matfun; reload(matfun) # functions for working with mat files
+import netCDF4 as nc
 
 # set defaults
 gridname = 'cascadia1'
@@ -126,7 +140,6 @@ if Ldir['list_type'] == 'backfill':
         for hh in range(2,26):
             hhhh = ('0000' + str(hh))[-4:]
             fn_list.append(indir + 'ocean_his_' + hhhh + '.nc')
-            import netCDF4 as nc
         ds = nc.MFDataset(fn_list)
         for vv in v1_list:
             vtemp = ds.variables[vv][:].squeeze()

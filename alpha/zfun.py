@@ -57,6 +57,9 @@ def get_interpolant_fast(x, xvec):
     which I call "interpolants"
     returned as a 3-column numpy array with columns:
     [index below, index above, fraction]
+    
+    If the input is ON a point in xvec the default is to return
+    the index of that point and the one above.
     """
     import numpy as np
             
@@ -87,7 +90,7 @@ def get_interpolant_fast(x, xvec):
     itp = np.zeros((nx,3))
     
     # calculate index columns
-    mask = X > XVEC
+    mask = X >= XVEC
     # the above line broadcasts correctly even of nx = nxvec
     # because we forced X to be a column vector
     itp[:,0] = mask.sum(axis=1) - 1
