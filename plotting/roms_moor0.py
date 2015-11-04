@@ -24,15 +24,15 @@ import numpy as np
 from datetime import datetime, timedelta
 import zfun; reload(zfun) # plotting functions
 import matfun; reload(matfun) # functions for working with mat files
-import netCDF4 as nc
+import netCDF4 as nc4
 
 # set defaults
 gridname = 'cascadia1'
 tag = 'base'
 ex_name = 'lo1'   
-date_string0 = datetime(2015,9,18).strftime(format='%Y.%m.%d')
-date_string1 = datetime(2015,9,20).strftime(format='%Y.%m.%d')
-list_type = 'backfill' # backfill, forecast, low_pass
+date_string0 = datetime(2015,9,1).strftime(format='%Y.%m.%d')
+date_string1 = datetime(2015,9,30).strftime(format='%Y.%m.%d')
+list_type = 'low_pass' # backfill, low_pass
 sta_name = 'RN'
 lon_str = '-124.5'
 lat_str = '47'
@@ -86,7 +86,7 @@ Lat = np.array(float(Ldir['lat_str']))
 # get grid info
 indir = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/f' + date_list[0] + '/'
 fn = indir + 'ocean_his_0002.nc'
-[G] = zfun.get_basic_info(fn, getS=False, getT=False)
+[G, S] = zfun.get_basic_info(fn, getS=True, getT=False)
 
 # get interpolants for this point
 Xit = dict(); Yit = dict()
@@ -140,7 +140,7 @@ if Ldir['list_type'] == 'backfill':
         for hh in range(2,26):
             hhhh = ('0000' + str(hh))[-4:]
             fn_list.append(indir + 'ocean_his_' + hhhh + '.nc')
-        ds = nc.MFDataset(fn_list)
+        ds = nc4.MFDataset(fn_list)
         for vv in v1_list:
             vtemp = ds.variables[vv][:].squeeze()
             V[vv] = np.append(V[vv], vtemp)
@@ -157,6 +157,35 @@ if Ldir['list_type'] == 'backfill':
                 V[vv] = vtemp.T
             else:
                 V[vv] = np.concatenate((V[vv], vtemp.T), axis=1)
+        ds.close()    
+        # listing of contents, if desired
+        if count == 0 and False:   
+            zfun.ncd(ds)
+        count += 1
+elif Ldir['list_type'] == 'low_pass':
+    count = 0    
+    for dd in date_list:
+        print 'Working on date_list item: ' + dd
+        sys.stdout.flush()
+        indir = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/f' + dd + '/'
+        fn = indir + 'low_passed.nc'
+        ds = nc4.Dataset(fn)
+        for vv in v1_list:
+            vtemp = ds.variables[vv][:].squeeze()
+            V[vv] = np.append(V[vv], vtemp)
+        for vv in v2_list:
+            xit, yit, aix, aiy = get_its(ds, vv, Xit, Yit, Aix, Aiy)
+            vvtemp = ds.variables[vv][:, yit[:2], xit[:2]].squeeze()
+            vtemp =   ( aiy*((aix*vvtemp).sum(-1)) ).sum(-1)
+            V[vv] = np.append(V[vv], vtemp)        
+        for vv in v3_list:
+            xit, yit, aix, aiy = get_its(ds, vv, Xit, Yit, Aix, Aiy)
+            vvtemp = ds.variables[vv][:, :, yit[:2], xit[:2]].squeeze()
+            vtemp =   ( aiy*((aix*vvtemp).sum(-1)) ).sum(-1)
+            if count == 0:
+                V[vv] = vtemp.reshape((S['N'],1))
+            else:
+                V[vv] = np.concatenate((V[vv], vtemp.reshape((S['N'],1))), axis=1)
         ds.close()    
         # listing of contents, if desired
         if count == 0 and False:   
