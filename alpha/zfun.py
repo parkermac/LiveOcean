@@ -672,7 +672,7 @@ def earth_rad(lat_deg):
     sl = np.sin(np.pi*lat_deg/180)
     RE = np.sqrt(((a*a*cl)**2 + (b*b*sl)**2) / ((a*cl)**2 + (b*sl)**2))
     return RE
-
+    
 
     
     

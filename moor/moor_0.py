@@ -12,6 +12,9 @@ python roms_moor0.py
 This changes the days to run
 python roms_moor0.py -d0 2015.07.10 -d1 2015.08.01
 
+This gets an IRIS mooring record (on fjord):
+python roms_moor0.py -sn J26A -lon -125.4664 -lat 44.6547 -d0 2013.01.02 -d1 2015.11.01
+
 And you can also change the run, the station name and location, etc.
 """
 
@@ -131,6 +134,7 @@ def get_its(ds, vv, Xit, Yit, Aix, Aiy):
     return xit, yit, aix, aiy
     
 if Ldir['list_type'] == 'backfill':
+    # gets 24 hours at a time using MFDataset
     count = 0    
     for dd in date_list:
         print 'Working on date_list item: ' + dd
@@ -163,6 +167,7 @@ if Ldir['list_type'] == 'backfill':
             zfun.ncd(ds)
         count += 1
 elif Ldir['list_type'] == 'low_pass':
+    # gets one at a time
     count = 0    
     for dd in date_list:
         print 'Working on date_list item: ' + dd
