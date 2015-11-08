@@ -37,35 +37,50 @@ import time
 
 # ************ USER INPUT **************************************
 
-gtagex = 'D2005_his'
-ic_name = 'cr'
-dir_tag = 'reverse' # forward or reverse
+gtagex = 'cascadia1_base_lo1' # 'cascadia1_base_lo1' or 'D2005_his'
+ic_name = 'cr' # 'jdf' or 'cr'
+dir_tag = 'reverse' # 'forward' or 'reverse'
 
-if gtagex == 'D2005_his':
-    dt = datetime(2005,3,17) # always start on a day (no hours)
-    days_between_starts = 1
-    days_to_track = 2
-elif gtagex == 'cascadia1_base_lo1':
-    dt = datetime(2015,9,1) # always start on a day (no hours)
+if gtagex == 'cascadia1_base_lo1':
+    dt_first_day = datetime(2015,9,1) # always start on a day (no hours)
+    number_of_start_days = 3 #3
+    days_between_starts = 7
+    days_to_track = 7 #7
+elif gtagex == 'D2005_his':
+    dt_first_day = datetime(2005,3,17) # always start on a day (no hours)
+    number_of_start_days = 3
     days_between_starts = 1
     days_to_track = 2
 
 # set particle initial locations
 if ic_name == 'jdf':
-    NP = 20
-    plon0 = -124.7 *np.ones(NP)
-    plat0 = 48.48 * np.ones(NP)
-    pcs0 = np.linspace(-.95,-.05,NP)
+    plon00 = np.array([-124.65]) #np.array([-124.51, -124.50, -124.49])
+    plat00 = np.array([48.48]) #np.array([48.41, 48.45, 48.49])
+    pcs00 = np.linspace(-.95,-.05,20)
+    NSP = len(pcs00)
+    NXYP = len(plon00)
+    plon0 = plon00.reshape(NXYP,1) * np.ones((NXYP,NSP))
+    plat0 = plat00.reshape(NXYP,1) * np.ones((NXYP,NSP))
+    pcs0 = np.ones((NXYP,NSP)) * pcs00.reshape(1,NSP)
 elif ic_name == 'cr':
-    NP = 20
-    plon0 = -123.9 *np.ones(NP)
-    plat0 = 46.22 * np.ones(NP)
-    pcs0 = np.linspace(-.95,-.05,NP)
+    plon00 = np.array([-123.9])
+    plat00 = np.array([46.22])
+    pcs00 = np.linspace(-.95,-.05,20)
+    NSP = len(pcs00)
+    NXYP = len(plon00)
+    plon0 = plon00.reshape(NXYP,1) * np.ones((NXYP,NSP))
+    plat0 = plat00.reshape(NXYP,1) * np.ones((NXYP,NSP))
+    pcs0 = np.ones((NXYP,NSP)) * pcs00.reshape(1,NSP)
     
 # ********* END USER INPUT *************************************
 
-idt_list = []    
-for nic in range(3):
+plon0 = plon0.flatten()
+plat0 = plat0.flatten()
+pcs0 = pcs0.flatten()
+
+idt_list = []
+dt = dt_first_day 
+for nic in range(number_of_start_days):
     idt_list.append(dt)
     dt = dt + timedelta(days_between_starts)
 
@@ -81,9 +96,9 @@ for idt in idt_list:
         Ldir['gtagex'] = 'cascadia1_base_lo1'
         # make the list of input history files
         date_list = []
-        for dt in idt_list:
-            date_list.append(dt.strftime('%Y.%m.%d'))
-            dt = dt + timedelta(days_to_track)
+        for nday in range(days_to_track):
+            fdt = idt + timedelta(nday)
+            date_list.append(fdt.strftime('%Y.%m.%d'))
         fn_list = []
         for dd in date_list:
             indir = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/f' + dd + '/'
@@ -107,12 +122,13 @@ for idt in idt_list:
             hh = save_dt_num_dict[idt + timedelta(hours=hh)]
             hhhh = ('0000' + str(hh))[-4:]
             fn_list.append(indir + 'ocean_his_' + hhhh + '.nc')
-        [T0] = zfun.get_basic_info(fn_list[0], getG=False, getS=False, getT=True)
-        [T1] = zfun.get_basic_info(fn_list[-1], getG=False, getS=False, getT=True)
-        dt0 = T0['tm']
-        dt1 = T1['tm']
-        Ldir['date_string0'] = datetime.strftime(dt0,'%Y.%m.%d')
-        Ldir['date_string1'] = datetime.strftime(dt1,'%Y.%m.%d')
+                      
+    [T0] = zfun.get_basic_info(fn_list[0], getG=False, getS=False, getT=True)
+    [T1] = zfun.get_basic_info(fn_list[-1], getG=False, getS=False, getT=True)
+    dt0 = T0['tm']
+    dt1 = T1['tm']
+    Ldir['date_string0'] = datetime.strftime(dt0,'%Y.%m.%d')
+    Ldir['date_string1'] = datetime.strftime(dt1,'%Y.%m.%d')
     
     # time step in seconds
     [T00] = zfun.get_basic_info(fn_list[0], getG=False, getS=False)
@@ -127,9 +143,8 @@ for idt in idt_list:
         
     # DO THE TRACKING
     tt0 = time.time()
-    Plon, Plat, Pcs, Pot, G = trackfun.get_tracks(fn_list, plon0, plat0, pcs0,
-        delta_t, dir_tag)              
-    print(' - Took %0.1f sec for %d days' % (time.time() - tt0, (dt1 - dt0).days))
+    P, G, S = trackfun.get_tracks(fn_list, plon0, plat0, pcs0, delta_t, dir_tag)             
+    print(' - Took %0.1f sec for %d days' % (time.time() - tt0, round((dt1 - dt0).total_seconds()/86400.)))
     
     # save the results
     import cPickle as pickle
@@ -140,6 +155,6 @@ for idt in idt_list:
         Ldir['date_string0'] + '_' +
         Ldir['date_string1'] +
         '.p')
-    pickle.dump( (Plon, Plat, Pcs, G, Ldir) , open( outdir + outname, 'wb' ) )
+    pickle.dump( (P, G, S, Ldir) , open( outdir + outname, 'wb' ) )
     print('Results saved to:\n' + outname)
     print(50*'*')
