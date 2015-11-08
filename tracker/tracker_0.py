@@ -41,17 +41,27 @@ gtagex = 'cascadia1_base_lo1' # 'cascadia1_base_lo1' or 'D2005_his'
 ic_name = 'cr' # 'jdf' or 'cr'
 dir_tag = 'reverse' # 'forward' or 'reverse'
 
-if gtagex == 'cascadia1_base_lo1':
-    dt_first_day = datetime(2015,9,1) # always start on a day (no hours)
-    number_of_start_days = 3 #3
-    days_between_starts = 7
-    days_to_track = 7 #7
-elif gtagex == 'D2005_his':
-    dt_first_day = datetime(2005,3,17) # always start on a day (no hours)
-    number_of_start_days = 3
-    days_between_starts = 1
-    days_to_track = 2
 
+if Ldir['parent'] == '/Users/PM5/Documents/':
+    # mac version
+    if gtagex == 'cascadia1_base_lo1':
+        dt_first_day = datetime(2015,9,1) # always start on a day (no hours)
+        number_of_start_days = 3 #3
+        days_between_starts = 7
+        days_to_track = 7 #7
+    elif gtagex == 'D2005_his':
+        dt_first_day = datetime(2005,3,17) # always start on a day (no hours)
+        number_of_start_days = 3
+        days_between_starts = 1
+        days_to_track = 2
+elif Ldir['parent'] == '/data1/parker/':
+    # fjord version
+    if gtagex == 'cascadia1_base_lo1':
+        dt_first_day = datetime(2014,1,1) # always start on a day (no hours)
+        number_of_start_days = 3 #3
+        days_between_starts = 7
+        days_to_track = 7 #7
+        
 # set particle initial locations
 if ic_name == 'jdf':
     plon00 = np.array([-124.65]) #np.array([-124.51, -124.50, -124.49])

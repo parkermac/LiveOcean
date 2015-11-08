@@ -13,7 +13,9 @@ This changes the days to run
 python roms_moor0.py -d0 2015.07.10 -d1 2015.08.01
 
 This gets an IRIS mooring record (on fjord):
-python roms_moor0.py -sn J26A -lon -125.4664 -lat 44.6547 -d0 2013.01.02 -d1 2015.11.01
+python moor_0.py -sn J26A -lon -125.4664 -lat 44.6547 -d0 2013.01.02 -d1 2015.11.01
+
+python moor_0.py -sn J26C -lon -125.4653 -lat 44.6534 -d0 2013.01.02 -d1 2015.11.01
 
 And you can also change the run, the station name and location, etc.
 """
