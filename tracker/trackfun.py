@@ -61,7 +61,8 @@ def get_tracks(fn_list, plon0, plat0, pcs0, delta_t, dir_tag):
     # Currently this is hard-wired to use a 1 hour step with 1 hour saves,
     # first doing a forward step of 1/2 hour, finding the velocity at that time
     # and place, and then using that for a full hour forward step.
-    # I believe this is what Particulator does.
+    # I think this is what Particulator does, except that it is a longer
+    # time step (e.g. 3600 sec instead of 1200 sec).
     #
     counter = 0
     nrot = len(rot)
@@ -180,8 +181,7 @@ def get_tracks(fn_list, plon0, plat0, pcs0, delta_t, dir_tag):
         Pz = Pz[::-1,:]
         Pzeta = Pzeta[::-1,:]
         Pzbot = Pzbot[::-1,:]
-        
-    
+            
     # and the time vector (seconds in whatever the model reports)
     Pot = rot
     

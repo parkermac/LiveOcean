@@ -10,6 +10,7 @@ import Lfun; reload(Lfun)
 import zfun; reload(zfun) # plotting functions
 import matfun; reload(matfun) # functions for working with mat files
 import matplotlib.pyplot as plt
+import numpy as np
 
 Ldir = Lfun.Lstart()
 indir = Ldir['LOo'] + 'tracks/'
@@ -37,7 +38,7 @@ NT, NP = P['lon'].shape
 lonp = G['lon_psi']
 latp = G['lat_psi']
 if 'jdf' in inname:
-    aa = [-126, -123.5, 47.5, 49.]
+    aa = [-126, -123.5, 47, 49]
 elif 'cr' in inname:
     aa = [-125, -122.5, 45, 47]
 else:
@@ -63,7 +64,8 @@ ax.set_xlabel('Longitude')
 ax.set_ylabel('Latitude')
 
 # plot tracks
-cs_divider = -.6
+cs_divider = -.4
+csd_text = str(int(np.abs(100.*cs_divider)))
 
 ii = 0
 if PLdir['dir_tag'] == 'forward':
@@ -72,24 +74,36 @@ elif PLdir['dir_tag'] == 'reverse':
     time_index_for_color = NT-1    
 for cs in P['cs'][time_index_for_color,:]:
     if cs < cs_divider:
-        ax.plot(P['lon'][:, ii],P['lat'][:, ii],'-b')
+        ax.plot(P['lon'][:, ii],P['lat'][:, ii],'-b', alpha = .4)
     else:
-        ax.plot(P['lon'][:, ii],P['lat'][:, ii],'-r')
+        ax.plot(P['lon'][:, ii],P['lat'][:, ii],'-r', alpha = .4)
     ii += 1
     
 # starting points
 ii = 0
 for cs in P['cs'][time_index_for_color,:]:
     if cs < cs_divider:
-        ax.plot(P['lon'][0,ii],P['lat'][0,ii],'ob',markersize=15)
+        ax.plot(P['lon'][0,ii],P['lat'][0,ii],'ob',markersize=5, alpha = .4, markeredgecolor='b')
     else:
-        ax.plot(P['lon'][0,ii],P['lat'][0,ii],'or',markersize=8)
+        ax.plot(P['lon'][0,ii],P['lat'][0,ii],'or',markersize=5, alpha = .4, markeredgecolor='r')
     ii += 1
     
 # ending points
 ax.plot(P['lon'][-1,:],P['lat'][-1,:],'y*',markersize=20)
   
-ax.set_title(PLdir['dir_tag'].title())
+ax.set_title(inname)
+
+ax.text(.85, .25, 'Depth Contours', horizontalalignment='center', transform=ax.transAxes, color='g')
+dd = 1
+for d in depth_levs:
+    ax.text(.85, .25 - .03*dd, str(d), horizontalalignment='center', transform=ax.transAxes, color='g')
+    dd += 1
+ax.text(.95,.9, 'End depth above ' + csd_text + '%',
+    horizontalalignment='right', transform=ax.transAxes,
+    color='r', fontsize=16)
+ax.text(.95,.8, 'End depth below ' + csd_text + '%',
+    horizontalalignment='right', transform=ax.transAxes,
+    color='b', fontsize=16)
 
 # TIME SERIES
 tdays = (P['ot'] - P['ot'][0])/86400.
@@ -107,6 +121,7 @@ for cs in P['cs'][time_index_for_color,:]:
         ax.plot(tdays, P['salt'][:,ii],'-r')
     ii += 1
 ax.set_ylabel('Salinity')
+
 
 ax = fig.add_subplot(3,2,4)
 ii = 0
