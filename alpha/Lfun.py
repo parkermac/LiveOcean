@@ -28,7 +28,7 @@ def Lstart(gridname='BLANK', tag='BLANK'):
         Ldir['roms'] = '/pmr1/parker/LiveOcean_roms/'
         Ldir['which_matlab'] = '/usr/local/bin/matlab'
     else:
-        print 'Trouble filling out environment variables in Ldir'
+        print('Trouble filling out environment variables in Ldir')
     
     # and add a few more things
     Ldir['gtag'] = Ldir['gridname'] + '_' + Ldir['tag']
@@ -88,9 +88,9 @@ def run_worker(Ldir, worker_type='matlab'):
         run_cmd = [cmd, "-nojvm", "-nodisplay", "-r", func]
         proc = subprocess.Popen(run_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out, err = proc.communicate() # "out" is the screen output of the matlab code        
-        print out # this ends up as part of the make_forcing_main.py screen output
+        print(out) # this ends up as part of the make_forcing_main.py screen output
     else:
-        print 'other worker types not implemented yet'
+        print('other worker types not implemented yet')
 
 def datetime_to_modtime(dt):
     # This is where we define how time will be treated
