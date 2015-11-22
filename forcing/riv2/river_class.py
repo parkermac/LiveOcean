@@ -3,7 +3,10 @@ The river class code.
 """
 
 import pandas as pd
-import urllib2
+try:  # python 2
+    import urllib2
+except ImportError:  # python 3
+    import urllib
 import xml.etree.ElementTree as ET
 
 class River:
@@ -83,13 +86,16 @@ class River:
             + '?format=waterml,1.1&sites=' + str(gage)
             + time_str + '&parameterCd=00060')
         # Get the XML.     
-        try:
+        try:  # python 2
             file = urllib2.urlopen(url_str, timeout=10)
+        except NameError:  # python 3
+            file = urllib.request.urlopen(url_str, timeout=10)
+        try:
             tree = ET.parse(file)
             root = tree.getroot()
         except:
             self.memo = 'problem downloading XML'
-        # Extract the data from the XML.                                    
+        # Extract the data from the XML.
         try:
             flag = True
             # aa = '{http://www.cuahsi.org/waterML/1.1/}'
@@ -117,11 +123,14 @@ class River:
     def get_nws_data(self):
         # This gets NWS forecast data.
             
-        url_str = ('http://www.nwrfc.noaa.gov/xml/xml.cgi?id=' + self.nws_code
-        + '&pe=HG&dtype=b&numdays=10')
-        # print(url_str)
+        url_str = ('http://www.nwrfc.noaa.gov/xml/xml.cgi?id=' +
+                   self.nws_code +
+                   '&pe=HG&dtype=b&numdays=10')
+        try:  # python 2
+            file = urllib2.urlopen(url_str, timeout=10)
+        except NameError:  # python 3
+            file = urllib.request.urlopen(url_str, timeout=10)
         try:
-            file = urllib2.urlopen(url_str, timeout = 10)
             tree = ET.parse(file)
             root = tree.getroot()
         except:

@@ -6,6 +6,10 @@ import matplotlib.pyplot as plt
 import os; import sys
 alp = os.path.abspath('../../alpha')
 if alp not in sys.path: sys.path.append(alp)
+try:  # needed for python 3
+    from importlib import reload
+except ImportError:
+    pass  # assume we are working in python 2
 import Lfun; reload(Lfun)
 Ldir = Lfun.Lstart('cascadia1','base')
 import river_class; reload(river_class)
@@ -21,7 +25,7 @@ if False:
     rnames[rnames.index('hammahamma')] = 'hamma'
 else:
     # override for testing
-    rnames = ['columbia']
+    rnames = ['skagit']
 
 run_type = 'forecast'
 

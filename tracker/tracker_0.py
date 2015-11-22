@@ -21,11 +21,16 @@ This program is mainly a DRIVER where you supply:
 """
 
 # setup
-import os; import sys
+import os
+import sys
 alp = os.path.abspath('../alpha')
 if alp not in sys.path: sys.path.append(alp)
-import Lfun; reload(Lfun)
-# get Ldir
+try:  # needed for python 3
+    from importlib import reload
+except ImportError:
+    pass  # assume we are working in python 2
+import Lfun
+reload(Lfun)
 Ldir = Lfun.Lstart()
 # Note that we override parts of the Ldir logic,
 # using Ldir['gtagex'] to identify a run.
@@ -46,9 +51,9 @@ if Ldir['parent'] == '/Users/PM5/Documents/':
     # mac version
     if gtagex == 'cascadia1_base_lo1':
         dt_first_day = datetime(2015,9,1) # always start on a day (no hours)
-        number_of_start_days = 3 #3
+        number_of_start_days = 1 #3
         days_between_starts = 7
-        days_to_track = 7 #7
+        days_to_track = 1 #7
     elif gtagex == 'D2005_his':
         dt_first_day = datetime(2005,3,17) # always start on a day (no hours)
         number_of_start_days = 3
@@ -157,7 +162,10 @@ for idt in idt_list:
     print(' - Took %0.1f sec for %d days' % (time.time() - tt0, round((dt1 - dt0).total_seconds()/86400.)))
     
     # save the results
-    import cPickle as pickle
+    try:
+        import cPickle as pickle  # python 2
+    except ImportError:
+        import pickle  # python 3
     outname = (
         Ldir['gtagex'] + '_' +
         Ldir['ic_name'] + '_' +

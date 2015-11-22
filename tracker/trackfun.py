@@ -6,6 +6,10 @@ import numpy as np
 import os; import sys
 alp = os.path.abspath('../../LiveOcean/alpha')
 if alp not in sys.path: sys.path.append(alp)
+try:  # needed for python 3
+    from importlib import reload
+except ImportError:
+    pass  # assume we are working in python 2
 import zfun; reload(zfun) # plotting functions
 import netCDF4 as nc4
 

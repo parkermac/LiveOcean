@@ -27,6 +27,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-g", "--gridname", type=str, default='cascadia1')
 parser.add_argument("-t", "--tag", type=str, default='base')
 parser.add_argument("-x", "--ex_name", type=str, default='lo1')
+parser.add_argument("-nd", "--num_days", type=int, default=30)
 args = parser.parse_args()
 
 Ldir = Lfun.Lstart(args.gridname, args.tag)
@@ -96,7 +97,7 @@ f_df[f_df.isnull()] = '--'
 f_df = f_df.sort_index()
 
 # print to the screen
-pd.set_option('display.max_rows', 1000)
+pd.set_option('display.max_rows', args.num_days)
 print(f_df)
 
 
