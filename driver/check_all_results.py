@@ -14,12 +14,7 @@ from datetime import datetime, timedelta
 alp = os.path.abspath('../alpha')
 if alp not in sys.path:
     sys.path.append(alp)
-try:  # needed for python 3
-    from importlib import reload
-except ImportError:
-    pass  # assume we are working in python 2
 import Lfun
-reload(Lfun)
 
 # get command line arguments, if any
 parser = argparse.ArgumentParser()
@@ -99,12 +94,3 @@ f_df = f_df.sort_index()
 # print to the screen
 pd.set_option('display.max_rows', args.num_days)
 print(f_df)
-
-
-if False:
-    # and save in an html file
-    from datetime import datetime
-    fn = open(Ldir['LOo'] + 'forecast_state_' +
-              datetime.now().strftime('%Y.%m.%d') + '.html', 'w')
-    fn.write(f_df.to_html())
-    fn.close()

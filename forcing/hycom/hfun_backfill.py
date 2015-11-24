@@ -33,8 +33,8 @@ def get_hycom(Lfun, Ldir, exnum = '91.1'):
     
     # setup
     import sys
-    import zfun; reload(zfun)
-    import hfun; reload(hfun)
+    import zfun
+    import hfun
     import netCDF4 as nc
     from datetime import datetime, timedelta
     
@@ -60,8 +60,7 @@ def get_hycom(Lfun, Ldir, exnum = '91.1'):
     # and then determines the indices, n0 and n1, into this list that correspond
     # to our chosen time limits.
     
-    print ''
-    print 'Working on ' + exnum
+    print('\nWorking on ' + exnum)
     fn = 'http://tds.hycom.org/thredds/dodsC/GLBu0.08/expt_' + exnum
     sys.stdout.flush()
     ds = nc.Dataset(fn)
@@ -70,14 +69,14 @@ def get_hycom(Lfun, Ldir, exnum = '91.1'):
     # get the time in a meaningful format
     t_hycom = ds.variables['time'][:].squeeze()
     tu = ds.variables['time'].units
-    print ' time units = ' + tu # should be 'hours since 2000-01-01 00:00:00'
+    print(' time units = ' + tu) # should be 'hours since 2000-01-01 00:00:00'
     t_origin = ds.variables['time'].time_origin
     dt00 = datetime.strptime(t_origin, '%Y-%m-%d %H:%M:%S')
     dt_list = [] # initialize a list
     for tt in t_hycom:    
         dt_list.append(dt00 + timedelta(tt/24.))
-    print ' dt start = ' + datetime.strftime(dt_list[0], '%Y-%m-%d %H:%M:%S')
-    print ' dt end   = ' + datetime.strftime(dt_list[-1], '%Y-%m-%d %H:%M:%S')
+    print(' dt start = ' + datetime.strftime(dt_list[0], '%Y-%m-%d %H:%M:%S'))
+    print(' dt end   = ' + datetime.strftime(dt_list[-1], '%Y-%m-%d %H:%M:%S'))
     sys.stdout.flush()
     ds.close()
     
@@ -113,12 +112,11 @@ def get_hycom(Lfun, Ldir, exnum = '91.1'):
         
         try:
             nt0 = dt_list.index(dt0) # its index in the hycom database for exnum
-            print dt0
-            print ''
-            print '*** Next Interval ***'
-            print 'nt0 = ' + str(nt0)
+            print(dt0)
+            print('\n*** Next Interval ***')
+            print('nt0 = ' + str(nt0))
         except:
-            print 'error with dt0!'
+            print('error with dt0!')
             nt0 = -1
     
         ntmax = len(dt_list) - 1
@@ -135,21 +133,21 @@ def get_hycom(Lfun, Ldir, exnum = '91.1'):
             nt1 = ntmax
         try:        
             dt1 = dt_list[nt1]
-            print dt1
-            print 'nt1 = ' + str(nt1)
+            print(dt1)
+            print('nt1 = ' + str(nt1))
         except:
-            print 'error with dt1!'
+            print('error with dt1!')
             nt1 = -1
         
         # Here we get the HYCOM data from the server, and save all variables in
         # a dict.
-        print 'Getting HYCOM data for ' + str(nt1-nt0+1) + ' times'
+        print('Getting HYCOM data for ' + str(nt1-nt0+1) + ' times')
         sys.stdout.flush()
-        print 'nt0 = ' + str(nt0) + ' nt1 = ' + str(nt1)
+        print('nt0 = ' + str(nt0) + ' nt1 = ' + str(nt1))
         import time
         tt0 = time.time()         
         out_dict = hfun.get_hycom_past(fn, nt0, nt1)
-        print '  took ' + str(round(time.time() - tt0)) + ' seconds'
+        print('  took ' + str(round(time.time() - tt0)) + ' seconds')
         sys.stdout.flush()
         
         # Now we add the time axis to that dict, both in datetime format (dt),
@@ -168,13 +166,13 @@ def get_hycom(Lfun, Ldir, exnum = '91.1'):
         
         # only clobbber the target directory if we are starting a new file
         if NT0 == 0:
-            print 'making clean folder ' + nc_dir
+            print('making clean folder ' + nc_dir)
             Lfun.make_dir(nc_dir, clean=True)
         
-        print 'Writing HYCOM data to NetCDF'
+        print('Writing HYCOM data to NetCDF')
         tt0 = time.time()   
         hfun.hycom_dict_to_netcdf(out_dict, nc_dir, NT0, NT1)
-        print '  took ' + str(round(time.time() - tt0)) + ' seconds'
+        print('  took ' + str(round(time.time() - tt0)) + ' seconds')
         
         dt_list_stored = get_dt_list_stored(nc_dir)
         dt0 = dt_list_stored[-1] # the last stored time
@@ -191,17 +189,13 @@ def extrapolate_hycom(Lfun, Ldir, tag = '91.1'):
     Do this BEFORE filtering.
     """
     # setup
-    import os; import sys
-    # alp = os.path.abspath('../../alpha')
-    # if alp not in sys.path:
-    #     sys.path.append(alp)
-    # import Lfun; reload(Lfun)
-    # Ldir = Lfun.Lstart(alp)
+    import os
+    import sys
     
     ofp = os.path.abspath('../ocn')
     if ofp not in sys.path:
         sys.path.append(ofp)
-    import Ofun; reload(Ofun)
+    import Ofun
     
     vn_list = ['ssh', 't3d', 's3d', 'u3d', 'v3d']
     
@@ -211,11 +205,10 @@ def extrapolate_hycom(Lfun, Ldir, tag = '91.1'):
     import time
     for vn in vn_list:
         tt0 = time.time()
-        print ''
-        print 'Extrapolating ' + vn
+        print('\nExtrapolating ' + vn)
         sys.stdout.flush()
         Ofun.process_extrap(vn, nc_dir)
-        print ' Took %.3f seconds' % (time.time() - tt0)
+        print(' Took %.3f seconds' % (time.time() - tt0))
         sys.stdout.flush()  
         
 def combine_hycom(Lfun, Ldir):
@@ -223,8 +216,8 @@ def combine_hycom(Lfun, Ldir):
     Code to combine NetCDF files from different HYCOM exnum's
     """
 
-    import zfun; reload(zfun)
-    import hfun; reload(hfun)
+    import zfun
+    import hfun
     import netCDF4 as nc
     import shutil
     
@@ -240,7 +233,7 @@ def combine_hycom(Lfun, Ldir):
     
     # repeat this loop for each variable
     for vn in vn_list:
-        print 'Working on variable ' + vn
+        print('Working on variable ' + vn)
         
         # first get a dictionary of time axes
         nex = 0 # counter for which experiment number
@@ -255,7 +248,7 @@ def combine_hycom(Lfun, Ldir):
             # file by copying        
             if nex == 0:
                 fn_new = nc_dir_new + vn + '.nc'
-                print '  Copying first exnum into ' + fn_new
+                print('  Copying first exnum into ' + fn_new)
                 shutil.copyfile(fn,fn_new) 
             nex += 1      
     
@@ -271,9 +264,8 @@ def combine_hycom(Lfun, Ldir):
             istart = list(current_tmod).index(tmod_dict[nex][0])
             
             exnum = exnum_list[nex]
-            print ''
-            print '  Appending data from exnum ' + exnum
-            print '  istart = ' + str(istart)
+            print('\n  Appending data from exnum ' + exnum)
+            print('  istart = ' + str(istart))
             
             # account for the last four times in 90.9 being bad data
             if exnum_list[nex-1] == '90.9':
@@ -303,12 +295,13 @@ def filter_hycom(Lfun, Ldir):
     Do this AFTER extraploating.
     """
     # setup
-    import os; import sys
+    import os
+    import sys
     
     ofp = os.path.abspath('../ocn')
     if ofp not in sys.path:
         sys.path.append(ofp)
-    import Ofun; reload(Ofun)
+    import Ofun
     
     vn_list = ['ssh', 't3d', 's3d', 'u3d', 'v3d']
     tag = '_combined' # e.g. '90.0', '91.0', '91.1', '_combined'
@@ -318,13 +311,8 @@ def filter_hycom(Lfun, Ldir):
     import time
     for vn in vn_list:
         tt0 = time.time()
-        print ''
-        print 'Filtering ' + vn
+        print('\nFiltering ' + vn)
         Ofun.process_time_filter(vn, nc_dir)
-        print ' Took %.3f seconds' % (time.time() - tt0)
+        print(' Took %.3f seconds' % (time.time() - tt0))
         sys.stdout.flush()   
-        
 
-    
-
-     

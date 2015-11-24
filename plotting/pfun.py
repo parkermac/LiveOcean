@@ -240,8 +240,14 @@ def roms_layer(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
     # setup
     import sys
     if alp not in sys.path: sys.path.append(alp)
-    import zfun; reload(zfun) # utility functions
-    import matfun; reload(matfun) # functions for working with mat files
+    try:  # needed for python 3
+        from importlib import reload
+    except ImportError:
+        pass  # assume we are working in python 2
+    import zfun
+    reload(zfun) # utility functions
+    import matfun
+    reload(matfun) # functions for working with mat files
     import matplotlib.pyplot as plt
     import numpy as np
 

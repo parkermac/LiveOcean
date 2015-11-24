@@ -14,11 +14,12 @@ gridname = 'cascadia1'
 tag = 'base'
 
 # setup
-import os; import sys
+import os
+import sys
 alp = os.path.abspath('../../alpha')
 if alp not in sys.path:
     sys.path.append(alp)
-import Lfun; reload(Lfun)
+import Lfun
 Ldir = Lfun.Lstart(gridname,tag)
 
 import hfun_backfill as hfb

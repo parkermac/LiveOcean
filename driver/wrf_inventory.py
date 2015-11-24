@@ -10,8 +10,8 @@ import os; import sys
 alp = os.path.abspath('../alpha')
 if alp not in sys.path:
     sys.path.append(alp)
-import Lfun; reload(Lfun)
-Ldir = Lfun.Lstart(alp)
+import Lfun
+Ldir = Lfun.Lstart()
 
 import pandas as pd
 
@@ -21,7 +21,6 @@ elif Ldir['parent'] == '/data1/parker/':
     f_dir0 = '/pmraid3/darr/tstwrf/tmpwrf/'
 
 # directory names are like 2012100700
-
 
 # expected directories
 from datetime import datetime, timedelta
@@ -82,11 +81,10 @@ df_no = df_no.sort_index()
 
 # print to the screen
 pd.set_option('display.max_rows', 1000)
-print 'MISSING DIRECTORIES'
-print df_no
-print ''
-print 'MISSING HOURS'
-print df_yes_but
+print('MISSING DIRECTORIES')
+print(df_no)
+print('\nMISSING HOURS')
+print(df_yes_but)
 
 
 

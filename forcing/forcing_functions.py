@@ -3,25 +3,31 @@ Shared helper functions for the forcing code.
 """
 def intro():   
     # setup
-    import os; import sys
-    alp = os.path.abspath('../../alpha')
-    if alp not in sys.path: sys.path.append(alp)
-    # Note: the path "alp" will now also work for the calling function
-    import Lfun; reload(Lfun)
+    import os
+    import sys
+    import argparse
     from datetime import datetime
+    # This relative path to alpha is meant to work only when intro()
+    # is called from the forcing directories (not great coding).
+    alp = os.path.abspath('../../alpha')
+    if alp not in sys.path:
+        sys.path.append(alp)
+    # Note: the path "alp" will now also work for the calling function
+    import Lfun
     
     # set defaults
     gridname = 'cascadia1'
     tag = 'base'    
-    cwd = os.getcwd(); icwd = cwd.rfind('/'); frc = cwd[icwd+1:]
-    run_type = 'forecast' # backfill or forecast
+    cwd = os.getcwd()
+    icwd = cwd.rfind('/')
+    frc = cwd[icwd+1:]
+    run_type = 'forecast'  # backfill or forecast
+    # Example of date_string is 2015.09.19
     date_string = datetime.now().strftime(format='%Y.%m.%d')
     ex_name = 'lo1'
     
-    # get command line arguments
-    import argparse
+    # optional command line arguments, can be input in any order
     parser = argparse.ArgumentParser()
-    # optional input arguments
     parser.add_argument('-g', '--gridname', nargs='?', const=gridname, type=str, default=gridname)
     parser.add_argument('-t', '--tag', nargs='?', const=tag, type=str, default=tag)
     parser.add_argument('-f', '--frc', nargs='?', const=frc, type=str, default=frc)

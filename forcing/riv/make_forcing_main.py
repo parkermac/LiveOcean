@@ -2,11 +2,13 @@
 This is the main program for making the RIV forcing file.
 """
 
-import os; import sys; fpth = os.path.abspath('../')
-if fpth not in sys.path: sys.path.append(fpth)
-import forcing_functions as ffun; reload(ffun)
+import os
+import sys
+fpth = os.path.abspath('../')
+if fpth not in sys.path:
+    sys.path.append(fpth)
+import forcing_functions as ffun
 Ldir, Lfun = ffun.intro()
-import zfun; reload(zfun)
 
 # ****************** CASE-SPECIFIC CODE *****************
 
@@ -20,7 +22,7 @@ if Ldir['run_type'] == 'backfill':
     Info['datestring_end'] = dt1.strftime('%Y.%m.%d')
     
 # Make a dataframe with info for rivers to get
-import Rfun; reload(Rfun)
+import Rfun
 rdf, rnames = Rfun.get_rivers_dataframe(Ldir)
 
 # Go out and get the data

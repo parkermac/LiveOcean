@@ -68,7 +68,7 @@ def get_hycom_past(fn, nt0, nt1):
     v3d = v3d[:, ::-1, :, :] # pack bottom to top
     out_dict['v3d'] = v3d
               
-    print '  ' + str(time.time() - tt0) + ' sec to get all variables'
+    print('  ' + str(time.time() - tt0) + ' sec to get all variables')
             
     ds.close()    
     return out_dict
@@ -81,7 +81,7 @@ def hycom_dict_to_netcdf(out_dict, nc_dir, NT0, NT1):
     this out_dict will be placed.
     """
     import netCDF4 as nc
-    import Lfun; reload(Lfun) # calling function must put this on the path
+    import Lfun # calling function must put this on the path
     
     vn_list = ['ssh', 't3d', 's3d', 'u3d', 'v3d']
     for vn in vn_list:        

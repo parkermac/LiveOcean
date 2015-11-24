@@ -8,13 +8,17 @@ Performance: 44 sec per day (mac) or ~5 hours per year of days.
     (no bio variables).
 """
 
-import os; import sys; fpth = os.path.abspath('../')
-if fpth not in sys.path: sys.path.append(fpth)
-import forcing_functions as ffun; reload(ffun)
+import os
+import sys
+fpth = os.path.abspath('../')
+if fpth not in sys.path:
+    sys.path.append(fpth)
+import forcing_functions as ffun
 Ldir, Lfun = ffun.intro()
-import zfun; reload(zfun)
 
 # ****************** CASE-SPECIFIC CODE *****************
+import zfun
+
 result_dict = dict()   
 try:
     

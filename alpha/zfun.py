@@ -45,10 +45,6 @@ def get_interpolant_fast(x, xvec):
     """
     Returns info to allow fast interpolation.
 
-    Re-coded from get_interpolant to be cleaner and faster. In an
-    informal benchmark it was about 6-7 times faster than
-    get_interpolant.
-
     Input: data point(s) x and coordinate vector xvec
     (both must be 1-D numpy arrays)
 
@@ -67,8 +63,8 @@ def get_interpolant_fast(x, xvec):
     if isinstance(x, np.ndarray) and isinstance(xvec, np.ndarray):
         pass # input type is good
     else:
-        print('WARNING from get_interpolant_array(): ' +
-            'Inputs must be numpy arrays')
+        print('WARNING from get_interpolant_fast(): ' +
+              'Inputs must be numpy arrays')
 
     # some preconditioning of the input
     x = x.flatten()
@@ -76,7 +72,7 @@ def get_interpolant_fast(x, xvec):
 
     # more error checking
     if not np.all(np.diff(xvec) > 0):
-        print('WARNING from get_interpolant_array(): ' +
+        print('WARNING from get_interpolant_fast(): ' +
             'xvec must be monotonic and increasing')
 
     nx = len(x)
@@ -114,6 +110,8 @@ def get_interpolant_fast(x, xvec):
 
 def get_interpolant(x, xvec):
     """
+    OBSOLETE: should be phased out (in moor_0.py and pfun.py).
+    
     Returns info to allow fast interpolation (I hope).
 
     Input: data point(s) x and coordinate vector xvec
@@ -400,8 +398,8 @@ def get_layer(fld, zr, which_z):
     import numpy as np
     N, M, L = fld.shape # updates N for full fields
     Nmax = 30
-    ii = range(0,N,Nmax)
-    ii.append(N)
+    ii = np.arange(0,N,Nmax)
+    ii = np.concatenate((ii,np.array([N,])))
 
     fld0 = np.nan * np.zeros((M, L), dtype=int)
     fld1 = np.nan * np.zeros((M, L), dtype=int)

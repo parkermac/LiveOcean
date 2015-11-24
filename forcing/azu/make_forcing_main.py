@@ -2,16 +2,19 @@
 This is the main program for making the AZU forcing file.
 """
 
-import os; import sys; fpth = os.path.abspath('../')
-if fpth not in sys.path: sys.path.append(fpth)
-import forcing_functions as ffun; reload(ffun)
+import os
+import sys
+fpth = os.path.abspath('../')
+if fpth not in sys.path:
+    sys.path.append(fpth)
+import forcing_functions as ffun
 Ldir, Lfun = ffun.intro()
-import zfun; reload(zfun)
 
 # ****************** CASE-SPECIFIC CODE *****************
 
 # Azure commands
-import azure.storage as az    
+from azure.storage.blob import BlobService
+
 print('\nPushing forecast files to Azure for ' + Ldir['date_string'] + '\n')
 # azure does not like dots in container names!
 f_string = 'f' + Ldir['date_string']
@@ -25,7 +28,7 @@ key = azu_dict['key']
 containername = ff_string
 
 # get a handle to your account
-blob_service = az.BlobService(account_name=account, account_key=key)
+blob_service = BlobService(account_name=account, account_key=key)
 blob_service.create_container(containername)
 blob_service.set_container_acl(containername, x_ms_blob_public_access='container')
 

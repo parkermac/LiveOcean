@@ -2,14 +2,15 @@
 This is the main program for making the OCN forcing file.
 """
 
-import os; import sys; fpth = os.path.abspath('../')
-if fpth not in sys.path: sys.path.append(fpth)
-import forcing_functions as ffun; reload(ffun)
+import os
+import sys
+fpth = os.path.abspath('../')
+if fpth not in sys.path:
+    sys.path.append(fpth)
+import forcing_functions as ffun
 Ldir, Lfun = ffun.intro()
-import zfun; reload(zfun)
 
 # ****************** CASE-SPECIFIC CODE *****************
-
 from datetime import datetime
 
 import Ofun; reload(Ofun)
@@ -150,7 +151,6 @@ elif Ldir['run_type'] == 'backfill':
             flds = foo.createVariable(vn + '_filt', float, ('t', 's', 'y', 'x'))
         flds[:] = fld
         ds.close()
-        #zfun.ncd(foo)         
         foo.close()
         
     # find list of archived times (already extrapolated and filtered)

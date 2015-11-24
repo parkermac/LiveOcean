@@ -14,15 +14,19 @@ def print_mat_nested(d, indent=0, nkeys=0):
 
     # Subset dictionary to limit keys to print.  Only works on first level
     if nkeys>0:
-        d = {k: d[k] for k in d.keys()[:nkeys]}  # Dictionary comprehension: limit to first nkeys keys.
+        d = {k: d[k] for k in d.keys()[:nkeys]}
+        # Dictionary comprehension: limit to first nkeys keys.
 
     if isinstance(d, dict):
-        for key, value in d.iteritems():         # iteritems loops through key, value pairs
-          print('\t' * indent + 'Key: ' + str(key))
-          print_mat_nested(value, indent+1)
+        for key, value in d.iteritems():
+        # iteritems loops through key, value pairs
+            print('\t' * indent + 'Key: ' + str(key))
+            print_mat_nested(value, indent+1)
 
-    if isinstance(d,np.ndarray) and d.dtype.names is not None:  # Note: and short-circuits by default
-        for n in d.dtype.names:    # This means it's a struct, it's bit of a kludge test.
+    if isinstance(d,np.ndarray) and d.dtype.names is not None:
+        # Note: and short-circuits by default
+        for n in d.dtype.names:
+            # This means it's a struct, it's bit of a kludge test.
             print('\t' * indent + 'Field: ' + str(n))
             print_mat_nested(d[n], indent+1)
 

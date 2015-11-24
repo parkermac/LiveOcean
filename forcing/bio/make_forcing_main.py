@@ -2,11 +2,13 @@
 This is the main program for making the BIO forcing file.
 """
 
-import os; import sys; fpth = os.path.abspath('../')
-if fpth not in sys.path: sys.path.append(fpth)
-import forcing_functions as ffun; reload(ffun)
+import os
+import sys
+fpth = os.path.abspath('../')
+if fpth not in sys.path:
+    sys.path.append(fpth)
+import forcing_functions as ffun
 Ldir, Lfun = ffun.intro()
-import zfun; reload(zfun)
 
 # ****************** CASE-SPECIFIC CODE *****************
 import shutil
