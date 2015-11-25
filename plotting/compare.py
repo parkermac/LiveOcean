@@ -3,14 +3,14 @@ Compares two history files.
 """
 
 # setup
-import os; import sys
+import os
+import sys
 alp = os.path.abspath('../alpha')
 if alp not in sys.path:
     sys.path.append(alp)
-import Lfun; reload(Lfun)
-Ldir = Lfun.Lstart(alp)
-import zfun; reload(zfun)
-
+import Lfun
+Ldir = Lfun.Lstart()
+import zfun
 
 f_string = 'f2013.01.02'
 nhiss = '0025'
@@ -76,4 +76,4 @@ ax.set_ylabel('Latitude')
 ax.set_title('Surface Temperature Difference')
 fig.colorbar(cs)
 
-plt.show()   
+plt.show()

@@ -5,13 +5,14 @@ Check the boundary and clim forcing files files.
 which_force = 'ocn'
 
 # setup
-import os; import sys
+import os
+import sys
 alp = os.path.abspath('../alpha')
 if alp not in sys.path:
     sys.path.append(alp)
-import Lfun; reload(Lfun)
-Ldir = Lfun.Lstart(alp)
-import zfun; reload(zfun)
+import Lfun
+Ldir = Lfun.Lstart()
+import zfun
 
 Info = dict()
 # override date
@@ -61,8 +62,8 @@ plt.show()
 
 f0 = f_ss[0,:]
 r0 = r_ss[0,:]
-print f0[75:85]
-print r0[75:85]
+print(f0[75:85])
+print(r0[75:85])
 
 
 

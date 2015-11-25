@@ -8,12 +8,14 @@ Result arrays are arrays in (time, particle)
 """
 
 # setup
-import os; import sys
+import os
+import sys
 alp = os.path.abspath('../alpha')
-if alp not in sys.path: sys.path.append(alp)
-import Lfun; reload(Lfun)
-import zfun; reload(zfun) # plotting functions
-import cPickle as pickle
+if alp not in sys.path:
+    sys.path.append(alp)
+import Lfun
+import zfun
+import pickle
 import numpy as np
 
 Ldir = Lfun.Lstart()

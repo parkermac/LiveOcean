@@ -2,14 +2,15 @@
 Code to combine NetCDF files from different HYCOM exnum's
 """
 # setup
-import os; import sys
+import os
+import sys
 alp = os.path.abspath('../../alpha')
 if alp not in sys.path:
     sys.path.append(alp)
-import Lfun; reload(Lfun)
-Ldir = Lfun.Lstart(alp)
-import zfun; reload(zfun)
-import hfun; reload(hfun)
+import Lfun
+Ldir = Lfun.Lstart()
+import zfun
+import hfun
 import netCDF4 as nc
 import shutil
 
@@ -25,7 +26,7 @@ Lfun.make_dir(nc_dir_new, clean=True)
 
 # repeat this loop for each variable
 for vn in vn_list:
-    print 'Working on variable ' + vn
+    print('Working on variable ' + vn)
     
     # first get a dictionary of time axes
     nex = 0 # counter for which experiment number
@@ -40,7 +41,7 @@ for vn in vn_list:
         # file by copying        
         if nex == 0:
             fn_new = nc_dir_new + vn + '.nc'
-            print '  Copying first exnum into ' + fn_new
+            print('  Copying first exnum into ' + fn_new)
             shutil.copyfile(fn,fn_new) 
         nex += 1      
 
@@ -56,9 +57,8 @@ for vn in vn_list:
         istart = list(current_tmod).index(tmod_dict[nex][0])
         
         exnum = exnum_list[nex]
-        print ''
-        print '  Appending data from exnum ' + exnum
-        print '  istart = ' + str(istart)
+        print('\n  Appending data from exnum ' + exnum)
+        print('  istart = ' + str(istart))
         
         # account for the last four times in 90.9 being bad data
         if exnum_list[nex-1] == '90.9':
@@ -80,8 +80,3 @@ for vn in vn_list:
                 
         foo.close()
         ds.close()
-        
-        
-
-    
-

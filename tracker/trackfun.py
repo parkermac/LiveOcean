@@ -3,14 +3,11 @@ Functions for particle tracking.
 """
 # setup
 import numpy as np
-import os; import sys
+import os
+import sys
 alp = os.path.abspath('../../LiveOcean/alpha')
-if alp not in sys.path: sys.path.append(alp)
-try:  # needed for python 3
-    from importlib import reload
-except ImportError:
-    pass  # assume we are working in python 2
-import zfun; reload(zfun) # plotting functions
+if alp not in sys.path:sys.path.append(alp)
+import zfun
 import netCDF4 as nc4
 
 def get_tracks(fn_list, plon0, plat0, pcs0, delta_t, dir_tag):

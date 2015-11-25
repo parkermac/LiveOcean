@@ -41,24 +41,27 @@ frc_list = ['atm', 'ocn', 'riv', 'tide']
 for frc in frc_list:
     print('\n%s %10s %s' % (20*'*', frc.upper(), 20*'*'))
     odir = Ldir['LOo'] + Ldir['gtag'] +'/' + f_string +'/' + frc + '/'
-    odl = os.listdir(odir)
-    for nn in odl:
-        if '.nc' in nn:
-            print('\n%s %10s %s' % (20*'=', nn, 20*'='))
-            import netCDF4 as nc    
-            ds = nc.Dataset(odir + nn)
-            for vv in ds.variables:
-                if 'time' in vv:
-                    t = ds.variables[vv][:]
-                    # get first and last time relative to t00
-                    # (assumes t and t00 are in the same units)
-                    td0 = t[0] - t00
-                    td1 = t[-1] - t00
-                    try:
-                        uu = ds.variables[vv].units
-                        if uu == 'seconds':
-                            uuu = 'days'
-                    except:
-                        uuu = 'MISSING'
-                    print(' %20s: %2d to %2d %s' % (vv, td0/86400., td1/86400., uuu))
-            ds.close()
+    try:
+        odl = os.listdir(odir)
+        for nn in odl:
+            if '.nc' in nn:
+                print('\n%s %10s %s' % (20*'=', nn, 20*'='))
+                import netCDF4 as nc    
+                ds = nc.Dataset(odir + nn)
+                for vv in ds.variables:
+                    if 'time' in vv:
+                        t = ds.variables[vv][:]
+                        # get first and last time relative to t00
+                        # (assumes t and t00 are in the same units)
+                        td0 = t[0] - t00
+                        td1 = t[-1] - t00
+                        try:
+                            uu = ds.variables[vv].units
+                            if uu == 'seconds':
+                                uuu = 'days'
+                        except:
+                            uuu = 'MISSING'
+                        print(' %20s: %2d to %2d %s' % (vv, td0/86400., td1/86400., uuu))
+                ds.close()
+    except FileNotFoundError:
+        pass

@@ -20,9 +20,12 @@ Variable ID, Variable Name
 
 """
 
-import os; import sys; pth = os.path.abspath('../../alpha')
-if pth not in sys.path: sys.path.append(pth)
-import Lfun; reload(Lfun)
+import os
+import sys
+pth = os.path.abspath('../../alpha')
+if pth not in sys.path:
+    sys.path.append(pth)
+import Lfun
 Ldir = Lfun.Lstart()
 
 import pandas as pd

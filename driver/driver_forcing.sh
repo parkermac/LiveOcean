@@ -118,11 +118,7 @@ do
   # Make the forcing.
   cd $LO_parent"/forcing/"$frc
   source $HOME"/.bashrc"
-  if [ $frc = "azu" ] ; then
-    /home/parker/anaconda/bin/python ./make_forcing_main.py -g $gridname -t $tag -f $frc -r $run_type -d $DD -x $ex_name > $LOogf_fi"/screen_out.txt" &
-  else
-    python ./make_forcing_main.py -g $gridname -t $tag -f $frc -r $run_type -d $DD -x $ex_name > $LOogf_fi"/screen_out.txt" &
-  fi
+  python ./make_forcing_main.py -g $gridname -t $tag -f $frc -r $run_type -d $DD -x $ex_name > $LOogf_fi"/screen_out.txt" &
 
   # wait a bit to allow main to get rid of the output
   sleep 5

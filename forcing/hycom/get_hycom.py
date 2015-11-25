@@ -27,14 +27,15 @@ creating variables with the tag "_filt".
 """
 
 # setup
-import os; import sys
+import os
+import sys
 alp = os.path.abspath('../../alpha')
 if alp not in sys.path:
     sys.path.append(alp)
-import Lfun; reload(Lfun)
-Ldir = Lfun.Lstart(alp)
-import zfun; reload(zfun)
-import hfun; reload(hfun)
+import Lfun
+Ldir = Lfun.Lstart()
+import zfun
+import hfun
 import netCDF4 as nc
 from datetime import datetime, timedelta
 
@@ -62,8 +63,7 @@ exnum = '91.1'
 # and then determines the indices, n0 and n1, into this list that correspond
 # to our chosen time limits.
 
-print ''
-print 'Working on ' + exnum
+print('\nWorking on ' + exnum)
 fn = 'http://tds.hycom.org/thredds/dodsC/GLBu0.08/expt_' + exnum
 sys.stdout.flush()
 ds = nc.Dataset(fn)
@@ -72,14 +72,14 @@ if False: # set to True to see what is in the files
 # get the time in a meaningful format
 t_hycom = ds.variables['time'][:].squeeze()
 tu = ds.variables['time'].units
-print ' time units = ' + tu # should be 'hours since 2000-01-01 00:00:00'
+print(' time units = ' + tu)  # should be 'hours since 2000-01-01 00:00:00'
 t_origin = ds.variables['time'].time_origin
 dt00 = datetime.strptime(t_origin, '%Y-%m-%d %H:%M:%S')
 dt_list = [] # initialize a list
 for tt in t_hycom:    
     dt_list.append(dt00 + timedelta(tt/24.))
-print ' dt start = ' + datetime.strftime(dt_list[0], '%Y-%m-%d %H:%M:%S')
-print ' dt end   = ' + datetime.strftime(dt_list[-1], '%Y-%m-%d %H:%M:%S')
+print(' dt start = ' + datetime.strftime(dt_list[0], '%Y-%m-%d %H:%M:%S'))
+print(' dt end   = ' + datetime.strftime(dt_list[-1], '%Y-%m-%d %H:%M:%S'))
 sys.stdout.flush()
 ds.close()
 
@@ -115,12 +115,11 @@ while (dt0 < dt_list[-1]) and (cc < 2):
        
     try:
         nt0 = dt_list.index(dt0) # its index in the hycom database for exnum
-        print dt0
-        print ''
-        print '*** Next Interval ***'
-        print 'nt0 = ' + str(nt0)
+        print(dt0)
+        print('\n*** Next Interval ***')
+        print('nt0 = ' + str(nt0))
     except:
-        print 'error with dt0!'
+        print('error with dt0!')
         nt0 = -1
 
     ntmax = len(dt_list) - 1
@@ -137,21 +136,21 @@ while (dt0 < dt_list[-1]) and (cc < 2):
         nt1 = ntmax
     try:        
         dt1 = dt_list[nt1]
-        print dt1
-        print 'nt1 = ' + str(nt1)
+        print(dt1)
+        print('nt1 = ' + str(nt1))
     except:
-        print 'error with dt1!'
+        print('error with dt1!')
         nt1 = -1
     
     # Here we get the HYCOM data from the server, and save all variables in
     # a dict.
-    print 'Getting HYCOM data for ' + str(nt1-nt0+1) + ' times'
+    print('Getting HYCOM data for ' + str(nt1-nt0+1) + ' times')
     sys.stdout.flush()
-    print 'nt0 = ' + str(nt0) + ' nt1 = ' + str(nt1)
+    print('nt0 = ' + str(nt0) + ' nt1 = ' + str(nt1))
     import time
     tt0 = time.time()         
     out_dict = hfun.get_hycom_past(fn, nt0, nt1)
-    print '  took ' + str(round(time.time() - tt0)) + ' seconds'
+    print('  took ' + str(round(time.time() - tt0)) + ' seconds')
     sys.stdout.flush()
     
     # Now we add the time axis to that dict, both in datetime format (dt),
@@ -170,13 +169,13 @@ while (dt0 < dt_list[-1]) and (cc < 2):
     
     # only clobbber the target directory if we are starting a new file
     if NT0 == 0:
-        print 'making clean folder ' + nc_dir
+        print('making clean folder ' + nc_dir)
         Lfun.make_dir(nc_dir, clean=True)
     
-    print 'Writing HYCOM data to NetCDF'
+    print('Writing HYCOM data to NetCDF')
     tt0 = time.time()   
     hfun.hycom_dict_to_netcdf(out_dict, nc_dir, NT0, NT1)
-    print '  took ' + str(round(time.time() - tt0)) + ' seconds'
+    print('  took ' + str(round(time.time() - tt0)) + ' seconds')
     
     dt_list_stored = get_dt_list_stored(nc_dir)
     dt0 = dt_list_stored[-1] # the last stored time
@@ -184,6 +183,4 @@ while (dt0 < dt_list[-1]) and (cc < 2):
     sys.stdout.flush()
     
     if Testing == True:
-        cc += 1
-
-    
+        cc += 1S

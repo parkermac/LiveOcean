@@ -3,16 +3,14 @@ Plot results of tracker.
 """
 
 # setup
-import os; import sys
+import os
+import sys
 alp = os.path.abspath('../alpha')
-if alp not in sys.path: sys.path.append(alp)
-try:  # needed for python 3
-    from importlib import reload
-except ImportError:
-    pass  # assume we are working in python 2
-import Lfun; reload(Lfun)
-import zfun; reload(zfun) # plotting functions
-import matfun; reload(matfun) # functions for working with mat files
+if alp not in sys.path:
+    sys.path.append(alp)
+import Lfun
+import zfun
+import matfun
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -34,10 +32,7 @@ for npt in range(Npt):
 my_npt = int(input('-- Input number -- '))
 inname = m_dict[my_npt]
   
-try:
-    import cPickle as pickle  # python 2
-except ImportError:
-    import pickle  # python 3
+import pickle  # python 3
 P, G, S, PLdir = pickle.load( open( indir + inname, 'rb' ) )
 
 NT, NP = P['lon'].shape

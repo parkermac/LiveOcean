@@ -39,13 +39,10 @@ def roms_basic(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
         fig_size = (14, 8) # figure size
     # setup
     import sys
-    if alp not in sys.path: sys.path.append(alp)
-    try:  # needed for python 3
-        from importlib import reload
-    except ImportError:
-        pass  # assume we are working in python 2
-    import zfun; reload(zfun) # utility functions
-    import matfun; reload(matfun) # functions for working with mat files
+    if alp not in sys.path:
+        sys.path.append(alp)
+    import zfun
+    import matfun
     import numpy as np
 
     # GET DATA
@@ -189,8 +186,9 @@ def bio_basic(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
     # This creates, and optionally saves, a basic plot of surface fields
     # from a ROMS history file, focusing on bio fields.
     import sys
-    if alp not in sys.path: sys.path.append(alp)
-    import zfun; reload(zfun) # utility functions
+    if alp not in sys.path:
+        sys.path.append(alp)
+    import zfun
     # grid info
     G, S, T = zfun.get_basic_info(fn)
     lonp = G['lon_psi']
@@ -239,15 +237,10 @@ def roms_layer(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
 
     # setup
     import sys
-    if alp not in sys.path: sys.path.append(alp)
-    try:  # needed for python 3
-        from importlib import reload
-    except ImportError:
-        pass  # assume we are working in python 2
+    if alp not in sys.path:
+        sys.path.append(alp)
     import zfun
-    reload(zfun) # utility functions
     import matfun
-    reload(matfun) # functions for working with mat files
     import matplotlib.pyplot as plt
     import numpy as np
 
@@ -308,7 +301,7 @@ def roms_layer(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
         lay = zfun.get_layer(fld, zr, which_z)
 
         # get the surface field to plot
-        #print str(fld.shape)
+        #print(str(fld.shape))
         #lay_top = fld[-1].copy() # fld[-1] is shorthand for fld[-1,:,:]
 
         # mask out the bio fields if we are inside the Salish Sea, because
@@ -389,11 +382,12 @@ def roms_sect(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
 
     # setup
     import sys
-    if alp not in sys.path: sys.path.append(alp)
+    if alp not in sys.path:
+        sys.path.append(alp)
     import matplotlib.pyplot as plt
     import numpy as np
-    import zfun; reload(zfun) # plotting functions
-    import matfun; reload(matfun) # functions for working with mat files
+    import zfun
+    import matfun
 
     # GET DATA
     G, S, T = zfun.get_basic_info(fn)
@@ -574,9 +568,10 @@ def nest_plot(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
 
     # setup
     import sys
-    if alp not in sys.path: sys.path.append(alp)
-    import zfun; reload(zfun)
-    import matfun; reload(matfun)
+    if alp not in sys.path:
+        sys.path.append(alp)
+    import zfun
+    import matfun
     import netCDF4 as nc
     import numpy as np
 
@@ -697,8 +692,9 @@ def tracks(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
 
     # setup
     import sys
-    if alp not in sys.path: sys.path.append(alp)
-    import zfun; reload(zfun) # utility functions
+    if alp not in sys.path:
+        sys.path.append(alp)
+    import zfun
 
     # GET DATA
     # run some code

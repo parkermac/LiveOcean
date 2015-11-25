@@ -5,13 +5,14 @@ Check the output of make_forcing_worker.py.
 frc = 'atm'
 
 # setup
-import os; import sys
+import os
+import sys
 alp = os.path.abspath('../../alpha')
 if alp not in sys.path:
     sys.path.append(alp)
-import Lfun; reload(Lfun)
+import Lfun
 Ldir = Lfun.Lstart(alp)
-import zfun; reload(zfun)
+import zfun
 
 #Info = Lfun.csv_to_dict(Ldir['LOo'] + 'current_Info/'
 #    + frc + '/Info_for_main.csv')
@@ -28,11 +29,11 @@ odl = os.listdir(odir)
 import netCDF4 as nc    
 for nn in odl:
     if '.nc' in nn:
-        print '=== ' + nn + ' ==='
+        print('=== ' + nn + ' ===')
 
         ds = nc.Dataset(odir + nn)
         for vv in ds.variables:
-            print ds.variables[vv]
+            print(ds.variables[vv])
             
 var_dict = {'lwrad_down':'lrf_time',
         'Pair':'pair_time',

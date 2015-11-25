@@ -3,10 +3,7 @@ The river class code.
 """
 
 import pandas as pd
-try:  # python 2
-    import urllib2
-except ImportError:  # python 3
-    import urllib
+import urllib
 import xml.etree.ElementTree as ET
 
 class River:
@@ -86,10 +83,7 @@ class River:
             + '?format=waterml,1.1&sites=' + str(gage)
             + time_str + '&parameterCd=00060')
         # Get the XML.     
-        try:  # python 2
-            file = urllib2.urlopen(url_str, timeout=10)
-        except NameError:  # python 3
-            file = urllib.request.urlopen(url_str, timeout=10)
+        file = urllib.request.urlopen(url_str, timeout=10)
         try:
             tree = ET.parse(file)
             root = tree.getroot()
@@ -126,10 +120,7 @@ class River:
         url_str = ('http://www.nwrfc.noaa.gov/xml/xml.cgi?id=' +
                    self.nws_code +
                    '&pe=HG&dtype=b&numdays=10')
-        try:  # python 2
-            file = urllib2.urlopen(url_str, timeout=10)
-        except NameError:  # python 3
-            file = urllib.request.urlopen(url_str, timeout=10)
+        file = urllib.request.urlopen(url_str, timeout=10)
         try:
             tree = ET.parse(file)
             root = tree.getroot()

@@ -19,19 +19,13 @@ import sys
 alp = os.path.abspath('../alpha')
 if alp not in sys.path:
     sys.path.append(alp)
-try:  # needed for python 3
-    from importlib import reload
-except ImportError:
-    pass  # assume we are working in python 2
 import Lfun
-reload(Lfun)
 Ldir = Lfun.Lstart(args.gridname, args.tag)
 Ldir['gtagex'] = Ldir['gtag'] + '_' + args.ex_name
 
 from datetime import datetime, timedelta
 coast_file = Ldir['data'] + 'coast/pnw_coast_combined.mat'
 import pfun
-reload(pfun)  # local module of plot routines
 
 # choose the type of list to make
 print(30*'*' + ' pan_plot ' + 30*'*')

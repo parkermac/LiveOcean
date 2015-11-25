@@ -3,14 +3,15 @@ Plots the HYCOM data.
 """
 
 # setup
-import os; import sys
+import os
+import sys
 alp = os.path.abspath('../alpha')
 if alp not in sys.path:
     sys.path.append(alp)
-import Lfun; reload(Lfun)
-Ldir = Lfun.Lstart(alp)
-import zfun; reload(zfun)
-import matfun; reload(matfun)
+import Lfun
+Ldir = Lfun.Lstart()
+import zfun
+import matfun
 import netCDF4 as nc
 
 # get the coastline

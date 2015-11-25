@@ -3,18 +3,19 @@ Plots the result of the river forcing code.
 """
 
 # setup
-import os; import sys   
+import os
+import sys   
 alp = os.path.abspath('../alpha')
 if alp not in sys.path:
     sys.path.append(alp)
-import Lfun; reload(Lfun)
-Ldir = Lfun.Lstart(alp)
+import Lfun
+Ldir = Lfun.Lstart()
 
 rpath = Ldir['LO'] + 'forcing/riv/'
 if rpath not in sys.path:
     sys.path.append(rpath)
-import Rfun; reload(Rfun)
-import zfun; reload(zfun)
+import Rfun
+import zfun
 
 # where is the output
 indir0 = Ldir['LOo'] + Ldir['gtag'] + '/'

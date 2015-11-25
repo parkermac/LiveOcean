@@ -14,7 +14,7 @@ def get_nws_data(id):
     """
     This gets NWS data.    
     """
-    import urllib2
+    import urllib
     import xml.etree.ElementTree as ET
     import pandas as pd
       
@@ -28,7 +28,7 @@ def get_nws_data(id):
     url_str = ('http://www.nwrfc.noaa.gov/xml/xml.cgi?id=' + id
     + '&pe=HG&dtype=b&numdays=10')
     try:
-        file = urllib2.urlopen(url_str, timeout = 10)
+        file = urllib.request.urlopen(url_str, timeout = 10)
         tree = ET.parse(file)
         root = tree.getroot()
     except:
@@ -66,7 +66,7 @@ def get_usgs_data(id):
     """
     This gets USGS data.
     """
-    import urllib2
+    import urllib
     import xml.etree.ElementTree as ET
     import pandas as pd
       
@@ -80,7 +80,7 @@ def get_usgs_data(id):
     url_str = ('http://waterservices.usgs.gov/nwis/iv/' +
     '?format=waterml,1.1&sites=' + id + '&period=P6D&parameterCd=00060')
     try:
-        file = urllib2.urlopen(url_str, timeout = 10)
+        file = urllib.request.urlopen(url_str, timeout = 10)
         tree = ET.parse(file)
         root = tree.getroot()
     except:
@@ -112,7 +112,7 @@ def get_usgs_data_past(id, datetime_start, datetime_end):
     """
     This gets USGS data for some past time period.
     """
-    import urllib2
+    import urllib
     import xml.etree.ElementTree as ET
     import pandas as pd
       
@@ -131,7 +131,7 @@ def get_usgs_data_past(id, datetime_start, datetime_end):
         +'&endDT=' + datetime_end.strftime('%Y-%m-%d') + '&parameterCd=00060')
     
     try:
-        file = urllib2.urlopen(url_str, timeout = 10)
+        file = urllib.request.urlopen(url_str, timeout = 10)
         tree = ET.parse(file)
         root = tree.getroot()
     except:
@@ -355,31 +355,31 @@ def get_rivers_data(rdf, rnames, Info, Ldir):
         # get the ID's and scale factor for this river
         aa = rdf.ix[rn]
         
-        print '** working on ' + rn
+        print('** working on ' + rn)
         
         if Info['run_type'] == 'forecast':
             # get the NWS Forecast
             if aa['NWS_ID'] != 'MISSING':
                 id = aa['NWS_ID']
-                print ' >> trying NWS: ' + id        
+                print(' >> trying NWS: ' + id)
                 qt, got_nws_data, memo = get_nws_data(id)
-                print '  -----' + memo + '-------'
+                print('  -----' + memo + '-------')
                 # and if that fails try the USGS  recent observations
                 if got_nws_data == False:
                     id = aa['USGS_ID']
-                    print '  >> trying USGS: ' + id
+                    print('  >> trying USGS: ' + id)
                     qt, got_usgs_data, memo = get_usgs_data(id)
-                    print '  -----' + memo + '-------'
+                    print('  -----' + memo + '-------')
         elif Info['run_type'] == 'backfill':
             datetime_start = datetime.strptime(Info['datestring_start'],'%Y.%m.%d')
             datetime_end = datetime.strptime(Info['datestring_end'],'%Y.%m.%d')
             id = aa['USGS_ID']
             # really we should have a trap door here if id == 'MISSING'
             # but it is handled semi-gracefully anyway
-            print '  >> trying USGS backfill: ' + id
+            print('  >> trying USGS backfill: ' + id)
             qt, got_usgs_data, memo = get_usgs_data_past(id,
                 datetime_start, datetime_end)
-            print '  -----' + memo + '-------'
+            print('  -----' + memo + '-------')
         # then do some processing and pack them in a dict
         if got_nws_data | got_usgs_data:  
             # fix time zone (e.g. USGS reports in local time)    

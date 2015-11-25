@@ -14,9 +14,12 @@ http://stackoverflow.com/questions/7596789/
     downloading-mms-emails-sent-to-gmail-using-python
 """
 
-import os; import sys; pth = os.path.abspath('../../alpha')
-if pth not in sys.path: sys.path.append(pth)
-import Lfun; reload(Lfun)
+import os
+import sys
+pth = os.path.abspath('../../alpha')
+if pth not in sys.path:
+    sys.path.append(pth)
+import Lfun
 Ldir = Lfun.Lstart()
 
 import email, imaplib, os

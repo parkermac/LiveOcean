@@ -3,16 +3,14 @@ Program to test the new river code.
 """
 
 import matplotlib.pyplot as plt
-import os; import sys
+import os
+import sys
 alp = os.path.abspath('../../alpha')
-if alp not in sys.path: sys.path.append(alp)
-try:  # needed for python 3
-    from importlib import reload
-except ImportError:
-    pass  # assume we are working in python 2
-import Lfun; reload(Lfun)
+if alp not in sys.path:
+    sys.path.append(alp)
+import Lfun
 Ldir = Lfun.Lstart('cascadia1','base')
-import river_class; reload(river_class)
+import river_class
 
 if False:
     # get the list of rivers that we need for a run

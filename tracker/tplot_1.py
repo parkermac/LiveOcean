@@ -5,19 +5,21 @@ Designed for multiple releases and incorporating a mooring record.
 """
 
 # setup
-import os; import sys
+import os
+import sys
 alp = os.path.abspath('../alpha')
-if alp not in sys.path: sys.path.append(alp)
-import Lfun; reload(Lfun)
-import zfun; reload(zfun) # plotting functions
-import matfun; reload(matfun) # functions for working with mat files
+if alp not in sys.path:
+    sys.path.append(alp)
+import Lfun
+import zfun
+import matfun
 import matplotlib.pyplot as plt
 import numpy as np
 
 Ldir = Lfun.Lstart()
 indir = Ldir['LOo'] + 'tracks_2014_CERF/'
  
-import cPickle as pickle
+import pickle
 jdf, cr, G = pickle.load( open( indir + 'starters_2014.p', 'rb' ) )
 
 NT, NP = jdf['lon'].shape
@@ -116,6 +118,6 @@ for riv in riv_list:
     # ending point
     ax.plot(pp['lon1'][0,0],pp['lat1'][0,0],'y*',markersize=20)
     ax.set_title(title_text)
-                                     
+
 plt.show()
 

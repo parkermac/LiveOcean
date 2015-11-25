@@ -13,21 +13,21 @@ Ldir, Lfun = ffun.intro()
 # ****************** CASE-SPECIFIC CODE *****************
 from datetime import datetime
 
-import Ofun; reload(Ofun)
+import Ofun
 vnl_full = ['ssh','s3d','t3d','u3d','v3d']
 # define the output location
 nc_dir = Ldir['LOogf_fd']
 
 if Ldir['run_type'] == 'forecast':
-    print '** START getting catalog'
+    print('** START getting catalog')
     # create a list of url's of the preprocessed HYCOM files for this forecast
     cc = 0
     cc_max = 6
     while cc < cc_max:
         try:
-            print ' attempt number ' + str(cc)
+            print(' attempt number ' + str(cc))
             fn_list = Ofun.get_hycom_file_list()
-            print '** DONE getting catalog'
+            print('** DONE getting catalog')
             cc = cc_max
         except:
             cc += 1   
@@ -41,7 +41,7 @@ if Ldir['run_type'] == 'forecast':
     for var_name in var_list:
         list_len.append(len(varf_dict[var_name]))
     if list_len.count(list_len[0]) != len(list_len):
-        print 'WARNING: Lists in varf_dict are different lengths!'
+        print('WARNING: Lists in varf_dict are different lengths!')
     else:
         NT = list_len[0] # the number of times, to use below   
     # use fewer times for testing
@@ -170,9 +170,9 @@ elif Ldir['run_type'] == 'backfill':
         nt0 = dt_list.index(dt00)
         nt1 = dt_list.index(dt11)
         fn_out = nc_dir + vn + '.nc'
-        print 'Creating ' + fn_out
+        print('Creating ' + fn_out)
         make_smaller_netcdf(fn,fn_out, vn, nt0, nt1)
-    
+    S
 # ************** END CASE-SPECIFIC CODE *****************
 
 # run the code to create the forcing files

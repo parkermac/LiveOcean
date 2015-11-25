@@ -50,7 +50,7 @@ try:
         fname = dirname + hisname   
         bname = open(fname, 'r')
         blob_service.put_block_blob_from_file(containername, hisname, bname)
-        print 'done putting ' + hisname
+        print('done putting ' + hisname)
         bname.close()
     result_dict['result'] = 'success'
 except:

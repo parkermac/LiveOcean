@@ -3,21 +3,21 @@ Prints information about what hycom archived files are available
 """
 
 # setup
-import os; import sys
+import os
+import sys
 alp = os.path.abspath('../../alpha')
 if alp not in sys.path:
     sys.path.append(alp)
-import Lfun; reload(Lfun)
-Ldir = Lfun.Lstart(alp)
-import zfun; reload(zfun)
+import Lfun
+Ldir = Lfun.Lstart()
+import zfun
 import netCDF4 as nc
 from datetime import datetime, timedelta
 #exnum_list = ['90.9', '91.0', '91.1']
 exnum_list = ['91.1']
 
-for exnum in exnum_list:   
-    print ''
-    print 'Working on ' + exnum
+for exnum in exnum_list:S
+    print('\nWorking on ' + exnum)
     fn = 'http://tds.hycom.org/thredds/dodsC/GLBu0.08/expt_' + exnum  
     ds = nc.Dataset(fn)
     if True: # set to True to see what is in the files
@@ -25,14 +25,14 @@ for exnum in exnum_list:
     # get the time in a meaningful format
     t_hycom = ds.variables['time'][:].squeeze()
     tu = ds.variables['time'].units
-    print ' time units = ' + tu # should be 'hours since 2000-01-01 00:00:00'
+    print(' time units = ' + tu)  # should be 'hours since 2000-01-01 00:00:00'
     t_origin = ds.variables['time'].time_origin
     dt00 = datetime.strptime(t_origin, '%Y-%m-%d %H:%M:%S')
     dt_list = [] # initialize a list
     for tt in t_hycom:    
         dt_list.append(dt00 + timedelta(tt/24.))
-    print ' dt start = ' + datetime.strftime(dt_list[0], '%Y-%m-%d %H:%M:%S')
-    print ' dt end   = ' + datetime.strftime(dt_list[-1], '%Y-%m-%d %H:%M:%S')
+    print(' dt start = ' + datetime.strftime(dt_list[0], '%Y-%m-%d %H:%M:%S'))
+    print(' dt end   = ' + datetime.strftime(dt_list[-1], '%Y-%m-%d %H:%M:%S'))
     
     dt0 = datetime(2014,4,7)
     dt1 = datetime(2015,3,27)
@@ -51,17 +51,17 @@ for exnum in exnum_list:
     
     try:
         nt0 = dt_list.index(dt0)
-        print dt0
-        print 'nt0 = ' + str(nt0)
+        print(dt0)
+        print('nt0 = ' + str(nt0))
     except:
-        print 'error with dt0!'
+        print('error with dt0!')
         nt0 = -1
     try:        
         nt1 = dt_list.index(dt1)
-        print dt1
-        print 'nt1 = ' + str(nt1)
+        print(dt1)
+        print('nt1 = ' + str(nt1))
     except:
-        print 'error with dt1!'
+        print('error with dt1!')
         nt1 = -1
     
     # get some time series    

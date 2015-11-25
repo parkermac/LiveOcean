@@ -21,14 +21,16 @@ And you can also change the run, the station name and location, etc.
 """
 
 # setup
-import os; import sys
+import os
+import sys
 alp = os.path.abspath('../alpha')
-if alp not in sys.path: sys.path.append(alp)
-import Lfun; reload(Lfun)
+if alp not in sys.path:
+    sys.path.append(alp)
+import Lfun
 import numpy as np
 from datetime import datetime, timedelta
-import zfun; reload(zfun) # plotting functions
-import matfun; reload(matfun) # functions for working with mat files
+import zfun
+import matfun
 import netCDF4 as nc4
 
 # set defaults
@@ -99,11 +101,12 @@ Aix = dict(); Aiy = dict()
 for grd in ['rho', 'u', 'v']:
     xx = G['lon_' + grd][1,:]
     yy = G['lat_' + grd][:,1]
-    xit_list = zfun.get_interpolant(Lon, xx)
-    yit_list = zfun.get_interpolant(Lat, yy)
+    xit_list = zfun.get_interpolant_fast(Lon, xx)
+    yit_list = zfun.get_interpolant_fast(Lat, yy)
     # this just pulls the interpolant tuple out of the (one-element) list
     # that get_interpolant returns
-    Xit[grd] = xit_list[0]; Yit[grd] = yit_list[0]
+    Xit[grd] = xit_list[0].astype(int)
+    Yit[grd] = yit_list[0].astype(int)
     # create little arrays that are used in the actual interpolation
     Aix[grd] = np.array([1-Xit[grd][2], Xit[grd][2]]).reshape((1,1,2))           
     Aiy[grd] = np.array([1-Yit[grd][2], Yit[grd][2]]).reshape((1,2))
@@ -130,7 +133,7 @@ def get_its(ds, vv, Xit, Yit, Aix, Aiy):
     elif 'eta_v' in dims:
         grd = 'v'
     else:
-        print 'grid error!'
+        print('grid error!')
     xit = Xit[grd]; yit = Yit[grd]
     aix = Aix[grd]; aiy = Aiy[grd]
     return xit, yit, aix, aiy
@@ -139,7 +142,7 @@ if Ldir['list_type'] == 'backfill':
     # gets 24 hours at a time using MFDataset
     count = 0    
     for dd in date_list:
-        print 'Working on date_list item: ' + dd
+        print('Working on date_list item: ' + dd)
         sys.stdout.flush()
         indir = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/f' + dd + '/'
         fn_list = []
@@ -172,7 +175,7 @@ elif Ldir['list_type'] == 'low_pass':
     # gets one at a time
     count = 0    
     for dd in date_list:
-        print 'Working on date_list item: ' + dd
+        print('Working on date_list item: ' + dd)
         sys.stdout.flush()
         indir = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/f' + dd + '/'
         fn = indir + 'low_passed.nc'
@@ -200,7 +203,7 @@ elif Ldir['list_type'] == 'low_pass':
         count += 1
                    
 # save the results
-import cPickle as pickle
+import pickle
 outname = (outdir +
     Ldir['gtagex'] + '_' +
     Ldir['sta_name'] + '_' +

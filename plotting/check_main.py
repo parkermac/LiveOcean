@@ -5,13 +5,14 @@ Check the output of make_forcing_main.py.
 which_force = 'ocn'
 
 # setup
-import os; import sys
+import os
+import sys
 alp = os.path.abspath('../alpha')
 if alp not in sys.path:
     sys.path.append(alp)
-import Lfun; reload(Lfun)
-Ldir = Lfun.Lstart(alp)
-import zfun; reload(zfun)
+import Lfun
+Ldir = Lfun.Lstart()
+import zfun
 
 Info = Lfun.csv_to_dict(Ldir['LOo'] + 'current_Info/'
     + which_force + '/Info_for_main.csv')
@@ -35,7 +36,7 @@ fn = nc_dir + fld_name + '.nc'
 ds = nc.Dataset(fn)
 
 for vn in ds.variables:
-    print ds.variables[vn]
+    print(ds.variables[vn])
         
 fld = ds.variables[fld_name][:]
 flde = ds.variables[fld_name + '_extrap'][:]

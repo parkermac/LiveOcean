@@ -10,14 +10,14 @@ def get_hycom_file_list():
     
     # look at Beautiful Soup?  Easier?
     import xml.etree.ElementTree as ET
-    import urllib2
+    import urllib
     
     # initiate the file list
     fn_list = []
     
     # get the xml of the catalog
     xml_name = 'http://tds.hycom.org/thredds/catalog/GLBu0.08/expt_91.1/forecasts/catalog.xml'   
-    xfile = urllib2.urlopen(xml_name, timeout = 30)
+    xfile = urllib.request.urlopen(xml_name, timeout = 30)
     tree = ET.parse(xfile)
     xfile.close()
     root = tree.getroot()
@@ -103,7 +103,7 @@ def get_extraction(fn, var_name):
     import time 
     import numpy as np
     
-    print 'working on ' + fn
+    print('working on ' + fn)
     # initialize an output dict
     out_dict = dict()
     
@@ -113,7 +113,7 @@ def get_extraction(fn, var_name):
     # get the time in a meaningful format
     t = ds.variables['time'][:].squeeze() # expect shape (1,)
     # tu = ds.variables['time'].units
-    # print tu # should be 'hours since 2000-01-01 00:00:00'
+    # print(tu) # should be 'hours since 2000-01-01 00:00:00'
     t_origin = ds.variables['time'].time_origin
     from datetime import datetime
     from datetime import timedelta
@@ -155,7 +155,7 @@ def get_extraction(fn, var_name):
     # extrapolate horizontally to fill all space
     if var_name == 'ssh':
         ssh = ds.variables['surf_el'][0, j0:j1, i0:i1].squeeze()
-        print str(ssh.shape)        
+        print(str(ssh.shape))
         out_dict['ssh'] = ssh
     elif var_name == 'ts3z':
         t3d = ds.variables['water_temp'][0, 0:N, j0:j1, i0:i1].squeeze()
@@ -171,7 +171,7 @@ def get_extraction(fn, var_name):
         v3d = ds.variables['water_v'][0, 0:N, j0:j1, i0:i1].squeeze()
         v3d = v3d[::-1, :, :] # pack bottom to top
         out_dict['v3d'] = v3d
-    print str(time.time() - tt0) + ' sec to get ' + var_name    
+    print(str(time.time() - tt0) + ' sec to get ' + var_name)
     ds.close()
     return out_dict # now the keys of this dictionary are separate variables
     
@@ -278,7 +278,7 @@ def process_extrap(vn, nc_dir):
     mlonr = np.mean(lonr)
     clat = np.cos(mlatr)
     x, y = np.meshgrid(RE*clat*(lonr - mlonr), RE*(latr - mlatr))
-    print '  -- x,y setup %.3f seconds' % (time.time() - tt1)   
+    print('  -- x,y setup %.3f seconds' % (time.time() - tt1))
     if vn == 'ssh':
         try:
             fve = foo.createVariable(vn + '_extrap', float, ('t', 'y', 'x'))
@@ -294,17 +294,15 @@ def process_extrap(vn, nc_dir):
 
     for tt in range(NT):
         tt0 = time.time()
-        print '  ' + vn + ':  extrapolating ' + str(tt) + ' of ' + str(NT)
+        print('  ' + vn + ':  extrapolating ' + str(tt) + ' of ' + str(NT))
         # new version: much faster, AFTER I moved the x,y setup OUT of the
         # time loop
         this_fld = fld_new[tt].squeeze()
-        #print this_fld
         this_flde = horizontal_extrapolation(x, y, NZ, this_fld, vn) 
-        #print this_flde       
-        print '   - took %.3f seconds' % (time.time() - tt0)
+        print('   - took %.3f seconds' % (time.time() - tt0))
         sys.stdout.flush()
         foo.variables[vn + '_extrap'][tt] = this_flde
-    print ' take a deep breath...'
+    print(' take a deep breath...')
     sys.stdout.flush()
     foo.close()
             
@@ -385,9 +383,3 @@ def process_time_filter(vn, nc_dir):
     
     foo.variables[vn + '_filt'][:] = flds
     foo.close()
- 
-    
-     
-    
-            
-                  
