@@ -10,14 +10,17 @@ def get_hycom_file_list():
     
     # look at Beautiful Soup?  Easier?
     import xml.etree.ElementTree as ET
-    import urllib
+    import urllib.request as U
     
     # initiate the file list
     fn_list = []
     
     # get the xml of the catalog
-    xml_name = 'http://tds.hycom.org/thredds/catalog/GLBu0.08/expt_91.1/forecasts/catalog.xml'   
-    xfile = urllib.request.urlopen(xml_name, timeout = 30)
+    xml_name = 'http://tds.hycom.org/thredds/catalog/GLBu0.08/expt_91.1/forecasts/catalog.xml'
+    try:
+        xfile = U.urlopen(xml_name, timeout=30)
+    except:
+        print('problem getting xfile')
     tree = ET.parse(xfile)
     xfile.close()
     root = tree.getroot()
@@ -26,7 +29,7 @@ def get_hycom_file_list():
     # (just type e0.tag at the command line) or by looking at the "xmlns" attribute
     # in the first line of the XML listing when viewed in Chrome.
     # Or, here we automate the procedure (best)...
-    rt = root.tag  
+    rt = root.tag
     xmlns = rt[rt.find('{'): rt.find('}') + 1]
     
     # NOTE: in order to successfully find things in the XML you have to look at

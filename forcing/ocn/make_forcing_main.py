@@ -22,7 +22,7 @@ if Ldir['run_type'] == 'forecast':
     print('** START getting catalog')
     # create a list of url's of the preprocessed HYCOM files for this forecast
     cc = 0
-    cc_max = 6
+    cc_max = 10
     while cc < cc_max:
         try:
             print(' attempt number ' + str(cc))
@@ -30,7 +30,7 @@ if Ldir['run_type'] == 'forecast':
             print('** DONE getting catalog')
             cc = cc_max
         except:
-            cc += 1   
+            cc += 1
     # get a selection of the raw list (e.g. one per day)
     var_list = ['ssh','ts3z','uv3z']    
     varf_dict = dict()
@@ -92,7 +92,7 @@ if Ldir['run_type'] == 'forecast':
             dt_past = dt_now - timedelta(ndays)
             date_string_past = dt_past.strftime('%Y.%m.%d')
             Ldir['LOogfpast_f'] = (Ldir['LOo'] + Ldir['gtag'] +
-                '/f' + date_string_past + '/' + args.frc + '/')
+                '/f' + date_string_past + '/' + Ldir['frc'] + '/')
             Ldir['LOogfpast_fd'] = Ldir['LOogfpast_f'] + 'Data/'            
             ssh_past = Ldir['LOogfpast_fd'] + 'ssh.nc'          
             import netCDF4 as nc    
@@ -113,7 +113,7 @@ if Ldir['run_type'] == 'forecast':
                 planB_flag = 1
             else:
                 ndays += 1
-                     
+                 
 elif Ldir['run_type'] == 'backfill':
     import netCDF4 as nc
     import numpy as np
@@ -121,7 +121,7 @@ elif Ldir['run_type'] == 'backfill':
     # set start and end times               
     dt0 = datetime.strptime(Ldir['date_string'],'%Y.%m.%d')
     dt1 = dt0 + timedelta(1)
-    
+
     def make_smaller_netcdf(fn_in,fn_out, vn, nt0, nt1):
         import netCDF4 as nc
         ds = nc.Dataset(fn_in)
@@ -152,7 +152,7 @@ elif Ldir['run_type'] == 'backfill':
         flds[:] = fld
         ds.close()
         foo.close()
-        
+    
     # find list of archived times (already extrapolated and filtered)
     vn_list = ['ssh', 't3d', 's3d', 'u3d', 'v3d']
     dir0 = Ldir['data'] + 'hycom_combined/'
@@ -172,7 +172,7 @@ elif Ldir['run_type'] == 'backfill':
         fn_out = nc_dir + vn + '.nc'
         print('Creating ' + fn_out)
         make_smaller_netcdf(fn,fn_out, vn, nt0, nt1)
-    S
+
 # ************** END CASE-SPECIFIC CODE *****************
 
 # run the code to create the forcing files

@@ -118,6 +118,12 @@ do
   # Make the forcing.
   cd $LO_parent"/forcing/"$frc
   source $HOME"/.bashrc"
+  if [ -e $HOME"/.bash_profile" ] ; then
+    source $HOME"/.bash_profile"
+  fi
+  if [ -e $HOME"/.profile" ] ; then
+    source $HOME"/.profile"
+  fi
   python ./make_forcing_main.py -g $gridname -t $tag -f $frc -r $run_type -d $DD -x $ex_name > $LOogf_fi"/screen_out.txt" &
 
   # wait a bit to allow main to get rid of the output

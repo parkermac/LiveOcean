@@ -14,7 +14,7 @@ def get_nws_data(id):
     """
     This gets NWS data.    
     """
-    import urllib
+    import urllib.request as U
     import xml.etree.ElementTree as ET
     import pandas as pd
       
@@ -28,7 +28,7 @@ def get_nws_data(id):
     url_str = ('http://www.nwrfc.noaa.gov/xml/xml.cgi?id=' + id
     + '&pe=HG&dtype=b&numdays=10')
     try:
-        file = urllib.request.urlopen(url_str, timeout = 10)
+        file = U.urlopen(url_str, timeout = 10)
         tree = ET.parse(file)
         root = tree.getroot()
     except:
@@ -66,7 +66,7 @@ def get_usgs_data(id):
     """
     This gets USGS data.
     """
-    import urllib
+    import urllib.request as U
     import xml.etree.ElementTree as ET
     import pandas as pd
       
@@ -80,7 +80,7 @@ def get_usgs_data(id):
     url_str = ('http://waterservices.usgs.gov/nwis/iv/' +
     '?format=waterml,1.1&sites=' + id + '&period=P6D&parameterCd=00060')
     try:
-        file = urllib.request.urlopen(url_str, timeout = 10)
+        file = U.urlopen(url_str, timeout = 10)
         tree = ET.parse(file)
         root = tree.getroot()
     except:
@@ -112,7 +112,7 @@ def get_usgs_data_past(id, datetime_start, datetime_end):
     """
     This gets USGS data for some past time period.
     """
-    import urllib
+    import urllib.request as U
     import xml.etree.ElementTree as ET
     import pandas as pd
       
@@ -131,7 +131,7 @@ def get_usgs_data_past(id, datetime_start, datetime_end):
         +'&endDT=' + datetime_end.strftime('%Y-%m-%d') + '&parameterCd=00060')
     
     try:
-        file = urllib.request.urlopen(url_str, timeout = 10)
+        file = U.urlopen(url_str, timeout = 10)
         tree = ET.parse(file)
         root = tree.getroot()
     except:
