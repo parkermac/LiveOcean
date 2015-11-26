@@ -71,17 +71,20 @@ for which_forecast in f_df.index:
 
 # what forecasts have been run successfully
 r_dir0 = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/'
-for item in os.listdir(r_dir0):
-    if item[0] == 'f' and len(item) == 11:
-        f_string = item
-        fl = os.listdir(r_dir0 + f_string)
+try:
+    for item in os.listdir(r_dir0):
+        if item[0] == 'f' and len(item) == 11:
+            f_string = item
+            fl = os.listdir(r_dir0 + f_string)
 
-        if 'liveocean.in' in fl:
-            f_df.ix[f_string, 'dot_in'] = 'YES'
-        if 'low_passed.nc' in fl:
-            f_df.ix[f_string, 'lp'] = 'YES'
-        flh = [x for x in fl if 'ocean_his' in x]
-        f_df.ix[f_string, 'his'] = str(int(flh[-1][10:14]))
+            if 'liveocean.in' in fl:
+                f_df.ix[f_string, 'dot_in'] = 'YES'
+            if 'low_passed.nc' in fl:
+                f_df.ix[f_string, 'lp'] = 'YES'
+            flh = [x for x in fl if 'ocean_his' in x]
+            f_df.ix[f_string, 'his'] = str(int(flh[-1][10:14]))
+except:
+    pass
 
 # eventually we would also like to check what has been pushed to azure
 
