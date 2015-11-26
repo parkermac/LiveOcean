@@ -34,27 +34,27 @@ Ldir, Lfun = ffun.intro()
 # Ldir = Lfun.Lstart(args.gridname, args.tag)
 
 from datetime import datetime, timedelta    
-fdt = datetime.strptime(args.date_string, '%Y.%m.%d')
+fdt = datetime.strptime(Ldir['date_string'], '%Y.%m.%d')
 fdt_yesterday = fdt - timedelta(1)
 
-print('\nCreates files for LiveOcean for ' + args.date_string + '\n')
+print('\nCreates files for LiveOcean for ' + Ldir['date_string'] + '\n')
 
 #### USER DEFINED VALUES ####
 
 gtag = Ldir['gtag']
-gtagex = gtag + '_' + args.ex_name
-EX_NAME = args.ex_name.upper()
+gtagex = gtag + '_' + Ldir['ex_name']
+EX_NAME = Ldir['ex_name'].upper()
 
 # account for differences when using biology
 # NOTE: this is not  robust because it depends on a specific ex_name
-if args.ex_name == 'lobio1':
+if Ldir['ex_name'] == 'lobio1':
     do_bio = True
 else:
     do_bio = False
 
 multi_core = True # use more than one core
 
-if args.run_type == 'backfill':
+if Ldir['run_type'] == 'backfill':
     days_to_run = 1.0
 else:
     days_to_run = 3.0
@@ -81,14 +81,14 @@ else:
 if float(3600/dtsec) != 3600.0/dtsec:
     print('** WARNING: dtsec does not fit evenly into 1 hour **')   
 dt = str(dtsec) + '.0d0' # a string version of dtsec, for the .in file
-ninfo = his_interval/dtsec # how often to write info to the log file (# of time steps)
-nhis = his_interval/dtsec # how often to write to the history files
-ndefhis = nhis # how often to create new history files
-nrst = rst_interval*86400/dtsec
-ntimes = days_to_run*86400/dtsec
+ninfo = int(his_interval/dtsec) # how often to write info to the log file (# of time steps)
+nhis = int(his_interval/dtsec) # how often to write to the history files
+ndefhis = int(nhis) # how often to create new history files
+nrst = int(rst_interval*86400/dtsec)
+ntimes = int(days_to_run*86400/dtsec)
 
 # file location stuff
-date_string = args.date_string
+date_string = Ldir['date_string']
 date_string_yesterday = fdt_yesterday.strftime('%Y.%m.%d')
 dstart = str(int(Lfun.datetime_to_modtime(fdt) / 86400.))
 f_string = 'f' + date_string
@@ -96,7 +96,7 @@ f_string_yesterday = 'f'+ date_string_yesterday
 # where forcing files live (fjord, as seen from gaggle)
 lo_dir = '/fjdata1/parker/LiveOcean/'
 loo_dir = '/fjdata1/parker/LiveOcean_output/'
-grid_dir = lo_dir + 'preamble/make_resources/' + args.gridname + '/'
+grid_dir = lo_dir + 'preamble/make_resources/' + Ldir['gridname'] + '/'
 force_dir = loo_dir + gtag + '/' + f_string + '/'
 roms_dir = '/pmr1/parker/LiveOcean_roms/'
 
@@ -123,12 +123,12 @@ ocn_dir = 'ocn/' # which ocn forcing files to use
 riv_dir = 'riv/' # which riv forcing files to use 
 tide_dir = 'tide/' # which tide forcing files to use
 
-if args.start_type == 'continuation':
+if Ldir['start_type'] == 'continuation':
     nrrec = '-1' # '-1' for a hot restart
     #ininame = 'ocean_rst.nc' # for a hot restart
     ininame = 'ocean_his_0025.nc' # for a hot restart
     ini_fullname = out_dir0 + f_string_yesterday + '/' + ininame
-elif args.start_type == 'new':
+elif Ldir['start_type'] == 'new':
     nrrec = '0' # '0' for a history or ini file
     ininame = 'ocean_ini' + bio_tag + '.nc' # could be an ini or history file
     ini_fullname = force_dir + ocn_dir + ininame

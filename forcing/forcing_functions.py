@@ -22,6 +22,7 @@ def intro():
     icwd = cwd.rfind('/')
     frc = cwd[icwd+1:]
     run_type = 'forecast'  # backfill or forecast
+    start_type = 'continuation'  # new or continuation
     # Example of date_string is 2015.09.19
     date_string = datetime.now().strftime(format='%Y.%m.%d')
     ex_name = 'lo1'
@@ -32,6 +33,7 @@ def intro():
     parser.add_argument('-t', '--tag', nargs='?', const=tag, type=str, default=tag)
     parser.add_argument('-f', '--frc', nargs='?', const=frc, type=str, default=frc)
     parser.add_argument('-r', '--run_type', nargs='?', const=run_type, type=str, default=run_type)
+    parser.add_argument('-s', '--start_type', nargs='?', const=start_type, type=str, default=start_type)
     parser.add_argument('-d', '--date_string', nargs='?', const=date_string, type=str, default=date_string)
     parser.add_argument('-x', '--ex_name', nargs='?', const=ex_name, type=str, default=ex_name)
     args = parser.parse_args()
@@ -46,6 +48,7 @@ def intro():
     Ldir['tag'] = args.tag
     Ldir['frc'] = args.frc
     Ldir['run_type'] = args.run_type
+    Ldir['start_type'] = args.start_type
     Ldir['date_string'] = args.date_string
     Ldir['ex_name'] = args.ex_name
     
