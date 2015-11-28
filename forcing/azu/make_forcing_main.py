@@ -49,7 +49,7 @@ try:
         dirname = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/' + f_string + '/'
         fname = dirname + hisname   
         bname = open(fname, 'r')
-        blob_service.put_block_blob_from_file(containername, hisname, bname)
+        blob_service.put_block_blob_from_file(containername, hisname, bname, count=50000, max_connections=4)
         print('done putting ' + hisname)
         bname.close()
     result_dict['result'] = 'success'
