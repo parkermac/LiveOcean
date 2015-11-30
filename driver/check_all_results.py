@@ -86,7 +86,7 @@ try:
 except:
     pass
     
-# what has been pushed to Azure
+# what has been pushed to Azure (just the last num_days)
 from azure.storage.blob import BlobService
 azu_dict = Lfun.csv_to_dict(Ldir['data'] + 'accounts/azure_pm_2015.05.25.csv')
 account = azu_dict['account']
@@ -113,5 +113,9 @@ f_df[f_df.isnull()] = '--'
 f_df = f_df.sort_index()
 
 # print to the screen
-pd.set_option('display.max_rows', args.num_days)
-print(f_df)
+#
+# This prints beginning and end rows
+#pd.set_option('display.max_rows', args.num_days)
+#
+# This prints just end rows
+print(f_df[-args.num_days:])
