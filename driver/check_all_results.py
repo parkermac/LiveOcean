@@ -28,6 +28,11 @@ args = parser.parse_args()
 Ldir = Lfun.Lstart(args.gridname, args.tag)
 Ldir['gtagex'] = Ldir['gtag'] + '_' + args.ex_name
 
+print(60*'*')
+print(10*'=' + ' Info on ' + Ldir['gtagex'])
+print(10*'=' + ' Most recent ' + str(args.num_days) + ' days')
+print(60*'*')
+
 # which forecast days exist in the forcing directory
 f_dir0 = Ldir['LOo'] + Ldir['gtag'] + '/'
 f_dir0_list = []
