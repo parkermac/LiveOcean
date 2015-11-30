@@ -41,7 +41,7 @@ force_dict = {'atm': ['lwrad_down.nc', 'Pair.nc', 'Qair.nc', 'rain.nc',
               'riv': ['rivers.nc', ],
               'tide': ['tides.nc', ]}
 
-clist = ['atm', 'ocn', 'riv', 'tide', 'dot_in', 'his', 'lp']
+clist = ['atm', 'ocn', 'riv', 'tide', 'dot_in', 'his', 'lp', 'azu']
 
 f_df = pd.DataFrame(index=f_dir0_list, columns=clist)
 
@@ -85,8 +85,26 @@ try:
             f_df.ix[f_string, 'his'] = str(int(flh[-1][10:14]))
 except:
     pass
-
-# eventually we would also like to check what has been pushed to azure
+    
+# what has been pushed to Azure
+from azure.storage.blob import BlobService
+azu_dict = Lfun.csv_to_dict(Ldir['data'] + 'accounts/azure_pm_2015.05.25.csv')
+account = azu_dict['account']
+key = azu_dict['key']
+blob_service = BlobService(account_name=account, account_key=key)
+for f_string in f_df.index:
+    ff_string = f_string.replace('.','')
+    containername = ff_string
+    try:
+        blob_service.create_container(containername)
+        blob_service.set_container_acl(containername, x_ms_blob_public_access='container')
+        blobs = blob_service.list_blobs(containername)
+        his_list = []
+        for blob in blobs:
+            his_list.append(blob.name)
+        f_df.ix[f_string, 'azu'] = str(int(his_list[-1][-6:-3]))
+    except:
+        pass
 
 # mark missing things
 f_df[f_df.isnull()] = '--'

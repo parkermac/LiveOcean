@@ -13,26 +13,6 @@ if fpth not in sys.path:
 import forcing_functions as ffun
 Ldir, Lfun = ffun.intro()
 
-# # get command line arguments
-# import argparse
-# parser = argparse.ArgumentParser()
-# # positional arguments
-# parser.add_argument("gridname", type=str, help="cascadia1, etc.")
-# parser.add_argument("tag", type=str, help="base, etc.")
-# parser.add_argument("start_type", type=str, help="new or continuation")
-# parser.add_argument("run_type", type=str, help="forecast or backfill")
-# parser.add_argument("date_string", type=str, help="e.g. 2014.02.14")
-# # and this is an optional input parameter
-# parser.add_argument("-x", "--ex_name", type=str, help="e.g. lo1")
-# args = parser.parse_args()
-# # setup
-# import os; import sys
-# alp = os.path.abspath('../../alpha')
-# if alp not in sys.path:
-#     sys.path.append(alp)
-# import Lfun
-# Ldir = Lfun.Lstart(args.gridname, args.tag)
-
 from datetime import datetime, timedelta    
 fdt = datetime.strptime(Ldir['date_string'], '%Y.%m.%d')
 fdt_yesterday = fdt - timedelta(1)
