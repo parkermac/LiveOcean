@@ -626,7 +626,7 @@ def ncd(fn_ds, pat=''):
     import netCDF4 as nc
     if isinstance(fn_ds, nc.Dataset):
         ds = fn_ds
-    elif isinstance(fn_ds, (str, unicode)):
+    elif isinstance(fn_ds, str):
         try:
             ds = nc.Dataset(fn_ds)
         except:
