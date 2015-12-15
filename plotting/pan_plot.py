@@ -87,6 +87,7 @@ if list_type == 'test':
     # return a single default file name in the list
     fn_list = [Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/' +
                'f' + args.date_string + '/ocean_his_0002.nc']
+#    fn_list = ['/Users/PM5/Documents/roms/output/salish_2006_4/ocean_his_8701.nc']
 elif list_type == 'hindcast':
     fn_list = make_fn_list(dt0,dt1,Ldir)
 elif list_type == 'forecast':

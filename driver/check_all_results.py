@@ -50,7 +50,7 @@ clist = ['atm', 'ocn', 'riv', 'tide', 'dot_in', 'his', 'lp', 'azu']
 
 f_df = pd.DataFrame(index=f_dir0_list, columns=clist)
 
-for which_forecast in f_df.index:
+for which_forecast in f_df.index[-args.num_days:]:
     for which_force in force_dict.keys():
         force_dir = f_dir0 + which_forecast + '/' + which_force + '/'
         try:

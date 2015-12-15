@@ -104,11 +104,11 @@ for grd in ['rho', 'u', 'v']:
     xit_list = zfun.get_interpolant_fast(Lon, xx)
     yit_list = zfun.get_interpolant_fast(Lat, yy)
     # this just pulls the interpolant tuple out of the (one-element) list
-    # that get_interpolant returns
+    # that get_interpolant_fast returns
     Xit[grd] = xit_list[0].astype(int)
     Yit[grd] = yit_list[0].astype(int)
     # create little arrays that are used in the actual interpolation
-    Aix[grd] = np.array([1-Xit[grd][2], Xit[grd][2]]).reshape((1,1,2))           
+    Aix[grd] = np.array([1-Xit[grd][2], Xit[grd][2]]).reshape((1,1,2))
     Aiy[grd] = np.array([1-Yit[grd][2], Yit[grd][2]]).reshape((1,2))
 
 v1_list = ['ocean_time']
@@ -212,4 +212,10 @@ outname = (outdir +
     Ldir['date_string1'] +
     '.p')
 pickle.dump( (V, v1_list, v2_list, v3_list, G) , open( outname, 'wb' ) )
+
+# Note 2015.12.13 I should replace this pickle call with np.load, or for multiple arrays:
+# np.savez('array_archive.npz', a=arr1, b=arr2)
+# Excerpt From: Wes McKinney. “Python for Data Analysis.” iBooks. https://itun.es/us/9vI6H.l
+# and then use np.load('array_archive.npz') to get a dict-like object which loads the arrays
+# lazily
 

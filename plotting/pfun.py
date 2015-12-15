@@ -713,12 +713,13 @@ def tracks(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
     import numpy as np
     aa = (G['lon_rho'][0,0],G['lon_rho'][0,-1],
         G['lat_rho'][0,0],G['lat_rho'][-1,0])
+    # aa = [-124, -122.3, 47, 49] # Puget Sound Override
     daax = aa[1] - aa[0]
     daay = aa[3] - aa[2]
     mlat = np.mean(aa[2:])
     clat = np.cos(np.deg2rad(mlat))
     axrat = clat * daax / daay
-    nngrid = 80
+    nngrid = 100
     nr = nngrid
     nc = round(nngrid * axrat)
     npts = nr * nc
@@ -726,6 +727,9 @@ def tracks(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
         #random grid
         x = np.random.uniform(aa[0], aa[1], npts)
         y = np.random.uniform(aa[2], aa[3], npts)
+        #123.5 122
+        #47 49
+
     else:
         xx = np.linspace(aa[0], aa[1], nc)
         yy = np.linspace(aa[2], aa[3], nr)
@@ -735,7 +739,7 @@ def tracks(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
 
     # set track integration parameters
     dt = 1*3600. # time step (sec)
-    nt = 48 # number of time steps
+    nt = 24 # number of time steps
     RE = zfun.earth_rad(mlat)
     lonu = G['lon_u'][0, :]
     latu = G['lat_u'][:, 0]
