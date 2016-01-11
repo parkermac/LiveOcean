@@ -8,9 +8,12 @@ import sys
 alp = os.path.abspath('../../alpha')
 if alp not in sys.path:
     sys.path.append(alp)
+from importlib import reload
 import Lfun
+reload(Lfun)
 Ldir = Lfun.Lstart('cascadia1','base')
 import river_class
+reload(river_class)
 
 if False:
     # get the list of rivers that we need for a run
@@ -19,11 +22,14 @@ if False:
         names=['River Name'])
     rnames = rdf['River Name'].values
     rnames = rnames.tolist()
+    # Note, both the Ecology list and the NWS list use green and hamma to
+    # refer to these rivers, whereas when we made the rivers for the old
+    # MoSSea and PNWTOX models we called them duwamish and hammahamma.
     rnames[rnames.index('duwamish')] = 'green'
     rnames[rnames.index('hammahamma')] = 'hamma'
 else:
     # override for testing
-    rnames = ['skagit']
+    rnames = ['skokomish']
 
 run_type = 'forecast'
 
@@ -55,7 +61,7 @@ for rn in rnames:
     if True and not riv.qt.empty:
         plt.close()
         fig = plt.figure()
-        fig.add_subplot(riv.qt.plot(title=riv.name, style='-k'))
+        fig.add_subplot(riv.qt.plot(title=riv.name.title() + ' Flow (' + riv.flow_units + ')', style='-k'))
         plt.show()
 
 

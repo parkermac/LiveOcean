@@ -25,7 +25,7 @@ for fn in fn_list:
     fn_orig = (fn + '.nc')
     fn_for_bio = (fn + '_bio.nc')
     # first get rid of any existing copies of the forcing that
-    # might have bio variables, becasue the worker needs them to be absent
+    # might have bio variables, because the worker needs them to be absent
     try:
         os.remove(fn_for_bio)
     except OSError:

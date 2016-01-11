@@ -425,7 +425,8 @@ def get_rivers_data(rdf, rnames, Info, Ldir):
     riv_df_new = riv_df.copy()
     for rn in riv_df:
         this_riv = riv_df[rn]
-        isgood = this_riv.isnull()
+        # try to catch bad values by looking for negative flow
+        isgood = (this_riv.isnull() | (this_riv < 0))
         for t in this_riv.index:
             if isgood[t]:
                 yd = t.dayofyear

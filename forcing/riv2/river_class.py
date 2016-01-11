@@ -45,7 +45,9 @@ class River:
     def get_ecy_info(self, riv_name):
         # This listing, from Mohamedali et al. (2011) has a long
         # list of rivers coming into the Salish Sea, and then associates
-        # each with a USGS gage and a scaling factor
+        # each with a USGS gage and a scaling factor.
+        # We cordinate this list using riv_name, and assume it is the same
+        # as the lower case version of the first work in the index (Watershed Name).
         fn = self.Ldir['data'] + 'rivers/Ecology_Scale_Factors.csv'
         df = pd.read_csv(fn, index_col='Watershed Name')
         self.df_ecy = df
@@ -179,8 +181,12 @@ class River:
         # fix units
         if self.flow_units == 'kcfs':
             self.qt = self.qt*28.3168466
+            self.flow_units = '$m^{3}s^{-1}$'
         elif (self.flow_units == 'cubic feet per second'
             or self.flow_units == 'ft3/s'):
             self.qt = self.qt*0.0283168466
+            self.flow_units = '$m^{3}s^{-1}$'
+        else:
+            pass
 
 

@@ -27,6 +27,7 @@ parser.add_argument('-g', '--gridname', nargs='?', type=str, default='cascadia1'
 parser.add_argument('-t', '--tag', nargs='?', type=str, default='base')
 parser.add_argument('-x', '--ex_name', nargs='?', type=str, default='lo1')
 parser.add_argument('-d', '--date_string', nargs='?', type=str, default='2015.09.19')
+parser.add_argument('-hs', '--hour_string', nargs='?', type=str, default='02')
 # num_days = number of additional days
 parser.add_argument('-nd', '--num_days', nargs='?', type=int, default=0)
 args = parser.parse_args()
@@ -86,7 +87,8 @@ def make_fn_list(dt0, dt1, Ldir, hourmax=24):
 if list_type == 'test':
     # return a single default file name in the list
     fn_list = [Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/' +
-               'f' + args.date_string + '/ocean_his_0002.nc']
+               'f' + args.date_string +
+               '/ocean_his_00' + args.hour_string + '.nc']
 #    fn_list = ['/Users/PM5/Documents/roms/output/salish_2006_4/ocean_his_8701.nc']
 elif list_type == 'hindcast':
     fn_list = make_fn_list(dt0,dt1,Ldir)
