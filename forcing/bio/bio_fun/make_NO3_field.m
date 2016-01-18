@@ -13,7 +13,7 @@ function NO3 = make_NO3_field(NO3_method,salt);
 
 %-----------------------------------------------------------------------
 
-if strcmp(NO3_method,'PL_Salt') && (nanmax(salt(:)) < 35)
+if strcmp(NO3_method,'PL_Salt') && (nanmax(salt(:)) < 36)
     
     % Salinity vs. NO3 [uM], Ryan McCabe 8/2015
     % NO3 = mm*salt + bb;

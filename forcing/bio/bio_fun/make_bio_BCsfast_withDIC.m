@@ -58,6 +58,10 @@ if exist(clmname,'file')
     clm_salt = netcdf.getVar(ncid,salt_id,'double');
     %clm_temp = netcdf.getVar(ncid,temp_id,'double');
     
+    % Debugging
+%     smax = nanmax(clm_salt(:));
+%     disp(['smax = ', num2str(smax)]);
+    
     % Create NO3 field
     if strcmp(NO3_method,'PL_Salt')
         % Calculate NO3

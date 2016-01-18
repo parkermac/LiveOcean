@@ -15,7 +15,7 @@ Ldir = Lfun.Lstart('cascadia1','base')
 import river_class
 reload(river_class)
 
-if False:
+if True:
     # get the list of rivers that we need for a run
     import pandas as pd
     rdf = pd.read_csv(Ldir['run'] + 'rname_list.txt', header=None,
@@ -27,6 +27,10 @@ if False:
     # MoSSea and PNWTOX models we called them duwamish and hammahamma.
     rnames[rnames.index('duwamish')] = 'green'
     rnames[rnames.index('hammahamma')] = 'hamma'
+    # and remove skagit_south
+    rnames.pop(rnames.index('skagit_south'))
+    # and the fraser is not implemented yet in riv2
+    rnames.pop(rnames.index('fraser'))
 else:
     # override for testing
     rnames = ['skokomish']
@@ -40,6 +44,8 @@ if run_type == 'backfill':
     days = (dt0, dt1)
 elif run_type == 'forecast':
     days = ()
+
+plt.close()
 
 for rn in rnames:   
     riv = river_class.River(Ldir)
@@ -59,7 +65,6 @@ for rn in rnames:
     riv.print_info()
    
     if True and not riv.qt.empty:
-        plt.close()
         fig = plt.figure()
         fig.add_subplot(riv.qt.plot(title=riv.name.title() + ' Flow (' + riv.flow_units + ')', style='-k'))
         plt.show()

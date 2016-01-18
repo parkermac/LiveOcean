@@ -10,7 +10,10 @@ if fpth not in sys.path:
 import forcing_functions as ffun
 Ldir, Lfun = ffun.intro()
 
-# ****************** CASE-SPECIFIC CODE *****************
+#%% Debugging
+#Ldir['date_string'] = '2014.03.11'
+
+#%% ****************** CASE-SPECIFIC CODE *****************
 import shutil
 fn_list = []
 fn_list.append((Ldir['LOo'] + Ldir['gtag'] +
@@ -36,7 +39,7 @@ for fn in fn_list:
 
 # ******************************************************* 
 
-# run the code to create the forcing files
+#%% run the code to create the forcing files
 Lfun.run_worker(Ldir)
 
 from datetime import datetime

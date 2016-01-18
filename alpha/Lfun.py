@@ -112,4 +112,19 @@ def modtime_to_datetime(t):
     dt = datetime(1970,1,1,0,0) + timedelta(seconds=t)
     return dt
     
+def modtime_to_mdate_vec(mt_vec):
+    from datetime import datetime, timedelta
+    import matplotlib.dates as mdates
+    
+    # input numpy vector of seconds since 1/1/1970
+    
+    # first make a list of datetimes
+    dt_list = []
+    for mt in mt_vec:
+        dt_list.append(datetime(1970,1,1,0,0) + timedelta(seconds=mt))
+    
+    md_vec = mdates.date2num(dt_list)
+
+    return md_vec
+    
 

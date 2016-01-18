@@ -13,7 +13,7 @@ function oxygen = make_oxy_field(NO3_method,salt)
 
 %-----------------------------------------------------------------------
 
-if strcmp(NO3_method,'PL_Salt') && (nanmax(salt(:)) < 35)
+if strcmp(NO3_method,'PL_Salt') && (nanmax(salt(:)) < 36)
     
     % Salinity vs. oxygen [uM], Ryan McCabe 8/2015
     % oxygen = mm*salt + bb;

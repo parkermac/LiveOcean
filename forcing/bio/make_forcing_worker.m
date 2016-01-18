@@ -5,6 +5,14 @@ function make_forcing_worker(gridname, tag, date_string, run_type, outdir)
 %
 % makes [].nc using data created by make_forcing_main.py
 
+%% Debugging
+% gridname = 'cascadia1';
+% tag = 'base';
+% date_string = '2014.03.11';
+% run_type = 'backfill';
+% outdir = '/Users/PM5/Desktop/';
+
+%%
 addpath('../../alpha'); Ldir = Lstart(gridname, tag);
 start_time = datenum(now);
 

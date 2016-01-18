@@ -6,11 +6,11 @@ fjord it takes more like 22 sec per day, or 2 hours per year.
 
 This can be run from the linux command line:
 
-This runs with default vaules (RISE north, three days in September 2015)    
+This runs with default values (RISE north, three days in September 2015)    
 python roms_moor0.py
 
 This changes the days to run
-python roms_moor0.py -d0 2015.07.10 -d1 2015.08.01
+python moor_0.py -d0 2015.07.10 -d1 2015.08.01
 
 This gets an IRIS mooring record (on fjord):
 python moor_0.py -sn J26A -lon -125.4664 -lat 44.6547 -d0 2013.01.02 -d1 2015.11.01
@@ -30,7 +30,6 @@ import Lfun
 import numpy as np
 from datetime import datetime, timedelta
 import zfun
-import matfun
 import netCDF4 as nc4
 
 # set defaults
@@ -211,7 +210,7 @@ outname = (outdir +
     Ldir['date_string0'] + '_' +
     Ldir['date_string1'] +
     '.p')
-pickle.dump( (V, v1_list, v2_list, v3_list, G) , open( outname, 'wb' ) )
+pickle.dump( (V, v1_list, v2_list, v3_list, G, S) , open( outname, 'wb' ) )
 
 # Note 2015.12.13 I should replace this pickle call with np.load, or for multiple arrays:
 # np.savez('array_archive.npz', a=arr1, b=arr2)
