@@ -111,7 +111,7 @@ for grd in ['rho', 'u', 'v']:
     Aiy[grd] = np.array([1-Yit[grd][2], Yit[grd][2]]).reshape((1,2))
 
 v1_list = ['ocean_time']
-v2_list = ['h','zeta','sustr','svstr','swrad','lwrad',
+v2_list = ['zeta','sustr','svstr','swrad','lwrad',
     'shflux','latent','sensible']
 v3_list = ['temp','salt','u','v']
 
@@ -164,8 +164,7 @@ if Ldir['list_type'] == 'backfill':
             if count == 0:
                 V[vv] = vtemp.T
             else:
-                V[vv] = np.concatenate((V[vv], vtemp.T), axis=1)
-        ds.close()    
+                V[vv] = np.concatenate((V[vv], vtemp.T), axis=1) 
         # listing of contents, if desired
         if count == 0 and False:   
             zfun.ncd(ds)
@@ -195,11 +194,17 @@ elif Ldir['list_type'] == 'low_pass':
                 V[vv] = vtemp.reshape((S['N'],1))
             else:
                 V[vv] = np.concatenate((V[vv], vtemp.reshape((S['N'],1))), axis=1)
-        ds.close()    
         # listing of contents, if desired
         if count == 0 and False:   
             zfun.ncd(ds)
         count += 1
+
+# get the depth
+xit, yit, aix, aiy = get_its(ds, 'h', Xit, Yit, Aix, Aiy)
+htemp = ds.variables['h'][yit[:2], xit[:2]].squeeze()
+h =   ( aiy*((aix*htemp).sum(-1)) ).sum(-1)
+
+ds.close()
                    
 # save the results
 import pickle
@@ -210,7 +215,7 @@ outname = (outdir +
     Ldir['date_string0'] + '_' +
     Ldir['date_string1'] +
     '.p')
-pickle.dump( (V, v1_list, v2_list, v3_list, G, S) , open( outname, 'wb' ) )
+pickle.dump( (V, v1_list, v2_list, v3_list, G, S, Lon, Lat, sta_name, h) , open( outname, 'wb' ) )
 
 # Note 2015.12.13 I should replace this pickle call with np.load, or for multiple arrays:
 # np.savez('array_archive.npz', a=arr1, b=arr2)
