@@ -111,7 +111,7 @@ for grd in ['rho', 'u', 'v']:
     Aiy[grd] = np.array([1-Yit[grd][2], Yit[grd][2]]).reshape((1,2))
 
 v1_list = ['ocean_time']
-v2_list = ['zeta','sustr','svstr','swrad','lwrad',
+v2_list = ['h','zeta','sustr','svstr','swrad','lwrad',
     'shflux','latent','sensible']
 v3_list = ['temp','salt','u','v']
 
