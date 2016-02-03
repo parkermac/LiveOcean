@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Feb  2 14:03:12 2016
+
+@author: PM5
+"""
+
 """
 Plot results of tracker.
 """
@@ -44,8 +51,8 @@ if 'jdf' in inname:
 elif 'cr' in inname:
     aa = [-125, -122.5, 45, 48]
 elif 'test' in inname:
-    #aa = [-125.6, -124.6, 46.6, 47.4]
-    aa = [lonp.min(), lonp.max(), latp.min(), latp.max()]   
+    aa = [-126.5, -125, 45, 46.2]
+    #aa = [lonp.min(), lonp.max(), latp.min(), latp.max()]   
 else:
     aa = [lonp.min(), lonp.max(), latp.min(), latp.max()]   
 depth_levs = [100, 200, 500, 1000, 2000, 3000]
@@ -114,22 +121,26 @@ ax = fig.add_subplot(3,2,2)
 ii = 0   
 for cs in P['cs'][NT-1,:]:
     if cs < cs_divider:
-        ax.plot(tdays, P['salt'][:,ii],'-b')
+        ax.plot(tdays, P['u'][:,ii],'-b')
     else:
-        ax.plot(tdays, P['salt'][:,ii],'-r')
+        ax.plot(tdays, P['u'][:,ii],'-r')
     ii += 1
-ax.set_ylabel('Salinity')
+ax.set_ylabel('U $m s^{-1}$')
+ax.set_ylim(-.8, .8)
+ax.grid()
 
 
 ax = fig.add_subplot(3,2,4)
 ii = 0
 for cs in P['cs'][NT-1,:]:
     if cs < cs_divider:
-        ax.plot(tdays, P['temp'][:,ii],'-b')
+        ax.plot(tdays, P['v'][:,ii],'-b')
     else:
-        ax.plot(tdays, P['temp'][:,ii],'-r')
+        ax.plot(tdays, P['v'][:,ii],'-r')
     ii += 1
-ax.set_ylabel('Temperature $^{\circ}C$')
+ax.set_ylabel('V $m s^{-1}$')
+ax.set_ylim(-.8, .8)
+ax.grid()
 
 ax = fig.add_subplot(3,2,6)
 ii = 0 

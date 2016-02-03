@@ -33,7 +33,7 @@ my_npt = int(input('-- Input number -- '))
 inname = m_dict[my_npt]
   
 import pickle
-V, v1_list, v2_list, v3_list, G, S = pickle.load( open( indir + inname, 'rb' ) )
+V, v1_list, v2_list, v3_list, G, S, Lon, Lat, sta_name, h = pickle.load( open( indir + inname, 'rb' ) )
 
 import matplotlib.pyplot as plt
 plt.close()

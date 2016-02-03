@@ -215,7 +215,7 @@ outname = (outdir +
     Ldir['date_string0'] + '_' +
     Ldir['date_string1'] +
     '.p')
-pickle.dump( (V, v1_list, v2_list, v3_list, G, S, Lon, Lat, sta_name, h) , open( outname, 'wb' ) )
+pickle.dump( (V, v1_list, v2_list, v3_list, G, S, Lon, Lat, Ldir['sta_name'], h) , open( outname, 'wb' ) )
 
 # Note 2015.12.13 I should replace this pickle call with np.load, or for multiple arrays:
 # np.savez('array_archive.npz', a=arr1, b=arr2)

@@ -464,9 +464,12 @@ def make_full(flt):
     fields that are on the vertical rho grid, and where we want (typically for
     plotting purposes) to extend this in a smart way to the sea floor and the
     sea surface.
+    
+    NOTE: input is always a tuple.  If just sending a single array pack it
+    as zfun.make_full((arr,))
 
     Input:
-        flt is a tuple with either 1 ndarray (fld_mid),
+        flt is a tuple with either 1 ndarray (fld_mid,),
         or 3 ndarrays (fld_bot, fld_mid, fld_top)
 
     Output:
@@ -478,14 +481,28 @@ def make_full(flt):
        fld = np.concatenate(flt, axis=0)
 
     elif len(flt)==1:
-        fld_mid = flt[0]
-        N, M, L = fld_mid.shape
-        fld_bot = fld_mid[0].copy()
-        fld_bot = fld_bot.reshape(1, M, L).copy()
-        fld_top = fld_mid[-1].copy()
-        fld_top = fld_top.reshape(1, M, L).copy()
-        fld = np.concatenate((fld_bot, fld_mid, fld_top), axis=0)
-
+        if len(flt[0].shape) == 3:
+            fld_mid = flt[0]
+            N, M, L = fld_mid.shape
+            fld_bot = fld_mid[0].copy()
+            fld_bot = fld_bot.reshape(1, M, L).copy()
+            fld_top = fld_mid[-1].copy()
+            fld_top = fld_top.reshape(1, M, L).copy()
+            fld = np.concatenate((fld_bot, fld_mid, fld_top), axis=0)
+        elif len(flt[0].shape) == 2:
+            fld_mid = flt[0]
+            N, M = fld_mid.shape
+            fld_bot = fld_mid[0].copy()
+            fld_bot = fld_bot.reshape(1, M).copy()
+            fld_top = fld_mid[-1].copy()
+            fld_top = fld_top.reshape(1, M).copy()
+            fld = np.concatenate((fld_bot, fld_mid, fld_top), axis=0)
+        elif len(flt[0].shape) == 1:
+            fld_mid = flt[0]
+            fld_bot = fld_mid[0].copy()
+            fld_top = fld_mid[-1].copy()
+            fld = np.concatenate((fld_bot, fld_mid, fld_top), axis=0)
+            
     return fld
 
 def interpolate4D(ds0, ds1, varname, itp, ics, ilat, ilon):

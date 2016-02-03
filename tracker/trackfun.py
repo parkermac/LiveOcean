@@ -10,7 +10,7 @@ if alp not in sys.path:sys.path.append(alp)
 import zfun
 import netCDF4 as nc4
 
-def get_tracks(fn_list, plon0, plat0, pcs0, delta_t, dir_tag):
+def get_tracks(fn_list, plon0, plat0, pcs0, delta_t, dir_tag, method, surface, ndiv):
  
     plon = plon0.copy()
     plat = plat0.copy()
@@ -47,23 +47,18 @@ def get_tracks(fn_list, plon0, plat0, pcs0, delta_t, dir_tag):
     
     # create result arrays
     NP = len(plon)
-    Plon = np.nan * np.ones((NT,NP))
-    Plat = np.nan * np.ones((NT,NP))
-    Pcs = np.nan * np.ones((NT,NP))
-          
-    Psalt = np.nan * np.ones((NT,NP))
-    Ptemp = np.nan * np.ones((NT,NP))
-    Pz = np.nan * np.ones((NT,NP))
-    Pzeta = np.nan * np.ones((NT,NP))
-    Pzbot = np.nan * np.ones((NT,NP))
+    
+    P = dict()
+    plist_main = ['lon', 'lat', 'cs', 'ot', 'z', 'zeta', 'zbot',
+                  'salt', 'temp', 'u', 'v', 'w']
+    for vn in plist_main:
+        P[vn] = np.nan * np.ones((NT,NP))
        
+    vn_list_vel = ['u','v','w'] 
+    vn_list_zh = ['zeta','h']    
+    vn_list_other = ['salt', 'temp', 'zeta', 'h', 'u', 'v', 'w']
+        
     # Step through times.
-    #
-    # Currently this is hard-wired to use a 1 hour step with 1 hour saves,
-    # first doing a forward step of 1/2 hour, finding the velocity at that time
-    # and place, and then using that for a full hour forward step.
-    # I think this is what Particulator does, except that it is a longer
-    # time step (e.g. 3600 sec instead of 1200 sec).
     #
     counter = 0
     nrot = len(rot)
@@ -79,137 +74,184 @@ def get_tracks(fn_list, plon0, plat0, pcs0, delta_t, dir_tag):
         #print('it0=%d it1=%d' % (it0,it1))
         
         # write positions to the results arrays
-        Plon[it0,:] = plon
-        Plat[it0,:] = plat
-        Pcs[it0,:] = pcs
+        P['lon'][it0,:] = plon
+        P['lat'][it0,:] = plat
+        if surface == True:
+            pcs[:] = S['Cs_r'][-1]
+        P['cs'][it0,:] = pcs
             
         # get the velocity zeta, and h at all points
-        vn_list_vel = ['u','v','w'] 
-        vn_list_zh = ['zeta','h']    
         ds0 = nc4.Dataset(fn_list[it0]) 
-        V0 = get_V(vn_list_vel, ds0, plon, plat, pcs, R)
-        V0[np.isnan(V0)] = 0.0
-        ZH0 = get_V(vn_list_zh, ds0, plon, plat, pcs, R)
-        #ds0.close()
-        
-        if counter == 0:
-            # get other properties
-            vn_list_other = ['salt', 'temp', 'zeta', 'h', ]
-            OTH = get_V(vn_list_other, ds0, plon, plat, pcs, R)           
-            Psalt[it0,:] = OTH[:,0]
-            Ptemp[it0,:] = OTH[:,1]
-            this_zeta = OTH[:, vn_list_other.index('zeta')]
-            this_h = OTH[:, vn_list_other.index('h')]
-            full_depth = this_zeta + this_h
-            Pz[it0,:] = pcs * full_depth
-            Pzeta[it0,:] = OTH[:,2]
-            Pzbot[it0,:] = -OTH[:,3]
-       
-        # find the new position (half step)
-        dX_m = V0*delta_t/2.
-        per_m = zfun.earth_rad(plat)
-        clat = np.cos(np.pi*plat/180.)
-        pdx_deg = (180./np.pi)*dX_m[:,0]/(per_m*clat)
-        pdy_deg = (180./np.pi)*dX_m[:,1]/per_m
-        H = ZH0.sum(axis=1)
-        pdz_s = dX_m[:,2]/H
-        plon_half = plon + pdx_deg
-        plat_half = plat + pdy_deg
-        pcs_half = pcs + pdz_s
-        # enforce limits on cs
-        pcs_half[pcs_half < S['Cs_r'][0]] = S['Cs_r'][0]
-        pcs_half[pcs_half > S['Cs_r'][-1]] = S['Cs_r'][-1]
-        
-        # get the velocity zeta, and h at all points
-        #ds0 = nc4.Dataset(fn_list[it0]) 
         ds1 = nc4.Dataset(fn_list[it1])
-        V0 = get_V(vn_list_vel, ds0, plon_half, plat_half, pcs_half, R)
-        V1 = get_V(vn_list_vel, ds1, plon_half, plat_half, pcs_half, R)
-        V0[np.isnan(V0)] = 0.0
-        V1[np.isnan(V1)] = 0.0
-        ZH0 = get_V(vn_list_zh, ds0, plon_half, plat_half, pcs_half, R)
-        ZH1 = get_V(vn_list_zh, ds1, plon_half, plat_half, pcs_half, R)
+                
+        if counter == 0:            
+            P = get_properties(vn_list_other, ds0, it0, P, plon, plat, pcs, R)
+
         
-        ds0.close()
-        #ds1.close()
+        delt = delta_t/ndiv
         
-        V = (V0 + V1)/2.
-        ZH = (ZH0 + ZH1)/2.
+        for nd in range(ndiv):
+            
+            fr0 = nd/ndiv
+            fr1 = (nd + 1)/ndiv
+            frmid = (fr0 + fr1)/2
+            
+            if method == 'rk4':
+                # RK4 integration
+                    
+                V0, ZH0 = get_vel(vn_list_vel, vn_list_zh,
+                                           ds0, ds1, plon, plat, pcs, R, fr0)
+                
+                plon1, plat1, pcs1 = update_position(V0, ZH0, S, delt/2,
+                                                     plon, plat, pcs, surface)
+                V1, ZH1 = get_vel(vn_list_vel, vn_list_zh,
+                                           ds0, ds1, plon1, plat1, pcs1, R, frmid)
+                
+                plon2, plat2, pcs2 = update_position(V1, ZH1, S, delt/2,
+                                                     plon, plat, pcs, surface)
+                V2, ZH2 = get_vel(vn_list_vel, vn_list_zh,
+                                           ds0, ds1, plon2, plat2, pcs2, R, frmid)
+                
+                plon3, plat3, pcs3 = update_position(V2, ZH2, S, delt,
+                                                     plon, plat, pcs, surface)
+                V3, ZH3 = get_vel(vn_list_vel, vn_list_zh,
+                                           ds0, ds1, plon3, plat3, pcs3, R, fr1)
+                
+                plon, plat, pcs = update_position((V0 + 2*V1 + 2*V2 + V3)/6,
+                                                  (ZH0 + 2*ZH1 + 2*ZH2 + ZH3)/6,
+                                                  S, delt,
+                                                  plon, plat, pcs, surface)
+            elif method == 'rk2':                                 
+                # RK2 integration
+                V0, ZH0 = get_vel(vn_list_vel, vn_list_zh,
+                                           ds0, ds1, plon, plat, pcs, R,fr0)
+                
+                plon1, plat1, pcs1 = update_position(V0, ZH0, S, delt/2,
+                                                     plon, plat, pcs, surface)
+                V1, ZH1 = get_vel(vn_list_vel, vn_list_zh,
+                                           ds0, ds1, plon1, plat1, pcs1, R, frmid)
+                
+                plon, plat, pcs = update_position(V1, ZH1, S, delt,
+                                                  plon, plat, pcs, surface) 
         
-        # find the new position
-        dX_m = V*delta_t
-        per_m = zfun.earth_rad(plat)
-        clat = np.cos(np.pi*plat/180.)
-        pdx_deg = (180./np.pi)*dX_m[:,0]/(per_m*clat)
-        pdy_deg = (180./np.pi)*dX_m[:,1]/per_m
-        H = ZH.sum(axis=1)
-        pdz_s = dX_m[:,2]/H
-        plon += pdx_deg
-        plat += pdy_deg
-        pcs += pdz_s
-        # enforce limits on cs
-        pcs[pcs < S['Cs_r'][0]] = S['Cs_r'][0]
-        pcs[pcs > S['Cs_r'][-1]] = S['Cs_r'][-1]
-        
-        # find properties at the new position
-        OTH = get_V(vn_list_other, ds1, plon, plat, pcs, R)
-        Psalt[it1,:] = OTH[:,0]
-        Ptemp[it1,:] = OTH[:,1]
-        this_zeta = OTH[:, vn_list_other.index('zeta')]
-        this_h = OTH[:, vn_list_other.index('h')]
-        full_depth = this_zeta + this_h
-        Pz[it1,:] = pcs * full_depth
-        Pzeta[it1,:] = OTH[:,2]
-        Pzbot[it1,:] = -OTH[:,3]
-        
+                                  
+        P = get_properties(vn_list_other, ds1, it1, P, plon, plat, pcs, R)
+
+        ds0.close()        
         ds1.close()
         
         counter += 1
     
     # add final point    
-    Plon[it1,:] = plon
-    Plat[it1,:] = plat
-    Pcs[it1,:] = pcs
+    P['lon'][it1,:] = plon
+    P['lat'][it1,:] = plat
+    P['cs'][it1,:] = pcs
     
     # by doing this the points are going forward in time
     if dir_tag == 'reverse':
-        Plon = Plon[::-1,:]
-        Plat = Plat[::-1,:]
-        Pcs = Pcs[::-1,:]
-        
-        Psalt = Psalt[::-1,:]
-        Ptemp = Ptemp[::-1,:]
-        Pz = Pz[::-1,:]
-        Pzeta = Pzeta[::-1,:]
-        Pzbot = Pzbot[::-1,:]
+        for vn in plist_main:
+            P[vn] = P[vn][::-1,:]
             
     # and the time vector (seconds in whatever the model reports)
-    Pot = rot
-    
-    # put it all in a dict
-    P = dict()
-    P['lon'] = Plon
-    P['lat'] = Plat
-    P['cs'] = Pcs
-    P['ot'] = Pot
-    P['salt'] = Psalt
-    P['temp'] = Ptemp
-    P['z'] = Pz
-    P['zeta'] = Pzeta
-    P['zbot'] = Pzbot
+    P['ot'] = rot
     
     return P, G, S
+    
+def update_position(V, ZH, S, delta_t, plon, plat, pcs, surface):
+    # find the new position
+    Plon = plon.copy()
+    Plat = plat.copy()
+    Pcs = pcs.copy()
+    dX_m = V*delta_t
+    per_m = zfun.earth_rad(Plat)
+    clat = np.cos(np.pi*Plat/180.)
+    pdx_deg = (180./np.pi)*dX_m[:,0]/(per_m*clat)
+    pdy_deg = (180./np.pi)*dX_m[:,1]/per_m
+    H = ZH.sum(axis=1)
+    pdz_s = dX_m[:,2]/H
+    Plon += pdx_deg
+    Plat += pdy_deg
+    if surface == False:
+        Pcs_orig = Pcs.copy()
+        Pcs += pdz_s
+        # enforce limits on cs
+        mask = np.isnan(Pcs)
+        Pcs[mask] = Pcs_orig[mask]
+        Pcs[pcs < S['Cs_r'][0]] = S['Cs_r'][0]
+        Pcs[pcs > S['Cs_r'][-1]] = S['Cs_r'][-1]
+    else:
+        Pcs[:] = S['Cs_r'][-1]
+    
+    return Plon, Plat, Pcs
 
-def fix_masked(V,mask_val):    
+def get_vel(vn_list_vel, vn_list_zh, ds0, ds1, plon, plat, pcs, R, frac):
+    # get the velocity zeta, and h at all points, at an arbitrary
+    # time between two saves
+    # "frac" is the fraction of the way between the times of ds0 and ds1
+    # 0 <= frac <= 1
+    V0 = get_V(vn_list_vel, ds0, plon, plat, pcs, R)
+    V1 = get_V(vn_list_vel, ds1, plon, plat, pcs, R)
+    V0[np.isnan(V0)] = 0.0
+    V1[np.isnan(V1)] = 0.0
+    ZH0 = get_V(vn_list_zh, ds0, plon, plat, pcs, R)
+    ZH1 = get_V(vn_list_zh, ds1, plon, plat, pcs, R)                
+    V = (1 - frac)*V0 + frac*V1
+    ZH = (1 - frac)*ZH0 + frac*ZH1
+    
+    return V, ZH
+    
+#def get_vel_mid_time(vn_list_vel, vn_list_zh, ds0, ds1, plon, plat, pcs, R):
+#    # get the velocity zeta, and h at all points
+#    V0 = get_V(vn_list_vel, ds0, plon, plat, pcs, R)
+#    V1 = get_V(vn_list_vel, ds1, plon, plat, pcs, R)
+#    V0[np.isnan(V0)] = 0.0
+#    V1[np.isnan(V1)] = 0.0
+#    ZH0 = get_V(vn_list_zh, ds0, plon, plat, pcs, R)
+#    ZH1 = get_V(vn_list_zh, ds1, plon, plat, pcs, R)                
+#    V = (V0 + V1)/2.
+#    ZH = (ZH0 + ZH1)/2.
+#    
+#    return V, ZH
+#    
+#def get_vel_one_time(vn_list_vel, vn_list_zh, ds, plon, plat, pcs, R):
+#    # get the velocity zeta, and h at all points
+#    V = get_V(vn_list_vel, ds, plon, plat, pcs, R)
+#    V[np.isnan(V)] = 0.0
+#    ZH = get_V(vn_list_zh, ds, plon, plat, pcs, R)
+#    
+#    return V, ZH
+    
+def get_properties(vn_list_other, ds, it, P, plon, plat, pcs, R):
+    # find properties at a position
+    OTH = get_V(vn_list_other, ds, plon, plat, pcs, R)           
+    P['salt'][it,:] = OTH[:,vn_list_other.index('salt')]
+    P['temp'][it,:] = OTH[:,vn_list_other.index('temp')]
+    this_zeta = OTH[:, vn_list_other.index('zeta')]
+    this_h = OTH[:, vn_list_other.index('h')]
+    full_depth = this_zeta + this_h
+    P['z'][it,:] = pcs * full_depth
+    P['zeta'][it,:] = OTH[:,vn_list_other.index('zeta')]
+    P['zbot'][it,:] = -this_h
+    P['u'][it,:] = OTH[:,vn_list_other.index('u')]
+    P['v'][it,:] = OTH[:,vn_list_other.index('v')]
+    P['w'][it,:] = OTH[:,vn_list_other.index('w')]
+  
+    return P
+
+def fix_masked(V, mask_val):    
     try:
         if V.mask.any():
-            if mask_val == 99:
+            if mask_val == 99: # used for salt and temp
                 vm = np.array(~V.mask, dtype=bool).flatten()
                 vf = V.flatten()
                 vgood = vf[vm].mean()
-                V[V.mask] = vgood
-            else:
-                V[V.mask] = mask_val
+                if V.mask.all():
+                    V[V.mask] = np.nan
+                else:
+                    V[V.mask] = vgood
+            else: # used for velocity with mask_val = 0
+                #V[V.mask] = mask_val
+                V = mask_val # this stops particles near the coast?
             V = V.data
     except AttributeError:
             pass
@@ -230,11 +272,12 @@ def get_V(vn_list, ds, plon, plat, pcs, R):
     NV = len(vn_list)
     NP = len(plon)
     
-    # get a interpolated values    
+    # get interpolated values    
     V = np.nan * np.ones((NP,NV))
     for ip in range(NP):
         vcount = 0
-        for vn in vn_list:    
+        for vn in vn_list: 
+            
             if vn in ['salt','temp','zeta','h']:
                 ics = icsr_a[ip,:]
                 ilat = ilatr_a[ip,:]
@@ -251,6 +294,7 @@ def get_V(vn_list, ds, plon, plat, pcs, R):
                 ics = icsw_a[ip,:]
                 ilat = ilatr_a[ip,:]
                 ilon = ilonr_a[ip,:]
+                
             if vn in ['salt','temp','u','v','w']:      
                 box0 = ds.variables[vn][0,ics[:2].astype(int),
                     ilat[:2].astype(int),ilon[:2].astype(int)].squeeze()
@@ -281,4 +325,5 @@ def get_V(vn_list, ds, plon, plat, pcs, R):
                 ax = np.array([1-ilon[2], ilon[2]]).reshape((1,1,2))                            
                 V[ip,vcount] = (az*( ( ay*((ax*box0).sum(-1)) ).sum(-1) )).sum()
             vcount += 1
+            
     return V

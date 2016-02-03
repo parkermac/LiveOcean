@@ -48,7 +48,7 @@ else:
     inname = 'cascadia1_base_lo1_47N124.5W_low_pass_2013.01.02_2015.12.31.p'
   
 import pickle
-V, v1_list, v2_list, v3_list, G, S = pickle.load( open( indir + inname, 'rb' ) )
+V, v1_list, v2_list, v3_list, G, S, Lon, Lat, sta_name, h = pickle.load( open( indir + inname, 'rb' ) )
 
 import matplotlib.pyplot as plt
 plt.close()
