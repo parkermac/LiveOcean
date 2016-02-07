@@ -10,7 +10,8 @@ if alp not in sys.path:sys.path.append(alp)
 import zfun
 import netCDF4 as nc4
 
-def get_tracks(fn_list, plon0, plat0, pcs0, delta_t, dir_tag, method, surface, ndiv):
+def get_tracks(fn_list, plon0, plat0, pcs0, delta_t, dir_tag,
+               method, surface, ndiv, windage):
  
     plon = plon0.copy()
     plat = plat0.copy()
@@ -49,14 +50,18 @@ def get_tracks(fn_list, plon0, plat0, pcs0, delta_t, dir_tag, method, surface, n
     NP = len(plon)
     
     P = dict()
+    # plist main is what ends up written to output
     plist_main = ['lon', 'lat', 'cs', 'ot', 'z', 'zeta', 'zbot',
-                  'salt', 'temp', 'u', 'v', 'w']
+                  'salt', 'temp', 'u', 'v', 'w', 'Uwind', 'Vwind', 'h']
     for vn in plist_main:
         P[vn] = np.nan * np.ones((NT,NP))
-       
+    
+    # these lists are used internally to get other variables as needed
     vn_list_vel = ['u','v','w'] 
+    vn_list_wind = ['Uwind','Vwind']
     vn_list_zh = ['zeta','h']    
-    vn_list_other = ['salt', 'temp', 'zeta', 'h', 'u', 'v', 'w']
+    vn_list_other = ['salt', 'temp', 'zeta', 'h', 'u', 'v', 'w',
+                     'Uwind', 'Vwind']
         
     # Step through times.
     #
@@ -117,21 +122,35 @@ def get_tracks(fn_list, plon0, plat0, pcs0, delta_t, dir_tag, method, surface, n
                 V3, ZH3 = get_vel(vn_list_vel, vn_list_zh,
                                            ds0, ds1, plon3, plat3, pcs3, R, fr1)
                 
-                plon, plat, pcs = update_position((V0 + 2*V1 + 2*V2 + V3)/6,
+                # add windage, calculated from the middle time                           
+                if (surface == True) and (windage > 0):
+                    Vwind = get_wind(vn_list_wind, ds0, ds1, plon, plat, pcs, R, frmid)
+                    Vwind3 = np.concatenate((windage*Vwind,np.zeros((NP,1))),axis=1)
+                else:
+                    Vwind3 = np.zeros((NP,3))
+
+                plon, plat, pcs = update_position((V0 + 2*V1 + 2*V2 + V3)/6 + Vwind3,
                                                   (ZH0 + 2*ZH1 + 2*ZH2 + ZH3)/6,
                                                   S, delt,
                                                   plon, plat, pcs, surface)
             elif method == 'rk2':                                 
                 # RK2 integration
                 V0, ZH0 = get_vel(vn_list_vel, vn_list_zh,
-                                           ds0, ds1, plon, plat, pcs, R,fr0)
+                                           ds0, ds1, plon, plat, pcs, R, fr0)
                 
                 plon1, plat1, pcs1 = update_position(V0, ZH0, S, delt/2,
                                                      plon, plat, pcs, surface)
                 V1, ZH1 = get_vel(vn_list_vel, vn_list_zh,
-                                           ds0, ds1, plon1, plat1, pcs1, R, frmid)
+                                           ds0, ds1, plon1, plat1, pcs1, R,frmid)
                 
-                plon, plat, pcs = update_position(V1, ZH1, S, delt,
+                # add windage, calculated from the middle time                           
+                if (surface == True) and (windage > 0):
+                    Vwind = get_wind(vn_list_wind, ds0, ds1, plon, plat, pcs, R, frmid)
+                    Vwind3 = np.concatenate((windage*Vwind,np.zeros((NP,1))),axis=1)
+                else:
+                    Vwind3 = np.zeros((NP,3))
+                
+                plon, plat, pcs = update_position(V1 + Vwind3, ZH1, S, delt,
                                                   plon, plat, pcs, surface) 
         
                                   
@@ -185,7 +204,7 @@ def update_position(V, ZH, S, delta_t, plon, plat, pcs, surface):
     return Plon, Plat, Pcs
 
 def get_vel(vn_list_vel, vn_list_zh, ds0, ds1, plon, plat, pcs, R, frac):
-    # get the velocity zeta, and h at all points, at an arbitrary
+    # get the velocity, zeta, and h at all points, at an arbitrary
     # time between two saves
     # "frac" is the fraction of the way between the times of ds0 and ds1
     # 0 <= frac <= 1
@@ -200,41 +219,29 @@ def get_vel(vn_list_vel, vn_list_zh, ds0, ds1, plon, plat, pcs, R, frac):
     
     return V, ZH
     
-#def get_vel_mid_time(vn_list_vel, vn_list_zh, ds0, ds1, plon, plat, pcs, R):
-#    # get the velocity zeta, and h at all points
-#    V0 = get_V(vn_list_vel, ds0, plon, plat, pcs, R)
-#    V1 = get_V(vn_list_vel, ds1, plon, plat, pcs, R)
-#    V0[np.isnan(V0)] = 0.0
-#    V1[np.isnan(V1)] = 0.0
-#    ZH0 = get_V(vn_list_zh, ds0, plon, plat, pcs, R)
-#    ZH1 = get_V(vn_list_zh, ds1, plon, plat, pcs, R)                
-#    V = (V0 + V1)/2.
-#    ZH = (ZH0 + ZH1)/2.
-#    
-#    return V, ZH
-#    
-#def get_vel_one_time(vn_list_vel, vn_list_zh, ds, plon, plat, pcs, R):
-#    # get the velocity zeta, and h at all points
-#    V = get_V(vn_list_vel, ds, plon, plat, pcs, R)
-#    V[np.isnan(V)] = 0.0
-#    ZH = get_V(vn_list_zh, ds, plon, plat, pcs, R)
-#    
-#    return V, ZH
+def get_wind(vn_list_wind, ds0, ds1, plon, plat, pcs, R, frac):
+    # get the wind velocity at an arbitrary
+    # time between two saves
+    # "frac" is the fraction of the way between the times of ds0 and ds1
+    # 0 <= frac <= 1
+    V0 = get_V(vn_list_wind, ds0, plon, plat, pcs, R)
+    V1 = get_V(vn_list_wind, ds1, plon, plat, pcs, R)
+    V0[np.isnan(V0)] = 0.0
+    V1[np.isnan(V1)] = 0.0
+    V = (1 - frac)*V0 + frac*V1
+    
+    return V
     
 def get_properties(vn_list_other, ds, it, P, plon, plat, pcs, R):
     # find properties at a position
-    OTH = get_V(vn_list_other, ds, plon, plat, pcs, R)           
-    P['salt'][it,:] = OTH[:,vn_list_other.index('salt')]
-    P['temp'][it,:] = OTH[:,vn_list_other.index('temp')]
+    OTH = get_V(vn_list_other, ds, plon, plat, pcs, R)
+    for vn in vn_list_other:
+        P[vn][it,:] = OTH[:,vn_list_other.index(vn)]         
     this_zeta = OTH[:, vn_list_other.index('zeta')]
     this_h = OTH[:, vn_list_other.index('h')]
     full_depth = this_zeta + this_h
     P['z'][it,:] = pcs * full_depth
-    P['zeta'][it,:] = OTH[:,vn_list_other.index('zeta')]
     P['zbot'][it,:] = -this_h
-    P['u'][it,:] = OTH[:,vn_list_other.index('u')]
-    P['v'][it,:] = OTH[:,vn_list_other.index('v')]
-    P['w'][it,:] = OTH[:,vn_list_other.index('w')]
   
     return P
 
@@ -278,7 +285,7 @@ def get_V(vn_list, ds, plon, plat, pcs, R):
         vcount = 0
         for vn in vn_list: 
             
-            if vn in ['salt','temp','zeta','h']:
+            if vn in ['salt','temp','zeta','h','Uwind','Vwind']:
                 ics = icsr_a[ip,:]
                 ilat = ilatr_a[ip,:]
                 ilon = ilonr_a[ip,:]
@@ -310,7 +317,7 @@ def get_V(vn_list, ds, plon, plat, pcs, R):
                 ay = np.array([1-ilat[2], ilat[2]]).reshape((1,2))
                 ax = np.array([1-ilon[2], ilon[2]]).reshape((1,1,2))                            
                 V[ip,vcount] = (az*( ( ay*((ax*box0).sum(-1)) ).sum(-1) )).sum()
-            elif vn in ['zeta']:      
+            elif vn in ['zeta','Uwind','Vwind']:      
                 box0 = ds.variables[vn][0,
                     ilat[:2].astype(int),ilon[:2].astype(int)].squeeze()
                 az = 1.

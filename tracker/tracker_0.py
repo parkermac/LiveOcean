@@ -42,10 +42,11 @@ import time
 # ************ USER INPUT **************************************
 
 gtagex = 'cascadia1_base_lo1' # 'cascadia1_base_lo1' or 'D2005_his'
-ic_name = 'test' # 'jdf' or 'cr'
+ic_name = 'deadBirds' # 'jdf' or 'cr'
 dir_tag = 'forward' # 'forward' or 'reverse'
 method = 'rk2' # 'rk2' or 'rk4'
-surface = True
+surface = True # Boolean, True for trap to surface
+windage = 0.02 # a small number >= 0
 ndiv = 1 # number of divisions to make between saves for the integration
         # e.g. if ndiv = 3 and we have hourly saves, we use a 20 minute step
         # for the integration (but still only report fields hourly)
@@ -65,8 +66,8 @@ if Ldir['parent'] == '/Users/PM5/Documents/':
 elif Ldir['parent'] == '/data1/parker/':
     # fjord version
     if gtagex == 'cascadia1_base_lo1':
-        dt_first_day = datetime(2014,1,1) # always start on a day (no hours)
-        number_of_start_days = 3 #3
+        dt_first_day = datetime(2014,11,1) # always start on a day (no hours)
+        number_of_start_days = 1 #3
         days_between_starts = 7
         days_to_track = 7 #7
         
@@ -89,7 +90,7 @@ elif ic_name == 'cr':
     plon0 = plon00.reshape(NXYP,1) * np.ones((NXYP,NSP))
     plat0 = plat00.reshape(NXYP,1) * np.ones((NXYP,NSP))
     pcs0 = np.ones((NXYP,NSP)) * pcs00.reshape(1,NSP)
-elif ic_name == 'test':
+elif ic_name == 'deadBirds':
     lonvec = np.linspace(-125.5, -124.5, 5)
     latvec = np.linspace(46, 47, 5)
     lonmat, latmat = np.meshgrid(lonvec, latvec)
@@ -180,7 +181,7 @@ for idt in idt_list:
     # DO THE TRACKING
     tt0 = time.time()
     P, G, S = trackfun.get_tracks(fn_list, plon0, plat0, pcs0, delta_t,
-                                  dir_tag, method, surface, ndiv)             
+                                  dir_tag, method, surface, ndiv, windage)             
     print(' - Took %0.1f sec for %d days'
           % (time.time() - tt0, round((dt1 - dt0).total_seconds()/86400.)))
     
@@ -192,6 +193,7 @@ for idt in idt_list:
         Ldir['method'] + '_' +
         Ldir['dir_tag'] + '_' +
         'ndiv' + Ldir['ndiv'] + '_' +
+        'windage' + str(windage) + '_' +
         Ldir['date_string0'] + '_' +
         str(days_to_track) + 'days' +
         '.p')
