@@ -9,13 +9,14 @@ alp = os.path.abspath('../../LiveOcean/alpha')
 if alp not in sys.path:sys.path.append(alp)
 import zfun
 import netCDF4 as nc4
+from datetime import datetime, timedelta
 
-def get_tracks(fn_list, plon0, plat0, pcs0, delta_t, dir_tag,
+def get_tracks(fn_list, plon0, plat0, pcs0, dir_tag,
                method, surface, ndiv, windage):
  
-    plon = plon0.copy()
-    plat = plat0.copy()
-    pcs = pcs0.copy()
+    plonA = plon0.copy()
+    platA = plat0.copy()
+    pcsA = pcs0.copy()
     
     # get basic info
     G, S = zfun.get_basic_info(fn_list[0], getT=False)
@@ -29,6 +30,8 @@ def get_tracks(fn_list, plon0, plat0, pcs0, delta_t, dir_tag,
         rot[counter] = ds.variables['ocean_time'][:].squeeze()
         counter += 1
         ds.close
+        
+    delta_t = rot[1] - rot[0] # second between saves
     
     # this is how we track backwards in time
     if dir_tag == 'reverse':
@@ -45,17 +48,7 @@ def get_tracks(fn_list, plon0, plat0, pcs0, delta_t, dir_tag,
     R['rlatv'] = G['lat_v'][:,0].squeeze()
     R['rcsr'] = S['Cs_r'][:]
     R['rcsw'] = S['Cs_w'][:]
-    
-    # create result arrays
-    NP = len(plon)
-    
-    P = dict()
-    # plist main is what ends up written to output
-    plist_main = ['lon', 'lat', 'cs', 'ot', 'z', 'zeta', 'zbot',
-                  'salt', 'temp', 'u', 'v', 'w', 'Uwind', 'Vwind', 'h']
-    for vn in plist_main:
-        P[vn] = np.nan * np.ones((NT,NP))
-    
+        
     # these lists are used internally to get other variables as needed
     vn_list_vel = ['u','v','w'] 
     vn_list_wind = ['Uwind','Vwind']
@@ -77,21 +70,37 @@ def get_tracks(fn_list, plon0, plat0, pcs0, delta_t, dir_tag,
         it0 = iot[0,0].astype(int)
         it1 = iot[0,1].astype(int)
         #print('it0=%d it1=%d' % (it0,it1))
-        
-        # write positions to the results arrays
-        P['lon'][it0,:] = plon
-        P['lat'][it0,:] = plat
-        if surface == True:
-            pcs[:] = S['Cs_r'][-1]
-        P['cs'][it0,:] = pcs
-            
+                   
         # get the velocity zeta, and h at all points
         ds0 = nc4.Dataset(fn_list[it0]) 
-        ds1 = nc4.Dataset(fn_list[it1])
+        ds1 = nc4.Dataset(fn_list[it1])        
                 
-        if counter == 0:            
+        if counter == 0:
+            
+            # remove points on land
+            SALT = get_V(['salt'], ds0, plonA, platA, pcsA, R)
+            SALT = SALT.flatten()       
+            plon = plonA[~np.isnan(SALT)].copy()
+            plat = platA[~np.isnan(SALT)].copy()
+            pcs = pcsA[~np.isnan(SALT)].copy()
+            
+            # create result arrays
+            NP = len(plon)    
+            P = dict()
+            # plist main is what ends up written to output
+            plist_main = ['lon', 'lat', 'cs', 'ot', 'z', 'zeta', 'zbot',
+                          'salt', 'temp', 'u', 'v', 'w', 'Uwind', 'Vwind', 'h']
+            for vn in plist_main:
+                P[vn] = np.nan * np.ones((NT,NP))
+                
+            # write positions to the results arrays
+            P['lon'][it0,:] = plon
+            P['lat'][it0,:] = plat
+            if surface == True:
+                pcs[:] = S['Cs_r'][-1]
+            P['cs'][it0,:] = pcs
+                        
             P = get_properties(vn_list_other, ds0, it0, P, plon, plat, pcs, R)
-
         
         delt = delta_t/ndiv
         
@@ -153,7 +162,12 @@ def get_tracks(fn_list, plon0, plat0, pcs0, delta_t, dir_tag,
                 plon, plat, pcs = update_position(V1 + Vwind3, ZH1, S, delt,
                                                   plon, plat, pcs, surface) 
         
-                                  
+        # write positions to the results arrays
+        P['lon'][it1,:] = plon
+        P['lat'][it1,:] = plat
+        if surface == True:
+            pcs[:] = S['Cs_r'][-1]
+        P['cs'][it1,:] = pcs                          
         P = get_properties(vn_list_other, ds1, it1, P, plon, plat, pcs, R)
 
         ds0.close()        
@@ -161,17 +175,12 @@ def get_tracks(fn_list, plon0, plat0, pcs0, delta_t, dir_tag,
         
         counter += 1
     
-    # add final point    
-    P['lon'][it1,:] = plon
-    P['lat'][it1,:] = plat
-    P['cs'][it1,:] = pcs
-    
     # by doing this the points are going forward in time
     if dir_tag == 'reverse':
         for vn in plist_main:
             P[vn] = P[vn][::-1,:]
             
-    # and the time vector (seconds in whatever the model reports)
+    # and save the time vector (seconds in whatever the model reports)
     P['ot'] = rot
     
     return P, G, S
@@ -334,3 +343,40 @@ def get_V(vn_list, ds, plon, plat, pcs, R):
             vcount += 1
             
     return V
+    
+def get_fn_list(idt, Ldir):
+        
+    if Ldir['gtagex'] == 'cascadia1_base_lo1':
+        # LiveOcean version
+        Ldir['gtagex'] = 'cascadia1_base_lo1'
+        # make the list of input history files
+        date_list = []
+        for nday in range(Ldir['days_to_track']):
+            fdt = idt + timedelta(nday)
+            date_list.append(fdt.strftime('%Y.%m.%d'))
+        fn_list = []
+        for dd in date_list:
+            indir = (Ldir['roms'] + 'output/' + Ldir['gtagex'] +
+                    '/f' + dd + '/')
+            for hh in range(2,26):
+                hhhh = ('0000' + str(hh))[-4:]
+                fn_list.append(indir + 'ocean_his_' + hhhh + '.nc')
+                
+    elif Ldir['gtagex'] == 'D2005_his':
+        # Other ROMS runs version
+        indir = '/Users/PM5/Documents/roms/output/' + Ldir['gtagex'] + '/'
+        save_num_list = range(1,365*24)
+        save_dt_list = []
+        dt00 = datetime(2005,1,1)
+        save_dt_list.append(dt00)
+        for sn in save_num_list:
+            save_dt_list.append(dt00 + timedelta(hours=sn))
+        # keys of this dict are datetimes, and values are history numbers
+        save_dt_num_dict = dict(zip(save_dt_list,save_num_list))
+        fn_list = []
+        for hh in range(Ldir['days_to_track']*24 + 1):
+            hh = save_dt_num_dict[idt + timedelta(hours=hh)]
+            hhhh = ('0000' + str(hh))[-4:]
+            fn_list.append(indir + 'ocean_his_' + hhhh + '.nc')
+            
+    return fn_list

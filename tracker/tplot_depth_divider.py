@@ -2,7 +2,6 @@
 Plot results of tracker.
 """
 
-# setup
 import os
 import sys
 alp = os.path.abspath('../alpha')
