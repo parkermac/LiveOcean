@@ -74,7 +74,7 @@ elif Ldir['parent'] == '/data1/parker/':
     # fjord version
     if gtagex == 'cascadia1_base_lo1':
         dt_first_day = datetime(2014,11,1) 
-        number_of_start_days = 2
+        number_of_start_days = 48
         days_between_starts = 3
         days_to_track = 7
         
