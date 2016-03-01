@@ -36,7 +36,7 @@ import pickle
 V, v1_list, v2_list, v3_list, G, S, Lon, Lat, sta_name, h = pickle.load( open( indir + inname, 'rb' ) )
 
 import matplotlib.pyplot as plt
-plt.close()
+#plt.close()
 NR = 3; NC = 4
 fig, axes = plt.subplots(nrows=NR, ncols=NC, figsize=(15,8), squeeze=False)
 

@@ -23,13 +23,13 @@ import matplotlib.pyplot as plt
 cmap = plt.get_cmap(name='rainbow')
 plt.close()
 
-fig, axes = plt.subplots(nrows=3, ncols=5, figsize=(16, 12), squeeze=False)
+#vn_list = ['ssh', 'u3d', 'v3d', 't3d', 's3d']
+vn_list = ['s3d']
 
-vn_list = ['ssh', 't3d', 's3d', 'u3d', 'v3d']
-tag = '_combined' # e.g. '91.0'
+fig, axes = plt.subplots(nrows=3, ncols=len(vn_list), figsize=(16, 12), squeeze=False)
+
+tag = '_combined' # e.g. '91.0' or '_combined'
 nc_dir = Ldir['data'] + 'hycom' + tag + '/'
-
-#nc_dir = Ldir['LOo'] + Ldir['gtag'] + '/f2015.02.14/ocn/Data/'
 
 cnum = 0
 for vn in vn_list:
@@ -109,6 +109,8 @@ for vn in vn_list:
     ax2.plot([0,0],aa[2:],'-k')
     ax2.plot([365,365],aa[2:],'-k')
     ax2.plot([730,730],aa[2:],'-k')
+    ax2.plot([1095,1095],aa[2:],'-k')
+    ax2.axis(aa)
         
     cnum += 1
 

@@ -45,8 +45,9 @@ def get_interpolant_fast(x, xvec):
     """
     Returns info to allow fast interpolation.
 
-    Input: data point(s) x and coordinate vector xvec
-    (both must be 1-D numpy arrays)
+    Input: positions(s) x and coordinate vector xvec
+    Both must be 1-D numpy arrays without nans, and
+    xvec must be monotonically increasing
 
     Output: indices into xvec that surround x,
     and the fraction 'a' into that segment to find x
@@ -54,8 +55,14 @@ def get_interpolant_fast(x, xvec):
     returned as a 3-column numpy array with columns:
     [index below, index above, fraction]
 
-    If the input is ON a point in xvec the default is to return
+    If the x is ON a point in xvec the default is to return
     the index of that point and the one above.
+    
+    The indices are floats and must later be converted to integers.
+    
+    If the x is out of the range of xvec it returns the
+    interpolant for the first or last point.
+    E.g. [0., 1., 0.] for x < xvec.min()
     """
     import numpy as np
 
@@ -71,6 +78,15 @@ def get_interpolant_fast(x, xvec):
     xvec = xvec.flatten()
 
     # more error checking
+    if np.isnan(x).any():
+        print('WARNING from get_interpolant_fast(): ' +
+            'nan found in x')
+    if np.isnan(xvec).any():
+        print('WARNING from get_interpolant_fast(): ' +
+            'nan found in xvec')
+    if not np.all(np.diff(xvec) > 0):
+        print('WARNING from get_interpolant_fast(): ' +
+            'xvec must be monotonic and increasing')
     if not np.all(np.diff(xvec) > 0):
         print('WARNING from get_interpolant_fast(): ' +
             'xvec must be monotonic and increasing')
@@ -90,18 +106,20 @@ def get_interpolant_fast(x, xvec):
     # the above line broadcasts correctly even if nx = nxvec
     # because we forced X to be a column vector
     itp[:,0] = mask.sum(axis=1) - 1
-    # these masks are used to handle values of x beyond the limits
-    # of xvec
+    
+    # these masks are used to handle values of x beyond the range of xvec
     lomask = itp[:,0] < 0
     himask = itp[:,0] > nxvec - 2
     itp[lomask, 0] = 0
     itp[himask, 0] = nxvec - 2
     itp[:,1] = itp[:,0] + 1
 
+    # compute the fraction
     xvec0 = xvec[0,itp[:,0].astype(int)]
     xvec1 = xvec[0,itp[:,1].astype(int)]
     frac = (x - xvec0)/(xvec1 - xvec0)
     itp[:,2] = frac
+    # fractions for out of range x
     itp[lomask, 2] = 0
     itp[himask, 2] = 1
 

@@ -252,7 +252,7 @@ def fields_to_netcdf(out_dict_allvar, nt, nc_dir):
 
 def process_extrap(vn, nc_dir):
     """
-    Add a extrapolated version of the variable to the NetCDf file.
+    Add an extrapolated version of the variable to the NetCDf file.
     """
     import sys
     import netCDF4 as nc
@@ -301,6 +301,16 @@ def process_extrap(vn, nc_dir):
         # new version: much faster, AFTER I moved the x,y setup OUT of the
         # time loop
         this_fld = fld_new[tt].squeeze()
+        
+        # trap to fix bad salinity fields
+        if vn == 's3d':
+            test_cell = this_fld[-1,40,40]
+        if np.ma.count_masked(test_cell) == 1:
+            print('fixing a bad salinity field')
+            this_fld_prev = fld_new[tt-1].squeeze()
+            this_fld_next = fld_new[tt+1].squeeze()
+            this_fld = (this_fld_prev + this_fld_next)/2.0
+
         this_flde = horizontal_extrapolation(x, y, NZ, this_fld, vn) 
         print('   - took %.3f seconds' % (time.time() - tt0))
         sys.stdout.flush()

@@ -52,7 +52,7 @@ dir_tag = 'forward' # 'forward' or 'reverse'
 method = 'rk2' # 'rk2' or 'rk4'
 surface = True # Boolean, True for trap to surface
 windage = 0.02 # a small number >= 0
-ndiv = 1 # number of divisions to make between saves for the integration
+ndiv = 4 # number of divisions to make between saves for the integration
         # e.g. if ndiv = 3 and we have hourly saves, we use a 20 minute step
         # for the integration (but still only report fields hourly)
 

@@ -50,7 +50,7 @@ list_type = lt_dict[my_nlt]
 dt0 = datetime.strptime(args.date_string, '%Y.%m.%d')
 dt1 = dt0 + timedelta(args.num_days)
 
-# choose the type of plot to make
+#%% choose the type of plot to make
 print('\n%s\n' % '** Choose Plot type **')
 pt_list_raw = dir(pfun)
 pt_list = []
@@ -83,7 +83,7 @@ def make_fn_list(dt0, dt1, Ldir, hourmax=24):
             fn_list.append(fn)
     return fn_list
 
-# choose which file(s) to plot (way too complicated)
+#%% choose which file(s) to plot (way too complicated)
 if list_type == 'test':
     # return a single default file name in the list
     fn_list = [Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/' +
