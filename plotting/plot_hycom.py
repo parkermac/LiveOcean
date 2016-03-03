@@ -23,8 +23,8 @@ import matplotlib.pyplot as plt
 cmap = plt.get_cmap(name='rainbow')
 plt.close()
 
-#vn_list = ['ssh', 'u3d', 'v3d', 't3d', 's3d']
-vn_list = ['s3d']
+vn_list = ['ssh', 'u3d', 'v3d', 't3d', 's3d']
+#vn_list = ['s3d']
 
 fig, axes = plt.subplots(nrows=3, ncols=len(vn_list), figsize=(16, 12), squeeze=False)
 
@@ -97,19 +97,19 @@ for vn in vn_list:
     fig.colorbar(cs, ax=ax1)
     
     from datetime import datetime
-    tmod0 = Lfun.datetime_to_modtime(datetime(2013,1,1))
-    tdays = (tmod - tmod0)/86400.
-    ax2.plot(tdays, fs,'-*b', linewidth=3 )
-    ax2.plot(tdays, fsf,'-or', linewidth=3 )
+    import matplotlib.dates as mdates
+    mdt = Lfun.modtime_to_mdate_vec(tmod)
+    dt_list = mdates.num2date(mdt)
+    
+    ax2.plot(dt_list, fs,'-*b', linewidth=3 )
+    ax2.plot(dt_list, fsf,'-or', linewidth=3 )
     ax2.set_title(vn + ' ' + str(fldz) + ' m')
-    ax2.set_xlabel('Days from 1/1/2013')
-    ax2.set_xlim(tdays[0], tdays[-1])
+    ax2.set_xlabel('Date')
+    ax2.set_xlim(dt_list[0], dt_list[-1])
     # add year divisions
     aa = ax2.axis()
-    ax2.plot([0,0],aa[2:],'-k')
-    ax2.plot([365,365],aa[2:],'-k')
-    ax2.plot([730,730],aa[2:],'-k')
-    ax2.plot([1095,1095],aa[2:],'-k')
+    for yr in [2013, 2014, 2015, 2016]:
+        ax2.plot([datetime(yr,1,1), datetime(yr,1,1)],aa[2:],'-k')
     ax2.axis(aa)
         
     cnum += 1

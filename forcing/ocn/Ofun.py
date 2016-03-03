@@ -305,11 +305,11 @@ def process_extrap(vn, nc_dir):
         # trap to fix bad salinity fields
         if vn == 's3d':
             test_cell = this_fld[-1,40,40]
-        if np.ma.count_masked(test_cell) == 1:
-            print('fixing a bad salinity field')
-            this_fld_prev = fld_new[tt-1].squeeze()
-            this_fld_next = fld_new[tt+1].squeeze()
-            this_fld = (this_fld_prev + this_fld_next)/2.0
+            if np.ma.count_masked(test_cell) == 1:
+                print('fixing a bad salinity field')
+                this_fld_prev = fld_new[tt-1].squeeze()
+                this_fld_next = fld_new[tt+1].squeeze()
+                this_fld = (this_fld_prev + this_fld_next)/2.0
 
         this_flde = horizontal_extrapolation(x, y, NZ, this_fld, vn) 
         print('   - took %.3f seconds' % (time.time() - tt0))
