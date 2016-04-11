@@ -425,10 +425,10 @@ def roms_sect(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
 
     # CREATE THE SECTION
     # which track to use for the section
-    if False:
+    if True:
         tracks_path = Ldir['data'] + 'tracks/'
-        which_track = 'lat47Track'
-        #which_track = 'jdf2psTrack'
+        #which_track = 'lat47Track'
+        which_track = 'jdf2psTrack'
         # get the track to interpolate onto
         mat = matfun.loadmat(tracks_path + which_track + '.mat')
         x = mat['x']
@@ -448,7 +448,7 @@ def roms_sect(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
     dist = np.zeros(len(x))
     dist[1:] = ddist.cumsum()/1000 # km
     # find the index of zero
-    it0 = zfun.get_interpolant(np.zeros(1), dist)
+    it0 = zfun.get_interpolant_fast(np.zeros(1), dist)
     idist0 = int(it0[0][0]) + int((it0[0][2].round()))
     distr = dist.reshape(1, len(dist)).copy()
     dista = np.tile(distr, [N, 1]) # array
@@ -464,11 +464,11 @@ def roms_sect(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
     # get vectors describing the (plaid) grid
     xx = lon[1,:]
     yy = lat[:,1]
-    xit = zfun.get_interpolant(x, xx)
-    yit = zfun.get_interpolant(y, yy)
+    xita = zfun.get_interpolant_fast(x, xx)
+    yita = zfun.get_interpolant_fast(y, yy)
     # and prepare them to do the bilinear interpolation
-    xita = np.array(xit)
-    yita = np.array(yit)
+    #xita = np.array(xit)
+    #yita = np.array(yit)
     col0 = xita[:, 0].astype(int)
     col1 = xita[:, 1].astype(int)
     colf = xita[:, 2]
