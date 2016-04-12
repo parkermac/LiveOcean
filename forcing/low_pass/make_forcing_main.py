@@ -20,7 +20,7 @@ Ldir, Lfun = ffun.intro()
 if ((Ldir['roms'] == '/pmr1/parker/LiveOcean_roms/')
     & (Ldir['gtagex'] == 'cascadia1_base_lobio1')):
     Ldir['roms'] = '/pmr2/darr/LiveOcean_roms/'
-
+print(Ldir['roms'])
 # ****************** CASE-SPECIFIC CODE *****************
 import zfun
 
