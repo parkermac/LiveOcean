@@ -16,10 +16,9 @@ from datetime import datetime, timedelta
 alp = os.path.abspath('../alpha')
 if alp not in sys.path:
     sys.path.append(alp)
-import Lfun
-import pfun
 from importlib import reload
-reload(pfun)
+import Lfun
+import pfun; reload(pfun)
 
 # get optional command line arguments, any order
 parser = argparse.ArgumentParser()
@@ -55,7 +54,7 @@ print('\n%s\n' % '** Choose Plot type **')
 pt_list_raw = dir(pfun)
 pt_list = []
 for pt in pt_list_raw:
-    if pt[0] != '_':
+    if pt[:2] == 'P_':
         pt_list.append(pt)
 Npt = len(pt_list)
 pt_dict = dict(zip(range(Npt), pt_list))

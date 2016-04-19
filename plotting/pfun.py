@@ -2,7 +2,19 @@
 Module of plotting functions.
 """
 
-def roms_basic(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
+# imports
+#
+# because the calling function, pan_plot.py, has already put alpha on the
+# path we assume it is on the path here too.
+import numpy as np
+import netCDF4 as nc
+import matplotlib.pyplot as plt
+
+from importlib import reload
+import zfun; reload(zfun)
+import matfun
+
+def P_roms_basic(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
     fn_out='test.png'):
     # This creates, and optionally saves, a basic plot of surface fields
     # from a ROMS history file.
@@ -37,17 +49,9 @@ def roms_basic(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
         t_scl = .2 # scale windstress vector (smaller to get longer arrows)
         t_leglen = 0.1 # Pa for wind stress vector legend
         fig_size = (14, 8) # figure size
-    # setup
-    import sys
-    if alp not in sys.path:
-        sys.path.append(alp)
-    import zfun
-    import matfun
-    import numpy as np
 
     # GET DATA
     G, S, T = zfun.get_basic_info(fn)
-    import netCDF4 as nc
     ds = nc.Dataset(fn,'r')
     #zfun.ncd(ds) # debugging
     h = G['h']
@@ -77,7 +81,6 @@ def roms_basic(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
         cmat = matfun.loadmat(fn_coast)
 
     # PLOTTING
-    import matplotlib.pyplot as plt
     plt.close()
     fig = plt.figure(figsize=fig_size)
 
@@ -154,7 +157,6 @@ def roms_basic(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
     ui = intp.interp2d(G['lon_u'][0, :], G['lat_u'][:, 0], ud)
     vi = intp.interp2d(G['lon_v'][0, :], G['lat_v'][:, 0], vd)
     # create regular grid
-    import numpy as np
     aaa = ax.axis()
     daax = aaa[1] - aaa[0]
     daay = aaa[3] - aaa[2]
@@ -181,32 +183,27 @@ def roms_basic(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
     if save_plot==True:
         plt.savefig(fn_out)
 
-def bio_basic(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
+def P_bio_basic(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
     fn_out='test.png'):
     # This creates, and optionally saves, a basic plot of surface fields
     # from a ROMS history file, focusing on bio fields.
-    import sys
-    if alp not in sys.path:
-        sys.path.append(alp)
-    import zfun
+
     # grid info
     G, S, T = zfun.get_basic_info(fn)
     lonp = G['lon_psi']
     latp = G['lat_psi']
     aa = [lonp.min(), lonp.max(), latp.min(), latp.max()]
     # fields
-    import netCDF4 as nc
     ds = nc.Dataset(fn,'r')
     #zfun.ncd(ds) # debugging
     # list of surface fields to get and plot
-    vn_list = ['salt','temp','NO3','phytoplankton','oxygen',
-        'TIC','alkalinity','CaCO3']
+    vn_list = ['salt', 'temp', 'NO3', 'phytoplankton',
+               'oxygen', 'detritus', 'TIC', 'alkalinity']
     fdict = dict()
     for vn in vn_list:
         fdict[vn] =  ds.variables[vn][0, -1, :, :].squeeze()
     ds.close()
     # PLOTTING
-    import matplotlib.pyplot as plt
     plt.close()
     NR = 2; NC = 4
     fig, axes = plt.subplots(nrows=NR, ncols=NC, figsize=(14,8), squeeze=False)
@@ -225,24 +222,18 @@ def bio_basic(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
             ax.axis(aa)
             zfun.dar(ax)
             ax.set_title(vn)
+            if count == 0:
+                ax.text(.95, .07, T['tm'].strftime('%Y-%m-%d'),
+                        horizontalalignment='right', transform=ax.transAxes)
             count += 1
     if show_plot==True:
         plt.show()
     if save_plot==True:
         plt.savefig(fn_out)
 
-def roms_layer(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
+def P_roms_layer(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
     fn_out='test.png'):
     # plots fields on a specified depth level
-
-    # setup
-    import sys
-    if alp not in sys.path:
-        sys.path.append(alp)
-    import zfun
-    import matfun
-    import matplotlib.pyplot as plt
-    import numpy as np
 
     zlev = -30. # z (m) of layer to plot
     which_var_list = ['salt', 'temp']
@@ -266,7 +257,6 @@ def roms_layer(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
     depth_levs = [100, 200, 500, 1000, 2000, 3000]
 
     # make full z field (append top and bottom)
-    import netCDF4 as nc
     ds = nc.Dataset(fn,'r')
     # I set zeta to zero below because that is better when making layers
     # (e.g. "zlev = -1." will be more like 1 m below the surface than if
@@ -376,22 +366,12 @@ def roms_layer(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
     if save_plot==True:
         plt.savefig(fn_out)
 
-def roms_sect(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
+def P_roms_sect(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
     fn_out='test.png'):
     # plots a section (distance, z)
 
-    # setup
-    import sys
-    if alp not in sys.path:
-        sys.path.append(alp)
-    import matplotlib.pyplot as plt
-    import numpy as np
-    import zfun
-    import matfun
-
     # GET DATA
     G, S, T = zfun.get_basic_info(fn)
-    import netCDF4 as nc
     ds = nc.Dataset(fn,'r')
     h = G['h']
     zeta = ds.variables['zeta'][:].squeeze()
@@ -562,18 +542,9 @@ def roms_sect(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
     if save_plot==True:
         plt.savefig(fn_out)
 
-def nest_plot(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
+def P_nest_plot(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
     fn_out='test.png'):
     # plots a field nested inside the corresponding HYCOM field
-
-    # setup
-    import sys
-    if alp not in sys.path:
-        sys.path.append(alp)
-    import zfun
-    import matfun
-    import netCDF4 as nc
-    import numpy as np
 
     which_var = 'salt'
     # color limits
@@ -646,7 +617,6 @@ def nest_plot(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
         cmat = matfun.loadmat(fn_coast)
 
     # PLOTTING
-    import matplotlib.pyplot as plt
     cmap = plt.get_cmap(name='rainbow')
     plt.close()
     fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(20, 10), squeeze=False)
@@ -682,7 +652,7 @@ def nest_plot(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
     if save_plot==True:
         plt.savefig(fn_out)
 
-def tracks(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
+def P_tracks(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
     fn_out='test.png'):
 
     """
@@ -690,16 +660,9 @@ def tracks(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
     quick interactive visualization.
     """
 
-    # setup
-    import sys
-    if alp not in sys.path:
-        sys.path.append(alp)
-    import zfun
-
     # GET DATA
     # run some code
     G, S, T = zfun.get_basic_info(fn)
-    import netCDF4 as nc
     ds = nc.Dataset(fn,'r')
     u = ds.variables['u'][0, -1, :, :].squeeze()
     v = ds.variables['v'][0, -1, :, :].squeeze()
@@ -710,7 +673,6 @@ def tracks(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
     vd = v.data; vd[G['mask_v']==False] = 0
 
     # make initial track locations
-    import numpy as np
     aa = (G['lon_rho'][0,0],G['lon_rho'][0,-1],
         G['lat_rho'][0,0],G['lat_rho'][-1,0])
     # aa = [-124, -122.3, 47, 49] # Puget Sound Override
@@ -774,7 +736,6 @@ def tracks(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
         t2[:,ii] = float(ii)
 
     # START PLOTTING
-    import matplotlib.pyplot as plt
     plt.close()
     fig = plt.figure(figsize=(8,10))
     ax = fig.add_subplot(111)

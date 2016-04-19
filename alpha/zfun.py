@@ -686,8 +686,8 @@ def auto_lims(fld):
     Output: tuple of good-guess colorsclae limits for a pcolormesh plot.
     """
     import numpy as np
-    flo = np.floor(fld.mean() - fld.std())
-    fhi = np.ceil(fld.mean() + fld.std())
+    flo = np.floor( max(fld.mean() - 3*fld.std(), np.nanmin(fld)) ) 
+    fhi = np.ceil( min(fld.mean() + 3*fld.std(), np.nanmax(fld)) )
     return (flo, fhi)
 
 def earth_rad(lat_deg):
