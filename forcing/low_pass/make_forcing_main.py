@@ -17,10 +17,10 @@ import forcing_functions as ffun
 Ldir, Lfun = ffun.intro()
 
 # hack 4/11/2016 to handle the location of the new lobio1 output
-if ((Ldir['roms'] == '/pmr1/parker/LiveOcean_roms/')
-    & (Ldir['gtagex'] == 'cascadia1_base_lobio1')):
-    Ldir['roms'] = '/pmr2/darr/LiveOcean_roms/'
-print(Ldir['roms'])
+#if ((Ldir['roms'] == '/pmr1/parker/LiveOcean_roms/')
+#    & (Ldir['gtagex'] == 'cascadia1_base_lobio1')):
+#    Ldir['roms'] = '/pmr2/darr/LiveOcean_roms/'
+#print(Ldir['roms'])
 # ****************** CASE-SPECIFIC CODE *****************
 import zfun
 
