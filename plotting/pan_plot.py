@@ -3,7 +3,7 @@ Plot fields in one or more history files.
 
 On fjord this needs to be run with an X window.
 
-Rewritten 2012.12.02 to put more choices about which files to plot
+Rewritten 2015.12.02 to put more choices about which files to plot
 on the command line, thereby avioding the use of tkinter, which crashed often.
 
 """

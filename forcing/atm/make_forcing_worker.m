@@ -62,7 +62,7 @@ switch which_home
     case '/Users/PM5'
         Info.wrf_dir = '/Users/PM5/Documents/LiveOcean_files/wrf/';
     case '/home/parker'
-        Info.wrf_dir = '/pmraid3/darr/tstwrf/tmpwrf/';
+        Info.wrf_dir = '/pmr2/darr/wrf_crons/wrfout/';
     otherwise
         disp('Show me the way to get home')
 end
