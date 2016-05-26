@@ -428,7 +428,7 @@ def P_roms_sect(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
     dist = np.zeros(len(x))
     dist[1:] = ddist.cumsum()/1000 # km
     # find the index of zero
-    it0 = zfun.get_interpolant_fast(np.zeros(1), dist)
+    it0 = zfun.get_interpolant(np.zeros(1), dist)
     idist0 = int(it0[0][0]) + int((it0[0][2].round()))
     distr = dist.reshape(1, len(dist)).copy()
     dista = np.tile(distr, [N, 1]) # array
@@ -444,8 +444,8 @@ def P_roms_sect(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
     # get vectors describing the (plaid) grid
     xx = lon[1,:]
     yy = lat[:,1]
-    xita = zfun.get_interpolant_fast(x, xx)
-    yita = zfun.get_interpolant_fast(y, yy)
+    xita = zfun.get_interpolant(x, xx)
+    yita = zfun.get_interpolant(y, yy)
     # and prepare them to do the bilinear interpolation
     #xita = np.array(xit)
     #yita = np.array(yit)

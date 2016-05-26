@@ -35,7 +35,7 @@ print('\n****** Info on function zfun.' + fn_name + ' ******\n')
 print(help(fn))
 print(50*'*' + '\n')
 
-if fn_name == 'get_interpolant_fast':    
+if fn_name == 'get_interpolant':    
     xvec = np.linspace(0,10,11)
     # testing with some out of range values
     x = np.array([-1, .5, 12])   

@@ -58,7 +58,7 @@ zees = np.array([-70, -35, -20, -10, -0])
 zcolor = ['k', 'b', 'g', 'orange', 'r']
 nz = len(zees)
 
-int_arr = zfun.get_interpolant_fast(zees, z_rho_ext)
+int_arr = zfun.get_interpolant(zees, z_rho_ext)
 
 v3_list_alt = ['temp', 'salt', 'v']
 v3_names = ['Temperature $(^{\circ}C)$', 'Salinity',

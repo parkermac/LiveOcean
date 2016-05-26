@@ -3,6 +3,9 @@ Plots mooring records.
 """
 
 # setup
+import netCDF4 as nc
+import matplotlib.pyplot as plt
+
 import os
 import sys
 alp = os.path.abspath('../alpha')
@@ -13,7 +16,6 @@ from importlib import reload
 import Lfun
 reload(Lfun)
 #import zfun  # plotting functions
-#import matfun  # functions for working with mat files
 
 Ldir = Lfun.Lstart()
 indir = Ldir['LOo'] + 'moor/'
@@ -23,21 +25,43 @@ print('\n%s\n' % '** Choose mooring file to plot **')
 m_list_raw = os.listdir(indir)
 m_list = []
 for m in m_list_raw:
-    if m[-2:] == '.p':
+    if '.nc' in m:
         m_list.append(m)
 Npt = len(m_list)
 m_dict = dict(zip(range(Npt), m_list))
 for npt in range(Npt):
     print(str(npt) + ': ' + m_list[npt])
 my_npt = int(input('-- Input number -- '))
-inname = m_dict[my_npt]
-  
-import pickle
-V, v1_list, v2_list, v3_list, G, S, Lon, Lat, sta_name, h = pickle.load( open( indir + inname, 'rb' ) )
+fn = m_dict[my_npt]
 
-import matplotlib.pyplot as plt
-#plt.close()
-NR = 3; NC = 4
+ds = nc.Dataset(indir + fn)
+
+V = dict()
+v1_list = ['ocean_time']
+v2_list = ['zeta','sustr','svstr','swrad','lwrad',
+    'shflux','latent','sensible']
+v3_list_rho = ['u',
+                 'v',
+                 'temp',
+                 'salt',
+                 'NO3',
+                 'phytoplankton',
+                 'zooplankton',
+                 'detritus',
+                 'Ldetritus',
+                 'oxygen',
+                 'TIC',
+                 'alkalinity',
+                 'CaCO3',
+                 'rho']
+for vv in ds.variables:
+    V[vv] = ds.variables[vv][:]
+
+ds.close()
+
+plt.close()
+
+NR = 5; NC = 5
 fig, axes = plt.subplots(nrows=NR, ncols=NC, figsize=(15,8), squeeze=False)
 
 days = (V['ocean_time'] - V['ocean_time'][0])/86400.
@@ -46,7 +70,7 @@ mdays = Lfun.modtime_to_mdate_vec(V['ocean_time'])
 
 cc = 0
 nmid = round(V['salt'].shape[0]/2)
-for vn in v3_list:
+for vn in v3_list_rho:
     ir = int(np.floor(cc/NC))
     ic = int(cc - NC*ir)
     ax = axes[ir, ic]

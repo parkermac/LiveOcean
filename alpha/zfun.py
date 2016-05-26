@@ -17,12 +17,12 @@ def interp_scattered_on_plaid(x, y, xvec, yvec, u):
 
     Returns a vector ui the same length at x and y.
 
-    Note that because it relies on "get_interpolant_fast" out-of-bounds
+    Note that because it relies on "get_interpolant" out-of-bounds
     values default to the edge values of field u.
     """
     # get interpolants
-    xint = get_interpolant_fast(x,xvec)
-    yint = get_interpolant_fast(y,yvec)
+    xint = get_interpolant(x,xvec)
+    yint = get_interpolant(y,yvec)
 
     # and use these to get the interpolated u and v
     xi0 = xint[:,0].astype(int)
@@ -41,7 +41,7 @@ def interp_scattered_on_plaid(x, y, xvec, yvec, u):
 
     return ui
 
-def get_interpolant_fast(x, xvec):
+def get_interpolant(x, xvec):
     """
     Returns info to allow fast interpolation.
 
@@ -49,29 +49,28 @@ def get_interpolant_fast(x, xvec):
     Both must be 1-D numpy arrays without nans, and
     xvec must be monotonically increasing
 
-    Output: indices into xvec that surround x,
-    and the fraction 'a' into that segment to find x
-    which I call "interpolants"
-    returned as a 3-column numpy array with columns:
-    [index below, index above, fraction]
+    Output: three 1-D numpy arrays of the same size as x
+    i0 = index below [int]
+    i1 = index above [int]
+    fr = fraction [float]
 
     If the x is ON a point in xvec the default is to return
     the index of that point and the one above.
-    
-    The indices are floats and must later be converted to integers.
-    
+
     If the x is out of the range of xvec it returns the
     interpolant for the first or last point.
     E.g. [0., 1., 0.] for x < xvec.min()
     """
     import numpy as np
 
+    def itp_err(message='hi'):
+        print('WARNING from get_interpolant(): ' + message)
+
     # input error checking
     if isinstance(x, np.ndarray) and isinstance(xvec, np.ndarray):
         pass # input type is good
     else:
-        print('WARNING from get_interpolant_fast(): ' +
-              'Inputs must be numpy arrays')
+        itp_err('Inputs must be numpy arrays')
 
     # some preconditioning of the input
     x = x.flatten()
@@ -79,17 +78,11 @@ def get_interpolant_fast(x, xvec):
 
     # more error checking
     if np.isnan(x).any():
-        print('WARNING from get_interpolant_fast(): ' +
-            'nan found in x')
+        itp_err('nan found in x')
     if np.isnan(xvec).any():
-        print('WARNING from get_interpolant_fast(): ' +
-            'nan found in xvec')
+        itp_err('nan found in xvec')
     if not np.all(np.diff(xvec) > 0):
-        print('WARNING from get_interpolant_fast(): ' +
-            'xvec must be monotonic and increasing')
-    if not np.all(np.diff(xvec) > 0):
-        print('WARNING from get_interpolant_fast(): ' +
-            'xvec must be monotonic and increasing')
+        itp_err('xvec must be monotonic and increasing')
 
     nx = len(x)
     nxvec = len(xvec)
@@ -98,96 +91,33 @@ def get_interpolant_fast(x, xvec):
     xvec = xvec.reshape(1, nxvec)
     XVEC = xvec.repeat(nx, axis=0) # matrix
 
-    # preallocate results array
-    itp = np.zeros((nx,3))
+    # preallocate results arrays
+    i0 = np.zeros(nx, dtype=int)
+    i1 = np.zeros(nx, dtype=int)
+    fr = np.zeros(nx, dtype=float)
 
     # calculate index columns
     mask = X >= XVEC
     # the above line broadcasts correctly even if nx = nxvec
     # because we forced X to be a column vector
-    itp[:,0] = mask.sum(axis=1) - 1
-    
+    i0 = mask.sum(axis=1) - 1
+
     # these masks are used to handle values of x beyond the range of xvec
-    lomask = itp[:,0] < 0
-    himask = itp[:,0] > nxvec - 2
-    itp[lomask, 0] = 0
-    itp[himask, 0] = nxvec - 2
-    itp[:,1] = itp[:,0] + 1
+    lomask = i0 < 0
+    himask = i0 > nxvec - 2
+    i0[lomask] = 0
+    i0[himask] = nxvec - 2
+    i1 = i0 + 1
 
     # compute the fraction
-    xvec0 = xvec[0,itp[:,0].astype(int)]
-    xvec1 = xvec[0,itp[:,1].astype(int)]
-    frac = (x - xvec0)/(xvec1 - xvec0)
-    itp[:,2] = frac
+    xvec0 = xvec[0,i0]
+    xvec1 = xvec[0,i1]
+    fr = (x - xvec0)/(xvec1 - xvec0)
     # fractions for out of range x
-    itp[lomask, 2] = 0
-    itp[himask, 2] = 1
+    fr[lomask] = 0.
+    fr[himask] = 1.
 
-    return itp
-
-
-def get_interpolant(x, xvec):
-    """
-    OBSOLETE: should be phased out (in moor_0.py and pfun.py).
-    
-    Returns info to allow fast interpolation (I hope).
-
-    Input: data point(s) x and coordinate vector xvec
-    (both must be 1-D numpy arrays)
-
-    Output: indices into xvec that surround x,
-    and the fraction 'a' into that segment to find x
-    which I call "interpolants"
-    returned as a list of three-element tuples,
-    with each tuple containing (index below, index above, fraction)
-    """
-    import numpy as np
-
-    # input error checking (could also use "isinstance")
-    if type(x) != np.ndarray or type(xvec) != np.ndarray:
-        print('WARNING from get_interpolant(): Inputs must be numpy arrays')
-        ind0 = ind1 = a = np.nan
-        return zip(ind0, ind1, a)
-    if not np.all(np.diff(xvec) > 0):
-        print('WARNING from get_interpolant():' +
-              'xvec must be monotonic and increasing')
-        ind0 = ind1 = a = np.nan
-        return zip(ind0, ind1, a)
-
-    # some preconditioning of the input
-    x = x.flatten()
-    xvec = xvec.flatten()
-    # xvec.sort()  # not needed because we check above
-
-    # make array of indices
-    ind = np.arange(len(xvec))
-
-    # preallocate results vectors
-    N = len(x)
-    ind0 = np.zeros(N, dtype=int)
-    ind1 = np.zeros(N, dtype=int)
-    a = np.zeros(N, dtype=float)
-
-    # calculate results
-    n = 0 # a counter
-    for xx in x: # surely we could find a faster way to to this!
-        # calculate indices, with some choices about edge and out-of-bounds values
-        if xx <= xvec[0]:
-            ind0[n] = 0; ind1[n] = 1; a[n] = 0.
-        elif xx >= xvec[-1]:
-            ind0[n] = len(xvec) - 1; ind1[n] = len(xvec); a[n] = 1.
-        else:
-            mask = xvec < xx
-            ind0[n] = ind[mask][-1]
-            ind1[n] = ind0[n] + 1
-            # calculate fraction
-            dx = xvec[ind1[n]] - xvec[ind0[n]]
-            dxp = xx - xvec[ind0[n]]
-            a[n] = dxp / dx
-
-        n += 1
-
-    return zip(ind0, ind1, a)
+    return i0, i1, fr
 
 def get_basic_info(fn, getG=True, getS=True, getT=True):
     """
@@ -482,7 +412,7 @@ def make_full(flt):
     fields that are on the vertical rho grid, and where we want (typically for
     plotting purposes) to extend this in a smart way to the sea floor and the
     sea surface.
-    
+
     NOTE: input is always a tuple.  If just sending a single array pack it
     as zfun.make_full((arr,))
 
@@ -520,7 +450,7 @@ def make_full(flt):
             fld_bot = fld_mid[0].copy()
             fld_top = fld_mid[-1].copy()
             fld = np.concatenate((fld_bot, fld_mid, fld_top), axis=0)
-            
+
     return fld
 
 def interpolate4D(ds0, ds1, varname, itp, ics, ilat, ilon):
@@ -541,6 +471,10 @@ def interpolate4D(ds0, ds1, varname, itp, ics, ilat, ilon):
         should return nan if any elements are nan
 
     Need to test carefully,maybe using an analytic function.
+
+    WARNING 5/3/2016:
+    Need to rewrite this to accept interpolants that are not tuples.
+    Also need to revise the pdyn.py code that calls it.
     """
     import numpy as np
 
@@ -686,7 +620,7 @@ def auto_lims(fld):
     Output: tuple of good-guess colorsclae limits for a pcolormesh plot.
     """
     import numpy as np
-    flo = np.floor( max(fld.mean() - 3*fld.std(), np.nanmin(fld)) ) 
+    flo = np.floor( max(fld.mean() - 3*fld.std(), np.nanmin(fld)) )
     fhi = np.ceil( min(fld.mean() + 3*fld.std(), np.nanmax(fld)) )
     return (flo, fhi)
 

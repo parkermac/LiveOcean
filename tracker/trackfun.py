@@ -66,7 +66,7 @@ def get_tracks(fn_list, plon0, plat0, pcs0, dir_tag,
             print(' - time %d out of %d' % (counter, nrot))
     
         # get time indices  
-        iot = zfun.get_interpolant_fast(np.array(pot), rot)
+        iot = zfun.get_interpolant(np.array(pot), rot)
         it0 = iot[0,0].astype(int)
         it1 = iot[0,1].astype(int)
         #print('it0=%d it1=%d' % (it0,it1))
@@ -276,14 +276,14 @@ def fix_masked(V, mask_val):
 def get_V(vn_list, ds, plon, plat, pcs, R):
 
     # get interpolant arrays
-    ilonr_a = zfun.get_interpolant_fast(plon, R['rlonr'])
-    ilatr_a = zfun.get_interpolant_fast(plat, R['rlatr'])
-    ilonu_a = zfun.get_interpolant_fast(plon, R['rlonu'])
-    ilatu_a = zfun.get_interpolant_fast(plat, R['rlatu'])
-    ilonv_a = zfun.get_interpolant_fast(plon, R['rlonv'])
-    ilatv_a = zfun.get_interpolant_fast(plat, R['rlatv'])
-    icsr_a = zfun.get_interpolant_fast(pcs, R['rcsr'])
-    icsw_a = zfun.get_interpolant_fast(pcs, R['rcsw'])
+    ilonr_a = zfun.get_interpolant(plon, R['rlonr'])
+    ilatr_a = zfun.get_interpolant(plat, R['rlatr'])
+    ilonu_a = zfun.get_interpolant(plon, R['rlonu'])
+    ilatu_a = zfun.get_interpolant(plat, R['rlatu'])
+    ilonv_a = zfun.get_interpolant(plon, R['rlonv'])
+    ilatv_a = zfun.get_interpolant(plat, R['rlatv'])
+    icsr_a = zfun.get_interpolant(pcs, R['rcsr'])
+    icsw_a = zfun.get_interpolant(pcs, R['rcsw'])
         
     NV = len(vn_list)
     NP = len(plon)
