@@ -223,7 +223,7 @@ elif Ldir['list_type'] == 'low_pass':
             vvtemp = ds.variables[vv][:, yi01, xi01].squeeze()
             vtemp =   ( aiy*((aix*vvtemp).sum(-1)) ).sum(-1)
             V[vv] = np.append(V[vv], vtemp)
-        for vv in v3_list_rho + v3_list_w:
+        for vv in v3_list_rho:
             xi01, yi01, aix, aiy = get_its(ds, vv, Xi0, Yi0, Xi1, Yi1, Aix, Aiy)
             vvtemp = ds.variables[vv][:, :, yi01, xi01].squeeze()
             vtemp =   ( aiy*((aix*vvtemp).sum(-1)) ).sum(-1)
@@ -231,6 +231,14 @@ elif Ldir['list_type'] == 'low_pass':
                 V[vv] = vtemp.reshape((S['N'],1))
             else:
                 V[vv] = np.concatenate((V[vv], vtemp.reshape((S['N'],1))), axis=1)
+        for vv in v3_list_w:
+            xi01, yi01, aix, aiy = get_its(ds, vv, Xi0, Yi0, Xi1, Yi1, Aix, Aiy)
+            vvtemp = ds.variables[vv][:, :, yi01, xi01].squeeze()
+            vtemp =   ( aiy*((aix*vvtemp).sum(-1)) ).sum(-1)
+            if count == 0:
+                V[vv] = vtemp.reshape((S['N']+1,1))
+            else:
+                V[vv] = np.concatenate((V[vv], vtemp.reshape((S['N']+1,1))), axis=1)
         # listing of contents, if desired
         if count == 0 and False:
             zfun.ncd(ds)
