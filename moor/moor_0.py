@@ -141,7 +141,9 @@ v3_list_w = []
 ds = nc.Dataset(fn)
 for vv in ds.variables:
     vdim = ds.variables[vv].dimensions
-    if ( ('ocean_time' in vdim) and (('s_rho' not in vdim) and ('s_w' not in vdim))
+    if ( ('ocean_time' in vdim)
+        and ('s_rho' not in vdim)
+        and ('s_w' not in vdim)
         and (vv != 'ocean_time') ):
         v2_list.append(vv)
     elif ( ('ocean_time' in vdim) and ('s_rho' in vdim) ):
