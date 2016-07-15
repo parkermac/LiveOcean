@@ -17,7 +17,7 @@ if alp not in sys.path:
 import Lfun
 #from importlib import reload
 #reload(Lfun)
-import zfun
+#import zfun
 
 Ldir = Lfun.Lstart()
 indir = Ldir['LOo'] + 'moor/'
@@ -33,7 +33,7 @@ Npt = len(m_list)
 m_dict = dict(zip(range(Npt), m_list))
 for npt in range(Npt):
     print(str(npt) + ': ' + m_list[npt])
-if False:
+if True:
     my_npt = int(input('-- Input number -- '))
 else:
     my_npt = 0 # for testing
@@ -50,7 +50,7 @@ cmd = Ldir['which_matlab']
 run_cmd = [cmd, "-nojvm", "-nodisplay", "-r", func, "&"]
 proc = subprocess.Popen(run_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 out, err = proc.communicate() # "out" is the screen output of the matlab code
-print(out.decode())
+#print(out.decode())
 
 #%% load and organize data
 
@@ -75,16 +75,34 @@ for vv in ds.variables:
 # load everything into a dict
 # (is this a good idea?)
 V = dict()
-for vv in ds.variables:
+
+#list_to_plot = v3_list_rho + v3_list_w + v2_list
+#list_to_plot = v3_list_rho
+list_to_plot = ['alkalinity',]
+
+#for vv in ds.variables:
+#    V[vv] = ds.variables[vv][:]
+
+ltp = list_to_plot.copy()
+
+ltp.append('ocean_time')
+
+for vv in ltp:
     V[vv] = ds.variables[vv][:]
 
 ds.close()
 
 #%% plotting
 
-plt.close()
+#plt.close()
 
-NR = 5; NC = 7
+ylim_dict = {'alkalinity':(2200, 2540)}
+
+NP = len(list_to_plot)
+
+NR = np.maximum(1, np.ceil(np.sqrt(NP)).astype(int))
+NC = np.ceil(np.sqrt(NP)).astype(int)
+
 fig, axes = plt.subplots(nrows=NR, ncols=NC, figsize=(17,9), squeeze=False)
 
 days = (V['ocean_time'] - V['ocean_time'][0])/86400.
@@ -96,7 +114,7 @@ mdt = mdates.num2date(mdays) # list of datetimes of data
 dt_ticks = []
 dt_ticks_yr = []
 dt_ticklabels = []
-for yr in [2013, 2014]:
+for yr in [2013, 2014, 2015]:
     for mo in [1, 7]:
         dt = datetime(yr, mo, 1).date()
         if dt > mdt[0].date() and dt < mdt[-1].date():
@@ -106,8 +124,9 @@ for yr in [2013, 2014]:
             dt_ticklabels.append(dt.strftime('%Y/%m'))
 
 cc = 0
-nmid = round(V['salt'].shape[0]/2)
-for vn in v3_list_rho + v3_list_w + v2_list:
+#nmid = round(V['salt'].shape[0]/2)
+nmid = 20
+for vn in list_to_plot:
     ir = int(np.floor(cc/NC))
     ic = int(cc - NC*ir)
     ax = axes[ir, ic]
@@ -117,20 +136,32 @@ for vn in v3_list_rho + v3_list_w + v2_list:
         ax.plot(mdt, V[vn][8,:], '-b')
     elif V[vn].ndim == 1:
         ax.plot(mdt, V[vn])
-    ax.set_xlim(mdt[0], mdt[-1])
-    ax.set_xticks(dt_ticks)
-    ax.set_xticklabels([])
+
+    if False:
+        # general case
+        ax.set_xlim(mdt[0], mdt[-1])
+        ax.set_xticks(dt_ticks)
+        ax.set_xticklabels([])
+        if ir == NR-1:
+            ax.set_xlabel('Date')
+            ax.set_xticklabels(dt_ticklabels)
+            aa = ax.get_ylim()
+            for dtyr in dt_ticks_yr:
+                ax.plot([dtyr, dtyr], aa, '-k')
+            ax.set_ylim(aa)
+    else:
+        # specific case
+        ax.set_xlim(datetime(2015,6,1), datetime(2015,8,31))
+        ax.grid()
+        try:
+            ax.set_ylim(ylim_dict[vn])
+        except:
+            pass
+
     ax.ticklabel_format(useOffset=False, axis='y')
     ax.text(.05, .85, vn,
             horizontalalignment='left',
             transform=ax.transAxes)
-    if ir == NR-1:
-        ax.set_xlabel('Date')
-        ax.set_xticklabels(dt_ticklabels)
-    aa = ax.get_ylim()
-    for dtyr in dt_ticks_yr:
-        ax.plot([dtyr, dtyr], aa, '-k')
-    ax.set_ylim(aa)
     cc += 1
 
 plt.show()

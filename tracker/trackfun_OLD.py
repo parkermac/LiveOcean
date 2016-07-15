@@ -66,8 +66,11 @@ def get_tracks(fn_list, plon0, plat0, pcs0, dir_tag,
             print(' - time %d out of %d' % (counter, nrot))
 
         # get time indices
-        it0, it1, frt = zfun.get_interpolant(
-                np.array(pot), rot, extrap_nan=False)
+        it0, it1, frt = zfun.get_interpolant(np.array(pot), rot, extrap_nan=False)
+#        iot = zfun.get_interpolant(np.array(pot), rot)
+#        it0 = iot[0,0].astype(int)
+#        it1 = iot[0,1].astype(int)
+        #print('it0=%d it1=%d' % (it0,it1))
 
         # get the velocity zeta, and h at all points
         ds0 = nc4.Dataset(fn_list[it0[0]])
@@ -252,10 +255,47 @@ def get_properties(vn_list_other, ds, it, P, plon, plat, pcs, R):
 
     return P
 
-def get_V(vn_list, ds, plon, plat, pcs, R):
+def fix_masked_old(V, mask_val):
+    try:
+        if V.mask.any():
+            if mask_val == 99: # used for salt and temp
+                vm = np.array(~V.mask, dtype=bool).flatten()
+                vf = V.flatten()
+                vgood = vf[vm].mean()
+                if V.mask.all():
+                    V[V.mask] = np.nan
+                else:
+                    V[V.mask] = vgood
+            else: # used for velocity with mask_val = 0
+                #V[V.mask] = mask_val
+                V = mask_val # this stops particles near the coast?
+            V = V.data
+    except AttributeError:
+            # raised when V is not a masked array
+            pass
+    return V
 
-    from warnings import filterwarnings
-    filterwarnings('ignore') # skip some warning messages
+def fix_masked(V, mask_val):
+    try:
+        if V.mask.any():
+            if mask_val == 99: # used for salt and temp
+                vm = np.array(~V.mask, dtype=bool).flatten()
+                vf = V.flatten()
+                vgood = vf[vm].mean()
+                if V.mask.all():
+                    V[V.mask] = np.nan
+                else:
+                    V[V.mask] = vgood
+            else: # used for velocity with mask_val = 0
+                V[V.mask] = mask_val
+                #V = mask_val # this stops particles near the coast?
+            V = V.data
+    except AttributeError:
+            # raised when V is not a masked array
+            pass
+    return V
+
+def get_V(vn_list, ds, plon, plat, pcs, R):
 
     # get interpolant arrays
     i0lon_d = dict()
@@ -266,87 +306,122 @@ def get_V(vn_list, ds, plon, plat, pcs, R):
     frlat_d = dict()
     for gg in ['r', 'u', 'v']:
         exn = False
-        i0lon_d[gg], i1lon_d[gg], frlon_d[gg] = zfun.get_interpolant(
-                plon, R['rlon'+gg], extrap_nan=exn)
-        i0lat_d[gg], i1lat_d[gg], frlat_d[gg] = zfun.get_interpolant(
-                plat, R['rlat'+gg], extrap_nan=exn)
+        i0lon_d[gg], i1lon_d[gg], frlon_d[gg] = zfun.get_interpolant(plon, R['rlon'+gg], extrap_nan=exn)
+        i0lat_d[gg], i1lat_d[gg], frlat_d[gg] = zfun.get_interpolant(plat, R['rlat'+gg], extrap_nan=exn)
     i0csr, i1csr, frcsr = zfun.get_interpolant(pcs, R['rcsr'], extrap_nan=exn)
     i0csw, i1csw, frcsw = zfun.get_interpolant(pcs, R['rcsw'], extrap_nan=exn)
+
     NV = len(vn_list)
     NP = len(plon)
+
     # get interpolated values
     V = np.nan * np.ones((NP,NV))
-    vcount = 0
-    for vn in vn_list:
-        if vn in ['w']:
-            i0cs = i0csw
-            i1cs = i1csw
-            frcs = frcsw
-        else:
-            i0cs = i0csr
-            i1cs = i1csr
-            frcs = frcsr
-        if vn in ['salt','temp','zeta','h','Uwind','Vwind', 'w']:
-            gg = 'r'
-        elif vn in ['u']:
-            gg = 'u'
-        elif vn in ['v']:
-            gg = 'v'
-        i0lat = i0lat_d[gg]
-        i1lat = i1lat_d[gg]
-        frlat = frlat_d[gg]
-        i0lon = i0lon_d[gg]
-        i1lon = i1lon_d[gg]
-        frlon = frlon_d[gg]
-        # get the data field and put nan's in masked points
-        v0 = ds.variables[vn][:].squeeze()
-        try:
-            vv = v0.data
-            vv[v0.mask] = np.nan
-        except AttributeError:
-            # it is not a masked array
-            vv = v0
-        if vn in ['salt','temp','u','v','w']:
-            # Get just the values around our particle positions.
-            # each row in VV corresponds to a "box" around a point
-            VV = np.nan* np.ones((NP, 8))
-            VV[:,0] = vv[i0cs, i0lat, i0lon]
-            VV[:,1] = vv[i0cs, i0lat, i1lon]
-            VV[:,2] = vv[i0cs, i1lat, i0lon]
-            VV[:,3] = vv[i0cs, i1lat, i1lon]
-            VV[:,4] = vv[i1cs, i0lat, i0lon]
-            VV[:,5] = vv[i1cs, i0lat, i1lon]
-            VV[:,6] = vv[i1cs, i1lat, i0lon]
-            VV[:,7] = vv[i1cs, i1lat, i1lon]
-            # Work on edge values.  If all in a box are masked
-            # then that row will be nan's, and also:
-            if vn in ['u', 'v', 'w']:
-                # set all velocities to zero if any in the box are masked
-                VV[np.isnan(VV).any(axis=1), :] = 0
-            elif vn in ['salt','temp']:
-                # set all tracers to their average if any in the box are masked
-                newval = np.nanmean(VV, axis=1).reshape(NP, 1) * np.ones((1,8))
-                mask = np.isnan(VV)
-                VV[mask] = newval[mask]
-            # now do the interpolation in each box
-            vl = ( (1-frlat)*((1-frlon)*VV[:,0] + frlon*VV[:,1])
-                + frlat*((1-frlon)*VV[:,2] + frlon*VV[:,3]) )
-            vu = ( (1-frlat)*((1-frlon)*VV[:,4] + frlon*VV[:,5])
-                + frlat*((1-frlon)*VV[:,6] + frlon*VV[:,7]) )
-            v = (1-frcs)*vl + frcs*vu
-        elif vn in ['zeta','Uwind','Vwind', 'h']:
-            VV = np.nan* np.ones((NP, 8))
-            VV[:,0] = vv[i0lat, i0lon]
-            VV[:,1] = vv[i0lat, i1lon]
-            VV[:,2] = vv[i1lat, i0lon]
-            VV[:,3] = vv[i1lat, i1lon]
-            newval = np.nanmean(VV, axis=1).reshape(NP, 1) * np.ones((1,8))
-            mask = np.isnan(VV)
-            VV[mask] = newval[mask]
-            v = ( (1-frlat)*((1-frlon)*VV[:,0] + frlon*VV[:,1])
-                + frlat*((1-frlon)*VV[:,2] + frlon*VV[:,3]) )
-        V[:,vcount] = v
-        vcount += 1
+
+    if NP < 100:
+        ## SLOW VERSION ##
+        for ip in range(NP):
+            vcount = 0
+            for vn in vn_list:
+
+                if vn in ['w']:
+                    i0cs = i0csw[ip]
+                    i1cs = i1csw[ip]
+                    frcs = frcsw[ip]
+                else:
+                    i0cs = i0csr[ip]
+                    i1cs = i1csr[ip]
+                    frcs = frcsr[ip]
+
+                if vn in ['salt','temp','zeta','h','Uwind','Vwind', 'w']:
+                    gg = 'r'
+                elif vn in ['u']:
+                    gg = 'u'
+                elif vn in ['v']:
+                    gg = 'v'
+
+                i0lat = i0lat_d[gg][ip]
+                i1lat = i1lat_d[gg][ip]
+                frlat = frlat_d[gg][ip]
+                i0lon = i0lon_d[gg][ip]
+                i1lon = i1lon_d[gg][ip]
+                frlon = frlon_d[gg][ip]
+
+                sly = slice(i0lat, i1lat+1)
+                slx = slice(i0lon, i1lon+1)
+                slz = slice(i0cs, i1cs+1)
+
+                if vn in ['salt','temp','u','v','w']:
+                    box0 = ds.variables[vn][0, slz, sly, slx].squeeze()
+                    if vn in ['u', 'v', 'w']:
+                        box0 = fix_masked_old(box0, 0.0)
+                    elif vn in ['salt','temp']:
+                        box0 = fix_masked_old(box0, 99)
+                    az = np.array([1-frcs, frcs])
+                    ay = np.array([1-frlat, frlat]).reshape((1,2))
+                    ax = np.array([1-frlon, frlon]).reshape((1,1,2))
+                    V[ip,vcount] = (az*( ( ay*((ax*box0).sum(-1)) ).sum(-1) )).sum()
+                elif vn in ['zeta','Uwind','Vwind']:
+                    box0 = ds.variables[vn][0, sly, slx].squeeze()
+                    az = 1.
+                    ay = np.array([1-frlat, frlat]).reshape((1,2))
+                    ax = np.array([1-frlon, frlon]).reshape((1,1,2))
+                    V[ip,vcount] = (az*( ( ay*((ax*box0).sum(-1)) ).sum(-1) )).sum()
+                elif vn in ['h']:
+                    box0 = ds.variables[vn][sly, slx].squeeze()
+                    az = 1.
+                    ay = np.array([1-frlat, frlat]).reshape((1,2))
+                    ax = np.array([1-frlon, frlon]).reshape((1,1,2))
+                    V[ip,vcount] = (az*( ( ay*((ax*box0).sum(-1)) ).sum(-1) )).sum()
+                vcount += 1
+        ## END SLOW VERSION ##
+
+    else:
+        ## FAST VERSION ##
+        vcount = 0
+        for vn in vn_list:
+
+            if vn in ['w']:
+                i0cs = i0csw
+                i1cs = i1csw
+                frcs = frcsw
+            else:
+                i0cs = i0csr
+                i1cs = i1csr
+                frcs = frcsr
+
+            if vn in ['salt','temp','zeta','h','Uwind','Vwind', 'w']:
+                gg = 'r'
+            elif vn in ['u']:
+                gg = 'u'
+            elif vn in ['v']:
+                gg = 'v'
+
+            i0lat = i0lat_d[gg]
+            i1lat = i1lat_d[gg]
+            frlat = frlat_d[gg]
+            i0lon = i0lon_d[gg]
+            i1lon = i1lon_d[gg]
+            frlon = frlon_d[gg]
+
+            vv = ds.variables[vn][:].squeeze()
+            if vn in ['salt','temp','u','v','w']:
+                vl = ( (1-frlat)*((1-frlon)*vv[i0cs, i0lat, i0lon] + frlon*vv[i0cs, i0lat, i1lon])
+                    + frlat*((1-frlon)*vv[i0cs, i1lat, i0lon] + frlon*vv[i0cs, i1lat, i1lon]) )
+                vu = ( (1-frlat)*((1-frlon)*vv[i1cs, i0lat, i0lon] + frlon*vv[i1cs, i0lat, i1lon])
+                    + frlat*((1-frlon)*vv[i1cs, i1lat, i0lon] + frlon*vv[i1cs, i1lat, i1lon]) )
+                vv = (1-frcs)*vl + frcs*vu
+                if vn in ['u', 'v', 'w']:
+                    vv = fix_masked(vv, 0.0)
+                elif vn in ['salt','temp']:
+                    vv = fix_masked(vv, 99)
+                V[:,vcount] = vv
+            elif vn in ['zeta','Uwind','Vwind', 'h']:
+                vv = ( (1-frlat)*((1-frlon)*vv[i0lat, i0lon] + frlon*vv[i0lat, i1lon])
+                    + frlat*((1-frlon)*vv[i1lat, i0lon] + frlon*vv[i1lat, i1lon]) )
+                V[:,vcount] = vv
+            vcount += 1
+        ## END FAST VERSION ##
+
 
     return V
 

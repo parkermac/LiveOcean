@@ -46,13 +46,13 @@ reload(trackfun)
 #%% ************ USER INPUT **************************************
 
 # some run specifications
-gtagex = 'cascadia1_base_lo1' # 'cascadia1_base_lo1' or 'D2005_his'
-ic_name = 'deadBirds' # 'jdf' or 'cr'
+gtagex = 'cascadia1_base_lobio1' # 'cascadia1_base_lo1' or 'D2005_his'
+ic_name = 'test' # 'jdf' or 'cr' or etc.
 dir_tag = 'forward' # 'forward' or 'reverse'
-method = 'rk2' # 'rk2' or 'rk4'
+method = 'rk4' # 'rk2' or 'rk4'
 surface = True # Boolean, True for trap to surface
 windage = 0.02 # a small number >= 0
-ndiv = 4 # number of divisions to make between saves for the integration
+ndiv = 1 # number of divisions to make between saves for the integration
         # e.g. if ndiv = 3 and we have hourly saves, we use a 20 minute step
         # for the integration (but still only report fields hourly)
 
@@ -61,28 +61,33 @@ ndiv = 4 # number of divisions to make between saves for the integration
 if Ldir['parent'] == '/Users/PM5/Documents/':
     # mac version
     if gtagex == 'cascadia1_base_lo1':
-        dt_first_day = datetime(2015,9,1) 
+        dt_first_day = datetime(2015,9,19)
         number_of_start_days = 1
-        days_between_starts = 7
-        days_to_track = 7
+        days_between_starts = 1
+        days_to_track = 1
+    elif gtagex == 'cascadia1_base_lobio1':
+        dt_first_day = datetime(2015,9,16)
+        number_of_start_days = 1
+        days_between_starts = 1
+        days_to_track = 1
     elif gtagex == 'D2005_his':
-        dt_first_day = datetime(2005,3,17) 
+        dt_first_day = datetime(2005,3,17)
         number_of_start_days = 3
         days_between_starts = 1
         days_to_track = 2
 elif Ldir['parent'] == '/data1/parker/':
     # fjord version
     if gtagex == 'cascadia1_base_lo1':
-        dt_first_day = datetime(2014,11,1) 
+        dt_first_day = datetime(2014,11,1)
         number_of_start_days = 48
         days_between_starts = 3
         days_to_track = 7
-        
+
 # set particle initial locations, all numpy arrays
-#        
+#
 # first create three vectors of initial locations
 # plat00 and plon00 should be the same length,
-# and the length ofpcs00 is however many vertical positions you have at
+# and the length of pcs00 is however many vertical positions you have at
 # each lat, lon
 if ic_name == 'jdf':
     plon00 = np.array([-124.65])
@@ -92,9 +97,9 @@ elif ic_name == 'cr':
     plon00 = np.array([-123.9])
     plat00 = np.array([46.22])
     pcs00 = np.linspace(-.95,-.05,20)
-elif ic_name == 'deadBirds':
-    lonvec = np.linspace(-127, -123.9, 10)
-    latvec = np.linspace(43.5, 49.5, 15)
+elif ic_name in ['deadBirds', 'test']:
+    lonvec = np.linspace(-127, -123.9, 20)
+    latvec = np.linspace(43.5, 49.5, 30)
     lonmat, latmat = np.meshgrid(lonvec, latvec)
     plon00 = lonmat.flatten()
     plat00 = latmat.flatten()
@@ -118,7 +123,7 @@ Ldir['ndiv'] = ndiv
 Ldir['days_to_track'] = days_to_track
 
 # make the full IC vectors, which will have equal length
-# (one value for each particle)  
+# (one value for each particle)
 NSP = len(pcs00)
 NXYP = len(plon00)
 plon0 = plon00.reshape(NXYP,1) * np.ones((NXYP,NSP))
@@ -126,11 +131,11 @@ plat0 = plat00.reshape(NXYP,1) * np.ones((NXYP,NSP))
 pcs0 = np.ones((NXYP,NSP)) * pcs00.reshape(1,NSP)
 plon0 = plon0.flatten()
 plat0 = plat0.flatten()
-pcs0 = pcs0.flatten()    
+pcs0 = pcs0.flatten()
 
 # make the list of start days (datetimes)
 idt_list = []
-dt = dt_first_day 
+dt = dt_first_day
 for nic in range(number_of_start_days):
     idt_list.append(dt)
     dt = dt + timedelta(days_between_starts)
@@ -141,27 +146,27 @@ Lfun.make_dir(outdir)
 
 #%% step through the experiments (one for each start day)
 for idt in idt_list:
-    
+
     fn_list = trackfun.get_fn_list(idt, Ldir)
-                      
+
     [T0] = zfun.get_basic_info(fn_list[0], getG=False, getS=False, getT=True)
     [Tend] = zfun.get_basic_info(fn_list[-1], getG=False, getS=False, getT=True)
     Ldir['date_string0'] = datetime.strftime(T0['tm'],'%Y.%m.%d')
-    Ldir['date_string1'] = datetime.strftime(Tend['tm'],'%Y.%m.%d')    
-                   
+    Ldir['date_string1'] = datetime.strftime(Tend['tm'],'%Y.%m.%d')
+
     print(50*'*')
     print('Calculating tracks from ' + Ldir['date_string0'] +
           ' to ' + Ldir['date_string1'])
-        
+
     #%% DO THE TRACKING
     tt0 = time.time()
-    
+
     P, G, S = trackfun.get_tracks(fn_list, plon0, plat0, pcs0,
-                                  dir_tag, method, surface, ndiv, windage) 
-                                  
+                                  dir_tag, method, surface, ndiv, windage)
+
     print(' - Took %0.1f sec for %d days'
           % (time.time() - tt0, Ldir['days_to_track']))
-    
+
     #%% save the results
     outname = (
         Ldir['gtagex'] + '_' +
@@ -174,7 +179,7 @@ for idt in idt_list:
         Ldir['date_string0'] + '_' +
         str(Ldir['days_to_track']) + 'days' +
         '.p')
-        
+
     pickle.dump( (P, G, S, Ldir) , open( outdir + outname, 'wb' ) )
     print('Results saved to:\n' + outname)
     print(50*'*')

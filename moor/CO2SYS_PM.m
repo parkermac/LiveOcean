@@ -1458,7 +1458,7 @@ while any(abs(deltapH) > pHTol)
     PM_counter = PM_counter + 1; % MacCready
 end
 varargout{1}=pHx;
-disp(['  - iterations = ',num2str(PM_counter)]); % MacCready
+%disp(['  - iterations = ',num2str(PM_counter)]); % MacCready
 end % end nested function
 
 

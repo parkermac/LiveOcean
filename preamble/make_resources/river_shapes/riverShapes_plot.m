@@ -38,7 +38,7 @@ for ii = 1:length(rivers)
 end
 Z_dar;
 Z_addcoast([Ldir.data,'coast/pnw_coast_combined.mat']);
-axis([-124.75 -121.5 45 49.5]);
+axis([-127 -121.5 42 51]);
 title('riverShapes')
 xlabel('Longitude (deg)');
 ylabel('Latitude (deg)');

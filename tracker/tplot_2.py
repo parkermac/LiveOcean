@@ -38,7 +38,7 @@ for npt in range(Npt):
     print(str(npt) + ': ' + m_list[npt])
 my_npt = int(input('-- Input number -- '))
 inname = m_dict[my_npt]
-  
+
 import pickle  # python 3
 P, G, S, PLdir = pickle.load( open( indir + inname, 'rb' ) )
 
@@ -51,25 +51,25 @@ if 'jdf' in inname:
 elif 'cr' in inname:
     aa = [-125, -122.5, 45, 48]
 elif 'test' in inname:
-    aa = [-126.5, -125, 45, 46.2]
-    #aa = [lonp.min(), lonp.max(), latp.min(), latp.max()]   
+    #aa = [-126.5, -125, 45, 46.2]
+    aa = [lonp.min(), lonp.max(), latp.min(), latp.max()]
 else:
-    aa = [lonp.min(), lonp.max(), latp.min(), latp.max()]   
+    aa = [lonp.min(), lonp.max(), latp.min(), latp.max()]
 depth_levs = [100, 200, 500, 1000, 2000, 3000]
-    
+
 # get coastline
 cmat = matfun.loadmat(fn_coast)
-    
+
 # PLOTTING
 
 #plt.close()
 fig = plt.figure(figsize=(16,8))
 
 # MAP OF TRACKS
-   
+
 ax = fig.add_subplot(121)
-ax.contour(G['lon_rho'], G['lat_rho'], G['h'], depth_levs, colors='g')        
-ax.plot(cmat['lon'],cmat['lat'], '-k', linewidth=.5) # coastline       
+ax.contour(G['lon_rho'], G['lat_rho'], G['h'], depth_levs, colors='g')
+ax.plot(cmat['lon'],cmat['lat'], '-k', linewidth=.5) # coastline
 ax.axis(aa)
 zfun.dar(ax)
 ax.set_xlabel('Longitude')
@@ -86,7 +86,7 @@ for cs in P['cs'][NT-1,:]:
     else:
         ax.plot(P['lon'][:, ii],P['lat'][:, ii],'-r', alpha = .4)
     ii += 1
-    
+
 # starting points
 ii = 0
 for cs in P['cs'][NT-1,:]:
@@ -96,10 +96,10 @@ for cs in P['cs'][NT-1,:]:
         ax.plot(P['lon'][0,ii],P['lat'][0,ii],'or',markersize=5, alpha = .4, markeredgecolor='r')
     ii += 1
 
-ax.grid()    
+ax.grid()
 # ending points
 #ax.plot(P['lon'][-1,:],P['lat'][-1,:],'y*',markersize=20)
-  
+
 ax.set_title(inname)
 
 ax.text(.85, .25, 'Depth Contours', horizontalalignment='center', transform=ax.transAxes, color='g')
@@ -118,7 +118,7 @@ ax.text(.95,.8, 'End depth below ' + csd_text + '%',
 tdays = (P['ot'] - P['ot'][0])/86400.
 
 ax = fig.add_subplot(3,2,2)
-ii = 0   
+ii = 0
 for cs in P['cs'][NT-1,:]:
     if cs < cs_divider:
         ax.plot(tdays, P['u'][:,ii],'-b')
@@ -143,7 +143,7 @@ ax.set_ylim(-.8, .8)
 ax.grid()
 
 ax = fig.add_subplot(3,2,6)
-ii = 0 
+ii = 0
 for cs in P['cs'][NT-1,:]:
     if cs < cs_divider:
         ax.plot(tdays, P['z'][:,ii],'-b')

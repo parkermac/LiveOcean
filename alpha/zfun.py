@@ -3,9 +3,17 @@ This module contains functions for extracting data from ROMS history files.
 
 Parker MacCready
 """
+
+import netCDF4 as nc
+import numpy as np
+
 def interp_scattered_on_plaid(x, y, xvec, yvec, u):
     """
     Gets values of the field u at locations (x,y).
+
+    NOTE: this can also be used to interpolate to a plad grid.  Just pass it
+    flattened versions of the new coordinate matrices, and then reshape
+    the output.  Appears to be super fast
 
     All inputs and outputs are numpy arrays.
 
@@ -18,19 +26,11 @@ def interp_scattered_on_plaid(x, y, xvec, yvec, u):
     Returns a vector ui the same length at x and y.
 
     Note that because it relies on "get_interpolant" out-of-bounds
-    values default to the edge values of field u.
+    values default to nan.
     """
     # get interpolants
-    xint = get_interpolant(x,xvec)
-    yint = get_interpolant(y,yvec)
-
-    # and use these to get the interpolated u and v
-    xi0 = xint[:,0].astype(int)
-    yi0 = yint[:,0].astype(int)
-    xi1 = xint[:,1].astype(int)
-    yi1 = yint[:,1].astype(int)
-    xf = xint[:,2]
-    yf = yint[:,2]
+    xi0, xi1, xf = get_interpolant(x,xvec, extrap_nan=True)
+    yi0, yi1, yf = get_interpolant(y,yvec, extrap_nan=True)
 
     # bi linear interpolation
     u00 = u[yi0,xi0]
@@ -41,13 +41,22 @@ def interp_scattered_on_plaid(x, y, xvec, yvec, u):
 
     return ui
 
-def get_interpolant(x, xvec):
+def get_interpolant(x, xvec, extrap_nan=False):
     """
     Returns info to allow fast interpolation.
 
-    Input: positions(s) x and coordinate vector xvec
-    Both must be 1-D numpy arrays without nans, and
-    xvec must be monotonically increasing
+    Input:
+    x = data position(s) [1-D numpy array without nans]
+    xvec = coordinate vector [1-D numpy array without nans]
+        NOTE: xvec must be monotonically increasing
+
+    *kwargs*
+    Set extrap_nan=True to return nan for the fraction
+    whenever an x value is outside of the range of xvec.
+    The default is that
+    if the x is out of the range of xvec it returns the
+    interpolant for the first or last point.
+    E.g. [0., 1., 0.] for x < xvec.min()
 
     Output: three 1-D numpy arrays of the same size as x
     i0 = index below [int]
@@ -57,11 +66,7 @@ def get_interpolant(x, xvec):
     If the x is ON a point in xvec the default is to return
     the index of that point and the one above.
 
-    If the x is out of the range of xvec it returns the
-    interpolant for the first or last point.
-    E.g. [0., 1., 0.] for x < xvec.min()
     """
-    import numpy as np
 
     def itp_err(message='hi'):
         print('WARNING from get_interpolant(): ' + message)
@@ -113,9 +118,14 @@ def get_interpolant(x, xvec):
     xvec0 = xvec[0,i0]
     xvec1 = xvec[0,i1]
     fr = (x - xvec0)/(xvec1 - xvec0)
+
     # fractions for out of range x
-    fr[lomask] = 0.
-    fr[himask] = 1.
+    if extrap_nan == False:
+        fr[lomask] = 0.
+        fr[himask] = 1.
+    elif extrap_nan == True:
+        fr[lomask] = np.nan
+        fr[himask] = np.nan
 
     return i0, i1, fr
 
@@ -137,9 +147,6 @@ def get_basic_info(fn, getG=True, getS=True, getT=True):
     [T] = zfun.get_basic_info(fn, getG=False, getS=False)
 
     """
-
-    import netCDF4 as nc
-    import numpy as np
 
     ds = nc.Dataset(fn,'r')
 
@@ -201,6 +208,119 @@ def get_basic_info(fn, getG=True, getS=True, getT=True):
 
     return dout
 
+def get_S(S_info_dict):
+    """
+    Code to calculate S-coordinate vectors from the parameters
+    in S_COORDINATE_INFO.csv.
+
+    Need to check this carefully against the matlab version.
+
+    PM 7/7/2016
+    """
+
+    #% recoded for python on 7/7/2016 from:
+    #
+    #% Z_scoord.m  5/21/2007  Parker MacCready
+    #%
+    #% this creates the structure S, which would be used for example by
+    #% Z_s2z.m, given basic grid parameters
+    #%
+    #% IMPORTANT: note that this is the Song & Haidvogel 1994 stretching
+    #% function, ROMS Vstretching = 1. If one chooses a different stretching
+    #% function (as of March 2011 Vstretching can be 1, 2, or 3) then this code
+    #% must be updated to include the proper stretching transformation!
+    #%
+    #% edited by DAS to include more things in S stucture
+    #% edited by SNG March 2011 to include all of the current available ROMS
+    #% stretching functions, 1-4 see:
+    #% https://www.myroms.org/wiki/index.php/Vertical_S-coordinate#Vertical_Stretching_Functions
+
+    S = dict()
+    for item in S_info_dict.keys():
+        if item in ['N', 'VSTRETCHING', 'VTRANSFORM']:
+            S[item.title()] = int(S_info_dict[item])
+        elif item in ['TCLINE', 'THETA_S', 'THETA_B']:
+            S[item.lower()] = float(S_info_dict[item])
+        else:
+            pass
+
+    N = S['N']
+    Vstretching = S['Vstretching']
+    Vtransform = S['Vtransform']
+    tcline = S['tcline']
+    theta_s = S['theta_s']
+    theta_b = S['theta_b']
+
+    hmin = 3 # a placeholder since I don't plan to use this.
+
+    if Vtransform == 1:
+        hc = min(hmin,tcline)
+    elif Vtransform == 2:
+        hc = tcline
+
+    S['hc'] = hc
+
+    sc_r = (np.linspace(-(N-1), 0, N) - 0.5)/N
+    sc_w = np.linspace(-N, 0, N+1)/N
+
+    S['sc_r'] = sc_r
+    S['sc_w'] = sc_w
+
+    if Vstretching == 1:
+        if theta_s != 0:
+            cff1 = 1/np.sinh(theta_s)
+            cff2 = 0.5/np.tanh(0.5*theta_s)
+            Cs_r = ( (1-theta_b)*cff1*np.sinh(theta_s*sc_r)
+                    + theta_b*( cff2*np.tanh(theta_s*(sc_r + 0.5)) - 0.5 ) )
+            Cs_w = ( (1-theta_b)*cff1*np.sinh(theta_s*sc_w)
+                    + theta_b*( cff2*np.tanh(theta_s*(sc_w + 0.5)) - 0.5 ) )
+        else:
+            Cs_r = sc_r
+            Cs_w = sc_w
+    elif Vstretching == 2:
+        alpha = 1
+        beta = 1
+        if theta_s!=0 and theta_b!=0:
+            Csur = (1-np.cosh(theta_s*sc_r))/(np.cosh(theta_s)-1)
+            Cbot = ((np.sinh(theta_b*(sc_r+1)))/(np.sinh(theta_b)))-1
+            u = ((sc_r+1)**alpha)*(1+(alpha/beta)*(1-((sc_r+1)**beta)))
+            Cs_r = u*Csur+(1-u)*Cbot
+            Csur_w = (1-np.cosh(theta_s*sc_w))/(np.cosh(theta_s)-1)
+            Cbot_w = ((np.sinh(theta_b*(sc_w+1)))/(np.sinh(theta_b)))-1
+            u_w = ((sc_w+1)**alpha)*(1+(alpha/beta)*(1-((sc_w+1)**beta)))
+            Cs_w = u_w*Csur_w+(1-u_w)*Cbot_w
+        else:
+            Cs_r = sc_r
+            Cs_w = sc_w
+    elif Vstretching == 3:
+        # Geyer function for high bbl resolution in shallow applications
+        gamma = 3
+        Csur = -(np.log(np.cosh(gamma*abs(sc_r)**theta_s)))/np.log(np.cosh(gamma))
+        Cbot = ((np.log(np.cosh(gamma*(sc_r+1)**theta_b)))/np.log(np.cosh(gamma)))-1
+        mu = 0.5*(1-np.tanh(gamma*(sc_r+0.5)))
+        Cs_r = mu*Cbot+(1-mu)*Csur
+        Csur_w = -(np.log(np.cosh(gamma*abs(sc_w)**theta_s)))/np.log(np.cosh(gamma))
+        Cbot_w = ((np.log(np.cosh(gamma*(sc_w+1)**theta_b)))/np.log(np.cosh(gamma)))-1
+        mu_w = 0.5*(1-np.tanh(gamma*(sc_w+0.5)))
+        Cs_w = mu_w*Cbot_w+(1-mu_w)*Csur_w
+    elif Vstretching == 4:
+        # newest ROMS default as of March 2011 (theta_s between 0 and 10,
+        # theta_b between 0 and 4)
+        if theta_s>0:
+            Cs_r = (1-np.cosh(theta_s*sc_r))/(np.cosh(theta_s)-1)
+            Cs_w = (1-np.cosh(theta_s*sc_w))/(np.cosh(theta_s)-1)
+        elif theta_s<=0:
+            Cs_r = -(sc_r**2)
+            Cs_w = -(sc_w**2)
+        if theta_b > 0:
+            Cs_r = (np.exp(theta_b*Cs_r)-1)/(1-np.exp(-theta_b))
+            Cs_w = (np.exp(theta_b*Cs_w)-1)/(1-np.exp(-theta_b))
+
+    S['Cs_r'] = Cs_r
+    S['Cs_w'] = Cs_w
+
+    return S
+
 def get_z(h, zeta, S, only_rho=False, only_w=False):
     """
     Used to calculate the z position of fields in a ROMS history file
@@ -216,10 +336,10 @@ def get_z(h, zeta, S, only_rho=False, only_w=False):
     the input shape).  This is a result of the initial and final squeeze calls.
     """
 
-    import numpy as np
-
     # input error checking (seems clumsy)
-    if type(h) != np.ndarray or type(zeta) not in [np.ndarray, np.ma.core.MaskedArray] or type(S) != dict:
+    if ( (type(h) != np.ndarray)
+        or (type(zeta) not in [np.ndarray, np.ma.core.MaskedArray])
+        or (type(S) != dict) ):
         print('WARNING from get_z(): Inputs must be numpy arrays')
 
     # number of vertical levels
@@ -298,7 +418,6 @@ def dar(ax):
 
     Output: none (but it alters the plot)
     """
-    import numpy as np
     yl = ax.get_ylim()
     yav = (yl[0] + yl[1])/2
     ax.set_aspect(1/np.sin(np.pi*yav/180))
@@ -343,7 +462,6 @@ def get_layer(fld, zr, which_z):
     Output:
         lay (2D ndarray) fld on z == which_z, with np.nan where it is not defined
     """
-    import numpy as np
     N, M, L = fld.shape # updates N for full fields
     Nmax = 30
     ii = np.arange(0,N,Nmax)
@@ -423,7 +541,6 @@ def make_full(flt):
     Output:
         fld is the "full" field
     """
-    import numpy as np
 
     if len(flt)==3:
        fld = np.concatenate(flt, axis=0)
@@ -476,7 +593,6 @@ def interpolate4D(ds0, ds1, varname, itp, ics, ilat, ilon):
     Need to rewrite this to accept interpolants that are not tuples.
     Also need to revise the pdyn.py code that calls it.
     """
-    import numpy as np
 
     box0 = ds0.variables[varname][0,ics[:2],ilat[:2],ilon[:2]].squeeze()
     box1 = ds1.variables[varname][0,ics[:2],ilat[:2],ilon[:2]].squeeze()
@@ -511,7 +627,6 @@ def filt_AB8d(data):
         a vector of the same size you started with,
         padded with NaN's at the ends.
     """
-    import numpy as np
 
     fl = 8*24;
 
@@ -565,7 +680,6 @@ def godin_shape():
     Emery and Thomson (1997) Eqn. (5.10.37)
     ** use ONLY with hourly data! **
     """
-    import numpy as np
     k = np.arange(12)
     filt = np.NaN * np.ones(71)
     filt[35:47] = (0.5/(24*24*25))*(1200-(12-k)*(13-k)-(12+k)*(13+k))
@@ -578,7 +692,6 @@ def hanning_shape(n=40):
     """
     Returns a Hanning window of the specified length.
     """
-    import numpy as np
     ff = np.cos(np.linspace(-np.pi,np.pi,n+2))[1:-1]
     filt = (1 + ff)/2
     filt = filt / filt.sum()
@@ -592,7 +705,6 @@ def ncd(fn_ds, pat=''):
     Example: zfun.ncd(fn_ds, pat='time')
     """
     # determine input type
-    import netCDF4 as nc
     if isinstance(fn_ds, nc.Dataset):
         ds = fn_ds
     elif isinstance(fn_ds, str):
@@ -619,9 +731,8 @@ def auto_lims(fld):
     Input: a numpy array (masked OK)
     Output: tuple of good-guess colorsclae limits for a pcolormesh plot.
     """
-    import numpy as np
-    flo = np.floor( max(fld.mean() - 3*fld.std(), np.nanmin(fld)) )
-    fhi = np.ceil( min(fld.mean() + 3*fld.std(), np.nanmax(fld)) )
+    flo = max(fld.mean() - 3*fld.std(), np.nanmin(fld))
+    fhi = min(fld.mean() + 3*fld.std(), np.nanmax(fld))
     return (flo, fhi)
 
 def earth_rad(lat_deg):
@@ -635,7 +746,6 @@ def earth_rad(lat_deg):
     """
     a = 6378.137 * 1000; # equatorial radius (m)
     b = 6356.7523 * 1000; # polar radius (m)
-    import numpy as np
     cl = np.cos(np.pi*lat_deg/180)
     sl = np.sin(np.pi*lat_deg/180)
     RE = np.sqrt(((a*a*cl)**2 + (b*b*sl)**2) / ((a*cl)**2 + (b*sl)**2))

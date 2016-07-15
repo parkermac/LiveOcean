@@ -183,6 +183,142 @@ def P_roms_basic(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
     if save_plot==True:
         plt.savefig(fn_out)
 
+def P_carbon(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
+    fn_out='test.png'):
+
+    # scaling choices
+    #salt_lims = (31, 35)
+    TIC_lims = (2000, 3000)
+    alkalinity_lims = (2400, 2550)
+    v_scl = .7 # scale velocity vector (smaller to get longer arrows)
+    v_leglen = 0.2 # m/s for velocity vector legend
+    t_scl = .2 # scale windstress vector (smaller to get longer arrows)
+    t_leglen = 0.1 # Pa for wind stress vector legend
+    fig_size = (14, 8) # figure size
+    N = -1 # sigma level to plot
+
+    # GET DATA
+    G, S, T = zfun.get_basic_info(fn)
+    ds = nc.Dataset(fn,'r')
+    #zfun.ncd(ds) # debugging
+    h = G['h']
+    #salt = ds.variables['salt'][0, N, :, :].squeeze()
+    alkalinity = ds.variables['alkalinity'][0, N, :, :].squeeze()
+    TIC = ds.variables['TIC'][0, N, :, :].squeeze()
+
+    u = ds.variables['u'][0, N, :, :].squeeze()
+    v = ds.variables['v'][0, N, :, :].squeeze()
+    taux = ds.variables['sustr'][:].squeeze()
+    tauy = ds.variables['svstr'][:].squeeze()
+    ds.close()
+    lonp = G['lon_psi']
+    latp = G['lat_psi']
+    aa = [lonp.min(), lonp.max(), latp.min(), latp.max()]
+    depth_levs = [100, 200, 500, 1000, 2000, 3000]
+
+    # get coastline
+    if len(fn_coast) != 0:
+        # get the coastline
+        cmat = matfun.loadmat(fn_coast)
+
+    # PLOTTING
+    #plt.close()
+    fig = plt.figure(figsize=fig_size)
+
+    # 1. alkalinity
+    ax = fig.add_subplot(121)
+    cmap = plt.get_cmap(name='rainbow')
+    cs = ax.pcolormesh(lonp, latp, alkalinity[1:-1,1:-1],
+        vmin=alkalinity_lims[0], vmax=alkalinity_lims[1],  cmap = cmap)
+    # bathymetry contours
+    ax.contour(G['lon_rho'], G['lat_rho'], h, depth_levs, colors='g')
+    # add coastline
+    if len(fn_coast) != 0:
+        ax.plot(cmat['lon'],cmat['lat'], '-k', linewidth=.5)
+    # extras
+    ax.axis(aa)
+    zfun.dar(ax)
+    ax.set_xlabel('Longitude')
+    ax.set_ylabel('Latitude')
+    ax.set_title('Alkalinity: Sigma level = ' + str(N))
+    fig.colorbar(cs)
+    # put info on plot
+    ax.text(.95, .07, T['tm'].strftime('%Y-%m-%d'),
+        horizontalalignment='right', transform=ax.transAxes)
+    ax.text(.95, .04, T['tm'].strftime('%H:%M') + ' UTC',
+        horizontalalignment='right', transform=ax.transAxes)
+
+    # ADD MEAN WINDSTRESS VECTOR
+    tauxm = taux.mean()
+    tauym = tauy.mean()
+    #print('tauxm = ' + str(tauxm))
+    #print('tauym = ' + str(tauym))
+    ax.quiver([.85, .85] , [.25, .25], [tauxm, tauxm], [tauym, tauym],
+        units='y', scale=t_scl, scale_units='y', color='k', transform=ax.transAxes)
+    tt = 1./np.sqrt(2)
+    t_alpha = 0.3
+    ax.quiver([.85, .85] , [.25, .25],
+        t_leglen*np.array([0,tt,1,tt,0,-tt,-1,-tt]),
+        t_leglen*np.array([1,tt,0,-tt,-1,-tt,0,tt]),
+        units='y', scale=t_scl, scale_units='y', color='k', alpha=t_alpha, transform=ax.transAxes)
+    ax.text(.85, .12,'Windstress',
+        horizontalalignment='center', alpha=t_alpha, transform=ax.transAxes)
+    ax.text(.85, .15, str(t_leglen) + ' Pa',
+        horizontalalignment='center', alpha=t_alpha, transform=ax.transAxes)
+
+    # 2. TIC
+    ax = fig.add_subplot(122)
+    cmap = plt.get_cmap(name='jet')
+    cs = ax.pcolormesh(lonp, latp, TIC[1:-1,1:-1],
+        vmin=TIC_lims[0], vmax=TIC_lims[1],  cmap = cmap)
+    # bathymetry
+    ax.contour(G['lon_rho'], G['lat_rho'], h, depth_levs, colors='g')
+    # add coastline
+    if len(fn_coast) != 0:
+        ax.plot(cmat['lon'],cmat['lat'], '-k', linewidth=.5)
+    # extras
+    ax.axis(aa)
+    zfun.dar(ax)
+    ax.set_xlabel('Longitude')
+    ax.set_ylabel('Latitude')
+    ax.set_title('TIC')
+    fig.colorbar(cs)
+
+    # ADD VELOCITY VECTORS
+    # set masked values to 0
+    ud = u.data; ud[G['mask_u']==False] = 0
+    vd = v.data; vd[G['mask_v']==False] = 0
+    # create interpolant
+    import scipy.interpolate as intp
+    ui = intp.interp2d(G['lon_u'][0, :], G['lat_u'][:, 0], ud)
+    vi = intp.interp2d(G['lon_v'][0, :], G['lat_v'][:, 0], vd)
+    # create regular grid
+    aaa = ax.axis()
+    daax = aaa[1] - aaa[0]
+    daay = aaa[3] - aaa[2]
+    axrat = np.cos(np.deg2rad(aaa[2])) * daax / daay
+    nngrid = 80
+    x = np.linspace(aaa[0], aaa[1], round(nngrid * axrat))
+    y = np.linspace(aaa[2], aaa[3], nngrid)
+    xx, yy = np.meshgrid(x, y)
+    # interpolate to regular grid
+    uu = ui(x, y)
+    vv = vi(x, y)
+    mask = uu != 0
+    # plot velocity vectors
+    ax.quiver(xx[mask], yy[mask], uu[mask], vv[mask],
+        units='y', scale=v_scl, scale_units='y', color='k')
+    ax.quiver([.7, .7] , [.05, .05], [v_leglen, v_leglen], [v_leglen, v_leglen],
+        units='y', scale=v_scl, scale_units='y', color='k', transform=ax.transAxes)
+    ax.text(.75, .05, str(v_leglen) + ' $ms^{-1}$',
+        horizontalalignment='left', transform=ax.transAxes)
+    # END OF VELOCITY VECTOR SECTION
+
+    if show_plot==True:
+        plt.show()
+    if save_plot==True:
+        plt.savefig(fn_out)
+
 def P_bio_basic(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
     fn_out='test.png'):
     # This creates, and optionally saves, a basic plot of surface fields
@@ -235,8 +371,9 @@ def P_roms_layer(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
     fn_out='test.png'):
     # plots fields on a specified depth level
 
-    zlev = -30. # z (m) of layer to plot
-    which_var_list = ['salt', 'temp']
+    zlev = -2000. # z (m) of layer to plot
+    #which_var_list = ['salt', 'temp']
+    which_var_list = ['Ldetritus', 'TIC']
 
     # get coastline
     if len(fn_coast) != 0:
@@ -296,21 +433,21 @@ def P_roms_layer(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
 
         # mask out the bio fields if we are inside the Salish Sea, because
         # we know that those equations were not activated there
-        if which_var in ['NO3', 'phytoplankton', 'zooplankton', 'detritus',
-        'Ldetritus', 'oxygen']:
-            # path made using sal = plt.ginput(0), RETURN to end,
-            # and then adjusted by hand
-            sal = [(-122.0134210053738, 50.1),
-            (-122.0134210053738, 46.8),
-            (-123.33921283879502, 46.9),
-            (-124.57460977448297, 48.249154246315108),
-            (-125.26763732377132, 50.1)]
-            from matplotlib.path import Path
-            p = Path(sal)
-            pin = p.contains_points(np.array(zip(lonr.flatten(), latr.flatten())))
-            pin = pin.reshape(lonr.shape) # a Boolean array
-            #lay_top[pin == True] = np.nan
-            lay[pin == True] = np.nan
+#        if which_var in ['NO3', 'phytoplankton', 'zooplankton', 'detritus',
+#        'Ldetritus', 'oxygen']:
+#            # path made using sal = plt.ginput(0), RETURN to end,
+#            # and then adjusted by hand
+#            sal = [(-122.0134210053738, 50.1),
+#            (-122.0134210053738, 46.8),
+#            (-123.33921283879502, 46.9),
+#            (-124.57460977448297, 48.249154246315108),
+#            (-125.26763732377132, 50.1)]
+#            from matplotlib.path import Path
+#            p = Path(sal)
+#            pin = p.contains_points(np.array(zip(lonr.flatten(), latr.flatten())))
+#            pin = pin.reshape(lonr.shape) # a Boolean array
+#            #lay_top[pin == True] = np.nan
+#            lay[pin == True] = np.nan
         # make masking on layers to be plotted (to work with pcolormesh)
         import numpy.ma as ma
         #lay_top[mask == False] = np.nan
@@ -659,6 +796,7 @@ def P_tracks(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
     Code to experiment with ways to create particle tracks.  Aimed at
     quick interactive visualization.
     """
+    import netCDF4 as nc
 
     # GET DATA
     # run some code
@@ -666,11 +804,18 @@ def P_tracks(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
     ds = nc.Dataset(fn,'r')
     u = ds.variables['u'][0, -1, :, :].squeeze()
     v = ds.variables['v'][0, -1, :, :].squeeze()
-    salt = ds.variables['salt'][0, -1, :, :].squeeze()
+    #salt = ds.variables['salt'][0, -1, :, :].squeeze()
+    chl = ds.variables['phytoplankton'][0, -1, :, :].squeeze()
     ds.close()
     # set masked values to 0
     ud = u.data; ud[G['mask_u']==False] = 0
     vd = v.data; vd[G['mask_v']==False] = 0
+
+    # get coastline
+    if len(fn_coast) != 0:
+        # get the coastline
+        cmat = matfun.loadmat(fn_coast)
+
 
     # make initial track locations
     aa = (G['lon_rho'][0,0],G['lon_rho'][0,-1],
@@ -681,7 +826,7 @@ def P_tracks(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
     mlat = np.mean(aa[2:])
     clat = np.cos(np.deg2rad(mlat))
     axrat = clat * daax / daay
-    nngrid = 100
+    nngrid = 50
     nr = nngrid
     nc = round(nngrid * axrat)
     npts = nr * nc
@@ -740,15 +885,22 @@ def P_tracks(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
     fig = plt.figure(figsize=(8,10))
     ax = fig.add_subplot(111)
 
-    # PLOT SALT FIELD
-    cmap = plt.get_cmap(name='jet')
-    salt_lims = zfun.auto_lims(salt)
-    ax.pcolormesh(G['lon_psi'], G['lat_psi'], salt[1:-1,1:-1],
-        vmin=salt_lims[0], vmax=salt_lims[1],  cmap = cmap, alpha=.1)
+    # PLOT FIELD
+    cmap = plt.get_cmap(name='rainbow')
+    v_lims = zfun.auto_lims(chl)
+    cs = ax.pcolormesh(G['lon_psi'], G['lat_psi'], chl[1:-1,1:-1],
+        vmin=v_lims[0], vmax=v_lims[1],  cmap = cmap)#, alpha=.7)
     ax.axis(aa)
     zfun.dar(ax)
-    ax.set_xlabel('Longitude')
-    ax.set_ylabel('Latitude')
+    fig.colorbar(cs, ax=ax, extend='both')
+    fs = 14
+    ax.set_xlabel('Longitude', fontsize=fs)
+    ax.set_ylabel('Latitude', fontsize=fs)
+
+    # add coastline
+    if len(fn_coast) != 0:
+        ax.plot(cmat['lon'],cmat['lat'], '-k', linewidth=.5)
+
 
     # PLOT TRACKS
     # plots lines with varying width
@@ -756,11 +908,11 @@ def P_tracks(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
     xx = x2.flatten()
     yy = y2.flatten()
     tt = t2.flatten()
-    maxwidth = 1.
+    maxwidth = 2.
     lwidths = tt[:-1]*(maxwidth/nt) # drop last point
     points = np.array([xx, yy]).T.reshape(-1, 1, 2)
     segments = np.concatenate([points[:-1], points[1:]], axis=1)
-    lc = LineCollection(segments, linewidths=lwidths,colors='blue')
+    lc = LineCollection(segments, linewidths=lwidths, colors='white')
     ax.add_collection(lc)
 
     # plot a dot
