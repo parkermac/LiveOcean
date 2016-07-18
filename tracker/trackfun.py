@@ -335,12 +335,12 @@ def get_V(vn_list, ds, plon, plat, pcs, R):
                 + frlat*((1-frlon)*VV[:,6] + frlon*VV[:,7]) )
             v = (1-frcs)*vl + frcs*vu
         elif vn in ['zeta','Uwind','Vwind', 'h']:
-            VV = np.nan* np.ones((NP, 8))
+            VV = np.nan* np.ones((NP, 4))
             VV[:,0] = vv[i0lat, i0lon]
             VV[:,1] = vv[i0lat, i1lon]
             VV[:,2] = vv[i1lat, i0lon]
             VV[:,3] = vv[i1lat, i1lon]
-            newval = np.nanmean(VV, axis=1).reshape(NP, 1) * np.ones((1,8))
+            newval = np.nanmean(VV, axis=1).reshape(NP, 1) * np.ones((1,4))
             mask = np.isnan(VV)
             VV[mask] = newval[mask]
             v = ( (1-frlat)*((1-frlon)*VV[:,0] + frlon*VV[:,1])

@@ -6,11 +6,11 @@ import pandas as pd
 import urllib
 import xml.etree.ElementTree as ET
 from datetime import datetime
-import numpy as np
+#import numpy as np
 
 class River:
 
-    def __init__(self, riv_name, rs, days):
+    def __init__(self, riv_name, rs):
         # initialize all expected fields
         self.att_list = ['name', 'usgs_code',
             'nws_code', 'ec_code', 'scale_factor',
@@ -126,7 +126,7 @@ class River:
             self.memo = 'problem parsing data from XML'
         self.memo = (self.memo + ' NWS')
 
-    def get_ec_data(self, days):
+    def get_ec_data(self, days, timeout=10):
         # gets Environment Canada data, using code cribbed from:
         #https://bitbucket.org/douglatornell/ecget/src/
         #0ee6451d3f6123765d899426fc5002494d0575f5/
@@ -155,7 +155,6 @@ class River:
 
             response = requests.get(DATA_URL, params=params, cookies=DISCLAIMER_COOKIE)
             soup = bs4.BeautifulSoup(response.content, 'lxml')
-            #self.soup = soup # debugging
             table = soup.find('table')
             table_body = table.find('tbody')
             rows = table_body.find_all('tr')
@@ -175,71 +174,64 @@ class River:
             self.got_data = True
             self.memo = 'success'
         except:
-            self.memo = 'problem parsing data from XML'
+            self.memo = 'problem parsing data from soup'
         self.memo = (self.memo + ' EC')
 
-    def get_ec_data_historical(self, days):
+    def get_ec_data_historical(self, year):
         # gets Environment Canada data, using code cribbed from:
         #https://bitbucket.org/douglatornell/ecget/src/
         #0ee6451d3f6123765d899426fc5002494d0575f5/
         #ecget/river.py?at=default&fileviewer=file-view-default
 
-        # NOTE: this will get data up through 2014.
+        # NOTE: this will get data up through the end of 2014.
 
         import requests
         import bs4
         try:
-            PARAM_IDS = {'discharge': 47,}
-
             params = {
                 'mode': 'Table',
-                #'type': 'realTime',
                 'type': 'h2oArc',
-                'prm1': PARAM_IDS['discharge'],
-                'prm2': -1,
                 'stn': self.ec_code,
-                'startDate': days[0].strftime('%Y-%m-%d'),
-                'endDate': days[1].strftime('%Y-%m-%d'),
+                'dataType': 'Daily',
+                'parameterType': 'Flow',
+                'year': str(year),
+                'y1Max': '1',
+                'y1Min': '1',
             }
-
             DATA_URL = 'http://wateroffice.ec.gc.ca/report/report_e.html'
             DISCLAIMER_COOKIE = {'disclaimer': 'agree'}
 
             response = requests.get(DATA_URL, params=params, cookies=DISCLAIMER_COOKIE)
             soup = bs4.BeautifulSoup(response.content, 'lxml')
-            #self.soup = soup # debugging
-            table = soup.find('table')
-            #self.table = table
-            table_body = table.find('tbody')
-            rows = table_body.find_all('tr')
-            d_dict = dict()
-            year = days[0].year
-            for row in rows:
-                # what day is it
-                for ele in row.find_all('th'):
-                    day = int(ele.text.strip())
-                cols = row.find_all('td')
-                cols = [ele.text.strip() for ele in cols] # a list of strings
-                imo = 1
-                for item in cols:
-                    if len(item) == 0:
-                        pass
-                    else:
-                        this_data = float(item)
-                        #print(datetime(year, imo, day))
-                        #print(this_data)
-                        d_dict[datetime(year, imo, day, 12, 0, 0)] = this_data
-                    imo += 1
-            #self.d_dict = d_dict
-            self.qt = pd.Series(d_dict)
-            self.flow_units = '$m^{3}s^{-1}$'
-            #self.fix_units() # not needed
-            self.qt = float(self.scale_factor) * self.qt
-            #self.qt = self.qt.resample('D', label='right', loffset='-12h').mean()
-            self.got_data = True
-            self.memo = 'success'
+            if (str(year) + ' Daily Discharge') in soup.text:
+                table = soup.find('table')
+                table_body = table.find('tbody')
+                rows = table_body.find_all('tr')
+                d_dict = dict()
+                for row in rows:
+                    # what day is it
+                    for ele in row.find_all('th'):
+                        day = int(ele.text.strip())
+                    cols = row.find_all('td')
+                    cols = [ele.text.strip() for ele in cols] # a list of strings
+                    imo = 1
+                    for item in cols:
+                        if len(item) == 0:
+                            pass
+                        else:
+                            this_data = float(item.split()[0]) # remove trailing letters
+                            d_dict[datetime(year, imo, day, 12, 0, 0)] = this_data
+                        imo += 1
+                self.qt = pd.Series(d_dict)
+                self.flow_units = '$m^{3}s^{-1}$'
+                #self.fix_units() # not needed
+                self.qt = float(self.scale_factor) * self.qt
+                self.got_data = True
+                self.memo = 'success'
+            else:
+                self.memo = 'That year was not available'
         except:
-            self.memo = 'problem parsing data from XML'
+            self.memo = 'problem parsing data from soup'
         self.memo = (self.memo + ' EC')
 
     def fix_units(self):
