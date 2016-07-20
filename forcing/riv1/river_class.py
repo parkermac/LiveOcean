@@ -133,7 +133,8 @@ class River:
         #ecget/river.py?at=default&fileviewer=file-view-default
 
         # NOTE: this will get data up through today, but can only go back
-        # 18 months into the past.  To get longer records use get_ec_data_historical.
+        # 18 months into the past.
+        # To get longer records use get_ec_data_historical.
 
         import requests
         import bs4
@@ -153,7 +154,8 @@ class River:
             DATA_URL = 'http://wateroffice.ec.gc.ca/report/report_e.html'
             DISCLAIMER_COOKIE = {'disclaimer': 'agree'}
 
-            response = requests.get(DATA_URL, params=params, cookies=DISCLAIMER_COOKIE)
+            response = requests.get(DATA_URL, params=params,
+                                    cookies=DISCLAIMER_COOKIE)
             soup = bs4.BeautifulSoup(response.content, 'lxml')
             table = soup.find('table')
             table_body = table.find('tbody')
@@ -201,9 +203,13 @@ class River:
             DATA_URL = 'http://wateroffice.ec.gc.ca/report/report_e.html'
             DISCLAIMER_COOKIE = {'disclaimer': 'agree'}
 
-            response = requests.get(DATA_URL, params=params, cookies=DISCLAIMER_COOKIE)
+            response = requests.get(DATA_URL, params=params,
+                                    cookies=DISCLAIMER_COOKIE)
             soup = bs4.BeautifulSoup(response.content, 'lxml')
             if (str(year) + ' Daily Discharge') in soup.text:
+                # we do the test above because the website will return the
+                # table for the most recent year if the requested year is
+                # missing
                 table = soup.find('table')
                 table_body = table.find('tbody')
                 rows = table_body.find_all('tr')
@@ -219,7 +225,9 @@ class River:
                         if len(item) == 0:
                             pass
                         else:
-                            this_data = float(item.split()[0]) # remove trailing letters
+                            this_data = float(item.split()[0])
+                            # the split call is to remove trailing letters
+                            # that occasionally appear after the data
                             d_dict[datetime(year, imo, day, 12, 0, 0)] = this_data
                         imo += 1
                 self.qt = pd.Series(d_dict)

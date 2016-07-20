@@ -77,8 +77,8 @@ for vv in ds.variables:
 V = dict()
 
 #list_to_plot = v3_list_rho + v3_list_w + v2_list
-#list_to_plot = v3_list_rho
-list_to_plot = ['alkalinity',]
+list_to_plot = v3_list_rho
+#list_to_plot = ['alkalinity',]
 
 #for vv in ds.variables:
 #    V[vv] = ds.variables[vv][:]
@@ -137,7 +137,7 @@ for vn in list_to_plot:
     elif V[vn].ndim == 1:
         ax.plot(mdt, V[vn])
 
-    if False:
+    if True:
         # general case
         ax.set_xlim(mdt[0], mdt[-1])
         ax.set_xticks(dt_ticks)
