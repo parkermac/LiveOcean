@@ -1,0 +1,5 @@
+rname,usgs,ec,nws,ratio,depth,width,max_dist,idir,isign,uv,row_py,col_py
+humptulips,12039005.0,,,1.8712,5.0,2,0.1,0,-1,u,92,63
+chehalis,12031000.0,,CRPW1,1.6383,5.0,2,0.45,0,-1,u,69,97
+willapa,12013500.0,,WILW1,1.9846,5.0,2,0.4,0,-1,u,26,87
+naselle,12010000.0,,NASW1,2.5365,5.0,2,0.3,0,-1,u,9,78

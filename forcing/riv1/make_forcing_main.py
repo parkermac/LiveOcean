@@ -5,12 +5,20 @@ For development run from the command line in spyder as, e.g.:
 
 cd /Users/PM5/Documents/LiveOcean/forcing/riv1
 
+test historical:
 run make_forcing_main.py -g test -r backfill -d 2015.09.19
+
+test crossing year boundary:
 run make_forcing_main.py -g test -r backfill -d 2014.12.31
+
+test times more recent than historical files:
 run make_forcing_main.py -g test -r backfill -d 2016.01.19
+
+test forecast:
 run make_forcing_main.py -g test -r forecast
 
-to use a different grid than that specified in the ffun.intro() defaults.
+(all use a different grid than that specified in the ffun.intro() defaults)
+
 """
 
 import os
@@ -18,10 +26,11 @@ import sys
 fpth = os.path.abspath('../')
 if fpth not in sys.path:
     sys.path.append(fpth)
-import forcing_functions as ffun
-Ldir, Lfun = ffun.intro()
 
 from importlib import reload
+import forcing_functions as ffun
+reload(ffun)
+Ldir, Lfun = ffun.intro()
 
 import zfun
 reload(zfun)
@@ -29,9 +38,12 @@ reload(zfun)
 import river_class
 reload(river_class)
 
+import river_functions as rivfun
+reload(rivfun)
+
 import pandas as pd
-#import numpy as np
-#import netCDF4 as nc
+import numpy as np
+import netCDF4 as nc
 
 #%% ****************** CASE-SPECIFIC CODE *****************
 
@@ -62,29 +74,44 @@ Info['datestring_end'] = dt1.strftime('%Y.%m.%d')
 
 #%% Load a dataframe with info for rivers to get
 
-from warnings import filterwarnings
-filterwarnings('ignore') # skip some warning messages
-
 ri_fn = Ldir['run'] + 'river_info.csv'
 df = pd.read_csv(ri_fn, index_col='rname')
 
+#%% associate rivers with ones that have temperature climatology data
+
+df = rivfun.get_tc_rn(df)
+
+#%% step through all rivers
+
+from warnings import filterwarnings
+filterwarnings('ignore') # skip some warning messages
+
 qt_df_dict = dict()
 
-for rn in ['skagit']:#df.index:
+for rn in df.index:
 
     print(10*'#' + ' ' + rn + ' ' + 10*'#')
 
+    # initialize a qt (flow vs. time) DataFrame for this river
     qt_df = pd.DataFrame(index=dt_ind,
-                         columns=['clim','his','usgs','ec','nws','final'])
+                         columns=['clim','his','usgs','ec','nws','final',
+                                  'temperature'])
 
-    rs = df.ix[rn] # a series with info for this river
+    rs = df.ix[rn] # a Series with info for this river
     riv = river_class.River(rn, rs)
 
-    # Get climatology
-    # using squeeze=True returns a Series
+    # Get climatology (using squeeze=True returns a Series)
     clim = pd.read_csv(Ldir['data'] + 'rivers/Data_clim/' + rn + '.csv',
                     header=None, index_col=0, squeeze=True)
-    qt_clim_yd = clim.ix[yd_ind]
+    qt_clim_yd = clim.ix[yd_ind] # clip just the needed values
+
+    # Get T climatology (using squeeze=True returns a Series)
+    tc_rn = df.ix[rn, 'tc_rn']
+    T_clim = pd.read_csv(Ldir['data'] + 'rivers/Data_T_clim/' + tc_rn + '.csv',
+                    header=None, index_col=0, squeeze=True)
+    T_clim_yd = T_clim.ix[yd_ind] # clip just the needed values
+
+    # start to populate the qt DataFrame
     qt_df['clim'] = pd.Series(index=dt_ind, data=qt_clim_yd.values)
 
     # Get historical record (a Series)
@@ -92,32 +119,62 @@ for rn in ['skagit']:#df.index:
                 + rn + '.p')
 
     if dt1 <= his.index[-1]:
-        # this is a Series
+        # fill with historical data if the timing is right
         qt_df['his'] = his.ix[dt_ind]
         qt_df['final'] = qt_df['his']
+        print(' filled from historical')
     else:
-        # only one of these will be filled
-        if pd.notnull(rs.usgs):
+        # otherwise try (sequentially) to fill from
+        # nws, or usgs, or ec
+        if pd.notnull(rs.nws) and Ldir['run_type'] == 'forecast':
+            riv.get_nws_data()
+            if not riv.qt.empty:
+                qt_df['nws'] = riv.qt.ix[dt_ind]
+                qt_df['final'] = qt_df['nws']
+                print(' filled from nws forecast')
+        elif pd.notnull(rs.usgs):
             riv.get_usgs_data(days)
             if not riv.qt.empty:
                 qt_df['usgs'] = riv.qt.ix[dt_ind]
-                if (pd.isnull(qt_df['usgs'].values).any() and
-                    not pd.isnull(qt_df['usgs'].values).all() ):
-                    qt_df['usgs'].ffill(axis=0)
+                qt_df['final'] = qt_df['usgs']
+                print(' filled from usgs')
         elif pd.notnull(rs.ec):
             riv.get_ec_data(days)
             if not riv.qt.empty:
                 qt_df['ec'] = riv.qt.ix[dt_ind]
+                qt_df['final'] = qt_df['ec']
+                print(' filled from ec')
 
-        if pd.notnull(rs.nws):
-            riv.get_nws_data()
-            if not riv.qt.empty:
-                qt_df['nws'] = riv.qt.ix[dt_ind]
-                print('hi')
-                qt_df['final'] = qt_df['nws']
+    # check results and fill with extrapolation (ffill) or climatology
 
+    if False: # introduce errors for testing
+        qt_df.ix[-3:, 'final'] = np.nan
+
+    if ( pd.isnull(qt_df['final'].values).any() and
+            not pd.isnull(qt_df['final'].values).all() ):
+        qt_df['final'] = qt_df['final'].ffill(axis=0)
+        print(' extended by ffill')
+
+    if pd.isnull(qt_df['final'].values).any():
+        qt_df['final'] = qt_df['clim']
+        print( 'WARNING: missing values: all filled with climatology')
+
+    if (qt_df['final'].values < 0).any():
+        qt_df['final'] = qt_df['clim']
+        print( 'WARNING: negative values: all filled with climatology')
+
+    if pd.isnull(qt_df['final'].values).any():
+        print( '>>>>>>> flow has missing values!! <<<<<<<<<')
+
+    # Temperature data
+
+    qt_df['temperature'] = pd.Series(index=dt_ind, data=T_clim_yd.values)
+
+    if pd.isnull(qt_df['temperature'].values).any():
+        print( '>>>>>>> temp has missing values!! <<<<<<<<<')
+
+    # save in the dict
     qt_df_dict[rn] = qt_df
-
 
 
 #%% calculations for vertical distribution
@@ -125,49 +182,118 @@ for rn in ['skagit']:#df.index:
 S_info_dict = Lfun.csv_to_dict(Ldir['run']+'S_COORDINATE_INFO.csv')
 S = zfun.get_S(S_info_dict)
 
-#%% write to netcdf
+#%% save the output to NetCDF
 
-#dimensions:
-#	s_rho = 30 ;
-#	river = 4  ;
-#	river_time = UNLIMITED ; // (0 currently)
-#variables:
-#	double river(river) ;
-#		river:long_name = "river runoff identification number" ;
-#	double river_time(river_time) ;
-#		river_time:long_name = "river runoff time" ;
-#		river_time:units = "days since 2001-01-01 00:00:00" ;
-#	double river_direction(river) ;
-#		river_direction:long_name = "river runoff direction" ;
-#                river_direction:flag_values = "0, 1" ;
-#                river_direction:flag_meanings = "flow across u-face, flow across v-face" ;
-#                river_direction:LwSrc_True = "flag not used" ;
-#	double river_Xposition(river) ;
-#		river_Xposition:long_name = "river XI-position" ;
-#                river_Xposition:LuvSrc_meaning = "i point index of U or V face source/sink" ;
-#                river_Xposition:LwSrc_meaning = "i point index of RHO center source/sink" ;
-#	double river_Eposition(river) ;
-#		river_Eposition:long_name = "river ETA-position" ;
-#                river_Xposition:LuvSrc_True_meaning = "j point index of U or V face source/sink" ;
-#                river_Xposition:LwSrc_True_meaning = "j point index of RHO center source/sink" ;
-#	double river_transport(river_time, river) ;
-#		river_transport:long_name = "river runoff vertically integrated mass transport" ;
-#		river_transport:units = "meter3 second-1" ;
-#                river_transport:positive = "LuvSrc=T flow in positive u,v direction, LwSrc=T flow into RHO-cell" ;
-#                river_transport:negative = "LuvSrc=T flow in negative u,v direction, LwSrc=T flow out of RHO-cell" ;
-#		river_transport:time = "river_time" ;
-#	double river_Vshape(s_rho, river) ;
-#		river_Vshape:long_name = "river runoff mass transport vertical profile" ;
-#		river_Vshape:requires = "must sum to 1 over s_rho" ;
-#	double river_temp(river_time, s_rho, river) ;
-#		river_temp:long_name = "river runoff potential temperature" ;
-#		river_temp:units = "Celsius" ;
-#		river_temp:time = "river_time" ;
-#	double river_salt(river_time, s_rho, river) ;
-#		river_salt:long_name = "river runoff salinity" ;
-#		river_salt:time = "river_time" ;
-#// global attributes:
-#		:rivers = "(1) Connecticut River at Hartford, CT, (2) Hudson River at Green Island NY, (3) Penobscot River at Eddington, ME, (4) Delaware River at Trenton NJ " ;
-#}
+out_fn = (Ldir['LOogf_f'] + 'rivers.nc')
+# get rid of the old version, if it exists
+try:
+    os.remove(out_fn)
+except OSError:
+    pass # assume error was because the file did not exist
+foo = nc.Dataset(out_fn, 'w')
+
+nriv = len(df)
+N = S['N']
+ndt = len(dt_ind)
+
+foo.createDimension('river', nriv)
+foo.createDimension('s_rho', N)
+foo.createDimension('river_time', ndt)
+
+v_var = foo.createVariable('river', float, ('river'))
+v_var[:] = np.arange(1, nriv+1)
+v_var.long_name = 'river runoff identification number'
+
+v_var = foo.createVariable('name', str, ('river'))
+v_var[:] = df.index.values
+v_var.long_name = 'river name'
+
+def dt64_to_dt(dt64):
+    # convert numpy datetime64 to datetime
+    dt = datetime.utcfromtimestamp(dt64.astype('datetime64[ns]').tolist()/1e9)
+    return dt
+
+v_var = foo.createVariable('river_time', float, ('river_time'))
+count = 0
+for item in dt_ind.values:
+    item_dt = dt64_to_dt(item)
+    v_var[count] = Lfun.datetime_to_modtime(item_dt)
+    count += 1
+v_var.long_name = 'river runoff time'
+v_var.units = "seconds since 1970-01-01 00:00:00"
+
+v_var = foo.createVariable('river_direction', float, ('river'))
+count = 0
+for rn in df.index:
+    v_var[count] = df.ix[rn, 'idir']
+    count += 1
+v_var.long_name = 'river runoff direction'
+v_var.flag_values = "0, 1"
+v_var.flag_meanings = "flow across u-face, flow across v-face"
+v_varLwSrc_True = "flag not used"
+
+v_var = foo.createVariable('river_Xposition', float, ('river'))
+count = 0
+for rn in df.index:
+    v_var[count] = df.ix[rn, 'col_py'] + 1
+    count += 1
+v_var.long_name = 'river XI-position'
+v_var.LuvSrc_True_meaning = "i point index of U or V face source/sink"
+v_var.LwSrc_True_meaning = "i point index of RHO center source/sink" ;
+
+v_var = foo.createVariable('river_Eposition', float, ('river'))
+count = 0
+for rn in df.index:
+    v_var[count] = df.ix[rn, 'row_py'] + 1
+    count += 1
+v_var.long_name = 'river ETA-position'
+v_var.LuvSrc_True_meaning = "j point index of U or V face source/sink"
+v_var.LwSrc_True_meaning = "j point index of RHO center source/sink" ;
+
+v_var = foo.createVariable('river_transport', float, ('river_time', 'river'))
+count = 0
+for rn in df.index:
+    qt_df = qt_df_dict[rn]
+    flow = qt_df['final'].values
+    v_var[:, count] = flow * df.ix[rn, 'isign']
+    count += 1
+v_var.long_name = 'river runoff vertically integrated mass transport'
+v_var.positive = "LuvSrc=T flow in positive u,v direction, LwSrc=T flow into RHO-cell"
+v_var.negative = "LuvSrc=T flow in negative u,v direction, LwSrc=T flow out of RHO-cell"
+v_var.time = "river_time"
+v_var.units = "meter3 second-1"
+
+v_var = foo.createVariable('river_temp', float, ('river_time', 's_rho', 'river'))
+count = 0
+for rn in df.index:
+    qt_df = qt_df_dict[rn]
+    for nn in range(N):
+        v_var[:, nn, count] = qt_df['temperature'].values
+    count += 1
+v_var.long_name = 'river runoff potential temperature'
+v_var.time = "river_time"
+v_var.units = "Celsius"
+
+v_var = foo.createVariable('river_salt', float, ('river_time', 's_rho', 'river'))
+count = 0
+for rn in df.index:
+    for nn in range(N):
+        v_var[:, nn, count] = np.zeros(ndt)
+    count += 1
+v_var.long_name = 'river runoff salinity'
+v_var.time = "river_time"
+v_var.units = "psu"
+
+v_var = foo.createVariable('river_Vshape', float, ('s_rho', 'river'))
+count = 0
+for rn in df.index:
+    # copied from old matlab code, and simplified
+    #   %linear decay from surface value to 0, fixed by sng 7/2011
+    v_var[:, count] = np.linspace(0,2/N,N)
+    count += 1
+v_var.long_name = 'river runoff mass transport vertical profile'
+v_var.requires = "must sum to 1 over s_rho"
+
+foo.close()
 
 print('MAIN end time = ' + str(datetime.now()))

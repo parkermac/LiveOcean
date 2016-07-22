@@ -36,6 +36,8 @@ for ii = 1:length(items)
         Vstretching = str2num(values{ii});
     end
 end
+      
+disp(outname)
 
 % create and save the structure S
 S = Z_scoord(theta_s,theta_b,tcline,hmin,N,Vtransform,Vstretching);
