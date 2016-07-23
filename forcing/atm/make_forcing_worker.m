@@ -60,7 +60,7 @@ vartime = (dt_out - datenum(1970,1,1))*86400; % seconds since 1/1/1970
 which_home = getenv('HOME');
 switch which_home
     case '/Users/PM5'
-        Info.wrf_dir = '/Users/PM5/Documents/LiveOcean_files/wrf/';
+        Info.wrf_dir = '/Users/PM5/Documents/LiveOcean_data/wrf/';
     case '/home/parker'
         Info.wrf_dir = '/pmr2/darr/wrf_crons/wrfout/';
     otherwise

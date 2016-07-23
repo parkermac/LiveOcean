@@ -6,16 +6,16 @@ For development run from the command line in spyder as, e.g.:
 cd /Users/PM5/Documents/LiveOcean/forcing/riv1
 
 test historical:
-run make_forcing_main.py -g test -r backfill -d 2015.09.19
+run make_forcing_main.py -g cascadia2 -t frc2 -r backfill -d 2015.09.19
 
 test crossing year boundary:
-run make_forcing_main.py -g test -r backfill -d 2014.12.31
+run make_forcing_main.py -g cascadia2 -t frc2 -r backfill -d 2014.12.31
 
 test times more recent than historical files:
-run make_forcing_main.py -g test -r backfill -d 2016.01.19
+run make_forcing_main.py -g cascadia2 -t frc2 -r backfill -d 2016.01.19
 
 test forecast:
-run make_forcing_main.py -g test -r forecast
+run make_forcing_main.py -g cascadia2 -t frc2 -r forecast
 
 (all use a different grid than that specified in the ffun.intro() defaults)
 
@@ -296,4 +296,14 @@ v_var.requires = "must sum to 1 over s_rho"
 
 foo.close()
 
-print('MAIN end time = ' + str(datetime.now()))
+#%% prepare for finale
+
+result_dict = dict()
+if os.path.isfile(out_fn):
+    result_dict['result'] = 'success'
+else:
+    result_dict['result'] = 'fail'
+
+#%% ************** END CASE-SPECIFIC CODE *****************
+
+ffun.finale(result_dict, Ldir, Lfun)
