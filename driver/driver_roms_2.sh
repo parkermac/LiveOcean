@@ -101,13 +101,13 @@ do
   # Make the dot in file.
   # Note that the python code creates an empty f_string directory.
   # Also cd to where the ROMS executable lives.
-  cd $LO_parent"/forcing/dot_in"
+  cd $LO_parent"/forcing/dot_in/"$gridname
   source $HOME"/.bashrc"
   if [ $D = $D0 ] && [ $start_type = "new" ] ; then
-    python ./$gridname/make_dot_in.py -g $gridname -t $tag -s $start_type -r $run_type -d $DD -x $ex_name
+    python ./make_dot_in.py -g $gridname -t $tag -s $start_type -r $run_type -d $DD -x $ex_name
     cd $R_parent"/makefiles/"$ex_name"_tideramp"
   else
-    python ./$gridname/make_dot_in.py -g $gridname -t $tag  -s continuation -r $run_type -d $DD -x $ex_name
+    python ./make_dot_in.py -g $gridname -t $tag  -s continuation -r $run_type -d $DD -x $ex_name
     cd $R_parent"/makefiles/"$ex_name
   fi
 
@@ -157,10 +157,10 @@ do
       fi
     done
   fi
-  
+
   # This function increments the day.
   # NOTE: it changes y, m, d, and D, even in the scope of this shell script!
   next_date $y $m $d
-  
+
 done
 
