@@ -190,7 +190,7 @@ try:
     os.remove(out_fn)
 except OSError:
     pass # assume error was because the file did not exist
-foo = nc.Dataset(out_fn, 'w')
+foo = nc.Dataset(out_fn, 'w', disk_format='NETCDF3')
 
 nriv = len(df)
 N = S['N']
