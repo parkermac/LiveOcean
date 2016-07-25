@@ -11,7 +11,7 @@ fpth = os.path.abspath('../../')
 if fpth not in sys.path:
     sys.path.append(fpth)
 import forcing_functions as ffun
-Ldir, Lfun = ffun.intro()
+Ldir, Lfun = ffun.intro_2()
 
 from datetime import datetime, timedelta
 fdt = datetime.strptime(Ldir['date_string'], '%Y.%m.%d')
