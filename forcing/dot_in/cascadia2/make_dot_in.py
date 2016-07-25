@@ -100,7 +100,7 @@ out_dir = out_dir0 + f_string + '/'
 
 atm_dir = 'atm/' # which atm forcing files to use
 ocn_dir = 'ocn/' # which ocn forcing files to use
-riv_dir = 'riv/' # which riv forcing files to use
+riv_dir = 'riv1/' # which riv forcing files to use
 tide_dir = 'tide/' # which tide forcing files to use
 
 if Ldir['start_type'] == 'continuation':
