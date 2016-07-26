@@ -14,6 +14,9 @@ from importlib import reload
 import zfun; reload(zfun)
 import matfun
 
+import plot_utils as plu
+reload(plu)
+
 def P_roms_basic(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
     fn_out='test.png'):
     # This creates, and optionally saves, a basic plot of surface fields
@@ -46,39 +49,17 @@ def P_roms_basic(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
         temp_lims = (8, 18)#(6, 18)
         v_scl = 3 # scale velocity vector (smaller to get longer arrows)
         v_leglen = 0.5 # m/s for velocity vector legend
-        t_scl = .2 # scale windstress vector (smaller to get longer arrows)
-        t_leglen = 0.1 # Pa for wind stress vector legend
         fig_size = (14, 8) # figure size
 
     # GET DATA
     G, S, T = zfun.get_basic_info(fn)
     ds = nc.Dataset(fn,'r')
-    #zfun.ncd(ds) # debugging
-    h = G['h']
-    salt = ds.variables['salt'][0, -1, :, :].squeeze()
-    temp = ds.variables['temp'][0, -1, :, :].squeeze()
-
-    # automatic color limits
-    if False:
-        salt_lims = zfun.auto_lims(salt)
-        temp_lims = zfun.auto_lims(temp)
-    else:
-        pass # already set above
 
     u = ds.variables['u'][0, -1, :, :].squeeze()
     v = ds.variables['v'][0, -1, :, :].squeeze()
-    taux = ds.variables['sustr'][:].squeeze()
-    tauy = ds.variables['svstr'][:].squeeze()
     ds.close()
-    lonp = G['lon_psi']
-    latp = G['lat_psi']
-    aa = [lonp.min(), lonp.max(), latp.min(), latp.max()]
-    depth_levs = [100, 200, 500, 1000, 2000, 3000]
 
-    # get coastline
-    if len(fn_coast) != 0:
-        # get the coastline
-        cmat = matfun.loadmat(fn_coast)
+    aa = plu.get_aa(fn)
 
     # PLOTTING
     plt.close()
@@ -86,67 +67,37 @@ def P_roms_basic(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
 
     # 1. surface salinity
     ax = fig.add_subplot(121)
-    cmap = plt.get_cmap(name='rainbow')
-    # pcolormesh is a fast way to make pcolor plots.  By handing it lon_psi
-    # and lat_psi and any rho_grid_layer[1:-1,1:-1] the coordinate arrays
-    # are one bigger in size (in both dimensions) than the data array, meaning
-    # they define the data corners.  The result is that the colored tiles are
-    # centered exactly where they should be (at their rho-grid location).
-    cs = ax.pcolormesh(lonp, latp, salt[1:-1,1:-1],
-        vmin=salt_lims[0], vmax=salt_lims[1],  cmap = cmap)
-    # bathymetry contours
-    ax.contour(G['lon_rho'], G['lat_rho'], h, depth_levs, colors='g')
-    # add coastline
-    if len(fn_coast) != 0:
-        ax.plot(cmat['lon'],cmat['lat'], '-k', linewidth=.5)
-    # extras
+
+    cs = plu.add_map_field(ax, fn, 'salt')
+    plu.add_bathy_contours(ax, fn)
+    plu.add_coast(ax)
+    fig.colorbar(cs)
+
     ax.axis(aa)
+
     zfun.dar(ax)
     ax.set_xlabel('Longitude')
     ax.set_ylabel('Latitude')
     ax.set_title('Surface Salinity')
-    fig.colorbar(cs)
-    # put info on plot
-    ax.text(.95, .07, T['tm'].strftime('%Y-%m-%d'),
-        horizontalalignment='right', transform=ax.transAxes)
-    ax.text(.95, .04, T['tm'].strftime('%H:%M') + ' UTC',
-        horizontalalignment='right', transform=ax.transAxes)
 
-    # ADD MEAN WINDSTRESS VECTOR
-    tauxm = taux.mean()
-    tauym = tauy.mean()
-    #print('tauxm = ' + str(tauxm))
-    #print('tauym = ' + str(tauym))
-    ax.quiver([.85, .85] , [.25, .25], [tauxm, tauxm], [tauym, tauym],
-        units='y', scale=t_scl, scale_units='y', color='k', transform=ax.transAxes)
-    tt = 1./np.sqrt(2)
-    t_alpha = 0.3
-    ax.quiver([.85, .85] , [.25, .25],
-        t_leglen*np.array([0,tt,1,tt,0,-tt,-1,-tt]),
-        t_leglen*np.array([1,tt,0,-tt,-1,-tt,0,tt]),
-        units='y', scale=t_scl, scale_units='y', color='k', alpha=t_alpha, transform=ax.transAxes)
-    ax.text(.85, .12,'Windstress',
-        horizontalalignment='center', alpha=t_alpha, transform=ax.transAxes)
-    ax.text(.85, .15, str(t_leglen) + ' Pa',
-        horizontalalignment='center', alpha=t_alpha, transform=ax.transAxes)
+    plu.add_info(ax, fn)
+
+    plu.add_windstress_flower(ax, fn, t_scl=0.2, t_leglen =0.1)
 
     # 2. surface temperature
     ax = fig.add_subplot(122)
-    cmap = plt.get_cmap(name='jet')
-    cs = ax.pcolormesh(lonp, latp, temp[1:-1,1:-1],
-        vmin=temp_lims[0], vmax=temp_lims[1],  cmap = cmap)
-    # bathymetry
-    ax.contour(G['lon_rho'], G['lat_rho'], h, depth_levs, colors='g')
-    # add coastline
-    if len(fn_coast) != 0:
-        ax.plot(cmat['lon'],cmat['lat'], '-k', linewidth=.5)
+
+    cs = plu.add_map_field(ax, fn, 'temp', cmap='jet')
+    plu.add_bathy_contours(ax, fn)
+    plu.add_coast(ax)
+    fig.colorbar(cs)
+
     # extras
     ax.axis(aa)
     zfun.dar(ax)
     ax.set_xlabel('Longitude')
     ax.set_ylabel('Latitude')
     ax.set_title('Surface Temperature $^{\circ}C$')
-    fig.colorbar(cs)
 
     # ADD VELOCITY VECTORS
     # set masked values to 0

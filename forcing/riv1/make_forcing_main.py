@@ -190,7 +190,7 @@ try:
     os.remove(out_fn)
 except OSError:
     pass # assume error was because the file did not exist
-foo = nc.Dataset(out_fn, 'w', disk_format='NETCDF3')
+foo = nc.Dataset(out_fn, 'w', format='NETCDF3_CLASSIC')
 
 nriv = len(df)
 N = S['N']
@@ -204,9 +204,12 @@ v_var = foo.createVariable('river', float, ('river'))
 v_var[:] = np.arange(1, nriv+1)
 v_var.long_name = 'river runoff identification number'
 
-v_var = foo.createVariable('name', str, ('river'))
-v_var[:] = df.index.values
-v_var.long_name = 'river name'
+#rn_list_padded = []
+#for rn in df.index:
+#    rn_list_padded.append((rn+50*' ')[:50])
+#v_var = foo.createVariable('name', str, ('river'))
+#v_var[:] = rn_list_padded
+#v_var.long_name = 'river name'
 
 def dt64_to_dt(dt64):
     # convert numpy datetime64 to datetime

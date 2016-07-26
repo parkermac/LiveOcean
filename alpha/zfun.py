@@ -699,7 +699,8 @@ def hanning_shape(n=40):
 
 def ncd(fn_ds, pat=''):
     """
-    Prints info on varibles in a NetCDF file or NetCDF dataset. Accepts a string 'pat' that
+    Prints info on varibles in a NetCDF file or NetCDF dataset.
+    Accepts a string 'pat' that
     can be used to filter the output.
 
     Example: zfun.ncd(fn_ds, pat='time')

@@ -6,6 +6,13 @@ On fjord this needs to be run with an X window.
 Rewritten 2015.12.02 to put more choices about which files to plot
 on the command line, thereby avioding the use of tkinter, which crashed often.
 
+Examples of running from the command line:
+
+cd /Users/PM5/Documents/LiveOcean/plotting
+
+run pan_plot.py -g cascadia2 -t frc2 -x lo1 -d 2013.01.01
+
+
 """
 
 #%% setup
