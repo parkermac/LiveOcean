@@ -335,7 +335,6 @@ def get_z(h, zeta, S, only_rho=False, only_w=False):
     (i.e. it will never return an array with size (N, VL, 1), even if (VL, 1) was
     the input shape).  This is a result of the initial and final squeeze calls.
     """
-
     # input error checking (seems clumsy)
     if ( (type(h) != np.ndarray)
         or (type(zeta) not in [np.ndarray, np.ma.core.MaskedArray])
@@ -344,7 +343,6 @@ def get_z(h, zeta, S, only_rho=False, only_w=False):
 
     # number of vertical levels
     N = S['N']
-
     # remove singleton dimensions
     h = h.squeeze()
     zeta = zeta.squeeze()
@@ -409,204 +407,6 @@ def get_z(h, zeta, S, only_rho=False, only_w=False):
         return z_rho
     elif (not only_rho) and only_w:
         return z_w
-
-def dar(ax):
-    """
-    Fixes the plot aspect ratio to be locally Cartesian.
-
-    Input: axes object
-
-    Output: none (but it alters the plot)
-    """
-    yl = ax.get_ylim()
-    yav = (yl[0] + yl[1])/2
-    ax.set_aspect(1/np.sin(np.pi*yav/180))
-
-def labxy(ax, pos='ll'):
-    """
-    returns x and y for axis labels
-    """
-    aa = ax.axis()
-    daax = aa[1] - aa[0]
-    daay = aa[3] - aa[2]
-    delx = 0.05
-    dely = 0.05
-    if pos == 'll':
-        xt = aa[0] + delx * daax
-        yt = aa[2] + dely * daay
-    elif pos == 'lr':
-        xt = aa[1] - delx * daax
-        yt = aa[2] + dely * daay
-    elif pos == 'ul':
-        xt = aa[0] + delx * daax
-        yt = aa[3] - dely * daay
-    elif pos == 'ur':
-        xt = aa[1] - delx * daax
-        yt = aa[3] - dely * daay
-    else:
-        pass
-
-    return xt, yt
-
-
-def get_layer(fld, zr, which_z):
-    """
-    Creates a horizontal slice through a 3D ROMS data field.  It is very fast
-    because of the use of "choose"
-
-    Input:
-        fld (3D ndarray) of the data field to slice
-        z (3D ndarray) of z values
-        which_z (ndarray of length 1) of the z value for the layer
-
-    Output:
-        lay (2D ndarray) fld on z == which_z, with np.nan where it is not defined
-    """
-    N, M, L = fld.shape # updates N for full fields
-    Nmax = 30
-    ii = np.arange(0,N,Nmax)
-    ii = np.concatenate((ii,np.array([N,])))
-
-    fld0 = np.nan * np.zeros((M, L), dtype=int)
-    fld1 = np.nan * np.zeros((M, L), dtype=int)
-    z0 = np.nan * np.zeros((M, L), dtype=int)
-    z1 = np.nan * np.zeros((M, L), dtype=int)
-
-    # NOTE: need fewer than 32 layers to use "choose"
-    # so we split the operation into steps in this loop
-    j = 0
-    while j < len(ii)-1:
-        i_lo = ii[j]
-        i_hi = min(ii[j+1] + 1, ii[-1]) # overlap by 1
-
-        NN = i_hi - i_lo # the number of levels in this chunk
-
-        this_zr = zr[i_lo:i_hi].copy()
-        this_fld = fld[i_lo:i_hi].copy()
-
-        zm = this_zr < which_z
-
-        ind0 = np.zeros((M, L), dtype=int)
-        ind1 = np.zeros((M, L), dtype=int)
-
-        ind0 = (zm == True).sum(0) - 1 # index of points below which_z
-        ind1 = ind0 + 1 # index of points above which_z
-
-        # dealing with out-of-bounds issues
-        # note 0 <= ind0 <= NN-1
-        # and  1 <= ind1 <= NN
-        # make ind1 = ind0 for out of bounds cases
-        ind0[ind0 == -1] = 0 # fix bottom case
-        ind1[ind1 == NN] = NN-1 # fix top case
-        # and now cells that should be masked have equal indices
-
-        this_mask = ind0 != ind1
-
-        this_fld0 = ind0.choose(this_fld)
-        this_fld1 = ind1.choose(this_fld)
-
-        this_z0 = ind0.choose(this_zr)
-        this_z1 = ind1.choose(this_zr)
-
-        fld0[this_mask] = this_fld0[this_mask]
-        fld1[this_mask] = this_fld1[this_mask]
-        z0[this_mask] = this_z0[this_mask]
-        z1[this_mask] = this_z1[this_mask]
-
-        j += 1
-
-    # do the interpolation
-    dz = z1 - z0
-    dzf = which_z - z0
-    dz[dz == 0] = np.nan
-    fr = dzf / dz
-    lay = fld0*(1 - fr) + fld1*fr
-
-    return lay
-
-def make_full(flt):
-    """
-    Adds top and bottom layers to array fld. This is intended for 3D ROMS data
-    fields that are on the vertical rho grid, and where we want (typically for
-    plotting purposes) to extend this in a smart way to the sea floor and the
-    sea surface.
-
-    NOTE: input is always a tuple.  If just sending a single array pack it
-    as zfun.make_full((arr,))
-
-    Input:
-        flt is a tuple with either 1 ndarray (fld_mid,),
-        or 3 ndarrays (fld_bot, fld_mid, fld_top)
-
-    Output:
-        fld is the "full" field
-    """
-
-    if len(flt)==3:
-       fld = np.concatenate(flt, axis=0)
-
-    elif len(flt)==1:
-        if len(flt[0].shape) == 3:
-            fld_mid = flt[0]
-            N, M, L = fld_mid.shape
-            fld_bot = fld_mid[0].copy()
-            fld_bot = fld_bot.reshape(1, M, L).copy()
-            fld_top = fld_mid[-1].copy()
-            fld_top = fld_top.reshape(1, M, L).copy()
-            fld = np.concatenate((fld_bot, fld_mid, fld_top), axis=0)
-        elif len(flt[0].shape) == 2:
-            fld_mid = flt[0]
-            N, M = fld_mid.shape
-            fld_bot = fld_mid[0].copy()
-            fld_bot = fld_bot.reshape(1, M).copy()
-            fld_top = fld_mid[-1].copy()
-            fld_top = fld_top.reshape(1, M).copy()
-            fld = np.concatenate((fld_bot, fld_mid, fld_top), axis=0)
-        elif len(flt[0].shape) == 1:
-            fld_mid = flt[0]
-            fld_bot = fld_mid[0].copy()
-            fld_top = fld_mid[-1].copy()
-            fld = np.concatenate((fld_bot, fld_mid, fld_top), axis=0)
-
-    return fld
-
-def interpolate4D(ds0, ds1, varname, itp, ics, ilat, ilon):
-    """
-    Linear interpolation in t, z, y, x, for finding a value
-    inside a single gridbox in ROMS history files.
-
-    Could rewrite to be more general as two functions, the first to
-    get a 4D array, and the second to interpolate within it.
-
-    Input:
-        two NetCDF Datasets, at different times
-        the name of the variable to work on
-        four interpolant tuples, created by get_interpolant
-
-    Output:
-        the interpolated value of the variable
-        should return nan if any elements are nan
-
-    Need to test carefully,maybe using an analytic function.
-
-    WARNING 5/3/2016:
-    Need to rewrite this to accept interpolants that are not tuples.
-    Also need to revise the pdyn.py code that calls it.
-    """
-
-    box0 = ds0.variables[varname][0,ics[:2],ilat[:2],ilon[:2]].squeeze()
-    box1 = ds1.variables[varname][0,ics[:2],ilat[:2],ilon[:2]].squeeze()
-
-    at = np.array([itp[:2]])
-    az = np.array([1-ics[2], ics[2]])
-    ay = np.array([1-ilat[2], ilat[2]]).reshape((1,2))
-    ax = np.array([1-ilon[2], ilon[2]]).reshape((1,1,2))
-
-    bb0 =  (az*( ( ay*((ax*box0).sum(-1)) ).sum(-1) )).sum()
-    bb1 =  (az*( ( ay*((ax*box1).sum(-1)) ).sum(-1) )).sum()
-    ival = (at*np.array([bb0, bb1])).sum()
-
-    return ival
 
 def filt_AB8d(data):
     """
@@ -725,16 +525,6 @@ def ncd(fn_ds, pat=''):
                 print(ds.variables[vn])
         else:
             print(ds.variables[vn])
-
-def auto_lims(fld):
-    """
-    A convenience function for automatically setting color limits.
-    Input: a numpy array (masked OK)
-    Output: tuple of good-guess colorsclae limits for a pcolormesh plot.
-    """
-    flo = max(fld.mean() - 3*fld.std(), np.nanmin(fld))
-    fhi = min(fld.mean() + 3*fld.std(), np.nanmax(fld))
-    return (flo, fhi)
 
 def earth_rad(lat_deg):
     """
