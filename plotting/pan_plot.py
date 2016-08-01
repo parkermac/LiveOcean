@@ -10,7 +10,7 @@ Examples of running from the command line:
 
 cd /Users/PM5/Documents/LiveOcean/plotting
 
-run pan_plot.py -g cascadia2 -t frc2 -x lo1 -d 2013.01.01
+run pan_plot.py -g cascadia2 -t frc2 -x lo1 -d 2013.01.09
 
 """
 
@@ -44,7 +44,6 @@ args = parser.parse_args()
 
 Ldir = Lfun.Lstart(args.gridname, args.tag)
 Ldir['gtagex'] = Ldir['gtag'] + '_' + args.ex_name
-coast_file = Ldir['data'] + 'coast/pnw_coast_combined.mat'
 
 # choose the type of list to make
 print(30*'*' + ' pan_plot ' + 30*'*')

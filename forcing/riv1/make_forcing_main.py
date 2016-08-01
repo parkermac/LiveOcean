@@ -6,7 +6,7 @@ For development run from the command line in spyder as, e.g.:
 cd /Users/PM5/Documents/LiveOcean/forcing/riv1
 
 test historical:
-run make_forcing_main.py -g cascadia2 -t frc2 -r backfill -d 2015.09.19
+run make_forcing_main.py -g cascadia2 -t frc2 -r backfill -d 2013.01.01
 
 test crossing year boundary:
 run make_forcing_main.py -g cascadia2 -t frc2 -r backfill -d 2014.12.31
@@ -238,7 +238,10 @@ v_varLwSrc_True = "flag not used"
 v_var = foo.createVariable('river_Xposition', float, ('river'))
 count = 0
 for rn in df.index:
-    v_var[count] = df.ix[rn, 'col_py'] + 1
+    if df.ix[rn, 'idir'] == 0:
+        v_var[count] = df.ix[rn, 'col_py'] + 1
+    elif df.ix[rn, 'idir'] == 1:
+        v_var[count] = df.ix[rn, 'col_py']
     count += 1
 v_var.long_name = 'river XI-position'
 v_var.LuvSrc_True_meaning = "i point index of U or V face source/sink"
@@ -247,7 +250,10 @@ v_var.LwSrc_True_meaning = "i point index of RHO center source/sink" ;
 v_var = foo.createVariable('river_Eposition', float, ('river'))
 count = 0
 for rn in df.index:
-    v_var[count] = df.ix[rn, 'row_py'] + 1
+    if df.ix[rn, 'idir'] == 0:
+        v_var[count] = df.ix[rn, 'row_py']
+    if df.ix[rn, 'idir'] == 1:
+        v_var[count] = df.ix[rn, 'row_py'] + 1
     count += 1
 v_var.long_name = 'river ETA-position'
 v_var.LuvSrc_True_meaning = "j point index of U or V face source/sink"
