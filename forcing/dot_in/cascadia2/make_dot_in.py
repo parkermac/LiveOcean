@@ -17,7 +17,7 @@ from datetime import datetime, timedelta
 fdt = datetime.strptime(Ldir['date_string'], '%Y.%m.%d')
 fdt_yesterday = fdt - timedelta(1)
 
-print('\nCreates files for LiveOcean for ' + Ldir['date_string'] + '\n')
+print('- dot_in.py creating files for LiveOcean for ' + Ldir['date_string'])
 
 #### USER DEFINED VALUES ####
 
@@ -39,7 +39,7 @@ if Ldir['run_type'] == 'backfill':
 else:
     days_to_run = 3.0
 
-dtsec = 150 # time step in seconds INTEGER (should fit evenly into 3600 sec)
+dtsec = 60 # time step in seconds INTEGER (should fit evenly into 3600 sec)
 restart_nrrec = '-1' # '-1' for a non-crash restart file, otherwise '1' or '2'
 his_interval = 3600 # seconds to define and write to history files
 rst_interval = 10 # days between writing to the restart file (e.g. 5)

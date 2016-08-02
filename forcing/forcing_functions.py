@@ -75,6 +75,9 @@ def intro():
     return Ldir, Lfun
 
 def intro_2():
+    # The purpose of this version is just to handle the new placement of the
+    # dot_in forcing files (inside directories named for grids). 8/2/2016
+    #
     # setup
     import os
     import sys

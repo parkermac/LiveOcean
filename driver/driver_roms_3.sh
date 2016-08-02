@@ -131,16 +131,18 @@ do
     echo "run completed for" $f_string
   fi
   
+  # check the log_file to see if we should continue
   if grep -q "Blowing-up" $log_file ; then
-    echo "Run blew up!"
+    echo "- Run blew up!"
     while_flag=1
   elif grep -q "ERROR" $log_file ; then
-    echo "Run had an error."
+    echo "- Run had an error."
     while_flag=1
   elif grep -q "ROMS/TOMS: DONE" $log_file ; then
-    echo "Run completed successfully."
+    echo "- Run completed successfully."
+    # will continue because we don't change while_flag
   else
-    echo "Something else happened."
+    echo "- Something else happened."
     while_flag=1
   fi
 
