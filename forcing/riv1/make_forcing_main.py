@@ -17,7 +17,8 @@ run make_forcing_main.py -g cascadia2 -t frc2 -r backfill -d 2016.01.19
 test forecast:
 run make_forcing_main.py -g cascadia2 -t frc2 -r forecast
 
-(all use a different grid than that specified in the ffun.intro() defaults)
+NOTE: all use a different grid than that specified
+in the ffun.intro() defaults
 
 """
 
@@ -195,21 +196,26 @@ foo = nc.Dataset(out_fn, 'w', format='NETCDF3_CLASSIC')
 nriv = len(df)
 N = S['N']
 ndt = len(dt_ind)
+SL = 50 # max string length for river names
 
 foo.createDimension('river', nriv)
 foo.createDimension('s_rho', N)
 foo.createDimension('river_time', ndt)
+foo.createDimension('slen', SL)
 
 v_var = foo.createVariable('river', float, ('river'))
 v_var[:] = np.arange(1, nriv+1)
 v_var.long_name = 'river runoff identification number'
 
-#rn_list_padded = []
-#for rn in df.index:
-#    rn_list_padded.append((rn+50*' ')[:50])
-#v_var = foo.createVariable('name', str, ('river'))
-#v_var[:] = rn_list_padded
-#v_var.long_name = 'river name'
+v_var = foo.createVariable('river_name', 'c', ('slen', 'river'))
+rr = 0
+for rn in df.index:
+    print('- ' + rn)
+    cc = 0
+    for ch in rn:
+        v_var[cc, rr] = ch
+        cc += 1
+    rr += 1
 
 def dt64_to_dt(dt64):
     # convert numpy datetime64 to datetime

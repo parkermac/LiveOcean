@@ -28,11 +28,7 @@ import matplotlib.pyplot as plt
 
 #%% where to look
 
-case = 1
-if case == 1:
-    f_string = 'f2013.01.01'
-elif case == 2:
-    f_string = 'f2015.09.19'
+f_string = 'f2013.01.01'
 
 #%% load the river and grid
 
@@ -69,16 +65,38 @@ ax = fig.add_subplot(111)
 r_dir = dsr['river_direction'][:]
 r_ix = dsr['river_Xposition'][:]
 r_iy = dsr['river_Eposition'][:]
+river_names = dsr['river_name'][:]
+q = dsr['river_transport'][:]
 
 for ii in range(len(r_dir)):
     rd = r_dir[ii]
     rx = r_ix[ii].astype(int)
     ry = r_iy[ii].astype(int)
+    rn_arr = river_names[:,ii]
+    Q = q[0, ii]
+
+    RN = ''
+    for ch in rn_arr:
+        # we use .decode() to get rid of the b prefix on A
+        RN = RN + ch.decode()
+
     mks = 25
     if rd == 0:
-        ax.plot(lon_dict['u'][ry, rx-1], lat_dict['u'][ry, rx-1], '>m', markersize=mks)
+        if Q >= 0:
+            ax.plot(lon_dict['u'][ry, rx-1], lat_dict['u'][ry, rx-1],
+                    '>m', markersize=mks)
+        elif Q < 0:
+            ax.plot(lon_dict['u'][ry, rx-1], lat_dict['u'][ry, rx-1],
+                    '<m', markersize=mks)
+        ax.text(lon_dict['u'][ry, rx-1], lat_dict['u'][ry, rx-1], RN)
     elif rd == 1:
-        ax.plot(lon_dict['v'][ry-1, rx], lat_dict['v'][ry-1, rx], '^c', markersize=mks)
+        if Q >= 0:
+            ax.plot(lon_dict['v'][ry-1, rx], lat_dict['v'][ry-1, rx],
+                    '^c', markersize=mks)
+        elif Q < 0:
+            ax.plot(lon_dict['v'][ry-1, rx], lat_dict['v'][ry-1, rx],
+                    'vc', markersize=mks)
+        ax.text(lon_dict['v'][ry-1, rx], lat_dict['v'][ry-1, rx], RN)
 
 for tag in tag_list:
     ax.plot(lon_dict[tag][mask_dict[tag]==1], lat_dict[tag][mask_dict[tag]==1],

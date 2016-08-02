@@ -12,6 +12,8 @@ cd /Users/PM5/Documents/LiveOcean/plotting
 
 run pan_plot.py -g cascadia2 -t frc2 -x lo1 -d 2013.01.09
 
+run pan_plot.py -g cascadia2 -t frc2 -x lo1 -d 2013.01.01 -hs 25
+
 """
 
 #%% setup

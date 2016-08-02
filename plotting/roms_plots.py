@@ -38,7 +38,8 @@ def P_basic(fn, fn_out='', in_data=()):
     t_str = 'Surface Salinity'
     ax = fig.add_subplot(121)
     vn = 'salt'
-    cs = pfun.add_map_field(ax, ds, vn, vlims=lims[vn])
+    #cs = pfun.add_map_field(ax, ds, vn, vlims=lims[vn])
+    cs = pfun.add_map_field(ax, ds, vn, vlims=())
     fig.colorbar(cs)
     pfun.add_bathy_contours(ax, ds)
     pfun.add_coast(ax)
@@ -54,7 +55,8 @@ def P_basic(fn, fn_out='', in_data=()):
     t_str = 'Surface Temperature'
     ax = fig.add_subplot(122)
     vn = 'temp'
-    cs = pfun.add_map_field(ax, ds, vn, vlims=lims[vn], cmap='jet')
+    #cs = pfun.add_map_field(ax, ds, vn, vlims=lims[vn], cmap='jet')
+    cs = pfun.add_map_field(ax, ds, vn, vlims=(), cmap='jet')
     fig.colorbar(cs)
     pfun.add_bathy_contours(ax, ds)
     pfun.add_coast(ax)
