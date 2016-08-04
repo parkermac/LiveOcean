@@ -32,14 +32,18 @@ Ldir['gtagex'] = Ldir['gtag'] + '_' + args.ex_name
 
 #%% look for all forecast days
 
-dt0 = datetime(2013,1,1)
-dt1 = datetime.now()
+if False:
+    dt0 = datetime(2013,1,1)
+    dt1 = datetime.now()
+else:
+    dt0 = datetime(2013,9,1)
+    dt1 = datetime(2013,9,30)
 
 dt = dt0
 while dt <= dt1:
     f_string = 'f' + datetime.strftime(dt,'%Y.%m.%d')
-    if os.path.isfile(Ldir['roms'] + 'output/' + Ldir['gtagex'] +
-    '/' + f_string + '/low_pass.nc'):
+    fdir = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/' + f_string + '/'
+    if os.path.isfile(fdir + 'low_passed.nc'):
         pass
     else:
         print(f_string)
