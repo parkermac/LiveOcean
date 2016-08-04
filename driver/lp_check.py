@@ -32,7 +32,7 @@ Ldir['gtagex'] = Ldir['gtag'] + '_' + args.ex_name
 
 #%% look for all forecast days
 
-if False:
+if True:
     dt0 = datetime(2013,1,1)
     dt1 = datetime.now()
 else:
