@@ -43,7 +43,7 @@ tt0 = time.time()
 ds = nc.Dataset(fn)
 print('%d sec to get Dataset' % (time.time()-tt0))
 sys.stdout.flush()
-
+#
 #tt0 = time.time()
 #x1 = ds.variables['water_temp'][nt0, 0, j0, i0].squeeze()
 #print('%d sec to get 1 3D point' % (time.time()-tt0))
@@ -74,18 +74,18 @@ sys.stdout.flush()
 #print('%d sec to get %d 3D points' % (time.time()-tt0, x6.size))
 #sys.stdout.flush()
 
-for nt in range(nt0, nt1+1):
-    tt0 = time.time()
-    x7 = ds.variables['water_temp'][nt, 0:N, j0:j1, i0:i1].squeeze()
-    print('%d sec to get %d 3D points' % (time.time()-tt0, x7.size))
-    sys.stdout.flush()
+#for nt in range(nt0, nt1+1):
+#    tt0 = time.time()
+#    x7 = ds.variables['water_temp'][nt, 0:N, j0:j1, i0:i1].squeeze()
+#    print('%d sec to get %d 3D points' % (time.time()-tt0, x7.size))
+#    sys.stdout.flush()
 
-## and this is the full desired call (for one variable)
-## RESULT the call failed
-#tt0 = time.time()
-#t3d = ds.variables['water_temp'][nt0:nt1+1, 0:N, j0:j1, i0:i1].squeeze()
-#print('%d sec to get %d 3D points' % (time.time()-tt0, t3d.size))
-#sys.stdout.flush()
+# and this is the full desired call (for one variable)
+# RESULT the call failed
+tt0 = time.time()
+t3d = ds.variables['water_temp'][nt0:nt1+1, 0:N, j0:j1, i0:i1].squeeze()
+print('%d sec to get %d 3D points' % (time.time()-tt0, t3d.size))
+sys.stdout.flush()
 
 
 

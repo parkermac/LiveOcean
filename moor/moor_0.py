@@ -122,8 +122,8 @@ Aix = dict(); Aiy = dict()
 for grd in ['rho', 'u', 'v']:
     xx = G['lon_' + grd][1,:]
     yy = G['lat_' + grd][:,1]
-    xi0, xi1, xfr = zfun.get_interpolant(Lon, xx)
-    yi0, yi1, yfr = zfun.get_interpolant(Lat, yy)
+    xi0, xi1, xfr = zfun.get_interpolant(Lon, xx, extrap_nan=True)
+    yi0, yi1, yfr = zfun.get_interpolant(Lat, yy, extrap_nan=True)
     Xi0[grd] = xi0
     Yi0[grd] = yi0
     Xi1[grd] = xi1

@@ -78,6 +78,7 @@ V = dict()
 
 #list_to_plot = v3_list_rho + v3_list_w + v2_list
 list_to_plot = v3_list_rho
+list_to_plot.remove('CaCO3')
 #list_to_plot = ['alkalinity',]
 
 #for vv in ds.variables:
@@ -145,10 +146,10 @@ for vn in list_to_plot:
         if ir == NR-1:
             ax.set_xlabel('Date')
             ax.set_xticklabels(dt_ticklabels)
-            aa = ax.get_ylim()
-            for dtyr in dt_ticks_yr:
-                ax.plot([dtyr, dtyr], aa, '-k')
-            ax.set_ylim(aa)
+        aa = ax.get_ylim()
+        for dtyr in dt_ticks_yr:
+            ax.plot([dtyr, dtyr], aa, '-k')
+        ax.set_ylim(aa)
     else:
         # specific case
         ax.set_xlim(datetime(2015,6,1), datetime(2015,8,31))

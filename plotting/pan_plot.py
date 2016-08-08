@@ -28,7 +28,18 @@ from importlib import reload
 import Lfun
 import roms_plots; reload(roms_plots)
 
-# get optional command line arguments, any order
+#%% choices
+vlims = dict()
+vlims['salt'] = (20, 34)
+vlims['temp'] = (8, 19)
+vlims['TIC'] = ()
+vlims['alkalinity'] = ()
+
+in_dict = dict()
+in_dict['vlims'] = vlims
+in_dict['z_level'] = -350 # z level to plot
+
+#%% get optional command line arguments, any order
 parser = argparse.ArgumentParser()
 parser.add_argument('-g', '--gridname', nargs='?', type=str,
                     default='cascadia1')
@@ -82,11 +93,6 @@ if len(my_npt)==0:
 else:
     plot_type = pt_dict[int(my_npt)]
 whichplot = getattr(roms_plots, plot_type)
-
-if plot_type == 'P_layer':
-    in_data = (-350,) # z level to plot
-else:
-    in_data = ()
 
 def make_fn_list(dt0, dt1, Ldir, hourmax=24):
     # a helpful function for making file lists
@@ -142,7 +148,9 @@ elif list_type == 'old_style':
 if len(fn_list) == 1:
     # plot to screen
     fn = fn_list[0]
-    whichplot(fn, in_data=in_data)
+    in_dict['fn'] = fn
+    in_dict['fn_out'] = ''
+    out_dict = whichplot(in_dict)
 elif len(fn_list) > 1:
     #prepare a directory for results
     outdir0 = Ldir['LOo'] + 'plots/'
@@ -156,5 +164,9 @@ elif len(fn_list) > 1:
         outname = 'plot_' + nouts + '.png'
         outfile = outdir + outname
         print('Plotting ' + fn)
-        whichplot(fn, fn_out=outfile, in_data=in_data)
+        in_dict['fn'] = fn
+        in_dict['fn_out'] = outfile
+        in_dict['vlims'] = vlims
+        out_dict = whichplot(in_dict)
+        vlims = out_dict['vlims']
         jj += 1

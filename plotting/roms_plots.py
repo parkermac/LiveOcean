@@ -15,31 +15,31 @@ import zfun; reload(zfun)
 import pfun; reload(pfun)
 
 # module defaults (available inside the methods)
-lims = dict()
-lims['salt'] = (20, 33.5)
-lims['temp'] = (8, 19)
-lims['TIC'] = ()
-lims['alkalinity'] = ()
+
 figsize = (18,10)
+out_dict = dict()
 
 plt.close('all')
 
-def P_basic(fn, fn_out='', in_data=()):
+def P_basic(in_dict):
     # This creates, and optionally saves, a basic plot of surface fields
     # from a ROMS history file.
-    # INPUT
+    # INPUT a dict containing:
     #   fn: text string with the full path name of the history file to plot
     #   fn_out: text string with full path of output file name
     #   in_data: a tuple with optional information to pass to the plot
-    # OUTPUT: either a screen image or a graphics file
+    # OUTPUT: either a screen image or a graphics file, and a dict of other
+    # information such as axis limits
+
     fig = plt.figure(figsize=figsize)
-    ds = nc.Dataset(fn)
+    ds = nc.Dataset(in_dict['fn'])
+    vlims = in_dict['vlims'].copy()
+    out_dict['vlims'] = vlims
 
     t_str = 'Surface Salinity'
     ax = fig.add_subplot(121)
     vn = 'salt'
-    #cs = pfun.add_map_field(ax, ds, vn, vlims=lims[vn])
-    cs = pfun.add_map_field(ax, ds, vn, vlims=())
+    cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn, vlims=())
     fig.colorbar(cs)
     pfun.add_bathy_contours(ax, ds)
     pfun.add_coast(ax)
@@ -49,14 +49,13 @@ def P_basic(fn, fn_out='', in_data=()):
     #ax.set_ylabel('Latitude')
     ax.set_title(t_str)
     # extras
-    pfun.add_info(ax, fn)
+    pfun.add_info(ax, in_dict['fn'])
     pfun.add_windstress_flower(ax, ds)
 
     t_str = 'Surface Temperature'
     ax = fig.add_subplot(122)
     vn = 'temp'
-    #cs = pfun.add_map_field(ax, ds, vn, vlims=lims[vn], cmap='jet')
-    cs = pfun.add_map_field(ax, ds, vn, vlims=(), cmap='jet')
+    cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn, vlims=(), cmap='jet')
     fig.colorbar(cs)
     pfun.add_bathy_contours(ax, ds)
     pfun.add_coast(ax)
@@ -66,13 +65,15 @@ def P_basic(fn, fn_out='', in_data=()):
     ax.set_ylabel('Latitude')
     ax.set_title(t_str + ' (' + pfun.get_units(ds, vn) + ')')
     # extras
-    pfun.add_velocity_vectors(ax, ds, fn)
+    pfun.add_velocity_vectors(ax, ds, in_dict['fn'])
 
     ds.close()
-    if len(fn_out) > 0:
-        plt.savefig(fn_out)
+    if len(in_dict['fn_out']) > 0:
+        plt.savefig(in_dict['fn_out'])
     else:
         plt.show()
+
+    return out_dict
 
 def P_carbon(fn, fn_out='', in_data=()):
     fig = plt.figure(figsize=figsize)
