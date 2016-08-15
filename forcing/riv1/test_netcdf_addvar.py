@@ -45,15 +45,21 @@ check(fn1)
 
 ds1 = nc.Dataset(fn1, mode='r')
 
-ds2 = nc.Dataset(fn2, mode='ws')
+ds2 = nc.Dataset(fn2, mode='w')
 
-for dm in ds1.dimensions:
-    ds2.createDimension(dm)
-for v in ds1.variables:
-    vv = ds2.createVariable(v)
-    vv[:] = ds1[v][:]
+#Copy dimensions
+for dname, the_dim in ds1.dimensions.items():
+    print(dname, len(the_dim))
+    ds2.createDimension(dname, len(the_dim) if not the_dim.isunlimited() else None)
+# Copy variables
+for v_name, varin in ds1.variables.items():
+    outVar = ds2.createVariable(v_name, varin.datatype, varin.dimensions)
+    print(varin.datatype)
+    # Copy variable attributes
+    outVar.setncatts({k: varin.getncattr(k) for k in varin.ncattrs()})
+    outVar[:] = varin[:]
 
-#ds1.close()
+ds1.close()
 
 ds2.createDimension('vec2', 3)
 v_var = ds2.createVariable('Vec2', float, ('vec2'))

@@ -21,6 +21,11 @@ import matfun
 import matplotlib.pyplot as plt
 import numpy as np
 
+plp = os.path.abspath('../plotting')
+if plp not in sys.path:
+    sys.path.append(plp)
+import pfun
+
 Ldir = Lfun.Lstart()
 indir = Ldir['LOo'] + 'tracks/'
 fn_coast = Ldir['data'] + 'coast/pnw_coast_combined.mat'
@@ -71,7 +76,7 @@ ax = fig.add_subplot(121)
 ax.contour(G['lon_rho'], G['lat_rho'], G['h'], depth_levs, colors='g')
 ax.plot(cmat['lon'],cmat['lat'], '-k', linewidth=.5) # coastline
 ax.axis(aa)
-zfun.dar(ax)
+pfun.dar(ax)
 ax.set_xlabel('Longitude')
 ax.set_ylabel('Latitude')
 

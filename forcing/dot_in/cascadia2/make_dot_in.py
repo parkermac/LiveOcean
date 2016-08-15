@@ -76,7 +76,7 @@ f_string_yesterday = 'f'+ date_string_yesterday
 # where forcing files live (fjord, as seen from gaggle)
 lo_dir = '/fjdata1/parker/LiveOcean/'
 loo_dir = '/fjdata1/parker/LiveOcean_output/'
-grid_dir = lo_dir + 'preamble/make_resources/' + Ldir['gridname'] + '/'
+grid_dir = '/fjdata1/parker/LiveOcean_data/grids/' + Ldir['gridname'] + '/'
 force_dir = loo_dir + gtag + '/' + f_string + '/'
 roms_dir = '/pmr1/parker/LiveOcean_roms/'
 

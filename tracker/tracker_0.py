@@ -4,8 +4,14 @@ of tracking backward in time.
 
 Designed for ROMS output with plaid lat, lon grids.
 
-Performance: about 2 minutes for a month on mac.
-(forward RK2, dt = 3600).
+Recoded the integration scheme around 7/15/2016 to use new version of
+get_interpolant.py, and to better handle many particles.
+
+PERFORMANCE: With the new fast version is took about 12 seconds
+for a day of integration for 6-600 particles, and only increased to
+19 seconds for 6000 particles.  The old slow version was faster
+for < 100 particles, but otherwise became very slow, scaling linearly
+with the number of particles.  These tests were all with the cascadia1 grid.
 
 The design philosophy is that this should be capable of handling both
 LiveOcean and older versions, like from PNWTOX, of how files are stored.

@@ -180,7 +180,7 @@ for rn in df.index:
 
 #%% calculations for vertical distribution
 
-S_info_dict = Lfun.csv_to_dict(Ldir['run']+'S_COORDINATE_INFO.csv')
+S_info_dict = Lfun.csv_to_dict(Ldir['grids']+Ldir['gridname']+'/S_COORDINATE_INFO.csv')
 S = zfun.get_S(S_info_dict)
 
 #%% save the output to NetCDF

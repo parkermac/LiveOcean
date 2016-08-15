@@ -8,7 +8,7 @@ def intro():
     import argparse
     from datetime import datetime
     # This relative path to alpha is meant to work only when intro()
-    # is called from the forcing directories (not great coding).
+    # is called from the forcing directories.
     alp = os.path.abspath('../../alpha')
     if alp not in sys.path:
         sys.path.append(alp)
@@ -18,9 +18,7 @@ def intro():
     # set defaults
     gridname = 'cascadia1'
     tag = 'base'
-    cwd = os.getcwd()
-    icwd = cwd.rfind('/')
-    frc = cwd[icwd+1:]
+    frc = os.getcwd().split('/')[-1]
     run_type = 'forecast'  # backfill or forecast
     start_type = 'continuation'  # new or continuation
     # Example of date_string is 2015.09.19
@@ -84,7 +82,7 @@ def intro_2():
     import argparse
     from datetime import datetime
     # This relative path to alpha is meant to work only when intro()
-    # is called from one below the forcing directories (REALLY not great coding).
+    # is called from ONE BELOW the forcing directories.
     alp = os.path.abspath('../../../alpha')
     if alp not in sys.path:
         sys.path.append(alp)
@@ -94,9 +92,7 @@ def intro_2():
     # set defaults
     gridname = 'cascadia1'
     tag = 'base'
-    cwd = os.getcwd()
-    icwd = cwd.rfind('/')
-    frc = cwd[icwd+1:]
+    frc = os.getcwd().split('/')[-2]
     run_type = 'forecast'  # backfill or forecast
     start_type = 'continuation'  # new or continuation
     # Example of date_string is 2015.09.19

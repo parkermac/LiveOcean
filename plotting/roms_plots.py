@@ -27,35 +27,21 @@ def P_basic(in_dict):
     # INPUT a dict containing:
     #   fn: text string with the full path name of the history file to plot
     #   fn_out: text string with full path of output file name
-    #   in_data: a tuple with optional information to pass to the plot
+    #   in_dict: a tuple with optional information to pass to the plot
     # OUTPUT: either a screen image or a graphics file, and a dict of other
-    # information such as axis limits
+    # information such as axis limits.
 
+    # START
     fig = plt.figure(figsize=figsize)
     ds = nc.Dataset(in_dict['fn'])
     vlims = in_dict['vlims'].copy()
     out_dict['vlims'] = vlims
 
+    # PLOT CODE
     t_str = 'Surface Salinity'
     ax = fig.add_subplot(121)
     vn = 'salt'
-    cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn, vlims=())
-    fig.colorbar(cs)
-    pfun.add_bathy_contours(ax, ds)
-    pfun.add_coast(ax)
-    ax.axis(pfun.get_aa(ds))
-    pfun.dar(ax)
-    ax.set_xlabel('Longitude')
-    #ax.set_ylabel('Latitude')
-    ax.set_title(t_str)
-    # extras
-    pfun.add_info(ax, in_dict['fn'])
-    pfun.add_windstress_flower(ax, ds)
-
-    t_str = 'Surface Temperature'
-    ax = fig.add_subplot(122)
-    vn = 'temp'
-    cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn, vlims=(), cmap='jet')
+    cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn, vlims=vlims[vn], cmap='rainbow')
     fig.colorbar(cs)
     pfun.add_bathy_contours(ax, ds)
     pfun.add_coast(ax)
@@ -63,42 +49,46 @@ def P_basic(in_dict):
     pfun.dar(ax)
     ax.set_xlabel('Longitude')
     ax.set_ylabel('Latitude')
+    ax.set_title(t_str)
+    # extras
+    pfun.add_info(ax, in_dict['fn'])
+    pfun.add_windstress_flower(ax, ds)
+    #
+    t_str = 'Surface Temperature'
+    ax = fig.add_subplot(122)
+    vn = 'temp'
+    cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn, vlims=vlims[vn], cmap='bwr')
+    fig.colorbar(cs)
+    pfun.add_bathy_contours(ax, ds)
+    pfun.add_coast(ax)
+    ax.axis(pfun.get_aa(ds))
+    pfun.dar(ax)
+    ax.set_xlabel('Longitude')
+    #ax.set_ylabel('Latitude')
     ax.set_title(t_str + ' (' + pfun.get_units(ds, vn) + ')')
     # extras
     pfun.add_velocity_vectors(ax, ds, in_dict['fn'])
 
+    # FINISH
     ds.close()
     if len(in_dict['fn_out']) > 0:
         plt.savefig(in_dict['fn_out'])
     else:
         plt.show()
-
     return out_dict
 
-def P_carbon(fn, fn_out='', in_data=()):
+def P_carbon(in_dict):
+    # START
     fig = plt.figure(figsize=figsize)
-    ds = nc.Dataset(fn)
+    ds = nc.Dataset(in_dict['fn'])
+    vlims = in_dict['vlims'].copy()
+    out_dict['vlims'] = vlims
 
+    # PLOT CODE
     t_str = 'Surface TIC'
     ax = fig.add_subplot(121)
     vn = 'TIC'
-    cs = pfun.add_map_field(ax, ds, vn, vlims=())
-    fig.colorbar(cs)
-    pfun.add_bathy_contours(ax, ds)
-    pfun.add_coast(ax)
-    ax.axis(pfun.get_aa(ds))
-    pfun.dar(ax)
-    ax.set_xlabel('Longitude')
-    #ax.set_ylabel('Latitude')
-    ax.set_title(t_str + ' (' + pfun.get_units(ds, vn) + ')')
-    # extras
-    pfun.add_info(ax, fn)
-    pfun.add_windstress_flower(ax, ds)
-
-    t_str = 'Surface Alkalinity'
-    ax = fig.add_subplot(122)
-    vn = 'alkalinity'
-    cs = pfun.add_map_field(ax, ds, vn, vlims=(), cmap='jet')
+    cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn, vlims=vlims[vn], cmap='YlOrBr')
     fig.colorbar(cs)
     pfun.add_bathy_contours(ax, ds)
     pfun.add_coast(ax)
@@ -108,34 +98,77 @@ def P_carbon(fn, fn_out='', in_data=()):
     ax.set_ylabel('Latitude')
     ax.set_title(t_str + ' (' + pfun.get_units(ds, vn) + ')')
     # extras
-    pfun.add_velocity_vectors(ax, ds, fn)
+    pfun.add_info(ax, in_dict['fn'])
+    pfun.add_windstress_flower(ax, ds)
+    #
+    t_str = 'Surface Alkalinity'
+    ax = fig.add_subplot(122)
+    vn = 'alkalinity'
+    cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn, vlims=vlims[vn], cmap='RdYlGn')
+    fig.colorbar(cs)
+    pfun.add_bathy_contours(ax, ds)
+    pfun.add_coast(ax)
+    ax.axis(pfun.get_aa(ds))
+    pfun.dar(ax)
+    ax.set_xlabel('Longitude')
+    #ax.set_ylabel('Latitude')
+    ax.set_title(t_str + ' (' + pfun.get_units(ds, vn) + ')')
+    # extras
+    pfun.add_velocity_vectors(ax, ds, in_dict['fn'])
 
+    # FINISH
     ds.close()
-    if len(fn_out) > 0:
-        plt.savefig(fn_out)
+    if len(in_dict['fn_out']) > 0:
+        plt.savefig(in_dict['fn_out'])
     else:
         plt.show()
+    return out_dict
 
-def P_bio(fn, fn_out='', in_data=()):
-    ds = nc.Dataset(fn)
-    vn_list = ['NO3', 'phytoplankton', 'oxygen', 'detritus']
+def P_bio(in_dict):
+    # START
+    ds = nc.Dataset(in_dict['fn'])
+    vlims = in_dict['vlims'].copy()
+    out_dict['vlims'] = vlims
+
+    vn_list = ['NO3', 'phytoplankton', 'zooplankton', 'oxygen']
+    cmap_list = ['Oranges', 'Greens', 'BuPu', 'Spectral']
+    cmap_dict = dict(zip(vn_list, cmap_list))
     NP = len(vn_list)
-    NR = np.maximum(1, np.ceil(np.sqrt(NP)).astype(int))
-    NC = np.ceil(np.sqrt(NP)).astype(int)
-    fig, axes = plt.subplots(nrows=NR, ncols=NC, figsize=(14,14),
+    if False:
+        NR = np.maximum(1, np.ceil(np.sqrt(NP)).astype(int))
+        NC = np.ceil(np.sqrt(NP)).astype(int)
+        figsize = (16,16)
+    else:
+        NR = 1
+        NC = NP
+        figsize=(23, 7)
+    fig, axes = plt.subplots(nrows=NR, ncols=NC, figsize=figsize,
                              squeeze=False)
     cc = 0
     for vn in vn_list:
         ir = int(np.floor(cc/NC))
         ic = int(cc - NC*ir)
+        # PLOT CODE
         ax = axes[ir, ic]
         t_str = vn
-        cs = pfun.add_map_field(ax, ds, vn, vlims=())
+        try:
+            vlims[vn]
+        except KeyError:
+            vlims[vn] = ()
+        if vn == 'oxygen':
+            cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn,
+                vlims=vlims[vn], cmap=cmap_dict[vn], slev=0)
+            ax.text(.95, .04, 'BOTTOM',
+                    horizontalalignment='right', transform=ax.transAxes)
+        else:
+            cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn,
+                vlims=vlims[vn], cmap=cmap_dict[vn])
         fig.colorbar(cs, ax=ax)
         pfun.add_bathy_contours(ax, ds)
         pfun.add_coast(ax)
         ax.axis(pfun.get_aa(ds))
         pfun.dar(ax)
+        ax.set_title(t_str + ' (' + pfun.get_units(ds, vn) + ')')
         if ir == NR-1:
             ax.set_xlabel('Longitude')
         if ic == 0:
@@ -143,24 +176,26 @@ def P_bio(fn, fn_out='', in_data=()):
         ax.set_title(t_str + ' (' + pfun.get_units(ds, vn) + ')')
         # extras
         if cc == 0:
-            pfun.add_info(ax, fn)
+            pfun.add_info(ax, in_dict['fn'])
         cc += 1
 
+    # FINISH
     ds.close()
-    if len(fn_out) > 0:
-        plt.savefig(fn_out)
+    if len(in_dict['fn_out']) > 0:
+        plt.savefig(in_dict['fn_out'])
     else:
         plt.show()
+    return out_dict
 
-def P_layer(fn, fn_out='', in_data=(-500,)):
-    # plots fields on a specified depth level
+def P_layer(in_dict):
+    # START
     fig = plt.figure(figsize=figsize)
-    ds = nc.Dataset(fn)
-    zlev = in_data[0] # z (m) of layer to plot
+    ds = nc.Dataset(in_dict['fn'])
+    vlims = in_dict['vlims'].copy()
+    out_dict['vlims'] = vlims
 
     # get zfull field on the rho grid
-    G, S, T = zfun.get_basic_info(fn)
-    ds = nc.Dataset(fn)
+    G, S, T = zfun.get_basic_info(in_dict['fn'])
     zeta = 0 * ds.variables['zeta'][:].squeeze()
     zr_mid = zfun.get_z(G['h'], zeta, S, only_rho=True)
     zr_bot = -G['h'].reshape(1, G['M'], G['L']).copy()
@@ -171,7 +206,7 @@ def P_layer(fn, fn_out='', in_data=(-500,)):
         # make the layer
         fld_mid = ds[vn][:].squeeze()
         fld = pfun.make_full((fld_mid,))
-        which_z = zlev * np.ones(1)
+        which_z = in_dict['z_level'] * np.ones(1)
         lay = pfun.get_layer(fld, zfull, which_z)
         lay[mask == False] = np.nan
         laym = np.ma.masked_where(np.isnan(lay), lay)
@@ -180,31 +215,12 @@ def P_layer(fn, fn_out='', in_data=(-500,)):
     t_str = 'Salinity'
     ax = fig.add_subplot(121)
     vn = 'salt'
-    laym = get_laym(ds, zfull, G['mask_rho'], vn, zlev)
-    vlims = pfun.auto_lims(laym)
+    laym = get_laym(ds, zfull, G['mask_rho'], vn, in_dict['z_level'])
+    if len(vlims[vn]) == 0:
+        vlims[vn] = pfun.auto_lims(laym)
+    out_dict['vlims'][vn] = vlims[vn]
     cs = ax.pcolormesh(G['lon_psi'], G['lat_psi'], laym[1:-1,1:-1],
-                       vmin=vlims[0], vmax=vlims[1])
-    cb = fig.colorbar(cs)
-    cb.formatter.set_useOffset(False)
-    cb.update_ticks()
-    pfun.add_bathy_contours(ax, ds)
-    pfun.add_coast(ax)
-    ax.axis(pfun.get_aa(ds))
-    pfun.dar(ax)
-    ax.set_xlabel('Longitude')
-    #ax.set_ylabel('Latitude')
-    ax.set_title(t_str + ' on Z = ' + str(zlev) + ' m')
-    # extras
-    pfun.add_info(ax, fn)
-    pfun.add_windstress_flower(ax, ds)
-
-    t_str = 'Temperature'
-    ax = fig.add_subplot(122)
-    vn = 'temp'
-    laym = get_laym(ds, zfull, G['mask_rho'], vn, zlev)
-    vlims = pfun.auto_lims(laym)
-    cs = ax.pcolormesh(G['lon_psi'], G['lat_psi'], laym[1:-1,1:-1],
-                       vmin=vlims[0], vmax=vlims[1])
+                       vmin=vlims[vn][0], vmax=vlims[vn][1], cmap='rainbow')
     cb = fig.colorbar(cs)
     cb.formatter.set_useOffset(False)
     cb.update_ticks()
@@ -214,15 +230,40 @@ def P_layer(fn, fn_out='', in_data=(-500,)):
     pfun.dar(ax)
     ax.set_xlabel('Longitude')
     ax.set_ylabel('Latitude')
+    ax.set_title(t_str + ' on Z = ' + str(in_dict['z_level']) + ' m')
+    # extras
+    pfun.add_info(ax, in_dict['fn'])
+    pfun.add_windstress_flower(ax, ds)
+
+    t_str = 'Temperature'
+    ax = fig.add_subplot(122)
+    vn = 'temp'
+    laym = get_laym(ds, zfull, G['mask_rho'], vn, in_dict['z_level'])
+    if len(vlims[vn]) == 0:
+        vlims[vn] = pfun.auto_lims(laym)
+    out_dict['vlims'][vn] = vlims[vn]
+    cs = ax.pcolormesh(G['lon_psi'], G['lat_psi'], laym[1:-1,1:-1],
+                       vmin=vlims[vn][0], vmax=vlims[vn][1], cmap='bwr')
+    cb = fig.colorbar(cs)
+    cb.formatter.set_useOffset(False)
+    cb.update_ticks()
+    pfun.add_bathy_contours(ax, ds)
+    pfun.add_coast(ax)
+    ax.axis(pfun.get_aa(ds))
+    pfun.dar(ax)
+    ax.set_xlabel('Longitude')
+    #ax.set_ylabel('Latitude')
     ax.set_title(t_str + ' (' + pfun.get_units(ds, vn) + ')')
     # extras
     #pfun.add_velocity_vectors(ax, ds, fn)
 
+    # FINISH
     ds.close()
-    if len(fn_out) > 0:
-        plt.savefig(fn_out)
+    if len(in_dict['fn_out']) > 0:
+        plt.savefig(in_dict['fn_out'])
     else:
         plt.show()
+    return out_dict
 
 def P_roms_sect(fn, alp, Ldir, fn_coast='', show_plot=True, save_plot=False,
     fn_out='test.png'):

@@ -3,9 +3,6 @@ Plot fields in one or more history files.
 
 On fjord this needs to be run with an X window.
 
-Rewritten 2015.12.02 to put more choices about which files to plot
-on the command line, thereby avioding the use of tkinter, which crashed often.
-
 Examples of running from the command line:
 
 cd /Users/PM5/Documents/LiveOcean/plotting
@@ -29,14 +26,19 @@ import Lfun
 import roms_plots; reload(roms_plots)
 
 #%% choices
-vlims = dict()
-vlims['salt'] = (20, 34)
-vlims['temp'] = (8, 19)
-vlims['TIC'] = ()
-vlims['alkalinity'] = ()
-
 in_dict = dict()
+
+# COLOR LIMITS
+vlims = dict()
+# If you use () then the limits will be set by the first plot
+# and then held constant at those levels thereafter.
+vlims['salt'] = ()#(20, 34)
+vlims['temp'] = ()#(8, 19)
+vlims['TIC'] = (1950,2100)
+vlims['alkalinity'] = (2000,2300)
 in_dict['vlims'] = vlims
+
+# OTHER
 in_dict['z_level'] = -350 # z level to plot
 
 #%% get optional command line arguments, any order
@@ -113,7 +115,7 @@ def make_fn_list(dt0, dt1, Ldir, hourmax=24):
             fn_list.append(fn)
     return fn_list
 
-#%% choose which file(s) to plot (way too complicated)
+#%% choose which file(s) to plot
 if list_type == 'test':
     # return a single default file name in the list
     fn_list = [Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/' +
@@ -155,7 +157,7 @@ elif len(fn_list) > 1:
     #prepare a directory for results
     outdir0 = Ldir['LOo'] + 'plots/'
     Lfun.make_dir(outdir0, clean=False)
-    outdir = outdir0 + list_type + '_' + plot_type + '/'
+    outdir = outdir0 + list_type + '_' + plot_type + '_' + Ldir['gtagex'] + '/'
     Lfun.make_dir(outdir, clean=True)
     # plot to a folder of files
     jj = 0
