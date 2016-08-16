@@ -165,7 +165,33 @@ def get_aa(ds):
     aa = [x[0], x[-1], y[0], y[-1]]
     return aa
 
-def get_layer(fld, zr, which_z):
+def get_zfull(ds, fn, which_grid):
+    # get zfull field on "which_grid" ('rho', 'u', or 'v')
+    G, S, T = zfun.get_basic_info(fn)
+    zeta = 0 * ds.variables['zeta'][:].squeeze()
+    zr_mid = zfun.get_z(G['h'], zeta, S, only_rho=True)
+    zr_bot = -G['h'].reshape(1, G['M'], G['L']).copy()
+    zr_top = zeta.reshape(1, G['M'], G['L']).copy()
+    zfull0 = make_full((zr_bot, zr_mid, zr_top))
+    if which_grid == 'rho':
+        zfull = zfull0
+    elif which_grid == 'u':
+        zfull = zfull0[:, :, 0:-1] + np.diff(zfull0, axis=2)/2
+    elif which_grid == 'v':
+        zfull = zfull0[:, 0:-1, :] + np.diff(zfull0, axis=1)/2
+    return zfull
+
+def get_laym(ds, zfull, mask, vn, zlev):
+    # make the layer
+    fld_mid = ds[vn][:].squeeze()
+    fld = make_full((fld_mid,))
+    zlev_a = zlev * np.ones(1)
+    lay = get_layer(fld, zfull, zlev_a)
+    lay[mask == False] = np.nan
+    laym = np.ma.masked_where(np.isnan(lay), lay)
+    return laym
+
+def get_layer(fld, zfull, which_z):
     """
     Creates a horizontal slice through a 3D ROMS data field.  It is very fast
     because of the use of "choose"
@@ -192,7 +218,7 @@ def get_layer(fld, zr, which_z):
         i_lo = ii[j]
         i_hi = min(ii[j+1] + 1, ii[-1]) # overlap by 1
         NN = i_hi - i_lo # the number of levels in this chunk
-        this_zr = zr[i_lo:i_hi].copy()
+        this_zr = zfull[i_lo:i_hi].copy()
         this_fld = fld[i_lo:i_hi].copy()
         zm = this_zr < which_z
         ind0 = np.zeros((M, L), dtype=int)

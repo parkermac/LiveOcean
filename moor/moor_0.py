@@ -4,6 +4,9 @@ Extract a mooring-like record.
 For 24 hour days on my mac this is fast, like 1-2 sec per day, but on
 fjord it takes more like 22 sec per day, or 2 hours per year.
 
+On fjord for low-passed files it takes 20 minutes per year, with no apparent
+decrease of performance if there are multiple jobs going.
+
 This can be run from the linux command line:
 
 This runs with default values (RISE north, three days in September 2015)

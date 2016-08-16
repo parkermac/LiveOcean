@@ -129,6 +129,11 @@ def get_interpolant(x, xvec, extrap_nan=False):
 
     return i0, i1, fr
 
+def find_nearest(array, value):
+    # gives the itme in array that is closest to value
+    idx = (np.abs(array-value)).argmin()
+    return array[idx]
+
 def get_basic_info(fn, getG=True, getS=True, getT=True):
     """
     Gets grid, vertical coordinate, and time info from a ROMS NetCDF
