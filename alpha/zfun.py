@@ -448,33 +448,33 @@ def filt_AB8d(data):
 
 def filt_hanning(data, n=40):
     """
-    2005 (approx.) Jonathan Lilly, modified by Parker MacCready
-    BUG: seems to require  n to be even
-    Input:
-        data, assumed to be a 1D numpy array
-        n is the filter length, default = 40
-        if n=1 it just returns matrix you gave it
-
-    Output:
-        a vector of the same size you started with,
-
-    % by default it uses a Hanning window
+    Input: 1D numpy array data
+    Output: Array of the same size, filtered with Hanning window of length n,
+        padded with nan's
+    If n=1 it just returns matrix you gave it
     """
-    import numpy as np
-
     if n == 1:
         smooth = data
     else:
-        # make a Hanning window from scratch
-        ff = np.cos(np.linspace(-np.pi,np.pi,n+2))[1:-1]
-        filt = (1 + ff)/2
-        filt = filt / filt.sum()
-        a = round(n/2.)
-        smooth = np.nan * data
-        smooth[a: -a + 1]= np.convolve(data, filt, mode = 'valid')
-        #smooth[:n+1] = np.nan
-        #smooth[-n:] = np.nan
+        filt = hanning_shape(n=n)
+        n = np.ceil(len(filt)/2).astype(int)
+        smooth = np.convolve(data, filt, mode = 'same')
+        smooth[:n] = np.nan
+        smooth[-n:] = np.nan
+    return smooth
 
+def filt_godin(data):
+    """
+    Input: 1D numpy array of HOURLY values
+    Output: Array of the same size, filtered with 24-24-25 Godin filter,
+        padded with nan's
+    """
+    filt = godin_shape()
+    filt = filt / filt.sum()
+    n = np.ceil(len(filt)/2).astype(int)
+    smooth = np.convolve(data, filt, mode = 'same')
+    smooth[:n] = np.nan
+    smooth[-n:] = np.nan
     return smooth
 
 def godin_shape():
