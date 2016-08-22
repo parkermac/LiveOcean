@@ -8,6 +8,7 @@ import sys
 alp = os.path.abspath('../../LiveOcean/alpha')
 if alp not in sys.path:sys.path.append(alp)
 import zfun
+import zrfun
 import netCDF4 as nc4
 from datetime import datetime, timedelta
 
@@ -19,7 +20,7 @@ def get_tracks(fn_list, plon0, plat0, pcs0, dir_tag,
     pcsA = pcs0.copy()
 
     # get basic info
-    G, S = zfun.get_basic_info(fn_list[0], getT=False)
+    G, S = zrfun.get_basic_info(fn_list[0], getT=False)
 
     # get time vector of history files
     NT = len(fn_list)

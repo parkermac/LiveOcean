@@ -40,17 +40,20 @@ else:
 moor_file = m_dict[my_npt]
 fn = indir + moor_file
 
-#%% calculate pH and Aragonite saturation state
-import subprocess
-func = ("run_co2sys(\'" +
-    indir + "\',\'" +
-    moor_file + "\',\'" +
-    'input3' + "\')")
-cmd = Ldir['which_matlab']
-run_cmd = [cmd, "-nojvm", "-nodisplay", "-r", func, "&"]
-proc = subprocess.Popen(run_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-out, err = proc.communicate() # "out" is the screen output of the matlab code
-#print(out.decode())
+##%% calculate pH and Aragonite saturation state
+
+# now done beforehand with add_C_vars.py
+
+#import subprocess
+#func = ("run_co2sys(\'" +
+#    indir + "\',\'" +
+#    moor_file + "\',\'" +
+#    'input3' + "\')")
+#cmd = Ldir['which_matlab']
+#run_cmd = [cmd, "-nojvm", "-nodisplay", "-r", func, "&"]
+#proc = subprocess.Popen(run_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+#out, err = proc.communicate() # "out" is the screen output of the matlab code
+##print(out.decode())
 
 #%% load and organize data
 

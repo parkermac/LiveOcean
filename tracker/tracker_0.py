@@ -45,7 +45,7 @@ Ldir = Lfun.Lstart()
 
 from importlib import reload
 import zfun
-reload(zfun)
+import zrfun
 import trackfun
 reload(trackfun)
 
@@ -155,8 +155,8 @@ for idt in idt_list:
 
     fn_list = trackfun.get_fn_list(idt, Ldir)
 
-    [T0] = zfun.get_basic_info(fn_list[0], getG=False, getS=False, getT=True)
-    [Tend] = zfun.get_basic_info(fn_list[-1], getG=False, getS=False, getT=True)
+    [T0] = zrfun.get_basic_info(fn_list[0], getG=False, getS=False, getT=True)
+    [Tend] = zrfun.get_basic_info(fn_list[-1], getG=False, getS=False, getT=True)
     Ldir['date_string0'] = datetime.strftime(T0['tm'],'%Y.%m.%d')
     Ldir['date_string1'] = datetime.strftime(Tend['tm'],'%Y.%m.%d')
 

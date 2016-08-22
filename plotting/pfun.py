@@ -17,7 +17,7 @@ if alp not in sys.path:
     sys.path.append(alp)
 import Lfun
 Ldir = Lfun.Lstart()
-import zfun
+import zrfun
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -49,8 +49,8 @@ def auto_lims(fld):
     Input: a numpy array (masked OK)
     Output: tuple of good-guess colorsclale limits for a pcolormesh plot.
     """
-    flo = max(fld.mean() - 3*fld.std(), np.nanmin(fld))
-    fhi = min(fld.mean() + 3*fld.std(), np.nanmax(fld))
+    flo = np.nanmax([np.nanmean(fld) - 3*np.nanstd(fld), np.nanmin(fld)])
+    fhi = np.nanmin([np.nanmean(fld) + 3*np.nanstd(fld), np.nanmax(fld)])
     return (flo, fhi)
 
 def get_units(ds, vn):
@@ -91,7 +91,7 @@ def add_velocity_vectors(ax, ds, fn, v_scl=3, v_leglen=0.5):
     # v_scl: scale velocity vector (smaller to get longer arrows)
     # v_leglen: m/s for velocity vector legend
     # GET DATA
-    [G] = zfun.get_basic_info(fn, getS=False, getT=False)
+    [G] = zrfun.get_basic_info(fn, getS=False, getT=False)
     u = ds['u'][0, -1, :, :].squeeze()
     v = ds['v'][0, -1, :, :].squeeze()
     # ADD VELOCITY VECTORS
@@ -150,7 +150,7 @@ def add_windstress_flower(ax, ds, t_scl=0.2, t_leglen=0.1):
 
 def add_info(ax, fn):
     # put info on plot
-    [T] = zfun.get_basic_info(fn, getG=False, getS=False)
+    [T] = zrfun.get_basic_info(fn, getG=False, getS=False)
     ax.text(.95, .07, T['tm'].strftime('%Y-%m-%d'),
         horizontalalignment='right', transform=ax.transAxes)
     ax.text(.95, .04, T['tm'].strftime('%H:%M') + ' UTC',
@@ -167,9 +167,9 @@ def get_aa(ds):
 
 def get_zfull(ds, fn, which_grid):
     # get zfull field on "which_grid" ('rho', 'u', or 'v')
-    G, S, T = zfun.get_basic_info(fn)
+    G, S, T = zrfun.get_basic_info(fn)
     zeta = 0 * ds.variables['zeta'][:].squeeze()
-    zr_mid = zfun.get_z(G['h'], zeta, S, only_rho=True)
+    zr_mid = zrfun.get_z(G['h'], zeta, S, only_rho=True)
     zr_bot = -G['h'].reshape(1, G['M'], G['L']).copy()
     zr_top = zeta.reshape(1, G['M'], G['L']).copy()
     zfull0 = make_full((zr_bot, zr_mid, zr_top))

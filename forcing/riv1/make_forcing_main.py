@@ -32,13 +32,9 @@ from importlib import reload
 import forcing_functions as ffun
 reload(ffun)
 Ldir, Lfun = ffun.intro()
-
-import zfun
-reload(zfun)
-
+import zrfun
 import river_class
 reload(river_class)
-
 import river_functions as rivfun
 reload(rivfun)
 
@@ -46,11 +42,13 @@ import pandas as pd
 import numpy as np
 import netCDF4 as nc
 
+
 #%% ****************** CASE-SPECIFIC CODE *****************
 
 # set up the time index for the record
 
 from datetime import datetime, timedelta
+start_time = datetime.now()
 
 # set first and last times to be at noon
 dt0 = datetime.strptime(Ldir['date_string'],'%Y.%m.%d') - timedelta(days=2.5)
@@ -181,7 +179,7 @@ for rn in df.index:
 #%% calculations for vertical distribution
 
 S_info_dict = Lfun.csv_to_dict(Ldir['grids']+Ldir['gridname']+'/S_COORDINATE_INFO.csv')
-S = zfun.get_S(S_info_dict)
+S = zrfun.get_S(S_info_dict)
 
 #%% save the output to NetCDF
 
@@ -312,8 +310,13 @@ v_var.requires = "must sum to 1 over s_rho"
 foo.close()
 
 #%% prepare for finale
-
-result_dict = dict()
+import collections
+result_dict = collections.OrderedDict()
+time_format = '%Y.%m.%d %H:%m:%S'
+result_dict['start_time'] = start_time.strftime(time_format)
+result_dict['end_time'] = datetime.now().strftime(time_format)
+result_dict['var_start_time'] = dt0.strftime(time_format)
+result_dict['var_end_time'] = dt1.strftime(time_format)
 if os.path.isfile(out_fn):
     result_dict['result'] = 'success'
 else:

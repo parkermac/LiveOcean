@@ -33,6 +33,7 @@ import Lfun
 import numpy as np
 from datetime import datetime, timedelta
 import zfun
+import zrfun
 import netCDF4 as nc
 
 # set defaults
@@ -116,7 +117,7 @@ Lat = np.array(float(Ldir['lat_str']))
 # get grid info
 indir = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/f' + date_list[0] + '/'
 fn = indir + 'ocean_his_0002.nc'
-[G, S] = zfun.get_basic_info(fn, getS=True, getT=False)
+[G, S] = zrfun.get_basic_info(fn, getS=True, getT=False)
 
 # get interpolants for this point
 Xi0 = dict(); Yi0 = dict()
@@ -253,7 +254,7 @@ ds.close()
 
 # create z_rho and z_w (has to be done after we have V['zeta'])
 hh = V['h'][:] * np.ones_like(V['zeta'])
-z_rho, z_w = zfun.get_z(hh, V['zeta'][:], S)
+z_rho, z_w = zrfun.get_z(hh, V['zeta'][:], S)
 V['hh'] = hh
 V_long_name['hh'] = 'bottom depth (positive down) as a vector'
 V_units['hh'] = 'm'

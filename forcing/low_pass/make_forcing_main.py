@@ -16,17 +16,14 @@ if fpth not in sys.path:
 import forcing_functions as ffun
 Ldir, Lfun = ffun.intro()
 
-# hack 4/11/2016 to handle the location of the new lobio1 output
-#if ((Ldir['roms'] == '/pmr1/parker/LiveOcean_roms/')
-#    & (Ldir['gtagex'] == 'cascadia1_base_lobio1')):
-#    Ldir['roms'] = '/pmr2/darr/LiveOcean_roms/'
-#print(Ldir['roms'])
 # ****************** CASE-SPECIFIC CODE *****************
 import zfun
 
-result_dict = dict()   
+from datetime import datetime, timedelta
+start_time = datetime.now()
+
 try:
-    
+
     # define the filtering function
     def roms_low_pass(flist, outfile, zfun):
         # create the filter
@@ -41,7 +38,7 @@ try:
         import shutil
         shutil.copyfile(flist[0],outfile)
         # create the Datasets
-        import netCDF4 as nc               
+        import netCDF4 as nc
         ds = nc.MFDataset(flist)
         dsout = nc.Dataset(outfile,'a')
         # loop over all variables that have time axes
@@ -58,13 +55,12 @@ try:
                 dsout.variables[vn][:] = vf.reshape(dsout.variables[vn].shape)
         ds.close()
         dsout.close()
-        
+
     # make input list (full paths)
     flist = []
     # create the list of history files
     if Ldir['run_type'] == 'backfill':
         date_string = Ldir['date_string']
-        from datetime import datetime, timedelta
         dt_now = datetime.strptime(Ldir['date_string'], '%Y.%m.%d')
         dt_tomorrow = dt_now + timedelta(1)
         dt_yesterday = dt_now - timedelta(1)
@@ -107,7 +103,7 @@ try:
         # make output name (full path)
         outfile = (Ldir['roms'] + 'output/' + Ldir['gtagex'] +
             '/f' + Ldir['date_string'] + '/low_passed.nc')
-            
+
         # Old code that made tomorrow's low pass.  This may come in handy
         # when we start nesting.
         #indir = (Ldir['roms'] + 'output/' + Ldir['gtagex'] +
@@ -118,15 +114,23 @@ try:
         ## make output name (full path)
         #outfile = (Ldir['roms'] + 'output/' + Ldir['gtagex'] +
         #    '/f' + Ldir['date_string'] + '/low_passed_tomorrow.nc')
-        
+
     # RUN THE FUNCTION
     roms_low_pass(flist, outfile, zfun)
-    
-    result_dict['result'] = 'success'    
+
+    result = 'success'
 except:
-    result_dict['result'] = 'fail'
-    
-# ************** END CASE-SPECIFIC CODE *****************
+    result = 'fail'
+
+#%% prepare for finale
+import collections
+result_dict = collections.OrderedDict()
+time_format = '%Y.%m.%d %H:%m:%S'
+result_dict['start_time'] = start_time.strftime(time_format)
+result_dict['end_time'] = datetime.now().strftime(time_format)
+result_dict['result'] = result
+
+#%% ************** END CASE-SPECIFIC CODE *****************
 
 ffun.finale(result_dict, Ldir, Lfun)
 

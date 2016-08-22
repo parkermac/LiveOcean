@@ -1,5 +1,13 @@
-function [DATA,HEADERS,NICEHEADERS]=CO2SYS(PAR1,PAR2,PAR1TYPE,PAR2TYPE,SAL,TEMPIN,TEMPOUT,PRESIN,PRESOUT,SI,PO4,pHSCALEIN,K1K2CONSTANTS,KSO4CONSTANTS);
+function [DATA,HEADERS,NICEHEADERS]=CO2SYS_PM(PAR1,PAR2,PAR1TYPE,PAR2TYPE,SAL,TEMPIN,TEMPOUT,PRESIN,PRESOUT,SI,PO4,pHSCALEIN,K1K2CONSTANTS,KSO4CONSTANTS);
 %**************************************************************************
+%
+% NOTE: This has been edited by Parker MacCready to decrease the error
+% tolerance in a loop that was taking too long to complete.  Search for
+% MacCready to find all edited lines.  PM 8/17/2016
+% 
+% Primary MacCready edit was to this line:
+% %pHTol = 0.0001;  % tolerance for iterations end ORIGINAL
+% pHTol = 0.01;  % tolerance for iterations end NEW MacCready 10/29/2015
 %
 % This is CO2SYS version 1.1 (SEPT-2011)
 %
