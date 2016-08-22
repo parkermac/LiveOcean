@@ -18,117 +18,84 @@ Ldir, Lfun = ffun.intro()
 
 # ****************** CASE-SPECIFIC CODE *****************
 import zfun
+import zrfun
 
 from datetime import datetime, timedelta
 start_time = datetime.now()
 
-try:
-
-    # define the filtering function
-    def roms_low_pass(flist, outfile, zfun):
-        # create the filter
-        nf = len(flist)
-        if nf == 71:
-            print(' - Using Godin filter')
-            filt0 = zfun.godin_shape()
-        else:
-            print(' - Using Hanning filter for list length = ' + str(nf))
-            filt0 = zfun.hanning_shape(nf)
-        # create the output file
-        import shutil
-        shutil.copyfile(flist[0],outfile)
-        # create the Datasets
-        import netCDF4 as nc
-        ds = nc.MFDataset(flist)
-        dsout = nc.Dataset(outfile,'a')
-        # loop over all variables that have time axes
-        for vn in ds.variables:
-            if 'ocean_time' in ds.variables[vn].dimensions:
-                #print(vn + ' ' + str(ds.variables[vn].shape)) # debugging
-                ndim = len(ds.variables[vn].shape)
-                filt_shape = (nf,)
-                for ii in range(ndim-1):
-                    filt_shape = filt_shape + (1,)
-                v = ds.variables[vn][:]
-                filt = filt0.reshape(filt_shape)
-                vf = (filt*v).sum(axis=0)
-                dsout.variables[vn][:] = vf.reshape(dsout.variables[vn].shape)
-        ds.close()
-        dsout.close()
-
-    # make input list (full paths)
-    flist = []
-    # create the list of history files
-    if Ldir['run_type'] == 'backfill':
-        date_string = Ldir['date_string']
-        dt_now = datetime.strptime(Ldir['date_string'], '%Y.%m.%d')
-        dt_tomorrow = dt_now + timedelta(1)
-        dt_yesterday = dt_now - timedelta(1)
-        dt_list = [dt_yesterday, dt_now, dt_tomorrow]
-        for dt in dt_list:
+# make input list (full paths)
+flist = []
+# create the list of history files
+if Ldir['run_type'] == 'backfill':
+    date_string = Ldir['date_string']
+    dt_now = datetime.strptime(Ldir['date_string'], '%Y.%m.%d')
+    dt_tomorrow = dt_now + timedelta(1)
+    dt_yesterday = dt_now - timedelta(1)
+    dt_list = [dt_yesterday, dt_now, dt_tomorrow]
+    for dt in dt_list:
+        date_string = dt.strftime(format='%Y.%m.%d')
+        indir = (Ldir['roms'] + 'output/' + Ldir['gtagex'] +
+            '/f' + date_string + '/')
+        for ii in range(2,26): # use range(2,26) to use Godin 71 hour filter
+            hnum = ('0000' + str(ii))[-4:]
+            flist.append(indir + 'ocean_his_' + hnum + '.nc')
+    # remove the last item
+    flist.pop() # cute
+    # make output name (full path)
+    out_fn = (Ldir['roms'] + 'output/' + Ldir['gtagex'] +
+        '/f' + Ldir['date_string'] + '/low_passed.nc')
+elif Ldir['run_type'] == 'forecast':
+    # use the middle day of the last forecast (= yesterday)
+    # and today and tomorrow from today's forecast
+    date_string = Ldir['date_string']
+    from datetime import datetime, timedelta
+    dt_now = datetime.strptime(Ldir['date_string'], '%Y.%m.%d')
+    dt_yesterday = dt_now - timedelta(1)
+    dt_list = [dt_yesterday, dt_now]
+    for dt in dt_list:
+        if dt == dt_yesterday:
             date_string = dt.strftime(format='%Y.%m.%d')
             indir = (Ldir['roms'] + 'output/' + Ldir['gtagex'] +
                 '/f' + date_string + '/')
             for ii in range(2,26): # use range(2,26) to use Godin 71 hour filter
                 hnum = ('0000' + str(ii))[-4:]
                 flist.append(indir + 'ocean_his_' + hnum + '.nc')
-        # remove the last item
-        flist.pop() # cute
-        # make output name (full path)
-        outfile = (Ldir['roms'] + 'output/' + Ldir['gtagex'] +
-            '/f' + Ldir['date_string'] + '/low_passed.nc')
-    elif Ldir['run_type'] == 'forecast':
-        # use the middle day of the last forecast (= yesterday)
-        # and today and tomorrow from today's forecast
-        date_string = Ldir['date_string']
-        from datetime import datetime, timedelta
-        dt_now = datetime.strptime(Ldir['date_string'], '%Y.%m.%d')
-        dt_yesterday = dt_now - timedelta(1)
-        dt_list = [dt_yesterday, dt_now]
-        for dt in dt_list:
-            if dt == dt_yesterday:
-                date_string = dt.strftime(format='%Y.%m.%d')
-                indir = (Ldir['roms'] + 'output/' + Ldir['gtagex'] +
-                    '/f' + date_string + '/')
-                for ii in range(2,26): # use range(2,26) to use Godin 71 hour filter
-                    hnum = ('0000' + str(ii))[-4:]
-                    flist.append(indir + 'ocean_his_' + hnum + '.nc')
-            elif dt == dt_now:
-                date_string = dt.strftime(format='%Y.%m.%d')
-                indir = (Ldir['roms'] + 'output/' + Ldir['gtagex'] +
-                    '/f' + date_string + '/')
-                for ii in range(2,49): # use range(2,49) to use Godin 71 hour filter
-                    hnum = ('0000' + str(ii))[-4:]
-                    flist.append(indir + 'ocean_his_' + hnum + '.nc')
-        # make output name (full path)
-        outfile = (Ldir['roms'] + 'output/' + Ldir['gtagex'] +
-            '/f' + Ldir['date_string'] + '/low_passed.nc')
+        elif dt == dt_now:
+            date_string = dt.strftime(format='%Y.%m.%d')
+            indir = (Ldir['roms'] + 'output/' + Ldir['gtagex'] +
+                '/f' + date_string + '/')
+            for ii in range(2,49): # use range(2,49) to use Godin 71 hour filter
+                hnum = ('0000' + str(ii))[-4:]
+                flist.append(indir + 'ocean_his_' + hnum + '.nc')
+    # make output name (full path)
+    out_fn = (Ldir['roms'] + 'output/' + Ldir['gtagex'] +
+        '/f' + Ldir['date_string'] + '/low_passed.nc')
 
-        # Old code that made tomorrow's low pass.  This may come in handy
-        # when we start nesting.
-        #indir = (Ldir['roms'] + 'output/' + Ldir['gtagex'] +
-        #    '/f' + Ldir['date_string'] + '/')
-        #for ii in range(2,73): # for Godin 71 hour filter
-        #    hnum = ('0000' + str(ii))[-4:]
-        #    flist.append(indir + 'ocean_his_' + hnum + '.nc')
-        ## make output name (full path)
-        #outfile = (Ldir['roms'] + 'output/' + Ldir['gtagex'] +
-        #    '/f' + Ldir['date_string'] + '/low_passed_tomorrow.nc')
+# create the filter
+nf = len(flist)
+if nf == 71:
+    print(' - Using Godin filter')
+    filt0 = zfun.godin_shape()
+else:
+    print(' - Using Hanning filter for list length = ' + str(nf))
+    filt0 = zfun.hanning_shape(nf)
 
-    # RUN THE FUNCTION
-    roms_low_pass(flist, outfile, zfun)
-
-    result = 'success'
-except:
-    result = 'fail'
+# RUN THE FUNCTION
+zrfun.roms_low_pass(flist, out_fn, filt0)
 
 #%% prepare for finale
 import collections
 result_dict = collections.OrderedDict()
 time_format = '%Y.%m.%d %H:%m:%S'
 result_dict['start_time'] = start_time.strftime(time_format)
-result_dict['end_time'] = datetime.now().strftime(time_format)
-result_dict['result'] = result
+end_time = datetime.now()
+result_dict['end_time'] = end_time.strftime(time_format)
+dt_sec = (end_time - start_time).seconds
+result_dict['total_seconds'] = str(dt_sec)
+if os.path.isfile(out_fn):
+    result_dict['result'] = 'success'
+else:
+    result_dict['result'] = 'fail'
 
 #%% ************** END CASE-SPECIFIC CODE *****************
 

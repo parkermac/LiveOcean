@@ -290,3 +290,41 @@ def get_z(h, zeta, S, only_rho=False, only_w=False):
     elif (not only_rho) and only_w:
         return z_w
 
+def roms_low_pass(flist, outfile, filt0):
+    """
+    Creates a low-passed version of ROMS history files, that are identical
+    in structure to history files except that have an ocean)time dimension
+    are filtered.
+    INPUT:
+    * flist is a sting of paths to history files
+    * outfile is the path where the output file will be created
+    * filt is a vector of weights for the low-pass.  It must be a numpy
+      array whose sum is one, and whose length is equal to len(flist)
+    OUTPUT:
+    * creates a single file (outfile)
+    """
+    import shutil
+    import netCDF4 as nc4
+    nf = len(flist)
+    if len(filt0) != nf:
+        print('ERROR roms_low_pass: inconsistent lengths!')
+    # create the output file
+    shutil.copyfile(flist[0],outfile)
+    # create the Datasets
+    ds = nc4.MFDataset(flist)
+    dsout = nc4.Dataset(outfile,'a')
+    # loop over all variables that have time axes
+    for vn in ds.variables:
+        if 'ocean_time' in ds.variables[vn].dimensions:
+            #print(vn + ' ' + str(ds.variables[vn].shape)) # debugging
+            ndim = len(ds.variables[vn].shape)
+            filt_shape = (nf,)
+            for ii in range(ndim-1):
+                filt_shape = filt_shape + (1,)
+            v = ds.variables[vn][:]
+            filt = filt0.reshape(filt_shape)
+            vf = (filt*v).sum(axis=0)
+            dsout.variables[vn][:] = vf.reshape(dsout.variables[vn].shape)
+    ds.close()
+    dsout.close()
+

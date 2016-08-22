@@ -76,6 +76,8 @@ def intro_2():
     # The purpose of this version is just to handle the new placement of the
     # dot_in forcing files (inside directories named for grids). 8/2/2016
     #
+    # The only change is to alp, and this version is only used by dot_in.
+    #
     # setup
     import os
     import sys
