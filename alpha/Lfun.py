@@ -61,7 +61,7 @@ def dict_to_csv(dict_name, csv_name, write_mode='w'):
     # Write the contents of a dict to a two-column csv file.
     # The write_mode can be wb (overwrite, binary) or ab (append binary).
     # Binary mode is better across platforms.
-    # 2015.11.25 changed to 'w' becasue it was throwing an error in python 3
+    # 2015.11.25 changed to 'w' because it was throwing an error in python 3
     import csv
     with open(csv_name, write_mode) as ff:
         ww = csv.writer(ff)

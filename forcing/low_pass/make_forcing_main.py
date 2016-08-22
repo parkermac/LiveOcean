@@ -86,7 +86,7 @@ zrfun.roms_low_pass(flist, out_fn, filt0)
 #%% prepare for finale
 import collections
 result_dict = collections.OrderedDict()
-time_format = '%Y.%m.%d %H:%m:%S'
+time_format = '%Y.%m.%d %H:%M:%S'
 result_dict['start_time'] = start_time.strftime(time_format)
 end_time = datetime.now()
 result_dict['end_time'] = end_time.strftime(time_format)
