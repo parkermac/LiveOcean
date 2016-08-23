@@ -6,6 +6,9 @@ Also this is the first attempt to use the new forcing functions.
 Performance: 44 sec per day (mac) or ~5 hours per year of days.
     But, it took 70 sec on fjord, and 12 hours for a year
     (no bio variables).
+    8/23/2016 It takes about 345 sec per day on fjord to do
+    a low pass of cascadia1_base_libio1,
+    or about 3 hours per month. (140 sec per day on my mac)
 """
 
 import os

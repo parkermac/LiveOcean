@@ -30,11 +30,11 @@ fi
 # -0 start date: yyyymmdd
 # -1 end date: yyyymmdd
 #
-# example call to do backfill:
-# ./driver_roms.sh -g cascadia1 -t base -x lo1 -s new -r backfill -0 20140201 -1 20140203
+# example call to do backfill, with a cold start:
+# ./driver_roms1.sh -g cascadia1 -t base -x lo1 -s new -r backfill -0 20140201 -1 20140203
 #
 # example call to do forecast:
-# ./driver_roms.sh -g cascadia1 -t base -x lo1 -s continuation -r forecast
+# ./driver_roms1.sh -g cascadia1 -t base -x lo1 -s continuation -r forecast
 #
 # you can also use long names like --ex_name instead of -x
 

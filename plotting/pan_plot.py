@@ -32,10 +32,14 @@ in_dict = dict()
 vlims = dict()
 # If you use () then the limits will be set by the first plot
 # and then held constant at those levels thereafter.
-vlims['salt'] = ()#(20, 34)
-vlims['temp'] = ()#(8, 19)
-vlims['TIC'] = (1950,2100)
-vlims['alkalinity'] = (2000,2300)
+vlims['salt'] = (28, 34)
+vlims['temp'] = (8, 18)
+vlims['NO3'] = (0, 30)
+vlims['phytoplankton'] = (0, 5)
+vlims['zooplankton'] = (0, 0.5)
+vlims['oxygen'] = (0, 240)
+vlims['TIC'] = (2000,2400)
+vlims['alkalinity'] = (2200,2300)
 in_dict['vlims'] = vlims
 
 # OTHER
@@ -63,7 +67,7 @@ Ldir['gtagex'] = Ldir['gtag'] + '_' + args.ex_name
 # choose the type of list to make
 print(30*'*' + ' pan_plot ' + 30*'*')
 print('\n%s\n' % '** Choose List type (return for test) **')
-lt_list = ['test', 'low_pass', 'hindcast', 'forecast', 'old_style']
+lt_list = ['test', 'low_pass', 'hindcast', 'forecast', 'old_style', 'atlantis']
 Nlt = len(lt_list)
 lt_dict = dict(zip(range(Nlt), lt_list))
 for nlt in range(Nlt):
@@ -145,6 +149,11 @@ elif list_type == 'old_style':
         fn = (Ldir['parent'] + 'roms/output/D2005_his/ocean_his_' +
               nhiss + '.nc')
         fn_list.append(fn)
+elif list_type=='atlantis':
+    fn_list = []
+    fn = (Ldir['parent'] + 'roms/output/salish_2006_4_lp/f2006.07.30/' +
+        'low_passed.nc')
+    fn_list.append(fn)
 
 #%% plot
 if len(fn_list) == 1:

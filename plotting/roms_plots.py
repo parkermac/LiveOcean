@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 from importlib import reload
 import zfun
 import zrfun
+import matfun
 import pfun; reload(pfun)
 
 # module defaults (available inside the methods)
@@ -344,16 +345,16 @@ def P_roms_sect(in_dict):
     # GET DATA
     G, S, T = zrfun.get_basic_info(in_dict['fn'])
     h = G['h']
-    zeta = ds.variables['zeta'][:].squeeze()
+    zeta = ds['zeta'][:].squeeze()
     zr = zrfun.get_z(h, zeta, S, only_rho=True)
 
-    varname = 'oxygen'
+    varname = 'salt'
     try:
         vlims[varname]
     except KeyError:
         vlims[varname] = ()
 
-    sectvar = ds.variables[varname][:].squeeze()
+    sectvar = ds[varname][:].squeeze()
 
     L = G['L']
     M = G['M']
@@ -373,8 +374,19 @@ def P_roms_sect(in_dict):
 
     # CREATE THE SECTION
     # create track by hand
-    x = np.linspace(lon.min(), -124, 500)
-    y = 47 * np.ones(x.shape)
+    if False:
+        x = np.linspace(lon.min(), -124, 500)
+        y = 47 * np.ones(x.shape)
+    # or read one in
+    else:
+        import Lfun
+        Ldir = Lfun.Lstart()
+        tracks_path = Ldir['data'] + 'tracks/'
+        which_track = 'jdf2psTrack'
+        # get the track to interpolate onto
+        mat = matfun.loadmat(tracks_path + which_track + '.mat')
+        x = mat['x']
+        y = mat['y']
 
     # create dist
     earth_rad = zfun.earth_rad(np.mean(lat[:,0])) # m
@@ -424,8 +436,9 @@ def P_roms_sect(in_dict):
         fldi = (rowff*(colff*fld[:, row0, col0] + colf*fld[:, row0, col1])
         + rowf*(colff*fld[:, row1, col0] + colf*fld[:, row1, col1]))
         if type(fldi) == np.ma.core.MaskedArray:
-            fldi = fldi.data # just the data, not the mask
-        v3[fname] = fldi
+            fldid = fldi.data # just the data, not the mask
+            fldid[fldi.mask == True] = np.nan
+        v3[fname] = fldidlobio1
     v3['dist'] = dista # distance in km
     # make "full" fields by padding top and bottom
     nana = np.nan * np.ones((N + 2, len(dist))) # blank array
