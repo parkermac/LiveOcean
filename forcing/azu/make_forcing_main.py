@@ -12,6 +12,9 @@ Ldir, Lfun = ffun.intro()
 
 # ****************** CASE-SPECIFIC CODE *****************
 
+from datetime import datetime
+start_time = datetime.now()
+
 # Azure commands
 from azure.storage.blob import BlobService
 
@@ -39,24 +42,34 @@ else:
         nend = 26
     elif Ldir['run_type'] == 'forecast':
         nend = 74 # new three-day forecast 5/25/2015
-    
-result_dict = dict()
-try:        
+
+try:
     for ii in range(2,nend):
         ncpad = '0000' + str(ii)
         ncpad = ncpad[-4:]
         hisname = 'ocean_his_' + ncpad + '.nc'
         dirname = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/' + f_string + '/'
-        fname = dirname + hisname   
+        fname = dirname + hisname
         bname = open(fname, 'rb')
         blob_service.put_block_blob_from_file(containername, hisname, bname)
         print('done putting ' + hisname)
         bname.close()
-    result_dict['result'] = 'success'
+    result = 'success'
 except:
-    result_dict['result'] = 'fail'
+    result = 'fail'
 
-# ************** END CASE-SPECIFIC CODE *****************
+#%% prepare for finale
+import collections
+result_dict = collections.OrderedDict()
+time_format = '%Y.%m.%d %H:%M:%S'
+result_dict['start_time'] = start_time.strftime(time_format)
+end_time = datetime.now()
+result_dict['end_time'] = end_time.strftime(time_format)
+dt_sec = (end_time - start_time).seconds
+result_dict['total_seconds'] = str(dt_sec)
+result_dict['result'] = result
+
+#%% ************** END CASE-SPECIFIC CODE *****************
 
 ffun.finale(result_dict, Ldir, Lfun)
 

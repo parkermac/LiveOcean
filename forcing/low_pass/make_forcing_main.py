@@ -51,7 +51,6 @@ elif Ldir['run_type'] == 'forecast':
     # use the middle day of the last forecast (= yesterday)
     # and today and tomorrow from today's forecast
     date_string = Ldir['date_string']
-    from datetime import datetime, timedelta
     dt_now = datetime.strptime(Ldir['date_string'], '%Y.%m.%d')
     dt_yesterday = dt_now - timedelta(1)
     dt_list = [dt_yesterday, dt_now]
