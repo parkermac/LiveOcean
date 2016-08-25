@@ -7,6 +7,8 @@ Created on Tue Feb  2 14:03:12 2016
 
 """
 Plot results of tracker.
+
+Need to update with new plotting functions.
 """
 
 # setup
@@ -16,7 +18,6 @@ alp = os.path.abspath('../alpha')
 if alp not in sys.path:
     sys.path.append(alp)
 import Lfun
-import zfun
 import matfun
 import matplotlib.pyplot as plt
 import numpy as np

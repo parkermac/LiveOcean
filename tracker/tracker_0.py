@@ -44,7 +44,6 @@ Ldir = Lfun.Lstart()
 # using Ldir['gtagex'] to identify a run.
 
 from importlib import reload
-import zfun
 import zrfun
 import trackfun
 reload(trackfun)

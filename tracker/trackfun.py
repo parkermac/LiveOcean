@@ -352,24 +352,7 @@ def get_V(vn_list, ds, plon, plat, pcs, R):
     return V
 
 def get_fn_list(idt, Ldir):
-
-    if Ldir['gtagex'] in ['cascadia1_base_lo1', 'cascadia1_base_lobio1']:
-        # LiveOcean version
-        #Ldir['gtagex'] = 'cascadia1_base_lo1'
-        # make the list of input history files
-        date_list = []
-        for nday in range(Ldir['days_to_track']):
-            fdt = idt + timedelta(nday)
-            date_list.append(fdt.strftime('%Y.%m.%d'))
-        fn_list = []
-        for dd in date_list:
-            indir = (Ldir['roms'] + 'output/' + Ldir['gtagex'] +
-                    '/f' + dd + '/')
-            for hh in range(2,26):
-                hhhh = ('0000' + str(hh))[-4:]
-                fn_list.append(indir + 'ocean_his_' + hhhh + '.nc')
-
-    elif Ldir['gtagex'] == 'D2005_his':
+    if Ldir['gtagex'] == 'D2005_his':
         # Other ROMS runs version
         indir = '/Users/PM5/Documents/roms/output/' + Ldir['gtagex'] + '/'
         save_num_list = range(1,365*24)
@@ -385,5 +368,21 @@ def get_fn_list(idt, Ldir):
             hh = save_dt_num_dict[idt + timedelta(hours=hh)]
             hhhh = ('0000' + str(hh))[-4:]
             fn_list.append(indir + 'ocean_his_' + hhhh + '.nc')
+    else:
+        # LiveOcean version
+        # make the list of input history files
+        date_list = []
+        for nday in range(Ldir['days_to_track']):
+            fdt = idt + timedelta(nday)
+            date_list.append(fdt.strftime('%Y.%m.%d'))
+        fn_list = []
+        for dd in date_list:
+            indir = (Ldir['roms'] + 'output/' + Ldir['gtagex'] +
+                    '/f' + dd + '/')
+            for hh in range(2,26):
+                hhhh = ('0000' + str(hh))[-4:]
+                fn_list.append(indir + 'ocean_his_' + hhhh + '.nc')
+
+
 
     return fn_list

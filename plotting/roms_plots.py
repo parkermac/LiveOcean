@@ -249,7 +249,7 @@ def P_layer(in_dict):
         plt.show()
     return out_dict
 
-def P_nest_plot(in_dict):
+def P_nest(in_dict):
     # plots a field nested inside the corresponding HYCOM field
     # - currently only works for salt and temp -
 
@@ -331,7 +331,7 @@ def P_nest_plot(in_dict):
         plt.show()
     return out_dict
 
-def P_roms_sect(in_dict):
+def P_sect(in_dict):
     # plots a section (distance, z)
 
     # START
@@ -341,6 +341,12 @@ def P_roms_sect(in_dict):
     out_dict['vlims'] = vlims
 
     # PLOT CODE
+    from warnings import filterwarnings
+    filterwarnings('ignore') # skip this warning message:
+    #/Applications/anaconda/lib/python3.5/site-packages/
+    #matplotlib/colors.py:581: RuntimeWarning:
+    #invalid value encountered in less
+    #cbook._putmask(xa, xa < 0.0, -1)
 
     # GET DATA
     G, S, T = zrfun.get_basic_info(in_dict['fn'])
@@ -438,7 +444,7 @@ def P_roms_sect(in_dict):
         if type(fldi) == np.ma.core.MaskedArray:
             fldid = fldi.data # just the data, not the mask
             fldid[fldi.mask == True] = np.nan
-        v3[fname] = fldidlobio1
+        v3[fname] = fldid
     v3['dist'] = dista # distance in km
     # make "full" fields by padding top and bottom
     nana = np.nan * np.ones((N + 2, len(dist))) # blank array
@@ -497,6 +503,120 @@ def P_roms_sect(in_dict):
     ax.set_xlabel('Distance (km)')
     ax.set_ylabel('Z (m)')
     ax.set_title(varname)
+
+    # FINISH
+    ds.close()
+    if len(in_dict['fn_out']) > 0:
+        plt.savefig(in_dict['fn_out'])
+        plt.close()
+    else:
+        plt.show()
+    return out_dict
+
+def P_tracks(in_dict):
+    # use tracker to create surface drifter tracks
+
+    # START
+    fig = plt.figure(figsize=(12, 12))
+    ds = nc.Dataset(in_dict['fn'])
+    vlims = in_dict['vlims'].copy()
+    out_dict['vlims'] = vlims
+
+    # TRACKS
+    import os
+    import sys
+    pth = os.path.abspath('../tracker')
+    if pth not in sys.path:
+        sys.path.append(pth)
+    import trackfun
+    # some run specifications
+    gtagex = 'cascadia1_base_lobio1' # 'cascadia1_base_lo1' or 'D2005_his'
+    ic_name = 'test' # 'jdf' or 'cr' or etc.
+    dir_tag = 'forward' # 'forward' or 'reverse'
+    method = 'rk4' # 'rk2' or 'rk4'
+    surface = True # Boolean, True for trap to surface
+    windage = 0.0 # a small number >= 0 [0.02]
+    ndiv = 1 # number of divisions to make between saves for the integration
+
+    # need to get Ldir, which means unpacking gtagex
+    fn = in_dict['fn']
+    gtagex = fn.split('/')[-3]
+    gtx_list = gtagex.split('_')
+    import Lfun
+    Ldir = Lfun.Lstart(gtx_list[0], gtx_list[1])
+
+    G, S, T = zrfun.get_basic_info(fn)
+    from datetime import datetime
+    idt = datetime(T['tm'].year,T['tm'].month,T['tm'].day)
+    days_to_track = 1
+
+    x0 = G['lon_rho'][0, 1]
+    x1 = G['lon_rho'][0, -2]
+    y0 = G['lat_rho'][1, 0]
+    y1 = G['lat_rho'][-2, 0]
+    nyp = 50
+    mlr = np.pi*(np.mean([y0, y1]))/180
+    xyRatio = np.cos(mlr) * (x1 - x0) / (y1 - y0)
+    lonvec = np.linspace(x0, x1, (nyp * xyRatio).astype(int))
+    latvec = np.linspace(y0, y1, nyp)
+    lonmat, latmat = np.meshgrid(lonvec, latvec)
+    plon00 = lonmat.flatten()
+    plat00 = latmat.flatten()
+    pcs00 = np.array([-.05]) # unimportant when surface=True
+
+    # save some things in Ldir
+    Ldir['gtagex'] = gtagex
+    Ldir['ic_name'] = ic_name
+    Ldir['dir_tag'] = dir_tag
+    Ldir['method'] = method
+    Ldir['surface'] = surface
+    Ldir['windage'] = windage
+    Ldir['ndiv'] = ndiv
+    Ldir['days_to_track'] = days_to_track
+
+    # make the full IC vectors, which will have equal length
+    # (one value for each particle)
+    NSP = len(pcs00)
+    NXYP = len(plon00)
+    plon0 = plon00.reshape(NXYP,1) * np.ones((NXYP,NSP))
+    plat0 = plat00.reshape(NXYP,1) * np.ones((NXYP,NSP))
+    pcs0 = np.ones((NXYP,NSP)) * pcs00.reshape(1,NSP)
+    plon0 = plon0.flatten()
+    plat0 = plat0.flatten()
+    pcs0 = pcs0.flatten()
+
+    fn_list = trackfun.get_fn_list(idt, Ldir)
+
+    # DO THE TRACKING
+    import time
+    tt0 = time.time()
+    # run some code
+    P, Gtr, Str = trackfun.get_tracks(fn_list, plon0, plat0, pcs0,
+                                  dir_tag, method, surface, ndiv, windage)
+    print('  took %0.1f seconds' % (time.time() - tt0))
+
+    # PLOT CODE
+
+    # panel 1
+    t_str = 'Surface Temperature'
+    ax = fig.add_subplot(111)
+    vn = 'temp'
+    cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn,
+            vlims=vlims[vn], cmap='bwr')
+    fig.colorbar(cs)
+    pfun.add_bathy_contours(ax, ds)
+    pfun.add_coast(ax)
+    ax.axis(pfun.get_aa(ds))
+    pfun.dar(ax)
+    ax.set_xlabel('Longitude')
+    ax.set_ylabel('Latitude')
+    ax.set_title(t_str)
+    pfun.add_info(ax, in_dict['fn'])
+
+    # add the tracks
+    ax.plot(P['lon'], P['lat'], '-k')
+    ax.plot(P['lon'][0,:],P['lat'][0,:],'ok',
+            markersize=3, alpha = .4, markeredgecolor='k')
 
     # FINISH
     ds.close()
