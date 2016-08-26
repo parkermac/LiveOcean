@@ -21,7 +21,7 @@ parser = argparse.ArgumentParser()
 # optional arguments
 parser.add_argument("-g", "--gridname", type=str, default='cascadia1')
 parser.add_argument("-t", "--tag", type=str, default='base')
-parser.add_argument("-x", "--ex_name", type=str, default='lo1')
+parser.add_argument("-x", "--ex_name", type=str, default='lobio1')
 parser.add_argument("-nd", "--num_days", type=int, default=30)
 args = parser.parse_args()
 
@@ -90,7 +90,7 @@ try:
             f_df.ix[f_string, 'his'] = str(int(flh[-1][10:14]))
 except:
     pass
-    
+
 # what has been pushed to Azure (just the last num_days)
 from azure.storage.blob import BlobService
 azu_dict = Lfun.csv_to_dict(Ldir['data'] + 'accounts/azure_pm_2015.05.25.csv')
