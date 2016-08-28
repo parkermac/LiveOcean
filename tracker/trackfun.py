@@ -1,5 +1,9 @@
 """
 Functions for particle tracking.
+
+8/28/2016 Added code to speed things up (by a factor of 12 in testing!) when
+surface == True.
+
 """
 # setup
 import numpy as np
@@ -77,7 +81,7 @@ def get_tracks(fn_list, plon0, plat0, pcs0, dir_tag,
         if counter == 0:
 
             # remove points on land
-            SALT = get_V(['salt'], ds0, plonA, platA, pcsA, R)
+            SALT = get_V(['salt'], ds0, plonA, platA, pcsA, R, surface)
             SALT = SALT.flatten()
             plon = plonA[~np.isnan(SALT)].copy()
             plat = platA[~np.isnan(SALT)].copy()
@@ -99,7 +103,7 @@ def get_tracks(fn_list, plon0, plat0, pcs0, dir_tag,
                 pcs[:] = S['Cs_r'][-1]
             P['cs'][it0,:] = pcs
 
-            P = get_properties(vn_list_other, ds0, it0, P, plon, plat, pcs, R)
+            P = get_properties(vn_list_other, ds0, it0, P, plon, plat, pcs, R, surface)
 
         delt = delta_t/ndiv
 
@@ -113,22 +117,22 @@ def get_tracks(fn_list, plon0, plat0, pcs0, dir_tag,
                 # RK4 integration
 
                 V0, ZH0 = get_vel(vn_list_vel, vn_list_zh,
-                                           ds0, ds1, plon, plat, pcs, R, fr0)
+                                           ds0, ds1, plon, plat, pcs, R, fr0, surface)
 
                 plon1, plat1, pcs1 = update_position(V0, ZH0, S, delt/2,
                                                      plon, plat, pcs, surface)
                 V1, ZH1 = get_vel(vn_list_vel, vn_list_zh,
-                                           ds0, ds1, plon1, plat1, pcs1, R, frmid)
+                                           ds0, ds1, plon1, plat1, pcs1, R, frmid, surface)
 
                 plon2, plat2, pcs2 = update_position(V1, ZH1, S, delt/2,
                                                      plon, plat, pcs, surface)
                 V2, ZH2 = get_vel(vn_list_vel, vn_list_zh,
-                                           ds0, ds1, plon2, plat2, pcs2, R, frmid)
+                                           ds0, ds1, plon2, plat2, pcs2, R, frmid, surface)
 
                 plon3, plat3, pcs3 = update_position(V2, ZH2, S, delt,
                                                      plon, plat, pcs, surface)
                 V3, ZH3 = get_vel(vn_list_vel, vn_list_zh,
-                                           ds0, ds1, plon3, plat3, pcs3, R, fr1)
+                                           ds0, ds1, plon3, plat3, pcs3, R, fr1, surface)
 
                 # add windage, calculated from the middle time
                 if (surface == True) and (windage > 0):
@@ -144,12 +148,12 @@ def get_tracks(fn_list, plon0, plat0, pcs0, dir_tag,
             elif method == 'rk2':
                 # RK2 integration
                 V0, ZH0 = get_vel(vn_list_vel, vn_list_zh,
-                                           ds0, ds1, plon, plat, pcs, R, fr0)
+                                           ds0, ds1, plon, plat, pcs, R, fr0, surface)
 
                 plon1, plat1, pcs1 = update_position(V0, ZH0, S, delt/2,
                                                      plon, plat, pcs, surface)
                 V1, ZH1 = get_vel(vn_list_vel, vn_list_zh,
-                                           ds0, ds1, plon1, plat1, pcs1, R,frmid)
+                                           ds0, ds1, plon1, plat1, pcs1, R,frmid, surface)
 
                 # add windage, calculated from the middle time
                 if (surface == True) and (windage > 0):
@@ -167,7 +171,7 @@ def get_tracks(fn_list, plon0, plat0, pcs0, dir_tag,
         if surface == True:
             pcs[:] = S['Cs_r'][-1]
         P['cs'][it1,:] = pcs
-        P = get_properties(vn_list_other, ds1, it1, P, plon, plat, pcs, R)
+        P = get_properties(vn_list_other, ds1, it1, P, plon, plat, pcs, R, surface)
 
         ds0.close()
         ds1.close()
@@ -211,17 +215,17 @@ def update_position(V, ZH, S, delta_t, plon, plat, pcs, surface):
 
     return Plon, Plat, Pcs
 
-def get_vel(vn_list_vel, vn_list_zh, ds0, ds1, plon, plat, pcs, R, frac):
+def get_vel(vn_list_vel, vn_list_zh, ds0, ds1, plon, plat, pcs, R, frac, surface):
     # get the velocity, zeta, and h at all points, at an arbitrary
     # time between two saves
     # "frac" is the fraction of the way between the times of ds0 and ds1
     # 0 <= frac <= 1
-    V0 = get_V(vn_list_vel, ds0, plon, plat, pcs, R)
-    V1 = get_V(vn_list_vel, ds1, plon, plat, pcs, R)
+    V0 = get_V(vn_list_vel, ds0, plon, plat, pcs, R, surface)
+    V1 = get_V(vn_list_vel, ds1, plon, plat, pcs, R, surface)
     V0[np.isnan(V0)] = 0.0
     V1[np.isnan(V1)] = 0.0
-    ZH0 = get_V(vn_list_zh, ds0, plon, plat, pcs, R)
-    ZH1 = get_V(vn_list_zh, ds1, plon, plat, pcs, R)
+    ZH0 = get_V(vn_list_zh, ds0, plon, plat, pcs, R, surface)
+    ZH1 = get_V(vn_list_zh, ds1, plon, plat, pcs, R, surface)
     V = (1 - frac)*V0 + frac*V1
     ZH = (1 - frac)*ZH0 + frac*ZH1
 
@@ -240,9 +244,9 @@ def get_wind(vn_list_wind, ds0, ds1, plon, plat, pcs, R, frac):
 
     return V
 
-def get_properties(vn_list_other, ds, it, P, plon, plat, pcs, R):
+def get_properties(vn_list_other, ds, it, P, plon, plat, pcs, R, surface):
     # find properties at a position
-    OTH = get_V(vn_list_other, ds, plon, plat, pcs, R)
+    OTH = get_V(vn_list_other, ds, plon, plat, pcs, R, surface)
     for vn in vn_list_other:
         P[vn][it,:] = OTH[:,vn_list_other.index(vn)]
     this_zeta = OTH[:, vn_list_other.index('zeta')]
@@ -253,7 +257,7 @@ def get_properties(vn_list_other, ds, it, P, plon, plat, pcs, R):
 
     return P
 
-def get_V(vn_list, ds, plon, plat, pcs, R):
+def get_V(vn_list, ds, plon, plat, pcs, R, surface):
 
     from warnings import filterwarnings
     filterwarnings('ignore') # skip some warning messages
@@ -266,7 +270,7 @@ def get_V(vn_list, ds, plon, plat, pcs, R):
     i1lat_d = dict()
     frlat_d = dict()
     for gg in ['r', 'u', 'v']:
-        exn = False
+        exn = False # why False? 8/28/2016
         i0lon_d[gg], i1lon_d[gg], frlon_d[gg] = zfun.get_interpolant(
                 plon, R['rlon'+gg], extrap_nan=exn)
         i0lat_d[gg], i1lat_d[gg], frlat_d[gg] = zfun.get_interpolant(
@@ -300,14 +304,17 @@ def get_V(vn_list, ds, plon, plat, pcs, R):
         i1lon = i1lon_d[gg]
         frlon = frlon_d[gg]
         # get the data field and put nan's in masked points
-        v0 = ds.variables[vn][:].squeeze()
+        if vn in ['salt','temp','u','v','w'] and surface==True:
+            v0 = ds[vn][0, -1, :, :].squeeze()
+        else:
+            v0 = ds[vn][:].squeeze()
         try:
             vv = v0.data
             vv[v0.mask] = np.nan
         except AttributeError:
             # it is not a masked array
             vv = v0
-        if vn in ['salt','temp','u','v','w']:
+        if vn in ['salt','temp','u','v','w'] and surface==False:
             # Get just the values around our particle positions.
             # each row in VV corresponds to a "box" around a point
             VV = np.nan* np.ones((NP, 8))
@@ -335,6 +342,27 @@ def get_V(vn_list, ds, plon, plat, pcs, R):
             vu = ( (1-frlat)*((1-frlon)*VV[:,4] + frlon*VV[:,5])
                 + frlat*((1-frlon)*VV[:,6] + frlon*VV[:,7]) )
             v = (1-frcs)*vl + frcs*vu
+        elif vn in ['salt','temp','u','v','w'] and surface==True:
+            VV = np.nan* np.ones((NP, 4))
+            VV[:,0] = vv[i0lat, i0lon]
+            VV[:,1] = vv[i0lat, i1lon]
+            VV[:,2] = vv[i1lat, i0lon]
+            VV[:,3] = vv[i1lat, i1lon]
+            # Work on edge values.  If all in a box are masked
+            # then that row will be nan's, and also:
+            if vn in ['u', 'v', 'w']:
+                # set all velocities to zero if any in the box are masked
+                VV[np.isnan(VV).any(axis=1), :] = 0
+            elif vn in ['salt','temp']:
+                # set all tracers to their average if any in the box are masked
+                newval = np.nanmean(VV, axis=1).reshape(NP, 1) * np.ones((1,4))
+                mask = np.isnan(VV)
+                VV[mask] = newval[mask]
+            newval = np.nanmean(VV, axis=1).reshape(NP, 1) * np.ones((1,4))
+            mask = np.isnan(VV)
+            VV[mask] = newval[mask]
+            v = ( (1-frlat)*((1-frlon)*VV[:,0] + frlon*VV[:,1])
+                + frlat*((1-frlon)*VV[:,2] + frlon*VV[:,3]) )
         elif vn in ['zeta','Uwind','Vwind', 'h']:
             VV = np.nan* np.ones((NP, 4))
             VV[:,0] = vv[i0lat, i0lon]

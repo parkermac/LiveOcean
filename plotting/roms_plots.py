@@ -529,14 +529,6 @@ def P_tracks(in_dict):
     if pth not in sys.path:
         sys.path.append(pth)
     import trackfun
-    # some run specifications
-    gtagex = 'cascadia1_base_lobio1' # 'cascadia1_base_lo1' or 'D2005_his'
-    ic_name = 'test' # 'jdf' or 'cr' or etc.
-    dir_tag = 'forward' # 'forward' or 'reverse'
-    method = 'rk4' # 'rk2' or 'rk4'
-    surface = True # Boolean, True for trap to surface
-    windage = 0.0 # a small number >= 0 [0.02]
-    ndiv = 1 # number of divisions to make between saves for the integration
 
     # need to get Ldir, which means unpacking gtagex
     fn = in_dict['fn']
@@ -545,16 +537,29 @@ def P_tracks(in_dict):
     import Lfun
     Ldir = Lfun.Lstart(gtx_list[0], gtx_list[1])
 
+    # some run specifications
+    ic_name = 'test' # 'jdf' or 'cr' or etc.
+    dir_tag = 'forward' # 'forward' or 'reverse'
+    method = 'rk4' # 'rk2' or 'rk4'
+    surface = True # Boolean, True for trap to surface
+    windage = 0.0 # a small number >= 0 [0.02]
+    ndiv = 1 # number of divisions to make between saves for the integration
+
     G, S, T = zrfun.get_basic_info(fn)
-    from datetime import datetime
-    idt = datetime(T['tm'].year,T['tm'].month,T['tm'].day)
-    days_to_track = 1
+
+    in_dir = fn[:fn.rindex('/')+1]
+    fn_list_raw = os.listdir(in_dir)
+    fn_list = []
+    for item in fn_list_raw:
+        if 'ocean_his' in item:
+            fn_list.append(in_dir + item)
+    ndays = round(len(fn_list)/24)
 
     x0 = G['lon_rho'][0, 1]
     x1 = G['lon_rho'][0, -2]
     y0 = G['lat_rho'][1, 0]
     y1 = G['lat_rho'][-2, 0]
-    nyp = 50
+    nyp = 30
     mlr = np.pi*(np.mean([y0, y1]))/180
     xyRatio = np.cos(mlr) * (x1 - x0) / (y1 - y0)
     lonvec = np.linspace(x0, x1, (nyp * xyRatio).astype(int))
@@ -572,7 +577,6 @@ def P_tracks(in_dict):
     Ldir['surface'] = surface
     Ldir['windage'] = windage
     Ldir['ndiv'] = ndiv
-    Ldir['days_to_track'] = days_to_track
 
     # make the full IC vectors, which will have equal length
     # (one value for each particle)
@@ -585,8 +589,6 @@ def P_tracks(in_dict):
     plat0 = plat0.flatten()
     pcs0 = pcs0.flatten()
 
-    fn_list = trackfun.get_fn_list(idt, Ldir)
-
     # DO THE TRACKING
     import time
     tt0 = time.time()
@@ -598,7 +600,7 @@ def P_tracks(in_dict):
     # PLOT CODE
 
     # panel 1
-    t_str = 'Surface Temperature'
+    t_str = 'Surface Temperature and ' + str(ndays) + ' day Tracks'
     ax = fig.add_subplot(111)
     vn = 'temp'
     cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn,
