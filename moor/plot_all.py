@@ -118,7 +118,7 @@ mdt = mdates.num2date(mdays) # list of datetimes of data
 dt_ticks = []
 dt_ticks_yr = []
 dt_ticklabels = []
-for yr in [2013, 2014, 2015]:
+for yr in [2013, 2014, 2015, 2016]:
     for mo in [1, 7]:
         dt = datetime(yr, mo, 1).date()
         if dt > mdt[0].date() and dt < mdt[-1].date():
@@ -137,7 +137,7 @@ for vn in list_to_plot:
     if V[vn].ndim == 2:
         ax.plot(mdt, V[vn][-1,:], '-r')
         ax.plot(mdt, V[vn][nmid,:],'-g')
-        ax.plot(mdt, V[vn][8,:], '-b')
+        ax.plot(mdt, V[vn][0,:], '-b')
     elif V[vn].ndim == 1:
         ax.plot(mdt, V[vn])
 

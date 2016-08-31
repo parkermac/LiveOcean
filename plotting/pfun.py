@@ -60,15 +60,23 @@ def get_units(ds, vn):
         units = ''
     return units
 
-def add_bathy_contours(ax, ds, depth_levs = []):
-    if len(depth_levs) == 0:
-        depth_levs = [100, 200, 500, 1000, 2000, 3000]
+def add_bathy_contours(ax, ds, depth_levs = [], txt=False):
     h = ds['h'][:]
     lon = ds['lon_rho'][:]
     lat = ds['lat_rho'][:]
-    ax.contour(lon, lat, h, depth_levs, colors='g')
+    if len(depth_levs) == 0:
+        ax.contour(lon, lat, h, [200], colors='k')
+        ax.contour(lon, lat, h, [2000], colors='g')
+        if txt==True:
+            ax.text(.95, .95, '200 m', color='k',
+                    horizontalalignment='right',
+                    transform=ax.transAxes)
+            ax.text(.95, .92, '2000 m', color='g',
+                    horizontalalignment='right',transform=ax.transAxes)
+    else:
+        ax.contour(lon, lat, h, depth_levs, colors='g')
 
-def add_map_field(ax, ds, varname, slev=-1, vlims=(), cmap='rainbow'):
+def add_map_field(ax, ds, varname, slev=-1, vlims=(), cmap='rainbow', fac=1):
     cmap = plt.get_cmap(name=cmap)
     if 'lon_rho' in ds[varname].coordinates:
         x = ds['lon_psi'][:]
@@ -84,7 +92,7 @@ def add_map_field(ax, ds, varname, slev=-1, vlims=(), cmap='rainbow'):
         v = ds[varname][0, slev, 1:-1, :].squeeze()
     if len(vlims) == 0:
         vlims = auto_lims(v)
-    cs = ax.pcolormesh(x, y, v, vmin=vlims[0], vmax=vlims[1], cmap=cmap)
+    cs = ax.pcolormesh(x, y, v*fac, vmin=vlims[0], vmax=vlims[1], cmap=cmap)
     return cs, vlims
 
 def add_velocity_vectors(ax, ds, fn, v_scl=3, v_leglen=0.5):

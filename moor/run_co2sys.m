@@ -35,7 +35,7 @@ end
 %     disp(varname_list{ii})
 % end
 
-var2get_list = {'TIC','alkalinity','salt','temp'};
+var2get_list = {'TIC','alkalinity','salt','temp','z_rho'};
 for vv = 1:length(var2get_list)
     var2get = var2get_list{vv};
     tf = strcmp(var2get,varname_list);
@@ -59,26 +59,29 @@ end
 s_rho_id = netcdf.inqDimID(ncid,'s_rho');
 ot_id = netcdf.inqDimID(ncid,'ocean_time');
 
-%netcdf.close(ncid)
-
-
 if 1
     % % prepare vectors for calculation (no need to strip NaNs)
-    Dic = TIC(:);
-    Ta = alkalinity(:);
-    Salt = salt(:);
-    Temp = temp(:);
-    
+    DIC0 = TIC(:);
+    ALK0 = alkalinity(:);
+    SALT = salt(:);
+    THETA = temp(:);
+    Z_RHO = z_rho(:);
+    PRES = sw_pres(-Z_RHO, 45);
+    TEMP = sw_ptmp(SALT, THETA, 0, PRES);
+    DEN = sw_dens(SALT, TEMP, PRES);
+    DIC = 1000*DIC0./DEN;
+    ALK = 1000*ALK0./DEN;
+        
     %% carbon calc
     
     % We break up the calculation into chunks "nn" long, to avoid
     % overwhelming the function call (performance degrades as nn -> NN).
     
-    NN = length(Salt);
+    NN = length(SALT);
     nn = 1000;
     
-    PH = NaN * Salt;
-    ARAG = NaN * Salt;
+    PH = NaN * SALT;
+    ARAG = NaN * SALT;
     
     tic
     
@@ -86,31 +89,30 @@ if 1
         
         i1 = i0 + nn - 1;
         if i1 > NN; i1 = NN; end;
-        
-        %disp(['i0 = ',num2str(i0),' i1 = ',num2str(i1)])
-        
-        par1type =    1; % The first parameter supplied is of type "1", which is "alkalinity"
-        par1     = Ta(i0:i1); % value of the first parameter
-        par2type =    2; % The first parameter supplied is of type "1", which is "DIC"
-        par2     = Dic(i0:i1); % value of the second parameter, which is a long vector of different DIC's!
-        sal      =  Salt(i0:i1); % Salinity of the sample
-        tempin   =   Temp(i0:i1); % Temperature at input conditions
-        presin   =    0; % Pressure    at input conditions
-        tempout  =    0; % Temperature at output conditions - doesn't matter in this example
-        presout  =    0; % Pressure    at output conditions - doesn't matter in this example
-        sil      =   50; % Concentration of silicate  in the sample (in umol/kg)
-        po4      =    2; % Concentration of phosphate in the sample (in umol/kg)
-        pHscale  =    1; % pH scale at which the input pH is reported ("1" means "Total Scale")  - doesn't matter in this example
-        k1k2c    =    10; % Choice of H2CO3 and HCO3- dissociation constants K1 and K2 ("4" means "Mehrbach refit")
-        kso4c    =    1; % Choice of HSO4- dissociation constants KSO4 ("1" means "Dickson")
-        
+                
+        % Assume in mean in situ, and out means at the surface (changes pressure)
+        PAR1 = ALK(i0:i1); %  (some unit) : scalar or vector of size n
+        PAR2 = DIC(i0:i1); %  (some unit) : scalar or vector of size n
+        PAR1TYPE = 1; %      () : scalar or vector of size n (*)
+        PAR2TYPE = 2; %     () : scalar or vector of size n (*)
+        SAL = SALT(i0:i1); %            () : scalar or vector of size n
+        TEMPIN = TEMP(i0:i1); %  (degr. C) : scalar or vector of size n
+        TEMPOUT = THETA(i0:i1); % (degr. C) : scalar or vector of size n
+        PRESIN = PRES(i0:i1); %     (dbar) : scalar or vector of size n
+        PRESOUT = 0; %   (dbar) : scalar or vector of size n
+        SI = 50; %    (umol/kgSW) : scalar or vector of size n
+        PO4 = 2; %   (umol/kgSW) : scalar or vector of size n
+        pHSCALEIN = 1; %        : scalar or vector of size n (**)
+        K1K2CONSTANTS = 10; %     : scalar or vector of size n (***)
+        KSO4CONSTANTS = 1; %    : scalar or vector of size n (****)
+                
         % Do the calculation. See CO2SYS's help for syntax and output format
-        A = CO2SYS_PM(par1,par2,par1type,par2type,sal, ...
-            tempin,tempout,presin,presout, ...
-            sil,po4,pHscale,k1k2c,kso4c);
-        PH(i0:i1) = A(:,18);
+        A=CO2SYS_PM(PAR1,PAR2,PAR1TYPE,PAR2TYPE,...
+            SAL,TEMPIN,TEMPOUT,PRESIN,PRESOUT,SI,PO4,pHSCALEIN,...
+            K1K2CONSTANTS,KSO4CONSTANTS);
+        PH(i0:i1) = A(:,3);
         ARAG(i0:i1) = A(:,16);
-        clear A par1 par2 sal tempin presin
+        clear A PAR1 PAR2 SAL TEMPIN PRESIN
         
     end
     
@@ -140,7 +142,7 @@ if 1
             varid = netcdf.defVar(ncid,var2put,'double',[ot_id, s_rho_id]);
             netcdf.putVar(ncid,varid,var_temp)
         end
-    end   
+    end
 end
 
 netcdf.close(ncid);

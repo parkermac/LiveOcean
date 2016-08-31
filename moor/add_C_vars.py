@@ -57,4 +57,4 @@ proc = subprocess.Popen(run_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 out, err = proc.communicate() # "out" is the screen output of the matlab code
 #print(out.decode())
 
-zfun.ncd(fn)
+#zfun.ncd(fn)

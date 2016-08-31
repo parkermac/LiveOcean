@@ -1434,7 +1434,7 @@ TSF =TS(F);  KSF =KS(F);  TFF =TF(F);   KFF=KF(F);
 vl          = sum(F);  % VectorLength
 pHGuess     = 8;       % this is the first guess
 %pHTol       = 0.0001;  % tolerance for iterations end ORIGINAL
-pHTol       = 0.01;  % tolerance for iterations end NEW MacCready 10/29/2015
+pHTol       = 0.0001;  % tolerance for iterations end NEW MacCready 10/29/2015
 ln10        = log(10); %
 pHx(1:vl,1) = pHGuess; % creates a vector holding the first guess for all samples
 deltapH     = pHTol+1;

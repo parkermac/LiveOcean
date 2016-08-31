@@ -34,12 +34,12 @@ vlims = dict()
 # and then held constant at those levels thereafter.
 vlims['salt'] = (28, 34)
 vlims['temp'] = (8, 18)
-vlims['NO3'] = (0, 30)
-vlims['phytoplankton'] = (0, 5)
-vlims['zooplankton'] = (0, 0.5)
-vlims['oxygen'] = (0, 240)
+vlims['NO3'] = (0, 40)
+vlims['phytoplankton'] = (0, 40)
+vlims['zooplankton'] = (0, 4)
+vlims['oxygen'] = (0, 4) # for bottom DO (ml L-1)
 vlims['TIC'] = (2000,2400)
-vlims['alkalinity'] = (2200,2300)
+vlims['alkalinity'] = (2000,2400)
 in_dict['vlims'] = vlims
 
 # OTHER
@@ -54,7 +54,7 @@ parser.add_argument('-t', '--tag', nargs='?', type=str,
 parser.add_argument('-x', '--ex_name', nargs='?', type=str,
                     default='lobio1')
 parser.add_argument('-d', '--date_string', nargs='?', type=str,
-                    default='2016.08.25')
+                    default='2016.08.31')
 parser.add_argument('-hs', '--hour_string', nargs='?', type=str,
                     default='02')
 parser.add_argument('-nd', '--num_days', nargs='?', type=int,
