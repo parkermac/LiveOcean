@@ -6,7 +6,17 @@ Created on Wed Sep  7 15:44:54 2016
 
 This is the main program for making the TIDE forcing file.
 
-It is designed for Analytical runs.
+** It is designed for Analytical runs. **
+
+To test from python:
+
+cd /Users/PM5/Documents/LiveOcean/forcing/tideA
+
+run make_forcing_main.py -g aestus1 -t A1 -f tideA -d 20130102
+
+To test from the command line:
+
+./driver_forcing1.sh -g aestus1 -t A1 -f tideA -r backfill -0 20130101 -1 20130101
 
 """
 
