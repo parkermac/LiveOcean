@@ -39,7 +39,7 @@ import numpy as np
 start_time = datetime.now()
 
 out_fn = Ldir['LOogf_f'] + 'tides.nc'
-grid_fn = Ldir['grids'] + Ldir['gridname'] + '/grid.nc'
+grid_fn = Ldir['grid'] + 'grid.nc'
 
 [G] = zrfun.get_basic_info(grid_fn, getS=False, getT=False)
 

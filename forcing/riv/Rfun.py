@@ -241,9 +241,8 @@ def get_rivers_dataframe(Ldir):
     import pandas as pd
 
     # get the list of rivers that we need for this run
-    rnames_frame = pd.read_csv(Ldir['data'] + 'grids/' + Ldir['gridname'] +
-                        '/rname_list.txt', header=None,
-        names=['River Name'])
+    rnames_frame = pd.read_csv(Ldir['grid'] +
+        '/rname_list.txt', header=None, names=['River Name'])
     rnames_full = rnames_frame['River Name'].values
     rnames_full = rnames_full.tolist()
 

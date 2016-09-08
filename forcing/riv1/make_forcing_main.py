@@ -73,7 +73,7 @@ Info['datestring_end'] = dt1.strftime('%Y.%m.%d')
 
 #%% Load a dataframe with info for rivers to get
 
-ri_fn = Ldir['run'] + 'river_info.csv'
+ri_fn = Ldir['grid'] + 'river_info.csv'
 df = pd.read_csv(ri_fn, index_col='rname')
 
 #%% associate rivers with ones that have temperature climatology data
@@ -178,7 +178,7 @@ for rn in df.index:
 
 #%% calculations for vertical distribution
 
-S_info_dict = Lfun.csv_to_dict(Ldir['grids']+Ldir['gridname']+'/S_COORDINATE_INFO.csv')
+S_info_dict = Lfun.csv_to_dict(Ldir['grid'] + 'S_COORDINATE_INFO.csv')
 S = zrfun.get_S(S_info_dict)
 
 #%% save the output to NetCDF

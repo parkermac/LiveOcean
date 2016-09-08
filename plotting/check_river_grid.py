@@ -34,7 +34,7 @@ f_string = 'f2013.01.01'
 
 fn_riv = Ldir['LOo'] + Ldir['gtag'] + '/' + f_string + '/riv1/rivers.nc'
 
-fn_grid = Ldir['run'] + 'grid.nc'
+fn_grid = Ldir['grid'] + 'grid.nc'
 
 dsr = nc.Dataset(fn_riv)
 
