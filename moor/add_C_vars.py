@@ -22,13 +22,12 @@ if alp not in sys.path:
 import Lfun
 #from importlib import reload
 #reload(Lfun)
-import zfun
 
 Ldir = Lfun.Lstart()
 indir = Ldir['LOo'] + 'moor/'
 
 # choose the type of plot to make
-print('\n%s\n' % '** Choose mooring file to plot **')
+print('\n%s\n' % '** Choose mooring file to add C vars to **')
 m_list_raw = os.listdir(indir)
 m_list = []
 for m in m_list_raw:

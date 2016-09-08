@@ -45,7 +45,7 @@ fac_dict =  {'salt': 1,
              'NO3': 1,
              'phytoplankton': 2.5,
              'zooplankton': 2.5,
-             'oxygen': 0.032/1.4276,
+             'oxygen': 0.032/1.42903, # convert mmol m-3 to ml L-1
              'TIC': 1,
              'alkalinity': 1}
 

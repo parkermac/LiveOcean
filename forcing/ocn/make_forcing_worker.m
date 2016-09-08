@@ -16,9 +16,10 @@ start_time = datenum(now);
 addpath('./ocn_fun');
 
 % the ROMS grid Info
-resdir = [Ldir.res,Ldir.gridname,'/'];
-gridfile = [resdir,'grid.nc'];
-load([resdir,'S.mat']);
+%resdir = [Ldir.res,Ldir.gridname,'/'];
+gdir = [Ldir.data,'grids/',Ldir.gridname,'/'];
+gridfile = [gdir,'grid.nc'];
+load([gdir,'S.mat']);
 
 % this is where the processed HYCOM files are - from python
 indir0 = [outdir,'Data/'];
@@ -276,10 +277,11 @@ outvar_list = {'ocean_clm','ocean_ini','ocean_bry'};
 t_datenum = ts_to_get/86400 + datenum(1970,1,1);
 
 %% Final output
+datestr_format = 'yyyy.mm.dd HH:MM:SS';
 end_time = datenum(now);
 fid = fopen([outdir,'Info/process_status.csv'],'w');
-fprintf(fid,'%s\n',['start_time,',datestr(start_time)]);
-fprintf(fid,'%s\n',['end_time,',datestr(end_time)]);
+fprintf(fid,'%s\n',['start_time,',datestr(start_time, datestr_format)]);
+fprintf(fid,'%s\n',['end_time,',datestr(end_time, datestr_format)]);
 % test for existence of output files
 all_files = true;
 for vv = 1:length(outvar_list)
@@ -289,8 +291,8 @@ for vv = 1:length(outvar_list)
         all_files = false;
     end
 end
-fprintf(fid,'%s\n',['var_start_time,',datestr(t_datenum(1))]);
-fprintf(fid,'%s\n',['var_end_time,',datestr(t_datenum(end))]);
+fprintf(fid,'%s\n',['var_start_time,',datestr(t_datenum(1), datestr_format)]);
+fprintf(fid,'%s\n',['var_end_time,',datestr(t_datenum(end), datestr_format)]);
 if all_files
     fprintf(fid,'%s\n','result,success');
 else

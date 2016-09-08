@@ -11,12 +11,13 @@ start_time = datenum(now);
 %% river-specific code
 addpath('./riv_fun');
 % define and load preamble files
-indir = [Ldir.res,Ldir.gridname,'/'];
-gridfile = [indir,'grid.nc'];
-load([indir,'S.mat']); % get structure "S"
+%indir = [Ldir.res,Ldir.gridname,'/'];
+gdir = [Ldir.data,'grids/',Ldir.gridname,'/'];
+gridfile = [gdir,'grid.nc'];
+load([gdir,'S.mat']); % get structure "S"
 
 % load river location Info
-river_index_file = [indir,'river_indices.mat'];
+river_index_file = [gdir,'river_indices.mat'];
 load(river_index_file); % load structure "rout"
 % how many rivers
 for ii = 1:length(rout); uid(ii) = rout(ii).id; end;
@@ -56,10 +57,11 @@ outvar_list = {'rivers'};
 t_datenum = river_time/86400 + datenum(1970,1,1);
 
 %% Final output
+datestr_format = 'yyyy.mm.dd HH:MM:SS';
 end_time = datenum(now);
 fid = fopen([outdir,'Info/process_status.csv'],'w');
-fprintf(fid,'%s\n',['start_time,',datestr(start_time)]);
-fprintf(fid,'%s\n',['end_time,',datestr(end_time)]);
+fprintf(fid,'%s\n',['start_time,',datestr(start_time, datestr_format)]);
+fprintf(fid,'%s\n',['end_time,',datestr(end_time, datestr_format)]);
 % test for existence of output files
 all_files = true;
 for vv = 1:length(outvar_list)
@@ -69,8 +71,8 @@ for vv = 1:length(outvar_list)
         all_files = false;
     end
 end
-fprintf(fid,'%s\n',['var_start_time,',datestr(t_datenum(1))]);
-fprintf(fid,'%s\n',['var_end_time,',datestr(t_datenum(end))]);
+fprintf(fid,'%s\n',['var_start_time,',datestr(t_datenum(1), datestr_format)]);
+fprintf(fid,'%s\n',['var_end_time,',datestr(t_datenum(end), datestr_format)]);
 if all_files
     fprintf(fid,'%s\n','result,success');
 else

@@ -9,7 +9,7 @@ import os
 import sys
 import argparse
 import pandas as pd
-from datetime import datetime, timedelta
+from datetime import datetime
 
 alp = os.path.abspath('../alpha')
 if alp not in sys.path:
@@ -60,11 +60,12 @@ for which_forecast in f_df.index[-args.num_days:]:
                 f_df.ix[which_forecast, which_force] = 'YES'
                 if which_force in ['atm', 'ocn']:
                     try:
+                        time_format = '%Y.%m.%d %H:%M:%S'
                         ps = Lfun.csv_to_dict(force_dir + 'Info/process_status.csv')
-                        dt0 = datetime.strptime(ps['start_time'], '%d-%b-%Y %H:%M:%S')
-                        dt1 = datetime.strptime(ps['end_time'], '%d-%b-%Y %H:%M:%S')
-                        vdt0 = datetime.strptime(ps['var_start_time'], '%d-%b-%Y')
-                        vdt1 = datetime.strptime(ps['var_end_time'], '%d-%b-%Y')
+                        dt0 = datetime.strptime(ps['start_time'], time_format)
+                        dt1 = datetime.strptime(ps['end_time'], time_format)
+                        vdt0 = datetime.strptime(ps['var_start_time'], time_format)
+                        vdt1 = datetime.strptime(ps['var_end_time'], time_format)
                         f_df.ix[which_forecast, which_force] = str((vdt1-vdt0).days) + 'd'
                     except:
                         pass

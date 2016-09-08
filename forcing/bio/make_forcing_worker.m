@@ -21,8 +21,9 @@ start_time = datenum(now);
 addpath('./bio_fun');
 
 % define and load preamble files
-indir = [Ldir.res,Ldir.gridname,'/'];
-grdname = [indir,'grid.nc'];
+%indir = [Ldir.res,Ldir.gridname,'/'];
+gdir = [Ldir.data,'grids/',Ldir.gridname,'/'];
+grdname = [gdir,'grid.nc'];
 
 % define locations of existing ocn and riv files
 clmname = [Ldir.out,Ldir.gtag,'/f',date_string,'/ocn/ocean_clm_bio.nc'];
@@ -42,10 +43,11 @@ outfile_list = {clmname,bryname,ininame,rivname};
 t_datenum = nc_varget(rivname,'river_time')/86400 + datenum(1970,1,1);
 
 %% Final output
+datestr_format = 'yyyy.mm.dd HH:MM:SS';
 end_time = datenum(now);
 fid = fopen([outdir,'Info/process_status.csv'],'w');
-fprintf(fid,'%s\n',['start_time,',datestr(start_time)]);
-fprintf(fid,'%s\n',['end_time,',datestr(end_time)]);
+fprintf(fid,'%s\n',['start_time,',datestr(start_time, datestr_format)]);
+fprintf(fid,'%s\n',['end_time,',datestr(end_time, datestr_format)]);
 % test for existence of output files
 all_files = true;
 for vv = 1:length(outfile_list)
@@ -54,8 +56,8 @@ for vv = 1:length(outfile_list)
         all_files = false;
     end
 end
-fprintf(fid,'%s\n',['var_start_time,',datestr(t_datenum(1))]);
-fprintf(fid,'%s\n',['var_end_time,',datestr(t_datenum(end))]);
+fprintf(fid,'%s\n',['var_start_time,',datestr(t_datenum(1), datestr_format)]);
+fprintf(fid,'%s\n',['var_end_time,',datestr(t_datenum(end), datestr_format)]);
 if all_files
     fprintf(fid,'%s\n','result,success');
 else

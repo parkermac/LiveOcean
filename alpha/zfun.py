@@ -273,6 +273,16 @@ def earth_rad(lat_deg):
     RE = np.sqrt(((a*a*cl)**2 + (b*b*sl)**2) / ((a*cl)**2 + (b*sl)**2))
     return RE
 
+def ll2xy(lon, lat, lon0, lat0):
+    # This converts lon, lat into meters relative to lon0, lat0.
+    # It should work for lon, lat scalars or arrays.
+    R = earth_rad(lat0)
+    clat = np.cos(np.pi*lat0/180)
+    x = R * clat * np.pi * (lon - lon0) / 180
+    y = R * np.pi * (lat - lat0) / 180
+    return x, y
+
+
 
 
 
