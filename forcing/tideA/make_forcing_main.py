@@ -28,7 +28,7 @@ import numpy as np
 
 start_time = datetime.now()
 
-out_fn = Ldir['LOogf_f'] = 'tides.nc'
+out_fn = Ldir['LOogf_f'] + 'tides.nc'
 grid_fn = Ldir['grids'] + Ldir['gridname'] + '/grid.nc'
 
 [G] = zrfun.get_basic_info(grid_fn, getS=False, getT=False)
@@ -84,8 +84,6 @@ dst.close()
     tide_Cmin(ii,:,:) = pf*Cmin/100; % m s-1
 """
 
-# ************** END CASE-SPECIFIC CODE *****************
-
 #%% prepare for finale
 
 import collections
@@ -103,3 +101,7 @@ else:
 
 from datetime import datetime
 print('MAIN end time = ' + str(datetime.now()))
+
+#%% ************** END CASE-SPECIFIC CODE *****************
+
+ffun.finale(result_dict, Ldir, Lfun)
