@@ -386,7 +386,7 @@ def get_rivers_data(rdf, rnames, Info, Ldir):
             # qt = qt.tz_convert('UTC')
             # 3/21/2014 Why doens't this work anymore - as of move to Canopy
             # block average to daily values
-            qt = qt.resample('D', how='mean', label='right', loffset='-12h')
+            qt = qt.resample('D', label='right', loffset='-12h').mean()
             # fix the scaling
             qt = qt*aa['Scale_Factor']
 
