@@ -35,11 +35,7 @@ def Lstart(gridname='BLANK', tag='BLANK'):
     Ldir['LO'] = Ldir['parent'] + 'LiveOcean/'
     Ldir['LOo'] = Ldir['parent'] + 'LiveOcean_output/'
     Ldir['data'] = Ldir['parent'] + 'LiveOcean_data/'
-    # new grid location
-    Ldir['grids'] = Ldir['data'] + 'grids/'
-    # old grid location (will be removed)
-    Ldir['res'] = Ldir['LO'] + 'preamble/make_resources/'
-    Ldir['run'] = Ldir['res'] + Ldir['gridname'] +'/'
+    Ldir['grid'] = Ldir['data'] + 'grids/' + Ldir['gridname'] + '/'
 
     return Ldir
 
