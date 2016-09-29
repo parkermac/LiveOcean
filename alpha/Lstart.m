@@ -32,7 +32,6 @@ end
 Ldir.home = [Ldir.parent,'LiveOcean/'];
 Ldir.out = [Ldir.parent,'LiveOcean_output/'];
 Ldir.data = [Ldir.parent,'LiveOcean_data/'];
-Ldir.res = [Ldir.home,'preamble/make_resources/'];
 
 % Paths to shared code assumed to be available by many programs
 addpath([Ldir.home,'shared/mexcdf/mexnc']);

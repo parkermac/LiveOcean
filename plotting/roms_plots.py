@@ -20,12 +20,12 @@ import pfun; reload(pfun)
 # module defaults (available inside the methods)
 
 # colormaps
-cmap_dict = {'salt': cmo.cm.haline,
-             'temp': 'bwr', #cmo.cm.thermal,
+cmap_dict = {'salt': 'jet', #cmo.cm.haline,
+             'temp': 'jet',#'bwr', #cmo.cm.thermal,
              'NO3': cmo.cm.dense,
-             'phytoplankton': cmo.cm.algae,
+             'phytoplankton': 'jet',#cmo.cm.algae,
              'zooplankton': cmo.cm.matter,
-             'oxygen': cmo.cm.oxy,
+             'oxygen': 'jet',#cmo.cm.oxy,
              'TIC': cmo.cm.matter,
              'alkalinity': cmo.cm.solar}
 

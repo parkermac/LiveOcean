@@ -7,6 +7,8 @@ Examples of running from the command line:
 
 cd /Users/PM5/Documents/LiveOcean/plotting
 
+run pan_plot.py -d 2015.02.01
+
 run pan_plot.py -g cascadia2 -t frc2 -x lo1 -d 2013.01.09
 
 run pan_plot.py -g cascadia2 -t frc2 -x lo1 -d 2013.01.01 -hs 25
@@ -35,7 +37,7 @@ vlims = dict()
 vlims['salt'] = (28, 34)
 vlims['temp'] = (8, 18)
 vlims['NO3'] = (0, 40)
-vlims['phytoplankton'] = (0, 40)
+vlims['phytoplankton'] = (0,30)#(0, 40)
 vlims['zooplankton'] = (0, 4)
 vlims['oxygen'] = (0, 4) # for bottom DO (ml L-1)
 vlims['TIC'] = (2000,2400)

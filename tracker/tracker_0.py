@@ -52,11 +52,11 @@ reload(trackfun)
 
 # some run specifications
 gtagex = 'cascadia1_base_lobio1' # 'cascadia1_base_lo1' or 'D2005_his'
-ic_name = 'test' # 'jdf' or 'cr' or etc.
+ic_name = 'greencrab' # 'jdf' or 'cr' or etc.
 dir_tag = 'forward' # 'forward' or 'reverse'
 method = 'rk4' # 'rk2' or 'rk4'
 surface = True # Boolean, True for trap to surface
-windage = 0.02 # a small number >= 0
+windage = 0.0 # a small number >= 0
 ndiv = 1 # number of divisions to make between saves for the integration
         # e.g. if ndiv = 3 and we have hourly saves, we use a 20 minute step
         # for the integration (but still only report fields hourly)
@@ -71,10 +71,10 @@ if Ldir['parent'] == '/Users/PM5/Documents/':
         days_between_starts = 1
         days_to_track = 1
     elif gtagex == 'cascadia1_base_lobio1':
-        dt_first_day = datetime(2015,9,16)
+        dt_first_day = datetime(2015,9,18)
         number_of_start_days = 1
         days_between_starts = 1
-        days_to_track = 1
+        days_to_track = 3
     elif gtagex == 'D2005_his':
         dt_first_day = datetime(2005,3,17)
         number_of_start_days = 3
@@ -87,6 +87,11 @@ elif Ldir['parent'] == '/data1/parker/':
         number_of_start_days = 48
         days_between_starts = 3
         days_to_track = 7
+    elif gtagex == 'cascadia1_base_lobio1':
+        dt_first_day = datetime(2015,9,1)
+        number_of_start_days = 9
+        days_between_starts = 30
+        days_to_track = 10
 
 # set particle initial locations, all numpy arrays
 #
@@ -105,6 +110,13 @@ elif ic_name == 'cr':
 elif ic_name in ['deadBirds', 'test']:
     lonvec = np.linspace(-127, -123.9, 20)
     latvec = np.linspace(43.5, 49.5, 30)
+    lonmat, latmat = np.meshgrid(lonvec, latvec)
+    plon00 = lonmat.flatten()
+    plat00 = latmat.flatten()
+    pcs00 = np.array([-.05])
+elif ic_name == 'greencrab':
+    lonvec = np.linspace(-123.75, -123.65, 20)
+    latvec = np.linspace(48.3, 48.4, 20)
     lonmat, latmat = np.meshgrid(lonvec, latvec)
     plon00 = lonmat.flatten()
     plat00 = latmat.flatten()
