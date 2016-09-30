@@ -39,8 +39,8 @@ GridsInLayer =  1
 ! Grid dimension parameters. See notes below in the Glossary for how to set
 ! these parameters correctly.
 
-          Lm == 172            ! Number of I-direction INTERIOR RHO-points
-          Mm == 379            ! Number of J-direction INTERIOR RHO-points
+          Lm == 156            ! Number of I-direction INTERIOR RHO-points
+          Mm == 101            ! Number of J-direction INTERIOR RHO-points
            N == 40            ! Number of vertical levels
 
         Nbed =  0             ! Number of sediment bed layers
@@ -57,20 +57,22 @@ GridsInLayer =  1
       NtileI == $ntilei$                               ! I-direction partition
       NtileJ == $ntilej$                               ! J-direction partition
 
-   LBC(isFsur) ==   Cha     Cha     Clo     Clo         ! free-surface
-   LBC(isUbar) ==   Fla     Fla     Clo     Clo         ! 2D U-momentum
-   LBC(isVbar) ==   Fla     Fla     Clo     Clo         ! 2D V-momentum
-   LBC(isUvel) ==   RadNud     RadNud     Clo     Clo         ! 3D U-momentum
-   LBC(isVvel) ==   RadNud     RadNud     Clo     Clo         ! 3D V-momentum
-   LBC(isMtke) ==   RadNud     RadNud     Clo     Clo         ! mixing TKE
+!                   W       S       E       N
+!                   e       o       a       o
+!                   s       u       s       r
+!                   t       t       t       t
+!                           h               h
+!
+!                   1       2       3       4
+   LBC(isFsur) ==   Cha     Cha     Clo     Cha         ! free-surface
+   LBC(isUbar) ==   Fla     Fla     Clo     Fla         ! 2D U-momentum
+   LBC(isVbar) ==   Fla     Fla     Clo     Fla         ! 2D V-momentum
+   LBC(isUvel) ==   RadNud     RadNud     Clo     RadNud         ! 3D U-momentum
+   LBC(isVvel) ==   RadNud     RadNud     Clo     RadNud         ! 3D V-momentum
+   LBC(isMtke) ==   RadNud     RadNud     Clo     RadNud         ! mixing TKE
 
-   LBC(isTvar) ==   RadNud     RadNud     Clo     Clo \       ! temperature
-                    RadNud     RadNud     Clo     Clo \       ! salinity
-                    RadNud     RadNud     Clo     Clo \       ! dye
-                    RadNud     RadNud     Clo     Clo \       ! dye
-                    RadNud     RadNud     Clo     Clo \       ! dye
-                    RadNud     RadNud     Clo     Clo \       ! dye
-                    RadNud     RadNud     Clo     Clo         ! dye
+   LBC(isTvar) ==   RadNud     RadNud     Clo     RadNud \       ! temperature
+                    RadNud     RadNud     Clo     RadNud \       ! salinity
 
 ! Set lateral open boundary edge volume conservation switch for
 ! nonlinear model and adjoint-based algorithms. Usually activated
@@ -138,19 +140,19 @@ GridsInLayer =  1
 ! Harmonic/biharmonic horizontal diffusion of tracer for nonlinear model
 ! and adjoint-based algorithms: [1:NAT+NPT,Ngrids].
 
-        TNU2 == 7*2.0d0                         ! m2/s
-        TNU4 == 7*0.0d0                         ! m4/s
+        TNU2 == 2*0.0d0                         ! m2/s
+        TNU4 == 2*0.0d0                         ! m4/s
 
 ! Harmonic/biharmonic, horizontal viscosity coefficient for nonlinear model
 ! and adjoint-based algorithms: [Ngrids].
 
-       VISC2 == 5.0d0                           ! m2/s
+       VISC2 == 0.0d0                           ! m2/s
        VISC4 == 0.0d0                           ! m4/s
 
 ! Vertical mixing coefficients for tracers in nonlinear model and
 ! basic state scale factor in adjoint-based algorithms: [1:NAT+NPT,Ngrids]
 
-     AKT_BAK == 7*5.0d-6                   ! m2/s
+     AKT_BAK == 2*5.0d-6                   ! m2/s
 
 ! Vertical mixing coefficient for momentum for nonlinear model and
 ! basic state scale factor in adjoint-based algorithms: [Ngrids].
@@ -240,7 +242,7 @@ GridsInLayer =  1
 ! Nudging/relaxation time scales, inverse scales will be computed
 ! internally, [1:Ngrids].
 
-       TNUDG == 3.0d0 3.0d0            ! days
+       TNUDG == 3.0d0 3.0d0                ! days
        ZNUDG == 3.0d0                      ! days
       M2NUDG == 3.0d0                      ! days
       M3NUDG == 3.0d0                      ! days
@@ -254,10 +256,10 @@ GridsInLayer =  1
 ! Linear equation of State parameters:
 
           R0 == 1027.0d0                   ! kg/m3
-          T0 == 14.0d0                     ! Celsius
+          T0 == 10.0d0                     ! Celsius
           S0 == 35.0d0                     ! nondimensional
        TCOEF == 1.7d-4                     ! 1/Celsius
-       SCOEF == 0.0d0                      ! nondimensional
+       SCOEF == 7.7d-4                     ! nondimensional
 
 ! Slipperiness parameter: 1.0 (free slip) or -1.0 (no slip)
 
@@ -385,7 +387,7 @@ Hout(idMtls) == F       ! gls                turbulent length scale
 ! NPT values are expected. However, these switches can be activated using
 ! compact parameter specification.
 
- Hout(inert) == T T T T T       ! dye_01, ...        inert passive tracers
+ Hout(inert) == F       ! dye_01, ...        inert passive tracers
 
 ! Logical switches (TRUE/FALSE) to activate writing of time-averaged
 ! fields into AVERAGE output file.
@@ -564,19 +566,12 @@ Dout(iTvdif) == T T     ! temp_vdiff, ...    vertical diffusion
 
 ! Input Sources/Sinks forcing (like river runoff) file name.
 
-     SSFNAME == $force_dir$$riv_dir$rivers$bio_tag$.nc
+     SSFNAME == $force_dir$$riv_dir$rivers.nc
 
-     NFFILES == 9                          ! number of unique forcing files
+     NFFILES == 1                          ! number of unique forcing files
 
-     FRCNAME == $force_dir$$tide_dir$tides.nc \
-  $force_dir$$atm_dir$lwrad_down.nc \
-  $force_dir$$atm_dir$Pair.nc \
-  $force_dir$$atm_dir$Qair.nc \
-  $force_dir$$atm_dir$rain.nc \
-  $force_dir$$atm_dir$swrad.nc \
-  $force_dir$$atm_dir$Tair.nc \
-  $force_dir$$atm_dir$Uwind.nc \
-  $force_dir$$atm_dir$Vwind.nc
+     FRCNAME == $force_dir$$tide_dir$tides.nc
+  
 
 ! Output NetCDF file names, [1:Ngrids].
 
@@ -585,8 +580,6 @@ Dout(iTvdif) == T T     ! temp_vdiff, ...    vertical diffusion
      AVGNAME == $out_dir$ocean_avg.nc
      DIANAME == $out_dir$ocean_dia.nc
      
-! Input ASCII parameter filenames.
-     BPARNAM = $dot_in_dir$npzd2o_Banas.in
 
 
 

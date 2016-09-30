@@ -23,6 +23,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
+def topfig():
+    """
+    Positions the figure at the top left of the screen, and puts it
+    on top of the Spyder window.  Copied from Stack Overflow.
+    """
+    figmgr = plt.get_current_fig_manager()
+    figmgr.canvas.manager.window.raise_()
+    geom = figmgr.window.geometry()
+    x,y,dx,dy = geom.getRect()
+    figmgr.window.setGeometry(10, 10, dx, dy)
+
 def dar(ax):
     """
     Fixes the plot aspect ratio to be locally Cartesian.

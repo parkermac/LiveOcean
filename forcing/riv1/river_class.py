@@ -23,10 +23,14 @@ class River:
         self.Q = []
         self.T = []
         self.qt = pd.Series(self.Q, index=self.T)
-        self.scale_factor = self.rs['ratio']
-        self.usgs_code = self.rs['usgs']
-        self.nws_code = self.rs['nws']
-        self.ec_code = self.rs['ec']
+        try:
+            self.scale_factor = self.rs['ratio']
+            self.usgs_code = self.rs['usgs']
+            self.nws_code = self.rs['nws']
+            self.ec_code = self.rs['ec']
+        except KeyError:
+            # needed for analytical rivers
+            pass
         self.got_data = False
         self.memo = 'no message'
 

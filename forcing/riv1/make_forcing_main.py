@@ -114,35 +114,39 @@ for rn in df.index:
     qt_df['clim'] = pd.Series(index=dt_ind, data=qt_clim_yd.values)
 
     # Get historical record (a Series)
-    his = pd.read_pickle(Ldir['data'] + 'rivers/Data_historical/'
-                + rn + '.p')
+    try:
+        his = pd.read_pickle(Ldir['data'] + 'rivers/Data_historical/'
+                    + rn + '.p')
 
-    if dt1 <= his.index[-1]:
-        # fill with historical data if the timing is right
-        qt_df['his'] = his.ix[dt_ind]
-        qt_df['final'] = qt_df['his']
-        print(' filled from historical')
-    else:
-        # otherwise try (sequentially) to fill from
-        # nws, or usgs, or ec
-        if pd.notnull(rs.nws) and Ldir['run_type'] == 'forecast':
-            riv.get_nws_data()
-            if not riv.qt.empty:
-                qt_df['nws'] = riv.qt.ix[dt_ind]
-                qt_df['final'] = qt_df['nws']
-                print(' filled from nws forecast')
-        elif pd.notnull(rs.usgs):
-            riv.get_usgs_data(days)
-            if not riv.qt.empty:
-                qt_df['usgs'] = riv.qt.ix[dt_ind]
-                qt_df['final'] = qt_df['usgs']
-                print(' filled from usgs')
-        elif pd.notnull(rs.ec):
-            riv.get_ec_data(days)
-            if not riv.qt.empty:
-                qt_df['ec'] = riv.qt.ix[dt_ind]
-                qt_df['final'] = qt_df['ec']
-                print(' filled from ec')
+        if dt1 <= his.index[-1]:
+            # fill with historical data if the timing is right
+            qt_df['his'] = his.ix[dt_ind]
+            qt_df['final'] = qt_df['his']
+            print(' filled from historical')
+        else:
+            # otherwise try (sequentially) to fill from
+            # nws, or usgs, or ec
+            if pd.notnull(rs.nws) and Ldir['run_type'] == 'forecast':
+                riv.get_nws_data()
+                if not riv.qt.empty:
+                    qt_df['nws'] = riv.qt.ix[dt_ind]
+                    qt_df['final'] = qt_df['nws']
+                    print(' filled from nws forecast')
+            elif pd.notnull(rs.usgs):
+                riv.get_usgs_data(days)
+                if not riv.qt.empty:
+                    qt_df['usgs'] = riv.qt.ix[dt_ind]
+                    qt_df['final'] = qt_df['usgs']
+                    print(' filled from usgs')
+            elif pd.notnull(rs.ec):
+                riv.get_ec_data(days)
+                if not riv.qt.empty:
+                    qt_df['ec'] = riv.qt.ix[dt_ind]
+                    qt_df['final'] = qt_df['ec']
+                    print(' filled from ec')
+    except FileNotFoundError:
+        # needed for analytical cases
+        pass
 
     # check results and fill with extrapolation (ffill) or climatology
 

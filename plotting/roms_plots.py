@@ -107,6 +107,7 @@ def P_basic(in_dict):
         plt.close()
     else:
         plt.show()
+        pfun.topfig()
     return out_dict
 
 def P_carbon(in_dict):
@@ -155,6 +156,7 @@ def P_carbon(in_dict):
         plt.close()
     else:
         plt.show()
+        pfun.topfig()
     return out_dict
 
 def P_bio4(in_dict):
@@ -218,6 +220,7 @@ def P_bio4(in_dict):
         plt.close()
     else:
         plt.show()
+        pfun.topfig()
     return out_dict
 
 def P_bio2(in_dict):
@@ -276,6 +279,7 @@ def P_bio2(in_dict):
         plt.close()
     else:
         plt.show()
+        pfun.topfig()
     return out_dict
 
 def P_layer(in_dict):
@@ -337,6 +341,7 @@ def P_layer(in_dict):
         plt.close()
     else:
         plt.show()
+        pfun.topfig()
     return out_dict
 
 def P_nest(in_dict):
@@ -419,6 +424,7 @@ def P_nest(in_dict):
         plt.close()
     else:
         plt.show()
+        pfun.topfig()
     return out_dict
 
 def P_sect(in_dict):
@@ -601,6 +607,7 @@ def P_sect(in_dict):
         plt.close()
     else:
         plt.show()
+        pfun.topfig()
     return out_dict
 
 def P_tracks(in_dict):
@@ -717,4 +724,5 @@ def P_tracks(in_dict):
         plt.close()
     else:
         plt.show()
+        pfun.topfig()
     return out_dict

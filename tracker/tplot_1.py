@@ -56,7 +56,7 @@ else:
 
 # PLOTTING
 
-plt.close()
+#plt.close()
 fig = plt.figure(figsize=(12,12))
 
 ax = fig.add_subplot(111)

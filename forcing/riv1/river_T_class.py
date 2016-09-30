@@ -9,7 +9,7 @@ Created on Thu Jul 21 08:52:07 2016
 The river class code.  This version gets Temperature instead of flow.
 
 We still use Q and qt for the fields, but Q or q refer to temperature in
-this case.
+this case. (yuck!)
 
 """
 
@@ -31,8 +31,12 @@ class River:
         self.Q = []
         self.T = []
         self.qt = pd.Series(self.Q, index=self.T)
-        self.usgs_code = self.rs['usgs']
-        self.ec_code = self.rs['ec']
+        try:
+            self.usgs_code = self.rs['usgs']
+            self.ec_code = self.rs['ec']
+        except KeyError:
+            # needed for analytical rivers
+            pass
         self.got_data = False
         self.memo = 'no message'
 
