@@ -557,8 +557,8 @@ Dout(iTvdif) == T T     ! temp_vdiff, ...    vertical diffusion
 ! line per entry with a vertical bar (|) symbol after each entry,
 ! except the last one.
 
-     BRYNAME == $force_dir$$ocn_dir$ocean_bry$bio_tag$.nc
-     CLMNAME == $force_dir$$ocn_dir$ocean_clm$bio_tag$.nc
+     BRYNAME == $force_dir$$ocn_dir$ocean_bry.nc
+     CLMNAME == $force_dir$$ocn_dir$ocean_clm.nc
 
 ! Input climatology nudging coefficients file name.
 
