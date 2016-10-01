@@ -53,7 +53,7 @@ except OSError:
 foo = nc.Dataset(clm_fn, 'w', format='NETCDF3_CLASSIC')
 
 # create dimensions
-for vn in ['salt', 'temp', 'v3d', 'v2d', 'zeta']:
+for vn in ['salt', 'temp', 'v3d', 'v2d', 'zeta', 'ocean']:
     foo.createDimension(vn+'_time', 2)
 foo.createDimension('s_rho', S['N'])
 for tag in ['rho', 'u', 'v']:
@@ -66,7 +66,7 @@ dt0 = dtf
 dt1 = dtf + timedelta(days=5)
 dt0m = Lfun.datetime_to_modtime(dt0)
 dt1m = Lfun.datetime_to_modtime(dt1)
-for vn in ['salt', 'temp', 'v3d', 'v2d', 'zeta']:
+for vn in ['salt', 'temp', 'v3d', 'v2d', 'zeta', 'ocean']:
     vv = foo.createVariable(vn+'_time', float, (vn+'_time',))
     vv.units = 'seconds since 1970.01.01 UTC'
     vv[:] = np.array([dt0m, dt1m])
@@ -104,7 +104,8 @@ vv.units = 'Celsius'
 vv[:] = 10
 
 foo.close()
-#zfun.ncd(clm_fn) # testing
+print('============= clim ===========================================')
+zfun.ncd(clm_fn) # testing
 
 #%% Initial condition, copied from first time of clm_fn
 
@@ -137,7 +138,8 @@ for v_name, varin in ds1.variables.items():
 
 ds1.close()
 ds2.close()
-#zfun.ncd(ini_fn) # testing
+print('============= ini ===========================================')
+zfun.ncd(ini_fn) # testing
 
 #%% Boundary conditions, copied from edges of clm_fn
 
@@ -202,6 +204,7 @@ for v_name, varin in ds1.variables.items():
     
 ds1.close()
 ds2.close()
+print('============= bry ===========================================')
 zfun.ncd(bry_fn) # testing
 
 # ************** END CASE-SPECIFIC CODE *****************
