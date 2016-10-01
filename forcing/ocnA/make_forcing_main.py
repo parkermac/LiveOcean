@@ -104,8 +104,8 @@ vv.units = 'Celsius'
 vv[:] = 10
 
 foo.close()
-print('============= clim ===========================================')
-zfun.ncd(clm_fn) # testing
+#print('============= clim ===========================================')
+#zfun.ncd(clm_fn) # testing
 
 #%% Initial condition, copied from first time of clm_fn
 
@@ -138,8 +138,8 @@ for v_name, varin in ds1.variables.items():
 
 ds1.close()
 ds2.close()
-print('============= ini ===========================================')
-zfun.ncd(ini_fn) # testing
+#print('============= ini ===========================================')
+#zfun.ncd(ini_fn) # testing
 
 #%% Boundary conditions, copied from edges of clm_fn
 
@@ -164,42 +164,43 @@ for v_name, varin in ds1.variables.items():
     if varin.ndim in [3,4]: 
         for bname in ['north', 'south', 'east', 'west']:
             outname = v_name + '_' + bname
-        if bname in ['north', 'south']:
-            outdims = tuple([item for item in varin.dimensions if 'eta' not in item])
-        elif bname in ['west', 'east']:
-            outdims = tuple([item for item in varin.dimensions if 'xi' not in item])
-        outVar = ds2.createVariable(outname, varin.datatype, outdims)    
-        outVar.setncatts({k: varin.getncattr(k).replace('climatology','').strip() for k in varin.ncattrs()})            
-        if varin.ndim == 4:
-            if bname == 'north':
-                outVar[:] = varin[:,:,-1,:]
-                print('hi4')
-            elif bname == 'south':
-                outVar[:] = varin[:,:,0,:]
-            elif bname == 'east':
-                outVar[:] = varin[:,:,:,-1]
-            elif bname == 'west':
-                outVar[:] = varin[:,:,:,0]
-        elif varin.ndim == 3:
-            if bname == 'north':
-                print('hi3')
-                outVar[:] = varin[:,-1,:]
-            elif bname == 'south':
-                outVar[:] = varin[:,0,:]
-            elif bname == 'east':
-                outVar[:] = varin[:,:,-1]
-            elif bname == 'west':
-                outVar[:] = varin[:,:,0]
+            if bname in ['north', 'south']:
+                outdims = tuple([item for item in varin.dimensions if item[:3] != 'eta'])
+            elif bname in ['west', 'east']:
+                outdims = tuple([item for item in varin.dimensions if item[:2] != 'xi'])
+            outVar = ds2.createVariable(outname, varin.datatype, outdims)    
+            outVar.setncatts({k: varin.getncattr(k).replace('climatology','').strip() for k in varin.ncattrs()})            
+            print(outname)
+            print(outdims)
+            print(varin.ndim)
+            print(varin.shape)
+            if varin.ndim == 4:
+                if bname == 'north':
+                    outVar[:] = varin[:,:,-1,:]
+                    print('hi4')
+                elif bname == 'south':
+                    outVar[:] = varin[:,:,0,:]
+                elif bname == 'east':
+                    outVar[:] = varin[:,:,:,-1]
+                elif bname == 'west':
+                    outVar[:] = varin[:,:,:,0]
+            elif varin.ndim == 3:
+                if bname == 'north':
+                    print('hi3')
+                    outVar[:] = varin[:,-1,:]
+                elif bname == 'south':
+                    outVar[:] = varin[:,0,:]
+                elif bname == 'east':
+                    outVar[:] = varin[:,:,-1]
+                elif bname == 'west':
+                    outVar[:] = varin[:,:,0]
     else:
         outname = v_name
         outdims = tuple([item for item in varin.dimensions])
         outVar = ds2.createVariable(outname, varin.datatype, outdims)    
-        outVar.setncatts({k: varin.getncattr(k).strip('climatology') for k in varin.ncattrs()})
+        outVar.setncatts({k: varin.getncattr(k).replace('climatology','').strip() for k in varin.ncattrs()})
         outVar[:] = varin[:]
 
-    print(outname)
-    print(outdims)
-    print(varin.ndim)
     
     
 ds1.close()
