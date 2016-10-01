@@ -12,7 +12,7 @@ To test from python:
 
 cd /Users/PM5/Documents/LiveOcean/forcing/tideA
 
-run make_forcing_main.py -g aestus1 -t A1 -f tideA -d 20130102
+run make_forcing_main.py -g aestus1 -t A1 -f tideA -d 20130101
 
 To test from the command line:
 
@@ -81,6 +81,10 @@ v_var[1, :, :] = np.zeros_like(lon_rho).astype(float)
 v_var = dst.createVariable('tide_Ephase', float, ('tide_period', 'eta_rho', 'xi_rho'))
 v_var[:] = 0.
 
+for vn in ['tide_Cangle', 'tide_Cphase', 'tide_Cmax', 'tide_Cmin']:
+    v_var = dst.createVariable(vn, float, ('tide_period', 'eta_rho', 'xi_rho'))
+    v_var[:] = 0.
+    
 dst.close()
 
 """
