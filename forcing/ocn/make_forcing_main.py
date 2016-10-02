@@ -1,5 +1,10 @@
 """
 This is the main program for making the OCN forcing file.
+
+for testing:
+
+cd /Users/PM5/Documents/LiveOcean/forcing/ocn
+
 """
 
 import os

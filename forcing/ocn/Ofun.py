@@ -85,11 +85,6 @@ def make_shortened_list(fn_list, which_var):
     dlast = dlist[-1] # the last, which goes into the future
     
     varf_list_short = []
-    # get the 000 hour forecast for all past days    
-    for ddd in dlist0:
-        for fn in varf_list:
-            if ddd in fn and '_t000' in fn:
-                varf_list_short.append(fn)      
     # get daily values up to 7 days into the future
     hour_list = range(0,168+24,24) 
     for fn in varf_list:
@@ -97,6 +92,20 @@ def make_shortened_list(fn_list, which_var):
             for hr in hour_list:
                 if '_t' + ('000' + str(hr))[-3:] in fn:
                     varf_list_short.append(fn)
+
+    
+    # get the XXX hour forecast for all past days
+    # prompted by a HYCOM server problem 10/2/2016 where it was missing
+    # hours 000-024 (started at 027 each day)
+    fn000 = varf_list_short[0]
+    ixxx = fn000.find(which_var)
+    XXX = fn000[ixxx-4:ixxx-1]
+    dlist0.reverse()    
+    for ddd in dlist0:
+        for fn in varf_list:
+            if ddd in fn and ('_t' + XXX) in fn:
+                varf_list_short.insert(0,fn)
+                
                     
     # return a list of url's for this variable, one file per day            
     return varf_list_short
