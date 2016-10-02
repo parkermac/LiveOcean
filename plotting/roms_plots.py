@@ -726,3 +726,39 @@ def P_tracks(in_dict):
         plt.show()
         pfun.topfig()
     return out_dict
+    
+def P_aestus(in_dict):
+    # designed for the analytical estuary-shelf runs
+
+    # START
+    fig = plt.figure(figsize=(14,8))
+    ds = nc.Dataset(in_dict['fn'])
+    vlims = in_dict['vlims'].copy()
+    out_dict['vlims'] = vlims
+
+    # PLOT CODE
+    # panel 1
+    t_str = 'Surface Salinity'
+    ax = fig.add_subplot(111)
+    vn = 'salt'
+    cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn,
+            vlims=(0,35), cmap=cmap_dict[vn], fac=fac_dict[vn])
+    fig.colorbar(cs)
+    ax.axis(pfun.get_aa(ds))
+    pfun.dar(ax)
+    ax.set_xlabel('Longitude')
+    ax.set_ylabel('Latitude')
+    ax.set_title(t_str + units_dict[vn])
+    pfun.add_info(ax, in_dict['fn'])
+    pfun.add_velocity_vectors(ax, ds, in_dict['fn'])
+
+    # FINISH
+    ds.close()
+    if len(in_dict['fn_out']) > 0:
+        plt.savefig(in_dict['fn_out'])
+        plt.close()
+    else:
+        plt.show()
+        pfun.topfig()
+    return out_dict
+

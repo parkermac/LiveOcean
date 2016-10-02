@@ -32,10 +32,10 @@ if Ldir['run_type'] == 'backfill':
 else:
     days_to_run = 1.0
 
-dtsec = 10 # time step in seconds INTEGER (should fit evenly into 3600 sec)
+dtsec = 60 # time step in seconds INTEGER (should fit evenly into 3600 sec)
 restart_nrrec = '-1' # '-1' for a non-crash restart file, otherwise '1' or '2'
 his_interval = 3600 # seconds to define and write to history files
-rst_interval = 10 # days between writing to the restart file (e.g. 5)
+rst_interval = 1 # days between writing to the restart file (e.g. 5)
 
 zqt_height = '2.0d0'
 zw_height = '10.0d0'
@@ -93,7 +93,7 @@ tide_dir = 'tideA/' # which tide forcing files to use
 
 if Ldir['start_type'] == 'continuation':
     nrrec = '-1' # '-1' for a hot restart
-    ininame = 'ocean_rst.nc' # for a hot restart
+    ininame = 'ocean_rst.nc' # for a hot perfect restart
     #ininame = 'ocean_his_0025.nc' # for a hot restart
     ini_fullname = out_dir0 + f_string_yesterday + '/' + ininame
 elif Ldir['start_type'] == 'new':
