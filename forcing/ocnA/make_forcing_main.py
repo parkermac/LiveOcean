@@ -219,12 +219,12 @@ end_time = datetime.now()
 result_dict['end_time'] = end_time.strftime(time_format)
 dt_sec = (end_time - start_time).seconds
 result_dict['total_seconds'] = str(dt_sec)
-#result_dict['var_start_time'] = dt0.strftime(time_format)
-#result_dict['var_end_time'] = dt1.strftime(time_format)
-#if os.path.isfile(out_fn):
-#    result_dict['result'] = 'success'
-#else:
-#    result_dict['result'] = 'fail'
+result_dict['var_start_time'] = dt0.strftime(time_format)
+result_dict['var_end_time'] = dt1.strftime(time_format)
+if os.path.isfile(bry_fn):
+    result_dict['result'] = 'success'
+else:
+    result_dict['result'] = 'fail'
 
 #%% ************** END CASE-SPECIFIC CODE *****************
 
