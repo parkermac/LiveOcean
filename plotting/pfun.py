@@ -106,7 +106,7 @@ def add_map_field(ax, ds, varname, slev=-1, vlims=(), cmap='rainbow', fac=1):
     cs = ax.pcolormesh(x, y, v*fac, vmin=vlims[0], vmax=vlims[1], cmap=cmap)
     return cs, vlims
 
-def add_velocity_vectors(ax, ds, fn, v_scl=3, v_leglen=0.5):
+def add_velocity_vectors(ax, ds, fn, v_scl=3, v_leglen=0.5, nngrid=80):
     # v_scl: scale velocity vector (smaller to get longer arrows)
     # v_leglen: m/s for velocity vector legend
     # GET DATA
@@ -126,7 +126,6 @@ def add_velocity_vectors(ax, ds, fn, v_scl=3, v_leglen=0.5):
     daax = aaa[1] - aaa[0]
     daay = aaa[3] - aaa[2]
     axrat = np.cos(np.deg2rad(aaa[2])) * daax / daay
-    nngrid = 80
     x = np.linspace(aaa[0], aaa[1], round(nngrid * axrat))
     y = np.linspace(aaa[2], aaa[3], nngrid)
     xx, yy = np.meshgrid(x, y)

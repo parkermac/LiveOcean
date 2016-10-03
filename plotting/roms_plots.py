@@ -476,9 +476,10 @@ def P_sect(in_dict):
 
     # CREATE THE SECTION
     # create track by hand
-    if False:
-        x = np.linspace(lon.min(), -124, 500)
-        y = 47 * np.ones(x.shape)
+    if True:
+        #x = np.linspace(lon.min(), -124, 500)
+        x = np.linspace(lon.min(), lon.max(), 500)
+        y = 45 * np.ones(x.shape)
     # or read one in
     else:
         import Lfun
@@ -750,7 +751,7 @@ def P_aestus(in_dict):
     ax.set_ylabel('Latitude')
     ax.set_title(t_str + units_dict[vn])
     pfun.add_info(ax, in_dict['fn'])
-    pfun.add_velocity_vectors(ax, ds, in_dict['fn'])
+    pfun.add_velocity_vectors(ax, ds, in_dict['fn'], nngrid=40)
 
     # FINISH
     ds.close()
