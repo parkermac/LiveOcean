@@ -81,7 +81,10 @@ V = dict()
 
 #list_to_plot = v3_list_rho + v3_list_w + v2_list
 list_to_plot = v3_list_rho
-list_to_plot.remove('CaCO3')
+try:
+    list_to_plot.remove('CaCO3')
+except ValueError:
+    pass
 #list_to_plot = ['alkalinity',]
 
 #for vv in ds.variables:
