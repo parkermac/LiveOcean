@@ -441,7 +441,7 @@ Aout(idSrad) == T       ! swrad              shortwave radiation flux
 Aout(idevap) == T       ! evaporation        evaporation rate
 Aout(idrain) == T       ! rain               precipitation rate
 
-Aout(idDano) == F       ! rho                density anomaly
+Aout(idDano) == T       ! rho                density anomaly
 Aout(idVvis) == F       ! AKv                vertical viscosity
 Aout(idTdif) == F       ! AKt                vertical T-diffusion
 Aout(idSdif) == F       ! AKs                vertical Salinity diffusion
