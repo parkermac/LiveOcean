@@ -98,6 +98,7 @@ vv = foo.createVariable('salt', float, ('salt_time', 's_rho', 'eta_rho', 'xi_rho
 vv.long_name = 'salinity climatology'
 vv.units = 'PSU'
 vv[:] = 35
+vv[:, :, :, 75:] = 0
 vv = foo.createVariable('temp', float, ('temp_time', 's_rho', 'eta_rho', 'xi_rho'))
 vv.long_name = 'potential temperature climatology'
 vv.units = 'Celsius'

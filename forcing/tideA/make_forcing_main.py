@@ -75,8 +75,8 @@ v_var[:] = [12.42, 12.0]
 v_var.units = 'hours'
 
 v_var = dst.createVariable('tide_Eamp', float, ('tide_period', 'eta_rho', 'xi_rho'))
-v_var[0, :, :] = np.ones_like(lon_rho).astype(float)
-v_var[1, :, :] = np.zeros_like(lon_rho).astype(float)
+v_var[0, :, :] = 0.75 * np.ones_like(lon_rho).astype(float)
+v_var[1, :, :] = 0.25 * np.ones_like(lon_rho).astype(float)
 
 v_var = dst.createVariable('tide_Ephase', float, ('tide_period', 'eta_rho', 'xi_rho'))
 v_var[:] = 0.
