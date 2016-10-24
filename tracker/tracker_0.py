@@ -63,6 +63,7 @@ ndiv = 1 # number of divisions to make between saves for the integration
 
 # set run time information (multiple experiments)
 # always start on a day (no hours)
+# 
 if Ldir['parent'] == '/Users/PM5/Documents/':
     # mac version
     if gtagex == 'cascadia1_base_lo1':
