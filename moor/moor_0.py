@@ -20,6 +20,8 @@ python moor_0.py -sn J26A -lon -125.4664 -lat 44.6547 -d0 2013.01.02 -d1 2015.11
 
 python moor_0.py -sn J26C -lon -125.4653 -lat 44.6534 -d0 2013.01.02 -d1 2015.11.01
 
+python moor_0.py -sn netarts -l low_pass -lon -123.94444 -lat 45.4025 -d0 2015.01.01 -d1 2015.12.31
+
 And you can also change the run, the station name and location, etc.
 """
 
@@ -43,9 +45,12 @@ ex_name = 'lobio1'
 date_string0 = datetime(2015,9,18).strftime(format='%Y.%m.%d')
 date_string1 = datetime(2015,9,20).strftime(format='%Y.%m.%d')
 list_type = 'backfill' # backfill, low_pass
-sta_name = 'RN'
-lon_str = '-124.5'
-lat_str = '47'
+#sta_name = 'RN'
+#lon_str = '-124.5'
+#lat_str = '47'
+sta_name = 'netarts'
+lon_str = '-124'
+lat_str = '45.4025'
 
 # get command line arguments
 import argparse
@@ -110,7 +115,7 @@ dt0 = datetime.strptime(Ldir['date_string0'],'%Y.%m.%d') # first day
 dt1 = datetime.strptime(Ldir['date_string1'],'%Y.%m.%d') # last day
 date_list = make_date_list(dt0,dt1,Ldir)
 
-# target position (-124.5, 47 = RN)
+# target position
 Lon = np.array(float(Ldir['lon_str']))
 Lat = np.array(float(Ldir['lat_str']))
 
@@ -198,12 +203,12 @@ if Ldir['list_type'] == 'backfill':
         for vv in v2_list:
             xi01, yi01, aix, aiy = get_its(ds, vv, Xi0, Yi0, Xi1, Yi1, Aix, Aiy)
             vvtemp = ds.variables[vv][:, yi01, xi01].squeeze()
-            vtemp =   ( aiy*((aix*vvtemp).sum(-1)) ).sum(-1)
+            vtemp = ( aiy*((aix*vvtemp).sum(-1)) ).sum(-1)
             V[vv] = np.append(V[vv], vtemp)
         for vv in v3_list_rho + v3_list_w:
             xi01, yi01, aix, aiy = get_its(ds, vv, Xi0, Yi0, Xi1, Yi1, Aix, Aiy)
             vvtemp = ds.variables[vv][:, :, yi01, xi01].squeeze()
-            vtemp =   ( aiy*((aix*vvtemp).sum(-1)) ).sum(-1)
+            vtemp = ( aiy*((aix*vvtemp).sum(-1)) ).sum(-1)
             if count == 0:
                 V[vv] = vtemp.T
             else:
@@ -226,13 +231,16 @@ elif Ldir['list_type'] == 'low_pass':
             V[vv] = np.append(V[vv], vtemp)
         for vv in v2_list:
             xi01, yi01, aix, aiy = get_its(ds, vv, Xi0, Yi0, Xi1, Yi1, Aix, Aiy)
-            vvtemp = ds.variables[vv][:, yi01, xi01].squeeze()
-            vtemp =   ( aiy*((aix*vvtemp).sum(-1)) ).sum(-1)
+            vvtemp = ds.variables[vv][:, yi01, xi01].squeeze()           
+            vtemp = ( aiy*((aix*vvtemp).sum(-1)) ).sum(-1)
+#            print(vv)
+#            print(vvtemp)
+#            print(vtemp)
             V[vv] = np.append(V[vv], vtemp)
         for vv in v3_list_rho:
             xi01, yi01, aix, aiy = get_its(ds, vv, Xi0, Yi0, Xi1, Yi1, Aix, Aiy)
             vvtemp = ds.variables[vv][:, :, yi01, xi01].squeeze()
-            vtemp =   ( aiy*((aix*vvtemp).sum(-1)) ).sum(-1)
+            vtemp = ( aiy*((aix*vvtemp).sum(-1)) ).sum(-1)
             if count == 0:
                 V[vv] = vtemp.reshape((S['N'],1))
             else:
@@ -240,7 +248,7 @@ elif Ldir['list_type'] == 'low_pass':
         for vv in v3_list_w:
             xi01, yi01, aix, aiy = get_its(ds, vv, Xi0, Yi0, Xi1, Yi1, Aix, Aiy)
             vvtemp = ds.variables[vv][:, :, yi01, xi01].squeeze()
-            vtemp =   ( aiy*((aix*vvtemp).sum(-1)) ).sum(-1)
+            vtemp = ( aiy*((aix*vvtemp).sum(-1)) ).sum(-1)
             if count == 0:
                 V[vv] = vtemp.reshape((S['N']+1,1))
             else:

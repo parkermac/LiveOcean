@@ -151,7 +151,7 @@ for vn in list_to_plot:
         ax.set_xticklabels([])
         if ir == NR-1:
             ax.set_xlabel('Date')
-            ax.set_xticklabels(dt_ticklabels)
+        ax.set_xticklabels(dt_ticklabels)
         aa = ax.get_ylim()
         for dtyr in dt_ticks_yr:
             ax.plot([dtyr, dtyr], aa, '-k')
