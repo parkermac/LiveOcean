@@ -56,20 +56,28 @@ else:
 
 # PLOTTING
 
-#plt.close()
+plt.close()
 fig = plt.figure(figsize=(12,12))
 
 ax = fig.add_subplot(111)
 pfun.add_coast(ax)
+
+pfun.add_bathy_contours(ax, G, txt=True)
 ax.axis(aa)
 pfun.dar(ax)
 ax.set_xlabel('Longitude')
 ax.set_ylabel('Latitude')
-ax.set_title(inname)
+ax.text(.06, .04, ' '.join(inname.split('_')),
+    verticalalignment='bottom', transform=ax.transAxes,
+    rotation='vertical')
+
 
 # add the tracks
-ax.plot(P['lon'], P['lat'], '-')
-ax.plot(P['lon'][0,:],P['lat'][0,:],'o',
-        markersize=3, alpha = .4)
+ax.plot(P['lon'], P['lat'], '-k', alpha = 0.1)
+beach_mask = P['u'][-1,:] == 0
+ax.plot(P['lon'][:,beach_mask], P['lat'][:,beach_mask], '-r', linewidth=1)
+ax.plot(P['lon'][0,beach_mask],P['lat'][0,beach_mask],'or',
+        markersize=5, alpha = .4)
 
 plt.show()
+pfun.topfig()

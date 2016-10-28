@@ -72,6 +72,7 @@ def get_units(ds, vn):
     return units
 
 def add_bathy_contours(ax, ds, depth_levs = [], txt=False):
+    # this should work with ds being a history file Dataset, or the G dict.
     h = ds['h'][:]
     lon = ds['lon_rho'][:]
     lat = ds['lat_rho'][:]
