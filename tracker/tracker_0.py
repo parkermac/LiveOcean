@@ -89,7 +89,7 @@ elif Ldir['parent'] == '/data1/parker/':
         days_between_starts = 3
         days_to_track = 7
     elif gtagex == 'cascadia1_base_lobio1':
-        dt_first_day = datetime(2016,8,31)
+        dt_first_day = datetime(2016,8,15)
         number_of_start_days = 55
         days_between_starts = 1
         days_to_track = 5
