@@ -52,7 +52,7 @@ reload(trackfun)
 
 # some run specifications
 gtagex = 'cascadia1_base_lobio1' # 'cascadia1_base_lo1' or 'D2005_his'
-ic_name = 'odell' # 'jdf' or 'cr' or etc.
+ic_name = 'odell2' # 'jdf' or 'cr' or etc.
 dir_tag = 'forward' # 'forward' or 'reverse'
 method = 'rk4' # 'rk2' or 'rk4'
 surface = True # Boolean, True for trap to surface
@@ -90,7 +90,7 @@ elif Ldir['parent'] == '/data1/parker/':
         days_to_track = 7
     elif gtagex == 'cascadia1_base_lobio1':
         dt_first_day = datetime(2016,8,31)
-        number_of_start_days = 25
+        number_of_start_days = 55
         days_between_starts = 1
         days_to_track = 5
 
@@ -115,12 +115,21 @@ elif ic_name in ['deadBirds', 'test']:
     plon00 = lonmat.flatten()
     plat00 = latmat.flatten()
     pcs00 = np.array([-.05])
-elif ic_name in ['odell']:
-    lonvec = np.linspace(-126, -123.9, 30)
-    latvec = np.linspace(44, 49, 45)
+elif ic_name in ['odell2']:
+    # Heceta Bank
+    lonvec = np.linspace(-125, -124, 15)
+    latvec = np.linspace(43.8, 44.8, 15)
     lonmat, latmat = np.meshgrid(lonvec, latvec)
-    plon00 = lonmat.flatten()
-    plat00 = latmat.flatten()
+    plon00a = lonmat.flatten()
+    plat00a = latmat.flatten()
+    # JdF Eddy
+    lonvec = np.linspace(-126, -124.5, 15)
+    latvec = np.linspace(48.2, 49, 15)
+    lonmat, latmat = np.meshgrid(lonvec, latvec)
+    plon00b = lonmat.flatten()
+    plat00b = latmat.flatten()
+    plon00 = np.concatenate((plon00a,plon00b))
+    plat00 = np.concatenate((plat00a,plat00b))
     pcs00 = np.array([-.05])
 elif ic_name == 'greencrab':
     lonvec = np.linspace(-123.75, -123.65, 20)
