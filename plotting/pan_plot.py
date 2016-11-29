@@ -44,6 +44,8 @@ vlims['zooplankton'] = (0, 4)
 vlims['oxygen'] = (0, 4) # for bottom DO (ml L-1)
 vlims['TIC'] = (2000,2400)
 vlims['alkalinity'] = (2000,2400)
+vlims['PH'] = (6, 9)
+vlims['ARAG'] = (0, 3)
 in_dict['vlims'] = vlims
 
 # OTHER
@@ -52,13 +54,13 @@ in_dict['z_level'] = -300 # z level to plot
 #%% get optional command line arguments, any order
 parser = argparse.ArgumentParser()
 parser.add_argument('-g', '--gridname', nargs='?', type=str,
-                    default='aestus1')
+                    default='cascadia1')
 parser.add_argument('-t', '--tag', nargs='?', type=str,
-                    default='A1')
+                    default='base')
 parser.add_argument('-x', '--ex_name', nargs='?', type=str,
-                    default='ae1')
+                    default='lobio1')
 parser.add_argument('-d', '--date_string', nargs='?', type=str,
-                    default='2013.02.01')
+                    default='2015.09.19')
 parser.add_argument('-hs', '--hour_string', nargs='?', type=str,
                     default='02')
 parser.add_argument('-nd', '--num_days', nargs='?', type=int,

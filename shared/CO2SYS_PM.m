@@ -5,9 +5,17 @@ function [DATA,HEADERS,NICEHEADERS]=CO2SYS_PM(PAR1,PAR2,PAR1TYPE,PAR2TYPE,SAL,TE
 % tolerance in a loop that was taking too long to complete.  Search for
 % MacCready to find all edited lines.  PM 8/17/2016
 % 
-% Primary MacCready edit was to this line:
+% Primary MacCready edit WAS to this line:
 % %pHTol = 0.0001;  % tolerance for iterations end ORIGINAL
 % pHTol = 0.01;  % tolerance for iterations end NEW MacCready 10/29/2015
+%
+% BUT I set it back to the original value of 0.0001 around 10/2016
+% and it seems to work. On further investigation (11/28/2016) it appeared
+% that the problem was caused when we passed a couple of near-zero values
+% of TIC and alkalinity to the routine.  These were in the northernmost
+% row of the output, and so don't really reflect interior processes. I
+% fixed the issue by settgin small values of TIC and alkalinity to NaN
+% in pre-processing, before handing them to this function.
 %
 % This is CO2SYS version 1.1 (SEPT-2011)
 %
@@ -1434,7 +1442,7 @@ TSF =TS(F);  KSF =KS(F);  TFF =TF(F);   KFF=KF(F);
 vl          = sum(F);  % VectorLength
 pHGuess     = 8;       % this is the first guess
 %pHTol       = 0.0001;  % tolerance for iterations end ORIGINAL
-pHTol       = 0.0001;  % tolerance for iterations end NEW MacCready 10/29/2015
+pHTol       = 0.0001;  % tolerance for iterations end NEW MacCready 11/29/2016
 ln10        = log(10); %
 pHx(1:vl,1) = pHGuess; % creates a vector holding the first guess for all samples
 deltapH     = pHTol+1;

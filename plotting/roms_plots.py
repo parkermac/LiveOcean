@@ -27,7 +27,9 @@ cmap_dict = {'salt': 'jet', #cmo.cm.haline,
              'zooplankton': cmo.cm.matter,
              'oxygen': 'jet',#cmo.cm.oxy,
              'TIC': cmo.cm.matter,
-             'alkalinity': cmo.cm.solar}
+             'alkalinity': cmo.cm.solar,
+             'PH': 'jet',
+             'ARAG': 'rainbow'}
 
 # units (after multiplying by fac)
 units_dict = {'salt': '',
@@ -37,7 +39,9 @@ units_dict = {'salt': '',
              'zooplankton': ' $(\mu g\ chl\ C\ L^{-1})$',
              'oxygen': ' $(ml\ L^{-1})$',
              'TIC': ' $(\mu mol\ L^{-1})$',
-             'alkalinity': ' $(\mu\ equivalents\ L^{-1})$'}
+             'alkalinity': ' $(\mu\ equivalents\ L^{-1})$',
+             'PH': ' ',
+             'ARAG': ' '}
 
 # scaling factors
 fac_dict =  {'salt': 1,
@@ -47,7 +51,9 @@ fac_dict =  {'salt': 1,
              'zooplankton': 2.5,
              'oxygen': 0.032/1.42903, # convert mmol m-3 to ml L-1
              'TIC': 1,
-             'alkalinity': 1}
+             'alkalinity': 1,
+             'PH': 1,
+             'ARAG': 1}
 
 figsize = (18,10)
 out_dict = dict()
@@ -140,6 +146,57 @@ def P_carbon(in_dict):
     vn = 'alkalinity'
     cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn,
             vlims=vlims[vn], cmap=cmap_dict[vn], fac=fac_dict[vn])
+    fig.colorbar(cs)
+    pfun.add_bathy_contours(ax, ds)
+    pfun.add_coast(ax)
+    ax.axis(pfun.get_aa(ds))
+    pfun.dar(ax)
+    ax.set_xlabel('Longitude')
+    ax.set_title(t_str + units_dict[vn])
+    pfun.add_velocity_vectors(ax, ds, in_dict['fn'])
+
+    # FINISH
+    ds.close()
+    if len(in_dict['fn_out']) > 0:
+        plt.savefig(in_dict['fn_out'])
+        plt.close()
+    else:
+        plt.show()
+        pfun.topfig()
+    return out_dict
+    
+def P_pH_Arag(in_dict):
+    # START
+    fig = plt.figure(figsize=figsize)
+    ds = nc.Dataset(in_dict['fn'])
+    vlims = in_dict['vlims'].copy()
+    out_dict['vlims'] = vlims
+
+    # PLOT CODE
+    # panel 1
+    t_str = 'Bottom pH'
+    ax = fig.add_subplot(121)
+    vn = 'PH'
+    cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn,
+            vlims=vlims[vn], cmap=cmap_dict[vn], fac=fac_dict[vn],
+            slev=0)
+    fig.colorbar(cs)
+    pfun.add_bathy_contours(ax, ds, txt=True)
+    pfun.add_coast(ax)
+    ax.axis(pfun.get_aa(ds))
+    pfun.dar(ax)
+    ax.set_xlabel('Longitude')
+    ax.set_ylabel('Latitude')
+    ax.set_title(t_str + units_dict[vn])
+    pfun.add_info(ax, in_dict['fn'])
+    pfun.add_windstress_flower(ax, ds)
+    # panel 2
+    t_str = 'Bottom Aragonite Saturation State'
+    ax = fig.add_subplot(122)
+    vn = 'ARAG'
+    cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn,
+            vlims=vlims[vn], cmap=cmap_dict[vn], fac=fac_dict[vn],
+            slev=0)
     fig.colorbar(cs)
     pfun.add_bathy_contours(ax, ds)
     pfun.add_coast(ax)

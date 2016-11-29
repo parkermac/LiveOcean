@@ -19,6 +19,9 @@ function run_co2sys(indir, moor_file, in3)
 % takes 4 sec with nn = 1000 and pHTol = 0.001
 % for a full surface field
 
+% *** Need to rwwrite following the forcing/carbon version which is
+% cleaner. ***
+
 addpath('../shared/seawater')
 
 ncid = netcdf.open([indir,moor_file], 'WRITE');
@@ -66,7 +69,7 @@ if 1
     SALT = salt(:);
     THETA = temp(:);
     Z_RHO = z_rho(:);
-    PRES = sw_pres(-Z_RHO, 45);
+    PRES = sw_pres(-Z_RHO, 45); % decibars, not Pa
     TEMP = sw_ptmp(SALT, THETA, 0, PRES);
     DEN = sw_dens(SALT, TEMP, PRES);
     DIC = 1000*DIC0./DEN;

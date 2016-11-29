@@ -28,11 +28,16 @@ def topfig():
     Positions the figure at the top left of the screen, and puts it
     on top of the Spyder window.  Copied from Stack Overflow.
     """
-    figmgr = plt.get_current_fig_manager()
-    figmgr.canvas.manager.window.raise_()
-    geom = figmgr.window.geometry()
-    x,y,dx,dy = geom.getRect()
-    figmgr.window.setGeometry(10, 10, dx, dy)
+    try:
+        figmgr = plt.get_current_fig_manager()
+        figmgr.canvas.manager.window.raise_()
+        geom = figmgr.window.geometry()
+        x,y,dx,dy = geom.getRect()
+        figmgr.window.setGeometry(10, 10, dx, dy)
+    except AttributeError:
+        # this only works, and is only needed, in Spyder
+        # so working from the terminal we just skip it.
+        pass
 
 def dar(ax):
     """

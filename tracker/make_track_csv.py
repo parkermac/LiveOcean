@@ -17,7 +17,6 @@ import pickle  # python 3
 
 Ldir = Lfun.Lstart()
 indir = Ldir['LOo'] + 'tracks/'
-fn_coast = Ldir['data'] + 'coast/pnw_coast_combined.mat'
 
 # choose the type of plot to make
 print('\n%s\n' % '** Choose mooring file to convert to csv **')

@@ -91,6 +91,31 @@ def run_worker(Ldir, worker_type='matlab'):
         print(out.decode()) # this ends up as part of the make_forcing_main.py screen output
     else:
         print('other worker types not implemented yet')
+        
+def run_worker_post(Ldir, worker_type='matlab'):
+    # run the worker code using subprocess
+    #
+    # Passes an extra piece of information: an "indir" used by the
+    # carbon postporcessing code. Eventually I may want to separate
+    # out the forcing things from the post-processing things.
+    if worker_type == 'matlab':
+        # pass arguments to a matlab program
+        import subprocess
+        
+        func = ("make_forcing_worker(\'" +
+            Ldir['gridname'] + "\',\'" +
+            Ldir['tag'] + "\',\'" +
+            Ldir['date_string'] + "\',\'" +
+            Ldir['run_type'] + "\',\'" +
+            Ldir['indir'] + "\',\'" +
+            Ldir['LOogf_f'] + "\')")
+        cmd = Ldir['which_matlab']
+        run_cmd = [cmd, "-nojvm", "-nodisplay", "-r", func, "&"]
+        proc = subprocess.Popen(run_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out, err = proc.communicate() # "out" is the screen output of the matlab code
+        print(out.decode()) # this ends up as part of the make_forcing_main.py screen output
+    else:
+        print('other worker types not implemented yet')
 
 def datetime_to_modtime(dt):
     # This is where we define how time will be treated
