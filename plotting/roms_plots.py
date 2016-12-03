@@ -17,6 +17,36 @@ import zrfun
 import matfun
 import pfun; reload(pfun)
 
+# function for color limits
+def get_in_dict(plot_type):
+    #%% choices
+    in_dict = dict()
+
+    # COLOR LIMITS
+    vlims = dict()
+    # If you use () then the limits will be set by the first plot
+    # and then held constant at those levels thereafter.    
+    vlims['salt'] = (28, 34)
+    vlims['temp'] = (8, 18)
+    vlims['NO3'] = (0, 40)
+    vlims['phytoplankton'] = (0,30)#(0, 40)
+    vlims['zooplankton'] = (0, 4)
+    vlims['oxygen'] = (4, 8) # (0, 4) for bottom DO (ml L-1), (4, 8) for surface
+    vlims['TIC'] = (2000, 2400) # (2000,2400) for surface
+    vlims['alkalinity'] = (2000,2400)
+    vlims['PH'] = (6, 9)
+    vlims['ARAG'] = (0, 3)    
+    # custom choices based on plot_type   
+    if plot_type == 'P_layer':
+        vlims['oxygen'] = (.5, 1) # (0, 4) for bottom DO (ml L-1), (4, 8) for surface
+        vlims['TIC'] = (2450, 2650) # (2000,2400) for surface
+    in_dict['vlims'] = vlims
+        
+    # OTHER
+    in_dict['z_level'] = -1500 # z level to plot
+        
+    return in_dict
+
 # module defaults (available inside the methods)
 
 # colormaps
@@ -40,8 +70,8 @@ units_dict = {'salt': '',
              'oxygen': ' $(ml\ L^{-1})$',
              'TIC': ' $(\mu mol\ L^{-1})$',
              'alkalinity': ' $(\mu\ equivalents\ L^{-1})$',
-             'PH': ' ',
-             'ARAG': ' '}
+             'PH': '',
+             'ARAG': ''}
 
 # scaling factors
 fac_dict =  {'salt': 1,
@@ -348,16 +378,18 @@ def P_layer(in_dict):
     # PLOT CODE
     zfull = pfun.get_zfull(ds, in_dict['fn'], 'rho')
     # panel 1
-    t_str = 'Salinity'
+    t_str = 'Oxygen'
     ax = fig.add_subplot(121)
-    vn = 'salt'
+    vn = 'oxygen'
     laym = pfun.get_laym(ds, zfull, ds['mask_rho'][:], vn, in_dict['z_level'])
-    vlims[vn] = ()
+    cmap=cmap_dict[vn]
+    fac=fac_dict[vn]
+    #vlims[vn] = ()
     if len(vlims[vn]) == 0:
         vlims[vn] = pfun.auto_lims(laym)
     out_dict['vlims'][vn] = vlims[vn]
-    cs = ax.pcolormesh(ds['lon_psi'][:], ds['lat_psi'][:], laym[1:-1,1:-1],
-                       vmin=vlims[vn][0], vmax=vlims[vn][1], cmap='rainbow')
+    cs = ax.pcolormesh(ds['lon_psi'][:], ds['lat_psi'][:], fac*laym[1:-1,1:-1],
+                       vmin=vlims[vn][0], vmax=vlims[vn][1], cmap=cmap)
     cb = fig.colorbar(cs)
     cb.formatter.set_useOffset(False)
     cb.update_ticks()
@@ -367,20 +399,22 @@ def P_layer(in_dict):
     pfun.dar(ax)
     ax.set_xlabel('Longitude')
     ax.set_ylabel('Latitude')
-    ax.set_title(t_str + ' on Z = ' + str(in_dict['z_level']) + ' m')
+    ax.set_title(t_str + units_dict[vn] + ' on Z = ' + str(in_dict['z_level']) + ' m')
     pfun.add_info(ax, in_dict['fn'])
     pfun.add_windstress_flower(ax, ds)
     # panel 2
-    t_str = 'Temperature'
+    t_str = 'TIC'
     ax = fig.add_subplot(122)
-    vn = 'temp'
+    vn = 'TIC'
     laym = pfun.get_laym(ds, zfull, ds['mask_rho'][:], vn, in_dict['z_level'])
-    vlims[vn] = ()
+    cmap=cmap_dict[vn]
+    fac=fac_dict[vn]
+    #vlims[vn] = ()
     if len(vlims[vn]) == 0:
         vlims[vn] = pfun.auto_lims(laym)
     out_dict['vlims'][vn] = vlims[vn]
-    cs = ax.pcolormesh(ds['lon_psi'][:], ds['lat_psi'][:], laym[1:-1,1:-1],
-                       vmin=vlims[vn][0], vmax=vlims[vn][1], cmap='bwr')
+    cs = ax.pcolormesh(ds['lon_psi'][:], ds['lat_psi'][:], fac*laym[1:-1,1:-1],
+                       vmin=vlims[vn][0], vmax=vlims[vn][1], cmap=cmap)
     cb = fig.colorbar(cs)
     cb.formatter.set_useOffset(False)
     cb.update_ticks()
@@ -389,7 +423,7 @@ def P_layer(in_dict):
     ax.axis(pfun.get_aa(ds))
     pfun.dar(ax)
     ax.set_xlabel('Longitude')
-    ax.set_title(t_str + ' (' + pfun.get_units(ds, vn) + ')')
+    ax.set_title(t_str + units_dict[vn])
 
     # FINISH
     ds.close()
@@ -507,7 +541,7 @@ def P_sect(in_dict):
     zeta = ds['zeta'][:].squeeze()
     zr = zrfun.get_z(h, zeta, S, only_rho=True)
 
-    varname = 'salt'
+    varname = 'TIC'
     try:
         vlims[varname]
     except KeyError:
@@ -535,8 +569,12 @@ def P_sect(in_dict):
     # create track by hand
     if True:
         #x = np.linspace(lon.min(), -124, 500)
-        x = np.linspace(lon.min(), lon.max(), 500)
-        y = 45 * np.ones(x.shape)
+        if False:
+            x = np.linspace(lon.min(), lon.max(), 500)
+            y = 49 * np.ones(x.shape)
+        else:
+            y = np.linspace(lat.min(), lat.max(), 500)
+            x = -126 * np.ones(y.shape)
     # or read one in
     else:
         import Lfun

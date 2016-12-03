@@ -29,28 +29,6 @@ from importlib import reload
 import Lfun
 import roms_plots; reload(roms_plots)
 
-#%% choices
-in_dict = dict()
-
-# COLOR LIMITS
-vlims = dict()
-# If you use () then the limits will be set by the first plot
-# and then held constant at those levels thereafter.
-vlims['salt'] = (28, 34)
-vlims['temp'] = (8, 18)
-vlims['NO3'] = (0, 40)
-vlims['phytoplankton'] = (0,30)#(0, 40)
-vlims['zooplankton'] = (0, 4)
-vlims['oxygen'] = (0, 4) # for bottom DO (ml L-1)
-vlims['TIC'] = (2000,2400)
-vlims['alkalinity'] = (2000,2400)
-vlims['PH'] = (6, 9)
-vlims['ARAG'] = (0, 3)
-in_dict['vlims'] = vlims
-
-# OTHER
-in_dict['z_level'] = -300 # z level to plot
-
 #%% get optional command line arguments, any order
 parser = argparse.ArgumentParser()
 parser.add_argument('-g', '--gridname', nargs='?', type=str,
@@ -60,7 +38,7 @@ parser.add_argument('-t', '--tag', nargs='?', type=str,
 parser.add_argument('-x', '--ex_name', nargs='?', type=str,
                     default='lobio1')
 parser.add_argument('-d', '--date_string', nargs='?', type=str,
-                    default='2015.09.19')
+                    default='2016.11.30')
 parser.add_argument('-hs', '--hour_string', nargs='?', type=str,
                     default='02')
 parser.add_argument('-nd', '--num_days', nargs='?', type=int,
@@ -162,6 +140,9 @@ elif list_type=='atlantis':
     fn_list.append(fn)
 
 #%% plot
+in_dict = roms_plots.get_in_dict(plot_type)
+vlims = in_dict['vlims']
+
 if len(fn_list) == 1:
     # plot to screen
     fn = fn_list[0]
