@@ -84,6 +84,17 @@ fac_dict =  {'salt': 1,
              'alkalinity': 1,
              'PH': 1,
              'ARAG': 1}
+             
+tstr_dict = {'salt': 'Salinity',
+             'temp': 'Temperature',
+             'NO3': 'Nitrate',
+             'phytoplankton': 'Phytoplankton',
+             'zooplankton': 'Zooplankton',
+             'oxygen': 'DO',
+             'TIC': 'DIC',
+             'alkalinity': 'Alkalinity',
+             'PH': 'pH',
+             'ARAG': '$\Omega_{arag}$'}
 
 figsize = (18,10)
 out_dict = dict()
@@ -106,7 +117,8 @@ def P_basic(in_dict):
 
     # PLOT CODE
     # panel 1
-    t_str = 'Surface Salinity'
+    vn = 'salt'
+    tstr = 'Surface ' + tstr_dict[vn]
     ax = fig.add_subplot(121)
     vn = 'salt'
     cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn,
@@ -118,13 +130,13 @@ def P_basic(in_dict):
     pfun.dar(ax)
     ax.set_xlabel('Longitude')
     ax.set_ylabel('Latitude')
-    ax.set_title(t_str + units_dict[vn])
+    ax.set_title(tstr + units_dict[vn])
     pfun.add_info(ax, in_dict['fn'])
     pfun.add_windstress_flower(ax, ds)
     # panel 2
-    t_str = 'Surface Temperature'
     ax = fig.add_subplot(122)
     vn = 'temp'
+    tstr = 'Surface ' + tstr_dict[vn]
     cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn,
             vlims=vlims[vn], cmap=cmap_dict[vn], fac=fac_dict[vn])
     fig.colorbar(cs)
@@ -133,7 +145,7 @@ def P_basic(in_dict):
     ax.axis(pfun.get_aa(ds))
     pfun.dar(ax)
     ax.set_xlabel('Longitude')
-    ax.set_title(t_str + units_dict[vn])
+    ax.set_title(tstr + units_dict[vn])
     pfun.add_velocity_vectors(ax, ds, in_dict['fn'])
 
     # FINISH
@@ -155,9 +167,9 @@ def P_carbon(in_dict):
 
     # PLOT CODE
     # panel 1
-    t_str = 'Surface TIC'
     ax = fig.add_subplot(121)
     vn = 'TIC'
+    tstr = 'Surface ' + tstr_dict[vn]
     cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn,
             vlims=vlims[vn], cmap=cmap_dict[vn], fac=fac_dict[vn])
     fig.colorbar(cs)
@@ -167,13 +179,13 @@ def P_carbon(in_dict):
     pfun.dar(ax)
     ax.set_xlabel('Longitude')
     ax.set_ylabel('Latitude')
-    ax.set_title(t_str + units_dict[vn])
+    ax.set_title(tstr + units_dict[vn])
     pfun.add_info(ax, in_dict['fn'])
     pfun.add_windstress_flower(ax, ds)
     # panel 2
-    t_str = 'Surface Alkalinity'
     ax = fig.add_subplot(122)
     vn = 'alkalinity'
+    tstr = 'Surface ' + tstr_dict[vn]
     cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn,
             vlims=vlims[vn], cmap=cmap_dict[vn], fac=fac_dict[vn])
     fig.colorbar(cs)
@@ -182,7 +194,7 @@ def P_carbon(in_dict):
     ax.axis(pfun.get_aa(ds))
     pfun.dar(ax)
     ax.set_xlabel('Longitude')
-    ax.set_title(t_str + units_dict[vn])
+    ax.set_title(tstr + units_dict[vn])
     pfun.add_velocity_vectors(ax, ds, in_dict['fn'])
 
     # FINISH
@@ -204,9 +216,9 @@ def P_pH_Arag(in_dict):
 
     # PLOT CODE
     # panel 1
-    t_str = 'Bottom pH'
     ax = fig.add_subplot(121)
     vn = 'PH'
+    tstr = 'Bottom ' + tstr_dict[vn]
     cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn,
             vlims=vlims[vn], cmap=cmap_dict[vn], fac=fac_dict[vn],
             slev=0)
@@ -217,13 +229,13 @@ def P_pH_Arag(in_dict):
     pfun.dar(ax)
     ax.set_xlabel('Longitude')
     ax.set_ylabel('Latitude')
-    ax.set_title(t_str + units_dict[vn])
+    ax.set_title(tstr + units_dict[vn])
     pfun.add_info(ax, in_dict['fn'])
     pfun.add_windstress_flower(ax, ds)
     # panel 2
-    t_str = 'Bottom Aragonite Saturation State'
     ax = fig.add_subplot(122)
     vn = 'ARAG'
+    tstr = 'Bottom ' + tstr_dict[vn]
     cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn,
             vlims=vlims[vn], cmap=cmap_dict[vn], fac=fac_dict[vn],
             slev=0)
@@ -233,7 +245,7 @@ def P_pH_Arag(in_dict):
     ax.axis(pfun.get_aa(ds))
     pfun.dar(ax)
     ax.set_xlabel('Longitude')
-    ax.set_title(t_str + units_dict[vn])
+    ax.set_title(tstr + units_dict[vn])
     pfun.add_velocity_vectors(ax, ds, in_dict['fn'])
 
     # FINISH
@@ -269,7 +281,6 @@ def P_bio4(in_dict):
         ic = int(cc - NC*ir)
         # PLOT CODE
         ax = axes[ir, ic]
-        t_str = vn
         try:
             vlims[vn]
         except KeyError:
@@ -295,7 +306,7 @@ def P_bio4(in_dict):
             ax.set_xlabel('Longitude')
         if ic == 0:
             ax.set_ylabel('Latitude')
-        ax.set_title(t_str + units_dict[vn])
+        ax.set_title(tstr_dict[vn] + units_dict[vn])
         if cc == 0:
             pfun.add_info(ax, in_dict['fn'])
         cc += 1
@@ -328,7 +339,7 @@ def P_bio2(in_dict):
         ic = int(cc - NC*ir)
         # PLOT CODE
         ax = axes[ir, ic]
-        t_str = vn
+        tstr = tstr_dict[vn]
         try:
             vlims[vn]
         except KeyError:
@@ -354,7 +365,7 @@ def P_bio2(in_dict):
             ax.set_xlabel('Longitude')
         if ic == 0:
             ax.set_ylabel('Latitude')
-        ax.set_title(t_str + units_dict[vn])
+        ax.set_title(tstr + units_dict[vn])
         if cc == 0:
             pfun.add_info(ax, in_dict['fn'])
         cc += 1
@@ -373,14 +384,20 @@ def P_layer(in_dict):
     # START
     fig = plt.figure(figsize=figsize)
     ds = nc.Dataset(in_dict['fn'])
+    
     vlims = in_dict['vlims'].copy()
+    vlims['salt'] = ()
+    vlims['temp'] = ()
+    
     out_dict['vlims'] = vlims
+    
     # PLOT CODE
     zfull = pfun.get_zfull(ds, in_dict['fn'], 'rho')
+    
     # panel 1
-    t_str = 'Oxygen'
     ax = fig.add_subplot(121)
-    vn = 'oxygen'
+    vn = 'salt'
+    tstr = tstr_dict[vn]
     laym = pfun.get_laym(ds, zfull, ds['mask_rho'][:], vn, in_dict['z_level'])
     cmap=cmap_dict[vn]
     fac=fac_dict[vn]
@@ -399,13 +416,14 @@ def P_layer(in_dict):
     pfun.dar(ax)
     ax.set_xlabel('Longitude')
     ax.set_ylabel('Latitude')
-    ax.set_title(t_str + units_dict[vn] + ' on Z = ' + str(in_dict['z_level']) + ' m')
+    ax.set_title(tstr + units_dict[vn] + ' on Z = ' + str(in_dict['z_level']) + ' m')
     pfun.add_info(ax, in_dict['fn'])
     pfun.add_windstress_flower(ax, ds)
+    
     # panel 2
-    t_str = 'TIC'
     ax = fig.add_subplot(122)
-    vn = 'TIC'
+    vn = 'temp'
+    tstr = tstr_dict[vn]
     laym = pfun.get_laym(ds, zfull, ds['mask_rho'][:], vn, in_dict['z_level'])
     cmap=cmap_dict[vn]
     fac=fac_dict[vn]
@@ -423,7 +441,7 @@ def P_layer(in_dict):
     ax.axis(pfun.get_aa(ds))
     pfun.dar(ax)
     ax.set_xlabel('Longitude')
-    ax.set_title(t_str + units_dict[vn])
+    ax.set_title(tstr + units_dict[vn])
 
     # FINISH
     ds.close()
@@ -447,7 +465,7 @@ def P_nest(in_dict):
 
     # PLOT CODE
     # ** choose the variable to plot **
-    which_var = 'temp'
+    vn = 'temp'
     # need to get Ldir, which means unpacking gtagex
     fn = in_dict['fn']
     gtagex = fn.split('/')[-3]
@@ -456,7 +474,7 @@ def P_nest(in_dict):
     Ldir = Lfun.Lstart(gtx_list[0], gtx_list[1])
     # Get HYCOM field
     hyvar_dict = {'temp':'t3d', 'salt':'s3d'}
-    hvar = hyvar_dict[which_var]
+    hvar = hyvar_dict[vn]
     f_string = fn.split('/')[-2]
     fnhy = (Ldir['LOo'] + Ldir['gtag'] + '/' + f_string +
         '/ocn/Data/' + hvar + '.nc')
@@ -474,7 +492,7 @@ def P_nest(in_dict):
     # Get ROMS field
     ds = nc.Dataset(fn)
     zfull = pfun.get_zfull(ds, fn, 'rho')
-    laym = pfun.get_laym(ds, zfull, ds['mask_rho'][:], which_var, zlev)
+    laym = pfun.get_laym(ds, zfull, ds['mask_rho'][:], vn, zlev)
 
     # PLOTTING
     cmap = plt.get_cmap(name='gist_ncar')
@@ -482,7 +500,7 @@ def P_nest(in_dict):
     fig, axes = plt.subplots(nrows=1, ncols=2, figsize=figsize, squeeze=False)
     # panel 1
     ax = axes[0,0]
-    ax.set_title('HYCOM: z=' + str(zlev) + 'm, var=' + which_var)
+    ax.set_title('HYCOM: z=' + str(zlev) + 'm, var=' + vn)
     cs = ax.pcolormesh(lon, lat, laym_hy,
                        vmin=vlims[0], vmax=vlims[1], cmap = cmap)
     ax.axis(aa)
@@ -541,13 +559,13 @@ def P_sect(in_dict):
     zeta = ds['zeta'][:].squeeze()
     zr = zrfun.get_z(h, zeta, S, only_rho=True)
 
-    varname = 'TIC'
+    vn = 'TIC'
     try:
-        vlims[varname]
+        vlims[vn]
     except KeyError:
-        vlims[varname] = ()
+        vlims[vn] = ()
 
-    sectvar = ds[varname][:].squeeze()
+    sectvar = ds[vn][:].squeeze()
 
     L = G['L']
     M = G['M']
@@ -661,7 +679,6 @@ def P_sect(in_dict):
 
     # panel 1
     ax = fig.add_subplot(1, 3, 1)
-    vn = varname
     cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn,
             vlims=vlims[vn], cmap=cmap_dict[vn], fac=fac_dict[vn])
     fig.colorbar(cs)
@@ -726,13 +743,13 @@ def P_sectA(in_dict):
     zeta = ds['zeta'][:].squeeze()
     zr = zrfun.get_z(h, zeta, S, only_rho=True)
 
-    varname = 'salt'
+    vn = 'salt'
     try:
-        vlims[varname]
+        vlims[vn]
     except KeyError:
-        vlims[varname] = ()
+        vlims[vn] = ()
 
-    sectvar = ds[varname][:].squeeze()
+    sectvar = ds[vn][:].squeeze()
 
     L = G['L']
     M = G['M']
@@ -830,7 +847,6 @@ def P_sectA(in_dict):
 
     # panel 1
     ax = fig.add_subplot(211)
-    vn = varname
     cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn,
             vlims=(10,35.5), cmap='rainbow', fac=fac_dict[vn])
     fig.colorbar(cs)
@@ -961,9 +977,9 @@ def P_tracks(in_dict):
     # PLOT CODE
 
     # panel 1
-    t_str = 'Surface Temperature and ' + str(ndays) + ' day Tracks'
     ax = fig.add_subplot(111)
     vn = 'temp'
+    tstr = 'Surface ' + tstr_dict[vn] +'Temperature'' and ' + str(ndays) + ' day Tracks'
     cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn,
             vlims=vlims[vn], cmap=cmap_dict[vn], fac=fac_dict[vn])
     fig.colorbar(cs)
@@ -973,7 +989,7 @@ def P_tracks(in_dict):
     pfun.dar(ax)
     ax.set_xlabel('Longitude')
     ax.set_ylabel('Latitude')
-    ax.set_title(t_str)
+    ax.set_title(tstr)
     pfun.add_info(ax, in_dict['fn'])
 
     # add the tracks
@@ -1002,9 +1018,9 @@ def P_aestus(in_dict):
 
     # PLOT CODE
     # panel 1
-    t_str = 'Surface Salinity'
     ax = fig.add_subplot(111)
     vn = 'salt'
+    tstr = 'Surface ' + tstr_dict[vn]
     cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn,
             vlims=(0,35), cmap=cmap_dict[vn], fac=fac_dict[vn])
     fig.colorbar(cs)
@@ -1012,7 +1028,7 @@ def P_aestus(in_dict):
     pfun.dar(ax)
     ax.set_xlabel('Longitude')
     ax.set_ylabel('Latitude')
-    ax.set_title(t_str + units_dict[vn])
+    ax.set_title(tstr + units_dict[vn])
     pfun.add_info(ax, in_dict['fn'])
     pfun.add_velocity_vectors(ax, ds, in_dict['fn'], nngrid=40)
 
