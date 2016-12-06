@@ -101,7 +101,7 @@ do
   # Make the dot in file.
   # Note that the python code creates an empty f_string directory.
   # Also cd to where the ROMS executable lives.
-  cd $LO_parent"/forcing/dot_in/"$gridname
+  cd $LO_parent"/forcing/dot_in/"$gtagex
   source $HOME"/.bashrc"
   if [ $D = $D0 ] && [ $start_type = "new" ] ; then
     python ./make_dot_in.py -g $gridname -t $tag -s $start_type -r $run_type -d $DD -x $ex_name
