@@ -25,16 +25,23 @@ elseif strcmp(run_type,'forecast')
     hr_vec = 1:72;
     % this gives 72 hourly values
     % (three days, including endpoint, but not hour zero)
+elseif strcmp(run_type,'low_passed')
+    hr_vec = 1;
+    % a new option, that just works on low_passed.nc
 end
 
 %% loop over the hours
 
 for tt = 1:length(hr_vec)
     
-    hr_num = hr_vec(tt) + 1;
-    hr_string = ['0000', num2str(hr_num)];
-    hr_string = hr_string(end-3:end);
-    fn = ['ocean_his_', hr_string, '.nc'];
+    if strcmp(run_type,'low_passed')
+        fn = 'low_passed.nc';
+    else
+        hr_num = hr_vec(tt) + 1;
+        hr_string = ['0000', num2str(hr_num)];
+        hr_string = hr_string(end-3:end);
+        fn = ['ocean_his_', hr_string, '.nc'];
+    end
     
     infile = [indir,fn];
     disp(' ')

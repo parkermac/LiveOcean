@@ -96,8 +96,9 @@ def run_worker_post(Ldir, worker_type='matlab'):
     # run the worker code using subprocess
     #
     # Passes an extra piece of information: an "indir" used by the
-    # carbon postporcessing code. Eventually I may want to separate
+    # carbon post-processing code. Eventually I may want to separate
     # out the forcing things from the post-processing things.
+    #
     if worker_type == 'matlab':
         # pass arguments to a matlab program
         import subprocess

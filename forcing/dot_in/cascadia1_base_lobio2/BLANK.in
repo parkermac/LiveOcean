@@ -21,7 +21,7 @@
 ! first so all information arrays can be initialized properly.
 
      VARNAME = $roms_dir$$roms_name$/ROMS/External/varinfo.dat
-     
+
 
 ! Number of nested grids.
 
