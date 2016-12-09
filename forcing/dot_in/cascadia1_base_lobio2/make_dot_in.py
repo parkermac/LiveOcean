@@ -27,7 +27,7 @@ EX_NAME = Ldir['ex_name'].upper()
 
 # account for differences when using biology
 # NOTE: this is not  robust because it depends on a specific ex_name
-if Ldir['ex_name'] == 'lobio1':
+if Ldir['ex_name'] == 'lobio2':
     do_bio = True
 else:
     do_bio = False
