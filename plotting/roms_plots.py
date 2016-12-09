@@ -35,7 +35,8 @@ def get_in_dict(plot_type):
     vlims['TIC'] = (2000, 2400) # (2000,2400) for surface
     vlims['alkalinity'] = (2000,2400)
     vlims['PH'] = (6, 9)
-    vlims['ARAG'] = (0, 3)    
+    vlims['ARAG'] = (0, 3)
+    vlims['Ldetritus'] = ()
     # custom choices based on plot_type   
     if plot_type == 'P_layer':
         vlims['oxygen'] = (.5, 1) # (0, 4) for bottom DO (ml L-1), (4, 8) for surface
@@ -59,7 +60,8 @@ cmap_dict = {'salt': 'jet', #cmo.cm.haline,
              'TIC': cmo.cm.matter,
              'alkalinity': cmo.cm.solar,
              'PH': 'jet',
-             'ARAG': 'rainbow'}
+             'ARAG': 'rainbow',
+             'Ldetritus': 'jet'}
 
 # units (after multiplying by fac)
 units_dict = {'salt': '',
@@ -71,7 +73,8 @@ units_dict = {'salt': '',
              'TIC': ' $(\mu mol\ L^{-1})$',
              'alkalinity': ' $(\mu\ equivalents\ L^{-1})$',
              'PH': '',
-             'ARAG': ''}
+             'ARAG': '',
+             'Ldetritus': ''}
 
 # scaling factors
 fac_dict =  {'salt': 1,
@@ -83,7 +86,8 @@ fac_dict =  {'salt': 1,
              'TIC': 1,
              'alkalinity': 1,
              'PH': 1,
-             'ARAG': 1}
+             'ARAG': 1,
+             'Ldetritus': 1}
              
 tstr_dict = {'salt': 'Salinity',
              'temp': 'Temperature',
@@ -94,7 +98,8 @@ tstr_dict = {'salt': 'Salinity',
              'TIC': 'DIC',
              'alkalinity': 'Alkalinity',
              'PH': 'pH',
-             'ARAG': '$\Omega_{arag}$'}
+             'ARAG': '$\Omega_{arag}$',
+             'Ldetritus': 'Ldetritus'}
 
 figsize = (18,10)
 out_dict = dict()
@@ -559,7 +564,7 @@ def P_sect(in_dict):
     zeta = ds['zeta'][:].squeeze()
     zr = zrfun.get_z(h, zeta, S, only_rho=True)
 
-    vn = 'TIC'
+    vn = 'oxygen'
     try:
         vlims[vn]
     except KeyError:
@@ -587,9 +592,9 @@ def P_sect(in_dict):
     # create track by hand
     if True:
         #x = np.linspace(lon.min(), -124, 500)
-        if False:
+        if True:
             x = np.linspace(lon.min(), lon.max(), 500)
-            y = 49 * np.ones(x.shape)
+            y = 47 * np.ones(x.shape)
         else:
             y = np.linspace(lat.min(), lat.max(), 500)
             x = -126 * np.ones(y.shape)
@@ -700,7 +705,7 @@ def P_sect(in_dict):
     ax.plot(dist, v2['zbot'], '-k', linewidth=2)
     ax.plot(dist, v2['zeta'], '-b', linewidth=1)
     ax.set_xlim(dist.min(), dist.max())
-    ax.set_ylim(in_dict['z_level'], 5)
+    ax.set_ylim(-3500, 5)
     vlims = pfun.auto_lims(v3['sectvarf'])
     cs = ax.pcolormesh(v3['distf'], v3['zrf'], v3['sectvarf'],
                        vmin=vlims[0],
@@ -711,7 +716,8 @@ def P_sect(in_dict):
         np.linspace(np.floor(vlims[0]), np.ceil(vlims[1]), 20), colors='k')
     ax.set_xlabel('Distance (km)')
     ax.set_ylabel('Z (m)')
-    ax.set_title(varname)
+    tstr = tstr_dict[vn]
+    ax.set_title(tstr)
 
     # FINISH
     ds.close()
