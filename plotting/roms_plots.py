@@ -34,8 +34,8 @@ def get_in_dict(plot_type):
     vlims['oxygen'] = (4, 8) # (0, 4) for bottom DO (ml L-1), (4, 8) for surface
     vlims['TIC'] = (2000, 2400) # (2000,2400) for surface
     vlims['alkalinity'] = (2000,2400)
-    vlims['PH'] = (6, 9)
-    vlims['ARAG'] = (0, 3)
+    vlims['PH'] = (7, 8.5)#(6, 9)
+    vlims['ARAG'] = (0, 3)#(0, 3)
     vlims['Ldetritus'] = ()
     # custom choices based on plot_type   
     if plot_type == 'P_layer':
@@ -223,10 +223,9 @@ def P_pH_Arag(in_dict):
     # panel 1
     ax = fig.add_subplot(121)
     vn = 'PH'
-    tstr = 'Bottom ' + tstr_dict[vn]
+    tstr = 'Surface ' + tstr_dict[vn]
     cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn,
-            vlims=vlims[vn], cmap=cmap_dict[vn], fac=fac_dict[vn],
-            slev=0)
+            vlims=vlims[vn], cmap=cmap_dict[vn], fac=fac_dict[vn])
     fig.colorbar(cs)
     pfun.add_bathy_contours(ax, ds, txt=True)
     pfun.add_coast(ax)
@@ -240,10 +239,9 @@ def P_pH_Arag(in_dict):
     # panel 2
     ax = fig.add_subplot(122)
     vn = 'ARAG'
-    tstr = 'Bottom ' + tstr_dict[vn]
+    tstr = 'Surface ' + tstr_dict[vn]
     cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn,
-            vlims=vlims[vn], cmap=cmap_dict[vn], fac=fac_dict[vn],
-            slev=0)
+            vlims=vlims[vn], cmap=cmap_dict[vn], fac=fac_dict[vn])
     fig.colorbar(cs)
     pfun.add_bathy_contours(ax, ds)
     pfun.add_coast(ax)
