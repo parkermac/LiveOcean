@@ -190,14 +190,14 @@
 ! tracers climatology: [NBT,Ngrids] values are expected. See glossary below
 ! for details.
 
-  LtracerCLM == T T T T T T T T T
-  LnudgeTCLM == T T T T T T T T T
+  LtracerCLM == 9*F
+!  LnudgeTCLM == 9*F
 
 ! Logical switches (TRUE/FALSE) to activate tracers point Sources/Sinks
 ! (like river runoff) and to specify which tracer variables to consider:
 ! [NBT,Ngrids] values are expected. See glossary below for details.
 
-  LtracerSrc == T T T T T T T T T
+  LtracerSrc == 9*T
   SSFNAME == $force_dir$$riv_dir$rivers$bio_tag$.nc
 !  LtracerSrc(idbio(1),ng)== T  !Nitrate concentration
 !  LtracerSrc(idbio(2),ng)== T  !phyt concentration
