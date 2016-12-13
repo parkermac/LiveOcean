@@ -46,18 +46,18 @@ def get_interpolant(x, xvec, extrap_nan=False):
     Returns info to allow fast interpolation.
 
     Input:
-    x = data position(s) [1-D numpy array without nans]
+    x = data position(s) [1-D numpy array]
     xvec = coordinate vector [1-D numpy array without nans]
         NOTE: xvec must be monotonically increasing
 
     *kwargs*
     Set extrap_nan=True to return nan for the fraction
     whenever an x value is outside of the range of xvec.
-    The default is that
-    if the x is out of the range of xvec it returns the
-    interpolant for the first or last point.
-    E.g. [0., 1., 0.] for x < xvec.min()
-
+    The default, with extrap_nan=False, is that
+    if the x is out of the range of xvec, or if x=nan it returns
+    the interpolant for the first or last point.
+    E.g. [0, 1, 0.] for x < xvec.min()
+    
     Output: three 1-D numpy arrays of the same size as x
     i0 = index below [int]
     i1 = index above [int]
@@ -67,7 +67,10 @@ def get_interpolant(x, xvec, extrap_nan=False):
     the index of that point and the one above.
 
     """
-
+    
+    from warnings import filterwarnings
+    filterwarnings('ignore') # skip some warning messages
+    
     def itp_err(message='hi'):
         print('WARNING from get_interpolant(): ' + message)
 
@@ -82,7 +85,7 @@ def get_interpolant(x, xvec, extrap_nan=False):
     xvec = xvec.flatten()
 
     # more error checking
-    if np.isnan(x).any():
+    if np.isnan(x).any() and extrap_nan==False:
         itp_err('nan found in x')
     if np.isnan(xvec).any():
         itp_err('nan found in xvec')
