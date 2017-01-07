@@ -23,7 +23,7 @@ def interp_scattered_on_plaid(x, y, xvec, yvec, u):
     individual points.  They are not a plaid grid, but can be
     scattered arbitrarily throughout the domain.
 
-    Returns a vector ui the same length at x and y.
+    Returns a vector ui the same length as x and y.
 
     Note that because it relies on "get_interpolant" out-of-bounds
     values default to nan.
