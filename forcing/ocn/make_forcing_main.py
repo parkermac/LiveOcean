@@ -47,6 +47,7 @@ if Ldir['run_type'] == 'forecast':
         list_len.append(len(varf_dict[var_name]))
     if list_len.count(list_len[0]) != len(list_len):
         print('WARNING: Lists in varf_dict are different lengths!')
+        NT = min(list_len)
     else:
         NT = list_len[0] # the number of times, to use below   
     # use fewer times for testing
