@@ -188,6 +188,12 @@ def get_aa(ds):
     y = ds['lat_psi'][:,0]
     aa = [x[0], x[-1], y[0], y[-1]]
     return aa
+    
+def get_aa_ex(ds):
+    x = ds['lon_psi_ex'][0,:]
+    y = ds['lat_psi_ex'][:,0]
+    aa = [x[0], x[-1], y[0], y[-1]]
+    return aa
 
 def get_zfull(ds, fn, which_grid):
     # get zfull field on "which_grid" ('rho', 'u', or 'v')

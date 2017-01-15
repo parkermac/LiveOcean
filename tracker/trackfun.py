@@ -208,8 +208,8 @@ def update_position(V, ZH, S, delta_t, plon, plat, pcs, surface):
         # enforce limits on cs
         mask = np.isnan(Pcs)
         Pcs[mask] = Pcs_orig[mask]
-        Pcs[pcs < S['Cs_r'][0]] = S['Cs_r'][0]
-        Pcs[pcs > S['Cs_r'][-1]] = S['Cs_r'][-1]
+        Pcs[Pcs < S['Cs_r'][0]] = S['Cs_r'][0]
+        Pcs[Pcs > S['Cs_r'][-1]] = S['Cs_r'][-1]
     else:
         Pcs[:] = S['Cs_r'][-1]
 
