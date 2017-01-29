@@ -13,7 +13,7 @@ def interp_scattered_on_plaid(x, y, xvec, yvec, u):
 
     NOTE: this can also be used to interpolate to a plad grid.  Just pass it
     flattened versions of the new coordinate matrices, and then reshape
-    the output.  Appears to be super fast
+    the output.  Appears to be super fast.
 
     All inputs and outputs are numpy arrays.
 

@@ -81,9 +81,10 @@ def make_shortened_list(fn_list, which_var):
             dlist.append(dd)
         dd_prev = dd
     
-    last_day_ind = -2
+    last_day_ind = -1
     # set last_day_ind to -1 to use today's forecast, and -2 to use
-    # yesterday's (more reliable? 1/15/2017)    
+    # yesterday's (more reliable? 1/15/2017)
+    # changed back on 1/29/2017, gack!    
     dlist0 = dlist[:last_day_ind] # all but the last
     dlast = dlist[last_day_ind] # the last, which goes into the future
     
