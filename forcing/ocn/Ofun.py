@@ -1,6 +1,7 @@
 """
 Module of functions for making ocean forcing.
 """
+from datetime import datetime, timedelta
 
 def get_hycom_file_list():
     """
@@ -52,6 +53,7 @@ def get_hycom_file_list():
     return fn_list
     
 def make_shortened_list(fn_list, which_var):
+    # OBSOLETE as of 2017.02.04, I hope
     varf_list = []
     for fn in fn_list:
         if ('_' + which_var) in fn:
@@ -96,7 +98,6 @@ def make_shortened_list(fn_list, which_var):
             for hr in hour_list:
                 if '_t' + ('000' + str(hr))[-3:] in fn:
                     varf_list_short.append(fn)
-
     
     # get the XXX hour forecast for all past days
     # prompted by a HYCOM server problem 10/2/2016 where it was missing
@@ -109,10 +110,58 @@ def make_shortened_list(fn_list, which_var):
         for fn in varf_list:
             if ddd in fn and ('_t' + XXX) in fn:
                 varf_list_short.insert(0,fn)
-                
-                    
+                                    
     # return a list of url's for this variable, one file per day            
     return varf_list_short
+    
+def get_varf_dict(fn_list):  
+    # New strategy. Names are like:
+    # .../hycom_glb_912_2017020400_t168_uv3z.nc 
+    from datetime import datetime, timedelta
+    ssh_dict = dict()
+    ts3z_dict = dict()
+    uv3z_dict = dict()
+    for fn in fn_list:
+        fn1 = fn.split('/')[-1]
+        fn2 = fn1.split('.')[0]
+        parts = fn2.split('_')
+        date_str = parts[-3]
+        hour_str = parts[-2]
+        var_str = parts[-1]
+        hh = int(hour_str[1:])
+        dt = datetime.strptime(date_str[:-2],'%Y%m%d') + timedelta(days=hh/24)
+        if var_str == 'ssh':
+            # by putting these in a dict we just retain
+            # the MOST RECENT instance
+            # of a file for a given time
+            # but they are NOT SORTED
+            ssh_dict[dt] = fn
+        elif var_str == 'ts3z':
+            ts3z_dict[dt] = fn
+        elif var_str == 'uv3z':
+            uv3z_dict[dt] = fn
+    # just save the times for which we have all three files
+    # and which are at midnight
+    dt_list2 = []        
+    for dt in ssh_dict.keys():
+        if (dt in ts3z_dict.keys()) and (dt in uv3z_dict.keys()) and (dt.hour==0):
+            dt_list2.append(dt)
+    #sort the datetime list            
+    dt_list2.sort()
+    # pack results into varf_dict
+    ssh_list = []
+    ts3z_list = []
+    uv3z_list = []
+    for dt in dt_list2:
+        ssh_list.append(ssh_dict[dt])
+        ts3z_list.append(ts3z_dict[dt])
+        uv3z_list.append(uv3z_dict[dt])
+    varf_dict = dict()
+    varf_dict['ssh'] = ssh_list    
+    varf_dict['ts3z'] = ts3z_list    
+    varf_dict['uv3z'] = uv3z_list
+    
+    return (varf_dict, dt_list2)
 
 def get_extraction(fn, var_name):
     # these are packed one time per file, so the time is encoded in "fn"
@@ -343,7 +392,7 @@ def horizontal_extrapolation(x, y, N, fld, fld_name):
         fldf[fld.mask] = fld[~fld.mask][cKDTree(xygood).query(xybad)[1]]
     elif fld_name in ['u3d', 'v3d']:
         fldf = fld.copy() 
-        fldf[fldf.mask] = 0.0 # fill all missing values with 0.0 velocity           
+        fldf[fld.mask] = 0.0 # fill all masked values with 0.0 velocity           
     elif fld_name in ['t3d', 's3d']:
         fldf = fld.copy() # initialize  
         # extrapolate horizontally

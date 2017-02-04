@@ -37,20 +37,9 @@ if Ldir['run_type'] == 'forecast':
         except:
             cc += 1
     # get a selection of the raw list (e.g. one per day)
-    var_list = ['ssh','ts3z','uv3z']    
-    varf_dict = dict()
-    for var_name in var_list:
-        varf_dict[var_name] = Ofun.make_shortened_list(fn_list, var_name)
-    # check that all the lists are the same length
-    list_len = []
-    for var_name in var_list:
-        list_len.append(len(varf_dict[var_name]))
-    if list_len.count(list_len[0]) != len(list_len):
-        print('WARNING: Lists in varf_dict are different lengths!')
-        NT = min(list_len) # an attempt to dea with the situation when
-        # some hycome variables have fewer data records than others
-    else:
-        NT = list_len[0] # the number of times, to use below   
+    varf_dict, dt_list = Ofun.get_varf_dict(fn_list)
+    var_list = list(varf_dict.keys())
+    NT = len(dt_list)
     # use fewer times for testing
     if False:
         NT = 2       
