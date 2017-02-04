@@ -22,7 +22,6 @@ end
 mexnc ( 'setopts', 0 );
 
 create_testfile ( ncfile );
-test_minus_one_count ( ncfile );
 test_double_precision ( ncfile );
 test_read_single      ( ncfile );
 test_read_short       ( ncfile );
@@ -43,96 +42,6 @@ fprintf ( 1, 'VARPUTG succeeded\n' );
 fprintf ( 1, 'VARGETG succeeded\n' );
 
 return
-
-
-
-
-%--------------------------------------------------------------------------
-function test_minus_one_count ( ncfile )
-% Notes sent from Simon Spagnol
-%
-% theta1 = ncmex('varget',cdfid,'thetau1',[0 0],[-1 -1],0) ;
-%
-% Now for some reason putting what I assume was some sort of default 
-% [-1 -1] causes my matlab implentation to fail with a memory error 
-% (only have to one installation so can't test on others)
-
-% VARGETG and VARPUTG are broken in the old mex-file for negative counts
-v = version('-release');
-switch(v)
-    case { '14', '2006a', '2006b', '2007a', '2007b', '2008a' }
-        fprintf('Filtering out minus_one_count testpoint on pre-2008b\n' );
-        fprintf('releases, please use ''GET_VARS'' instead of VARGETG.\n');
-        return;
-end
-if ~getpref('MEXNC','USE_TMW',true)
-    fprintf('Filtering out minus_one_count testpoint on mexnc configurations,\n' );
-    fprintf('please use ''GET_VARS'' instead of VARGETG.\n');
-    return;    
-end
-[ncid, status] = mexnc ( 'open', ncfile, nc_write_mode );
-if ( status ~= 0 ), error ( mexnc('strerror',status) ), end
-
-xdimid = mexnc('INQ_DIMID',ncid,'x');
-[name,xlen] = mexnc('DIMINQ',ncid,xdimid); %#ok<ASGLU>
-
-ydimid = mexnc('INQ_DIMID',ncid,'y');
-[name,ylen] = mexnc('DIMINQ',ncid,ydimid); %#ok<ASGLU>
-
-% 1D case
-[varid, status] = mexnc('INQ_VARID', ncid, 'z_double');
-if ( status ~= 0 ), error ( mexnc('strerror',status) ), end
-
-input_data1 = rand(xlen,1);
-status = mexnc ( 'VARPUT', ncid, varid, 0, xlen, input_data1 );
-if ( status ~= 0 ), error ( mexnc('strerror',status) ), end
-
-input_data = rand(xlen/2,1);
-status = mexnc ( 'VARPUTG', ncid, varid, 0, -1, 2, [], input_data );
-if status == 0
-	error('failed to catch error condition');
-end
-
-[output_data, status] = mexnc ( 'VARGETG', ncid, varid, 0, -1, 2 );
-if ( status ~= 0 ), error ( mexnc('strerror',status) ), end
-
-output_data = output_data(:);
-
-d = max(abs(output_data-input_data1(1:2:100)))';
-if (any(d))
-	error ( 'values written by VARGETG do not match what was retrieved by VARPUT');
-end
-
-
-% 2D case
-[varid, status] = mexnc('INQ_VARID', ncid, 'twoD');
-if ( status ~= 0 ), error ( mexnc('strerror',status) ), end
-
-input_data = 1:ylen*xlen;
-input_data = reshape(input_data,ylen,xlen);
-status = mexnc ( 'VARPUT', ncid, varid, [0 0], [ylen xlen], input_data' );
-if ( status ~= 0 ), error ( mexnc('strerror',status) ), end
-
-mexnc('sync',ncid);
-
-[output_data, status] = mexnc ( 'VARGETG', ncid, varid, [5 5], [-1 -1], [2 4] );
-if ( status ~= 0 ), error ( mexnc('strerror',status) ), end
-output_data = output_data';
-
-size(input_data);
-size(output_data);
-input_data = input_data(6:2:end,6:4:end);
-d = max(abs(output_data(:) - input_data(:)));
-if (any(d))
-	error ( 'values written by VARGET do not match what was retrieved by VARPUT');
-end
-
-status = mexnc ( 'close', ncid );
-if ( status ~= 0 ), error ( mexnc('strerror',status) ), end
-
-return
-
-
 
 
 
@@ -187,8 +96,6 @@ if ( status ~= 0 ), error ( mexnc('strerror',status) ), end
 if ( status ~= 0 ), error ( mexnc('strerror',status) ), end
 
 
-%
-% CLOSE
 status = mexnc ( 'close', ncid );
 if ( status ~= 0 ), error ( mexnc('strerror',status) ), end
 
@@ -571,6 +478,8 @@ end
 
 
 
+status = mexnc ( 'close', ncid );
+if ( status ~= 0 ), error ( mexnc('strerror',status) ), end
 
 
 %--------------------------------------------------------------------------
@@ -609,6 +518,8 @@ if (any(ind))
 end
 
 
+status = mexnc ( 'close', ncid );
+if ( status ~= 0 ), error ( mexnc('strerror',status) ), end
 
 
 %--------------------------------------------------------------------------

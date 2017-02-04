@@ -421,6 +421,10 @@ if (any(ind))
 	error ( 'values written by VARPUT1 do not match what was retrieved by VARGET1\n' );
 end
 
+status = mexnc ( 'close', ncid );
+if ( status ~= 0 ), error ( mexnc('strerror',status) ), end
+
+return
 
 
 
@@ -515,6 +519,7 @@ if (any(ind))
 	error ( msg );
 end
 
+mexnc('close',ncid);
 
 
 

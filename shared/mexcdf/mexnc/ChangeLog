@@ -1,3 +1,18 @@
+* Sun Oct 09 2011 John Evans <john.g.evans.ne@gmail.com> -r3793
+- Added def_var_fill and inq_format functions.
+
+* Wed Jul 27 2011 John Evans <john.g.evans.ne@gmail.com> -r3626
+- Removed commented-out stanzas for short-circuiting classic/tmw switching
+
+* Thu Jul 07 2011 John Evans <john.g.evans.ne@gmail.com> -r3607
+- Added check for presence of mex-file
+- Removed echo of a test catch me.
+
+* Mon May 17 2011 John Evans <john.g.evans.ne@gmail.com> -r3532
+- Fixed some tests that were leaving file handles open.
+- No longer allowing for choice of backend.  It's all determined by
+-     the MATLAB version.
+
 * Sun Dec 19 2010 John Evans <john.g.evans.ne@gmail.com> -r3438
 - Fixed netcdf4 create mode negative test on R2008a.
 

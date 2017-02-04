@@ -750,7 +750,7 @@ op *opname2opcode ( const char *opname, int nlhs, int nrhs ) {
         sprintf ( error_message+strlen(error_message), 
                     "\t\"%s\" requires at least %d input arguments, you provided %d.\n",
                     opname, ops[j].nrhs, nrhs );
-        mexErrMsgTxt(error_message);
+        mexErrMsgIdAndTxt("mexnc:tooFewArgs",error_message);
     }
 
     if (ops[j].nlhs < nlhs)    {

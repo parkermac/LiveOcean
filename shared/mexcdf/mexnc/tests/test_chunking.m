@@ -10,12 +10,12 @@ if v(1) ~= '4'
 	return
 end
 
-test_netcdf3(ncfile);                   % #1 
-test_netcdf3_64bit(ncfile);             % #2 
-test_netcdf4_1d(ncfile);                % #3 
-test_netcdf4_2d(ncfile);                % #4 
-test_netcdf4_contiguous_with_csize(ncfile);  % #5 
-test_use_tmw(ncfile);                        % #6 
+test_netcdf3(ncfile);   clear mex;               % #1 
+test_netcdf3_64bit(ncfile);      clear mex;       % #2 
+test_netcdf4_1d(ncfile);      clear mex;          % #3 
+test_netcdf4_2d(ncfile);     clear mex;           % #4 
+test_netcdf4_contiguous_with_csize(ncfile); clear mex; % #5 
+test_use_tmw(ncfile);    clear mex;                    % #6 
 
 fprintf ( 'DEF_VAR_CHUNKING succeeded.\n' );
 fprintf ( 'INQ_VAR_CHUNKING succeeded.\n' );
@@ -45,6 +45,7 @@ catch
 	return
 end
 
+mexnc ( 'close', ncid );
 error('should not have been able to chunk a netcdf-3 variable');
 
 return
@@ -75,6 +76,7 @@ catch
 	return
 end
 
+mexnc ( 'close', ncid );
 error('should not have been able to chunk a netcdf-3 64bit offset variable');
 
 return
@@ -208,6 +210,7 @@ catch
 	return
 end
 
+mexnc ( 'close', ncid );
 
 return
 
@@ -215,11 +218,15 @@ return
 %--------------------------------------------------------------------------
 function test_use_tmw(ncfile)
 
-% This test is meaningless unless the preference is set to zero.
-use_tmw = getpref('MEXNC','USE_TMW');
-if ~use_tmw
-	return
+
+
+% Only do on 4.x enabled releases.
+v = version('-release');
+switch(v)
+case { '14', '2006a', '2006b', '2007a', '2007b', '2008a', '2008b', '2009a', '2009b', '2010a' }
+    return;
 end
+
 
 
 % chunking isn't supported in TMW yet.
@@ -243,6 +250,7 @@ catch
 	return
 end
 
+mexnc('close',ncid);
 
 return
 

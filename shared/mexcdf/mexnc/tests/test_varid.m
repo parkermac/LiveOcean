@@ -97,7 +97,6 @@ return;
 
 
 function test_004 ( ncfile )
-lasterror('reset');
 
 [ncid, status] = mexnc ( 'open', ncfile, nc_nowrite_mode );
 if ( status ~= 0 ), error ( mexnc ( 'strerror', status ) ), end;

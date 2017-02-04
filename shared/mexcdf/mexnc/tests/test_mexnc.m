@@ -5,30 +5,42 @@ function test_mexnc()
 
 p = which ( 'mexnc', '-all' );
 if isempty(p)
-	fprintf ( 1, 'Could not find mexnc on the matlab path.  Read the README!!\n' );
-	fprintf ( 1, 'Bye\n' );
-	return
+    fprintf ( 1, 'Could not find mexnc on the matlab path.  Read the README!!\n' );
+    fprintf ( 1, 'Bye\n' );
+    return
 end
 
-fprintf ( 1, 'Your path for mexnc is listed below.  Before continuing on, make sure\n' );
-fprintf ( 1, 'that any old versions of mexnc are either NOT present or are shadowed.\n' );
+fprintf('Your path for mexnc is listed below.  Before continuing on, make sure\n' );
+fprintf('that any old versions of mexnc are either NOT present or are shadowed.\n' );
 disp ( p );
 answer = input ( 'Does the above path for mexnc look right? [y/n]\n', 's' );
 if strcmp ( lower(answer), 'n' )
-	fprintf ( 1, 'Bye\n' );
-	return
+    fprintf('Bye\n' );
+    return
 end
 
-fprintf ( 1, '\n\n\nDo you wish to remove all test NetCDF files in this directory prior to running the tests?\n' );
-fprintf ( 1,  'It''s a good idea to say yes if you are in the test suite directory.\n' );
-fprintf ( 1, 'It''s a bad idea if you are running the test from somewhere else, \n' );
-fprintf ( 1, 'e.g. your PhD thesis results directory.\n' );
+fprintf('\n\n\nDo you wish to remove all test NetCDF files in this directory prior to running the tests?\n' );
+fprintf('It''s a good idea to say yes if you are in the test suite directory.\n' );
+fprintf('It''s a bad idea if you are running the test from somewhere else, \n' );
+fprintf('e.g. your PhD thesis results directory.\n' );
 answer = input ( '[y | n]\n', 's' );
 if strcmp ( lower(answer(1)), 'y' )
-	delete ( '*.nc' );
+    delete ( '*.nc' );
 end
 
-ncver = mexnc ( 'inq_libvers' );
+v = version('-release');
+switch(v)
+    case { '14','2006a','2006b','2007a','2007b','2008a'}
+        try
+            ncver = mexnc ( 'inq_libvers' );
+        catch
+            error(['Cannot find the mex-file, which must be installed ' ...
+                   'in mexcdf/mexnc/private.  Check the instructions again']);
+        end
+            
+    otherwise
+        ncver = mexnc ( 'inq_libvers' );
+end
 if ncver(1) == '4'
     %test_def_grp ( 'foo.nc' );
 end
@@ -116,7 +128,7 @@ fprintf ( 1, 'All tests succeeded.\n' );
 fprintf ( 1, '\n' );
 answer = input ( 'Do you wish to remove all test NetCDF files that were created? [y/n]\n', 's' );
 if strcmp ( lower(answer), 'y' )
-	delete ( '*.nc' );
+    delete ( '*.nc' );
 end
 fprintf ( 1, 'We''re done.\n' );
 

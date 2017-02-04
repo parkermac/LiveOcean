@@ -352,9 +352,10 @@
 #
 ### vanilla netcdf-3 settings, glnxa64
 ### NetCDF library configured with "--disable-shared", CFLAGS="-fPIC"
-          NETCDF="/local/netcdf-3.6.3"
-          CFLAGS="$CFLAGS -g -I${NETCDF}/include "
-          CLIBS="${NETCDF}/lib/libnetcdf.a $CLIBS "
+#          NETCDF="/local/netcdf-3.6.3"
+#          NETCDF="/opt/netcdf-4.1.3-i386"
+#          CFLAGS="$CFLAGS -g -I${NETCDF}/include "
+#          CLIBS="${NETCDF}/lib/libnetcdf.a ${NETCDF}/lib/libhdf5_hl.a ${NETCDF}/lib/libhdf5.a $CLIBS "
 #
 ### vanilla netcdf-4 settings, maci
 ### NetCDF, HDF5 libraries configured with "--disable-shared"
@@ -372,14 +373,11 @@
 #            CLIBS="-lcurl -lgssapi_krb5 -lkrb5 -lk5crypto -lkrb5support $CLIBS"
 #            CLIBS="-L${NETCDF}/lib -lnc-dap -ldapclient -ldap $CLIBS"
 #
-### Opendap settings, maci.  I do love segfaults.
-##            NETCDF="/opt/opendap"
-##            CFLAGS="$CFLAGS -I${NETCDF}/include/libnc-dap -I${NETCDF}/include/libdap "
-##            CLIBS="-ldl  -lssl -lcrypto -lxml2 -lz  -lm -lpthread $CLIBS"
-##            CLIBS="-lcom_err -lresolv $CLIBS"
-##            CLIBS="-lcurl -lgssapi_krb5 -lkrb5 -lk5crypto -lkrb5support $CLIBS"
-##            CLIBS="-L${NETCDF}/lib -lnc-dap -ldapclient -ldap $CLIBS"
-##
+# Opendap settings, maci.  
+            NETCDF="/opt/nc4-32"
+            CFLAGS="$CFLAGS -I${NETCDF}/include  "
+            CLIBS="-L${NETCDF}/lib -lnetcdf -lcurl -lhdf5_hl -lhdf5 $CLIBS"
+#
 #           FC="$FC"
 #           FFLAGS="$FFLAGS"
 #           FOPTIMFLAGS="$FOPTIMFLAGS"

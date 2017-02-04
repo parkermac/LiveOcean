@@ -1,32 +1,18 @@
-function attribute = nc_get_attribute_struct_tmw ( cdfid, varid, attnum )
+function attribute = nc_getattsinfo_tmw(ncid,varid,attnum)
 % NC_GET_ATTRIBUTE_STRUCT_TMW:  Returns a NetCDF attribute as a structure
 %
 % You don't want to be calling this routine directly.  Just don't use 
 % it.  Use nc_attget instead.  Go away.  Nothing to see here, folks.  
 % Move along, move along.
-%
-% USAGE:  attstruct = nc_get_attribute_struct_tmw ( cdfid, varid, attnum );
-%
-% PARAMETERS:
-% Input:
-%     cdfid:  NetCDF file id
-%     varid:  NetCDF variable id
-%     attnum:  number of attribute
-% Output:
-%     attstruct:  structure with "Name", "Nctype", "Attnum", and "Value" 
-%                 fields
 
 
-% Fill the attribute struct with default values
-attribute.Name = '';
-attribute.Nctype = NaN;
-attribute.Value = NaN;       % In case the routine fails?
+attribute = struct('Name','','Nctype','','Datatype','','Value',NaN);
 
 
-attname = netcdf.inqAttName(cdfid, varid, attnum);
+attname = netcdf.inqAttName(ncid, varid, attnum);
 attribute.Name = attname;
 
-[att_datatype] = netcdf.inqAtt(cdfid, varid, attname);
+[att_datatype] = netcdf.inqAtt(ncid, varid, attname);
 attribute.Nctype = att_datatype;
 switch(att_datatype)
     case nc_nat
@@ -59,19 +45,15 @@ end
 
 switch att_datatype
     case 0
-        attval = NaN;
+        attribute.Value = NaN;
     case { nc_char, nc_int64, nc_uint64 }
-        attval=netcdf.getAtt(cdfid,varid,attname);
+        attribute.Value=netcdf.getAtt(ncid,varid,attname);
     case { nc_double, nc_float, nc_int, nc_short, nc_byte, nc_ubyte, nc_ushort, nc_uint }
-        attval=netcdf.getAtt(cdfid,varid,attname,'double');
+        attribute.Value=netcdf.getAtt(ncid,varid,attname,'double');
     otherwise
-        warning ( 'SNCTOOLS:nc_get_attribute_struct:tmw:unhandledDatatype', ...
-            'The datatype for attribute ''%s'' (%d) is not currently handled by SNCTOOLS.', ...
-            attname, att_datatype );
-        attval = [];
+        attribute.Value = [];
 end
 
-attribute.Value = attval;
 
 return
 

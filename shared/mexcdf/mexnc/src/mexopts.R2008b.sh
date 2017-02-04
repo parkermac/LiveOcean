@@ -346,6 +346,13 @@
 #           CDEBUGFLAGS="$CDEBUGFLAGS"
 #           CLIBS="$CLIBS"
 #
+### Opendap settings, maci.
+            NETCDF="/sw"
+            CFLAGS="$CFLAGS -I${NETCDF}/include/libnc-dap -I${NETCDF}/include/libdap "
+            CLIBS="-ldl  -lssl -lcrypto -lxml2 -lz  -lm -lpthread $CLIBS"
+            CLIBS="-lcom_err -lresolv $CLIBS"
+            CLIBS="-lcurl -lgssapi_krb5 -lkrb5 -lk5crypto -lkrb5support $CLIBS"
+            CLIBS="-L${NETCDF}/lib -lnc-dap -ldapclient -ldap $CLIBS"
 ### GLNXA64
 ### vanilla netcdf-4 
 ### NetCDF library compiled with CFLAGS="-fPIC", CXXFLAGS="-fPIC",

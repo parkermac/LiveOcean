@@ -122,6 +122,8 @@ if status, error ( mexnc(strerror,status) ), end
 [status] = mexnc ( 'enddef', ncid );
 if status, error ( mexnc(strerror,status) ), end
 
+mexnc('close',ncid);
+
 return
 
 

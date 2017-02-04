@@ -321,6 +321,7 @@ case { '13', '14', '2006a', '2006b', '2007a', '2007b', '2008a' }
 	
 otherwise	
 	warning ( 'GET_VARM_text and PUT_VARM_text not supported under TMW\n' );
+	status = mexnc ( 'close', ncid );
 	return
 end
 

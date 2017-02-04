@@ -1,5 +1,5 @@
 /*
- * $Id: mexnc.h 2828 2010-01-15 14:48:55Z johnevans007 $
+ * $Id: mexnc.h 3793 2011-10-09 15:39:11Z johnevans007 $
  * */
 
 # if !defined	MEXNC_H
@@ -23,6 +23,7 @@ typedef enum s_opcode	{
 	DEF_VAR,
 	DEF_VAR_CHUNKING,
 	DEF_VAR_DEFLATE,
+	DEF_VAR_FILL,
 	DEL_ATT,
 	_ENDDEF,
 	END_DEF,
@@ -79,6 +80,7 @@ typedef enum s_opcode	{
 	INQ_DIMID,
 	INQ_DIMLEN,
 	INQ_DIMNAME,
+	INQ_FORMAT,
 	INQ_LIBVERS,
 	INQ_NDIMS,
 	INQ_NVARS,

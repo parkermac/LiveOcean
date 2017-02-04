@@ -75,8 +75,7 @@ xdimid = mexnc('dimid',ncid,'x');
 % Test 1:  Normal inquiry
 [name, length, status] = mexnc('DIMINQ', ncid, xdimid);
 if ( status ~= 0 )
-	ncerr = mexnc ( 'strerror', status );
-	error ( ncerr );
+	error('failed');
 end
 
 if ~strcmp ( name, 'x' )
@@ -103,8 +102,7 @@ xdimid = mexnc('dimid',ncid,'x');
 testid = 'Test 2';
 [name, length, status] = mexnc('DIMINQ', -5, xdimid);
 if ( status >= 0 )
-	err_msg = sprintf ( '%s:  %s:  succeeded when it should have failed.\n', mfilename, testid );
-	error ( err_msg );
+	error('failed');
 end
 
 
@@ -117,15 +115,9 @@ function test_empty_set_ncid(ncfile)
 ncid = mexnc('open',ncfile);
 xdimid = mexnc('dimid',ncid,'x');
 
-
-
-
-% Test 3:  Empty set ncid.
 testid = 'Test 2';
 try
-	[name, length, status] = mexnc('DIMINQ', [], xdimid);
-	err_msg = sprintf ( '%s:  %s:  succeeded when it should have failed.\n', mfilename, testid );
-	error ( err_msg );
+	error('failed')
 end
 
 mexnc('close',ncid);
@@ -142,8 +134,7 @@ xdimid = mexnc('dimid',ncid,'x');
 testid = 'Test 4';
 [name, length, status] = mexnc('DIMINQ', ncid, -5000);
 if ( status >= 0 )
-	err_msg = sprintf ( '%s:  %s:  succeeded when it should have failed.\n', mfilename, testid );
-	error ( err_msg );
+	error('failed');
 end
 
 mexnc('close',ncid);
@@ -155,15 +146,13 @@ function test_empty_set_dimid(ncfile)
 ncid = mexnc('open',ncfile);
 xdimid = mexnc('dimid',ncid,'x');
 
-
-
-
 % Test 5:  Empty set dimid.
 testid = 'Test 5';
 try
 	[name, length, status] = mexnc('DIMINQ', ncid, []);
-	err_msg = sprintf ( '%s:  %s:  succeeded when it should have failed.\n', mfilename, testid );
-	error ( err_msg );
+	error('failed');
+catch
+	% ok
 end
 
 

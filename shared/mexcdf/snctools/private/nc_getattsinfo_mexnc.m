@@ -1,11 +1,11 @@
-function attribute = nc_get_attribute_struct(cdfid,varid,attnum)
-% NC_GET_ATTRIBUTE_STRUCT:  Returns a NetCDF attribute as a structure
+function attribute = nc_getattsinfo_mexnc(cdfid,varid,attnum)
+% NC_GETATTSINFO:  Returns a NetCDF attributes as a struct array
 %
 % You don't want to be calling this routine directly.  Just don't use 
 % it.  Use nc_attget instead.  Go away.  Nothing to see here, folks.  
 % Move along, move along.
 %
-% USAGE:  attstruct = nc_get_attribute_struct ( cdfid, varid, attnum );
+% USAGE:  attstruct = nc_getattsinfo ( cdfid, varid, attnum );
 %
 % PARAMETERS:
 % Input:
@@ -19,22 +19,20 @@ function attribute = nc_get_attribute_struct(cdfid,varid,attnum)
 % In case of an error, an exception is thrown.
 
 % Fill the attribute struct with default values
-attribute.Name = '';
-attribute.Nctype = NaN;
-attribute.Value = NaN;       % In case the routine fails?
+attribute = struct('Name','','Nctype',NaN,'Datatype','','Value',NaN);
 
 
 [attname, status] = mexnc('INQ_ATTNAME', cdfid, varid, attnum);
 if status < 0 
     ncerr = mexnc('strerror',status);
-	error ( 'SNCTOOLS:nc_get_attribute_struct:inq_attname', ncerr);
+	error ( 'snctools:nc_getattsinfo:inq_attname', ncerr);
 end
 attribute.Name = attname;
 
 [att_datatype, status] = mexnc('INQ_ATTTYPE', cdfid, varid, attname);
 if status < 0 
     ncerr = mexnc('strerror',status);
-	error ( 'SNCTOOLS:nc_get_attribute_struct:inq_atttype', ncerr);
+	error ( 'snctools:nc_getattsinfo:inq_atttype', ncerr);
 end
 
 attribute.Nctype = att_datatype;
@@ -63,12 +61,12 @@ switch att_datatype
     case { nc_double, nc_float, nc_int, nc_short, nc_byte }
         [attval, status]=mexnc('get_att_double',cdfid,varid,attname);
     otherwise
-        error ( 'SNCTOOLS:nc_get_attribute_struct:unhandledAttributeType', ...
+        error ( 'snctools:nc_getattsinfo:unhandledAttributeType', ...
             'Unhandled attribute type %d.', att_datatype );
 end
 if status < 0 
     ncerr = mexnc('strerror',status);
-	error ( 'SNCTOOLS:nc_get_attribute_struct:get_att', ncerr);
+	error ( 'snctools:nc_getattsinfo:get_att', ncerr);
 end
 
 % this puts the attribute into the variable structure

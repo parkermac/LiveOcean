@@ -10,10 +10,7 @@ function [varargout] = mexnc ( varargin )
 %    Starting with R2008b, MATLAB comes with native netCDF support.  If 
 %    your version of MATLAB is earlier than R2008b, mexnc will use it's own
 %    mex-file.  If MATLAB is R2008b or higher, mexnc will use MATLAB's 
-%    native package by default.  You may tell mexnc to go back to using
-%    it's own mex-file again by setting a preference, i.e.
-%
-%        >> setpref('MEXNC','USE_TMW',false);
+%    native package by default.  
 %
 %
 %    OPeNDAP
@@ -543,66 +540,25 @@ end
 
 varargout = cell(1,nargout);
 
-% If you know for certain that you want to ONLY use the MathWorks 
-% netcdf package as the backend, then you may comment out the following
-% six lines starting at line 537.  You should then UNCOMMENT OUT the
-% IF/ELSE clause that follows.  This can lead to increased performance
-% in most cases.  You may do likewise if you know for certain that you
-% are only going to use the classic mexcdf mex-file (pre-R2008b).   
-% But if increased performance is what you are after, then you really
-% should rewrite your code to not use mexnc in the first place.
-%
-% Just keep in mind that if you do this, you may not be able to 
-% share your code with someone else whose configuration differs from 
-% your configuration.
-backend = determine_backend(varargin{:});
+switch ( version('-release') )
+    case { '12', '13', '14', '2006a', '2006b', '2007a', '2007b', '2008a' }
+		backend = @mexnc_classic;
+	otherwise
+		backend = @mexnc_tmw;
+
+end
+
 if ( nargout > 0 )
 	[varargout{:}] = backend(varargin{:});
 else
     backend(varargin{:});
 end
 
-% Uncomment this next IF/THEN stanza if you know that you only want to use
-% the MathWorks netcdf package.  If you don't know why you woud want to
-% to this, you shouldn't do it.
-% if ( nargout > 0 )
-% 	[varargout{:}] = mexnc_tmw(varargin{:});
-% else
-%     mexnc_tmw(varargin{:});
-% end
-
-% Uncomment this next IF/THEN stanza if you know that you only want to use
-% the old mexnc mex-file (pre-2008b).  If you don't know why you woud want 
-% to to this, you shouldn't do it.
-% if ( nargout > 0 )
-% 	[varargout{:}] = mexnc_classic(varargin{:});
-% else
-%     mexnc_classic(varargin{:});
-% end
-
-
-%--------------------------------------------------------------------------
-function backend = determine_backend(varargin)
-
-switch ( version('-release') )
-    case { '12', '13', '14', '2006a', '2006b', '2007a', '2007b', '2008a' }
-		backend = @mexnc_classic;
-	otherwise
-		if getpref('MEXNC','USE_TMW',true)
-			backend = @mexnc_tmw;
-		else
-			backend = @mexnc_classic;
-		end
-
-end
-
-
-
 
 
 %------------------------------------------------------------------------------------------
 function [varargout] = mexnc_classic ( varargin )
-% Figure out which mex-file to use.
+% Call the old community code mex-file.
 
 varargout = cell(1,nargout);
 
