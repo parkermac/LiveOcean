@@ -91,14 +91,14 @@ do
   #    substring = ${string:start_index:count}
   # and the index starts from 0
   DD=${D:0:4}.${D:4:2}.${D:6:2}
-  echo $DD
   
   f_string="f"$DD
   LOo=$LO_parent"_output"
   LOog=$LOo"/"$gtag
   LOogf=$LOog"/"$f_string
-  echo $LOogf
   LOogf_f=$LOogf"/"$frc
+  echo $LOogf_f
+  echo $(date)
   LOogf_fi=$LOogf_f"/Info"
   LOogf_fd=$LOogf_f"/Data"
   # make sure directories exist
@@ -128,6 +128,7 @@ do
   PID1=$!
   wait $PID1
   echo "job completed for" $f_string
+  echo $(date)
   
   checkfile=$LOogf_fi"/process_status.csv"
   # check the checkfile to see if we should continue

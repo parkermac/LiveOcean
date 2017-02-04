@@ -145,6 +145,8 @@ do
     echo "- Something else happened."
     while_flag=1
   fi
+  
+  echo $(date)
 
   # This function increments the day.
   # NOTE: it changes y, m, d, and D, even in the scope of this shell script!
