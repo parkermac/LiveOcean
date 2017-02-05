@@ -118,6 +118,8 @@ for tt = 1:NT
     for vv = 1:length(invar_list)
         VR = invar_list{vv};
         if tt == 1; eval([VR,'2 = nmat2;']); end;
+        disp(fn2)
+        disp(VR)
         eval([VR,'2(tt,:,:) = nc_varget(fn2,VR);']);
     end
 end
