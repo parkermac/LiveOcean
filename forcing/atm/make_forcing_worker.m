@@ -95,8 +95,8 @@ lat = nc_varget(fng,'lat_rho');
 
 % the WRF grids (2 for d2, and 3 for d3)
 if exist(infile_list_d2{1},'file')
-    lon2 = double(nc_varget(infile_list_d2{1},'XLONG'));
-    lat2 = double(nc_varget(infile_list_d2{1},'XLAT'));
+    lon2 = double(squeeze(nc_varget(infile_list_d2{1},'XLONG')));
+    lat2 = double(squeeze(nc_varget(infile_list_d2{1},'XLAT')));
 else
     disp('Missing WRF input files!');
 end
