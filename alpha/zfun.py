@@ -11,7 +11,7 @@ def interp_scattered_on_plaid(x, y, xvec, yvec, u):
     """
     Gets values of the field u at locations (x,y).
 
-    NOTE: this can also be used to interpolate to a plad grid.  Just pass it
+    NOTE: this can also be used to interpolate to a plaid grid.  Just pass it
     flattened versions of the new coordinate matrices, and then reshape
     the output.  Appears to be super fast.
 

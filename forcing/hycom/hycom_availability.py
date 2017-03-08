@@ -18,7 +18,7 @@ exnum_list = ['90.9', '91.0', '91.1', '91.2']
 
 for exnum in exnum_list:
     print('\nWorking on ' + exnum)
-    fn = 'http://tds.hycom.org/thredds/dodsC/GLBu0.08/expt_' + exnum  
+    fn = 'http://beta.hycom.org/thredds/dodsC/GLBu0.08/expt_' + exnum  
     ds = nc.Dataset(fn)
     if False: # set to True to see what is in the files
         zfun.ncd(ds)

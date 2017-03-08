@@ -21,6 +21,7 @@ import zrfun
 
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.path as mpath
 import pandas as pd
 
 def topfig():
@@ -93,7 +94,8 @@ def add_bathy_contours(ax, ds, depth_levs = [], txt=False):
     else:
         ax.contour(lon, lat, h, depth_levs, colors='g')
 
-def add_map_field(ax, ds, varname, slev=-1, vlims=(), cmap='rainbow', fac=1):
+def add_map_field(ax, ds, varname, slev=-1, vlims=(), cmap='rainbow',
+                  fac=1, alpha=1, do_mask_salish=False):
     cmap = plt.get_cmap(name=cmap)
     if 'lon_rho' in ds[varname].coordinates:
         x = ds['lon_psi'][:]
@@ -109,7 +111,11 @@ def add_map_field(ax, ds, varname, slev=-1, vlims=(), cmap='rainbow', fac=1):
         v = ds[varname][0, slev, 1:-1, :].squeeze()
     if len(vlims) == 0:
         vlims = auto_lims(v)
-    cs = ax.pcolormesh(x, y, v*fac, vmin=vlims[0], vmax=vlims[1], cmap=cmap)
+    
+    if do_mask_salish:
+        v = mask_salish(v, ds['lon_rho'][1:-1, 1:-1], ds['lat_rho'][1:-1, 1:-1])  
+    
+    cs = ax.pcolormesh(x, y, v*fac, vmin=vlims[0], vmax=vlims[1], cmap=cmap, alpha=alpha)
     return cs, vlims
 
 def add_velocity_vectors(ax, ds, fn, v_scl=3, v_leglen=0.5, nngrid=80):
@@ -317,6 +323,30 @@ def make_full(flt):
             fld_bot = fld_mid[0].copy()
             fld_top = fld_mid[-1].copy()
             fld = np.concatenate((fld_bot, fld_mid, fld_top), axis=0)
+    return fld
+    
+def mask_salish(fld, lon, lat):
+    """
+    Mask out map fields inside the Salish Sea.   
+    Input:
+        2D fields of data (masked array), and associated lon and lat
+        all must be the same shap
+    Output:
+        The data field, now masked in the Salish Sea.
+    """
+    x = [-125.5, -123.5, -122, -122]
+    y = [50, 46.8, 46.8, 50]
+    V = np.ones((len(x),2))
+    V[:,0] = x
+    V[:,1] = y
+    P = mpath.Path(V)
+    Rlon = lon.flatten()
+    Rlat = lat.flatten()
+    R = np.ones((len(Rlon),2))
+    R[:,0] = Rlon
+    R[:,1] = Rlat
+    RR = P.contains_points(R) # boolean    
+    fld = np.ma.masked_where(RR.reshape(lon.shape), fld)
     return fld
 
 

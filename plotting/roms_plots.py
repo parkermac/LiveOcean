@@ -101,7 +101,8 @@ tstr_dict = {'salt': 'Salinity',
              'ARAG': '$\Omega_{arag}$',
              'Ldetritus': 'Ldetritus'}
 
-figsize = (18,10)
+figsize = (12,8) # laptop
+# figsize = (18,10) # big screen
 out_dict = dict()
 
 def P_basic(in_dict):
@@ -152,7 +153,7 @@ def P_basic(in_dict):
     ax.set_xlabel('Longitude')
     ax.set_title(tstr + units_dict[vn])
     pfun.add_velocity_vectors(ax, ds, in_dict['fn'])
-
+    
     # FINISH
     ds.close()
     if len(in_dict['fn_out']) > 0:
@@ -176,7 +177,8 @@ def P_carbon(in_dict):
     vn = 'TIC'
     tstr = 'Surface ' + tstr_dict[vn]
     cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn,
-            vlims=vlims[vn], cmap=cmap_dict[vn], fac=fac_dict[vn])
+            vlims=vlims[vn], cmap=cmap_dict[vn], fac=fac_dict[vn],
+            do_mask_salish=True)
     fig.colorbar(cs)
     pfun.add_bathy_contours(ax, ds, txt=True)
     pfun.add_coast(ax)
@@ -192,7 +194,8 @@ def P_carbon(in_dict):
     vn = 'alkalinity'
     tstr = 'Surface ' + tstr_dict[vn]
     cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn,
-            vlims=vlims[vn], cmap=cmap_dict[vn], fac=fac_dict[vn])
+            vlims=vlims[vn], cmap=cmap_dict[vn], fac=fac_dict[vn],
+            do_mask_salish=True)
     fig.colorbar(cs)
     pfun.add_bathy_contours(ax, ds)
     pfun.add_coast(ax)
@@ -225,7 +228,8 @@ def P_pH_Arag(in_dict):
     vn = 'PH'
     tstr = 'Surface ' + tstr_dict[vn]
     cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn,
-            vlims=vlims[vn], cmap=cmap_dict[vn], fac=fac_dict[vn])
+            vlims=vlims[vn], cmap=cmap_dict[vn], fac=fac_dict[vn],
+            do_mask_salish=True)
     fig.colorbar(cs)
     pfun.add_bathy_contours(ax, ds, txt=True)
     pfun.add_coast(ax)
@@ -241,7 +245,8 @@ def P_pH_Arag(in_dict):
     vn = 'ARAG'
     tstr = 'Surface ' + tstr_dict[vn]
     cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn,
-            vlims=vlims[vn], cmap=cmap_dict[vn], fac=fac_dict[vn])
+            vlims=vlims[vn], cmap=cmap_dict[vn], fac=fac_dict[vn],
+            do_mask_salish=True)
     fig.colorbar(cs)
     pfun.add_bathy_contours(ax, ds)
     pfun.add_coast(ax)
@@ -333,7 +338,7 @@ def P_bio2(in_dict):
     NP = len(vn_list)
     NR = 1
     NC = NP
-    figsize = (18,10)
+    #figsize = (18,10)
     fig, axes = plt.subplots(nrows=NR, ncols=NC, figsize=figsize,
                              squeeze=False)
     cc = 0
@@ -896,6 +901,13 @@ def P_sectA(in_dict):
 
 def P_tracks(in_dict):
     # use tracker to create surface drifter tracks
+    # to run this in ipython do something like
+    # run pan_plot.py -d 2016.08.25
+    # (a day that has a 72 hour forecast in it)
+    # and then select the number for List type = test
+    # and then select the number for Plot type = P_tracks
+    # and it automatically makes tracks for as long as there are
+    # hours in the folder
 
     # START
     fig = plt.figure(figsize=(12, 12))
@@ -935,7 +947,7 @@ def P_tracks(in_dict):
         if 'ocean_his' in item:
             fn_list.append(in_dir + item)
     ndays = round(len(fn_list)/24)
-
+    
     x0 = G['lon_rho'][0, 1]
     x1 = G['lon_rho'][0, -2]
     y0 = G['lat_rho'][1, 0]
@@ -974,6 +986,7 @@ def P_tracks(in_dict):
     import time
     tt0 = time.time()
     # run some code
+    
     P, Gtr, Str = trackfun.get_tracks(fn_list, plon0, plat0, pcs0,
                                   dir_tag, method, surface, ndiv, windage)
     print('  took %0.1f seconds' % (time.time() - tt0))
@@ -982,12 +995,12 @@ def P_tracks(in_dict):
 
     # panel 1
     ax = fig.add_subplot(111)
-    vn = 'temp'
-    tstr = 'Surface ' + tstr_dict[vn] +'Temperature'' and ' + str(ndays) + ' day Tracks'
+    vn = 'phytoplankton'
+    tstr = 'Surface ' + tstr_dict[vn] +' and ' + str(ndays) + ' day Tracks'
     cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn,
-            vlims=vlims[vn], cmap=cmap_dict[vn], fac=fac_dict[vn])
+            vlims=vlims[vn], cmap=cmap_dict[vn], fac=fac_dict[vn], alpha = .3)
     fig.colorbar(cs)
-    pfun.add_bathy_contours(ax, ds)
+    #pfun.add_bathy_contours(ax, ds)
     pfun.add_coast(ax)
     ax.axis(pfun.get_aa(ds))
     pfun.dar(ax)
@@ -999,7 +1012,7 @@ def P_tracks(in_dict):
     # add the tracks
     ax.plot(P['lon'], P['lat'], '-k')
     ax.plot(P['lon'][0,:],P['lat'][0,:],'ok',
-            markersize=3, alpha = .4, markeredgecolor='k')
+            markersize=6, alpha = 1, markeredgecolor='k')
 
     # FINISH
     ds.close()
