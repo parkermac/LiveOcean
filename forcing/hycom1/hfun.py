@@ -14,8 +14,10 @@ import zfun
 import time
 from datetime import datetime, timedelta
 
-# specify the sub region of hycom to extract
-aa = [-129, -121, 39, 51]
+def get_extraction_limits():
+    # specify the sub region of hycom to extract
+    aa = [-129, -121, 39, 51]
+    return aa
 
 def get_dt_list(ds):
     # get the time in a meaningful format
@@ -52,6 +54,7 @@ def get_coordinates(ds):
     llat = ds.variables['lat'][:]
     
     # find indices of a sub region
+    aa = get_extraction_limits()
     llon = llon - 360 # convert from 0:360 to -360:0 format
     i0 = zfun.find_nearest_ind(llon, aa[0])
     i1 = zfun.find_nearest_ind(llon, aa[1])

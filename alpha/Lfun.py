@@ -36,6 +36,7 @@ def Lstart(gridname='BLANK', tag='BLANK'):
     Ldir['LOo'] = Ldir['parent'] + 'LiveOcean_output/'
     Ldir['data'] = Ldir['parent'] + 'LiveOcean_data/'
     Ldir['grid'] = Ldir['data'] + 'grids/' + Ldir['gridname'] + '/'
+    Ldir['forecast_days'] = 3
 
     return Ldir
 

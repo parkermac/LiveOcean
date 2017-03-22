@@ -11,9 +11,18 @@ def interp_scattered_on_plaid(x, y, xvec, yvec, u):
     """
     Gets values of the field u at locations (x,y).
 
-    NOTE: this can also be used to interpolate to a plaid grid.  Just pass it
-    flattened versions of the new coordinate matrices, and then reshape
-    the output.  Appears to be super fast.
+    NOTE: this can also be used to interpolate to a plaid grid.
+    Just reshape the output to be the shape of the input grids.
+    Appears to be super fast.
+    
+    Example:
+    lon and lat are vectors the define the plaid grid that
+        matrix v is defined on
+    v = b['ssh']
+    x = G['lon_rho'] # matrix
+    y = G['lat_rho'] # matrix
+    vv = zfun.interp_scattered_on_plaid(x, y, lon, lat, v)
+    vv = np.reshape(vv, x.shape)
 
     All inputs and outputs are numpy arrays.
 
@@ -186,10 +195,10 @@ def filt_hanning(data, n=40):
         smooth = data
     else:
         filt = hanning_shape(n=n)
-        n = np.ceil(len(filt)/2).astype(int)
+        npad = np.floor(len(filt)/2).astype(int)
         smooth = np.convolve(data, filt, mode = 'same')
-        smooth[:n] = np.nan
-        smooth[-n:] = np.nan
+        smooth[:npad] = np.nan
+        smooth[-npad:] = np.nan
     return smooth
 
 def filt_godin(data):

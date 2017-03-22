@@ -34,7 +34,8 @@ elif which_home == '/home/parker': # fjord version
 if testing:
     exnum_list = ['90.9']
 else:
-    exnum_list = ['90.9', '91.0', '91.1', '91.2']
+    #exnum_list = ['90.9', '91.0', '91.1', '91.2']
+    exnum_list = ['91.2']
 
 dt_list_new = []
 
@@ -68,6 +69,7 @@ for exnum in exnum_list:
         out_fn = out_dir + out_name
         
         # Check to see if file exists.
+        # (we could also do this -faster?- by comparing to a directory listing)
         if os.path.exists(out_fn)== True:
             print('  file exists for this day')
             sys.stdout.flush()

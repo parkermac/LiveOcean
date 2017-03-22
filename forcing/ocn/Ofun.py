@@ -53,68 +53,6 @@ def get_hycom_file_list():
             
     return fn_list
     
-def make_shortened_list(fn_list, which_var):
-    # OBSOLETE as of 2017.02.04, I hope
-    varf_list = []
-    for fn in fn_list:
-        if ('_' + which_var) in fn:
-            varf_list.append(fn)
-        
-    # find unique days
-    #
-    # this year_list thing is to ensure that our search strategy works across
-    # year boundaries.  It assumes that the date string is uniquely found
-    # in a file name by searching for a string like '_2014' for example.
-    from datetime import datetime   
-    this_year = int(datetime.now().strftime('%Y'))
-    year_list = range(2000,this_year+2) # a list of integer years to try
-    dd_prev = 'junk'
-    dlist = []
-    for fn in varf_list:
-        for year in year_list:
-            ds_try = fn.find('_' + str(year))
-            if ds_try != -1:
-                ds0 = ds_try + 1
-                break
-        ds1 = ds0 + 8
-        dd = fn[ds0:ds1]
-        if dd == dd_prev:
-            pass
-        else:
-            dlist.append(dd)
-        dd_prev = dd
-    
-    last_day_ind = -1
-    # set last_day_ind to -1 to use today's forecast, and -2 to use
-    # yesterday's (more reliable? 1/15/2017)
-    # changed back on 1/29/2017, gack!    
-    dlist0 = dlist[:last_day_ind] # all but the last
-    dlast = dlist[last_day_ind] # the last, which goes into the future
-    
-    varf_list_short = []
-    # get daily values up to 7 days into the future
-    hour_list = range(0,168+24,24) 
-    for fn in varf_list:
-        if dlast in fn:
-            for hr in hour_list:
-                if '_t' + ('000' + str(hr))[-3:] in fn:
-                    varf_list_short.append(fn)
-    
-    # get the XXX hour forecast for all past days
-    # prompted by a HYCOM server problem 10/2/2016 where it was missing
-    # hours 000-024 (started at 027 each day)
-    fn000 = varf_list_short[0]
-    ixxx = fn000.find(which_var)
-    XXX = fn000[ixxx-4:ixxx-1]
-    dlist0.reverse()    
-    for ddd in dlist0:
-        for fn in varf_list:
-            if ddd in fn and ('_t' + XXX) in fn:
-                varf_list_short.insert(0,fn)
-                                    
-    # return a list of url's for this variable, one file per day            
-    return varf_list_short
-    
 def get_varf_dict(fn_list):  
     # New strategy. Names are like:
     # .../hycom_glb_912_2017020400_t168_uv3z.nc 

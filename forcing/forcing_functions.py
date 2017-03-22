@@ -1,6 +1,8 @@
 """
 Shared helper functions for the forcing code.
 """
+time_format = '%Y.%m.%d %H:%M:%S'
+
 def intro():
     # setup
     import os
@@ -68,7 +70,7 @@ def intro():
     # screen output
     print('MAIN: frc = ' + args.frc + ', run_type = ' + args.run_type
         + ', date_string = ' + args.date_string)
-    print('MAIN start time = ' + str(datetime.now()))
+    print('MAIN start time = ' + datetime.now().strftime(time_format))
 
     return Ldir, Lfun
 
@@ -144,7 +146,7 @@ def intro_2():
     # screen output
     print('MAIN: frc = ' + args.frc + ', run_type = ' + args.run_type
         + ', date_string = ' + args.date_string)
-    print('MAIN start time = ' + str(datetime.now()))
+    print('MAIN start time = ' + datetime.now().strftime(time_format))
 
     return Ldir, Lfun
 
@@ -155,5 +157,5 @@ def finale(result_dict, Ldir, Lfun):
     Lfun.dict_to_csv(result_dict, csv_name_out)
 
     from datetime import datetime
-    print('MAIN end time = ' + str(datetime.now()))
+    print('MAIN end time = ' + datetime.now().strftime(time_format))
 
