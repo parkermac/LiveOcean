@@ -155,7 +155,11 @@ class River:
                 'endDate': days[1].strftime('%Y-%m-%d'),
             }
 
-            DATA_URL = 'http://wateroffice.ec.gc.ca/report/report_e.html'
+            #DATA_URL = 'http://wateroffice.ec.gc.ca/report/report_e.html'
+            # the link above stopped working around January 10, 2017
+            # and Doug Latournell (search for ECGet in LiveOcean email)
+            # alerted me to the new one below, which works.
+            DATA_URL = 'http://wateroffice.ec.gc.ca/report/real_time_e.html'
             DISCLAIMER_COOKIE = {'disclaimer': 'agree'}
 
             response = requests.get(DATA_URL, params=params,
@@ -204,7 +208,10 @@ class River:
                 'y1Max': '1',
                 'y1Min': '1',
             }
-            DATA_URL = 'http://wateroffice.ec.gc.ca/report/report_e.html'
+            #DATA_URL = 'http://wateroffice.ec.gc.ca/report/report_e.html'
+            # The URL stopped working around January 10, 2017.  The new
+            # one below appears to work.
+            DATA_URL = 'http://wateroffice.ec.gc.ca/report/historical_e.html'
             DISCLAIMER_COOKIE = {'disclaimer': 'agree'}
 
             response = requests.get(DATA_URL, params=params,

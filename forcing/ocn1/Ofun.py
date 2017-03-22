@@ -18,6 +18,7 @@ if hpth not in sys.path:
 import hfun
 
 import zfun
+import zrfun
     
 def get_hycom_file_list(exnum):
     """
@@ -111,7 +112,7 @@ def get_varf_dict(fn_list, Ldir):
 
 def get_extraction(fn, var_name):
     # these are packed one time per file, so the time is encoded in "fn"    
-    print('\n' + fn)
+    print(fn)
     # initialize an output dict
     out_dict = dict()    
     ds = nc.Dataset(fn)        
@@ -180,12 +181,11 @@ def time_filter(in_dir, h_list, out_dir, Ldir):
     """
     Filter the files that ended up in data_dir
     """
-    print('\nFiltering in time\n')
+    print('-Filtering in time')
     vl = ['ssh', 'u3d', 'v3d', 't3d', 's3d']
     dts0 = Ldir['date_string']
     dt0 = datetime.strptime(dts0, '%Y.%m.%d')
-    nh = len(h_list)
-    
+    nh = len(h_list)    
     # test for gaps in h_list
     no_gaps = True
     dtsg = h_list[0].strip('h').strip('.p')
@@ -198,8 +198,7 @@ def time_filter(in_dir, h_list, out_dir, Ldir):
             print('** HAS GAPS **')
             break
         else:
-            dtg0 = dtg1
-    
+            dtg0 = dtg1    
     fac_list_H = [12, 4, 3, 4, 12]
     # inverse weighting factors for a Hanning window of length 5
     nfilt = len(fac_list_H)
@@ -208,7 +207,7 @@ def time_filter(in_dir, h_list, out_dir, Ldir):
     nhmin_b = nfilt + 1
     rtp = Ldir['run_type']   
     if ((nh==nhmin_b and rtp=='backfill') or (nh>=nhmin_f and rtp=='forecast')) and no_gaps:
-        print('Using Hanning window')
+        print('--Using Hanning window')
         fac_list = fac_list_H
         for nt in range(nh - 4):
             n_center = nt + 2
@@ -226,10 +225,10 @@ def time_filter(in_dir, h_list, out_dir, Ldir):
             dts = out_name.strip('fh').strip('.p')
             dt = datetime.strptime(dts, '%Y.%m.%d')
             aa['dt'] = dt
-            print(out_name)
+            print('   ' + out_name)
             pickle.dump(aa, open(out_dir + out_name, 'wb'))
     else:
-        print('Using block average')
+        print('--Using block average')
         # make a simple average and use it for everything
         fac_list = list(nh * np.ones(nh))
         aa = dict()
@@ -248,14 +247,14 @@ def time_filter(in_dir, h_list, out_dir, Ldir):
         # saving the first file
         out_name0 = 'fh' + dts0 + '.p' 
         aa['dt'] = dt0           
-        print(out_name0)
+        print('   ' + out_name0)
         pickle.dump(aa, open(out_dir + out_name0, 'wb'))
         # saving the last file
         dt1 = dt0 + timedelta(days=nd)
         dts1 = datetime.strftime(dt1, '%Y.%m.%d')
         out_name1 = 'fh' + dts1 + '.p'            
         aa['dt'] = dt1           
-        print(out_name1)
+        print('   ' + out_name1)
         pickle.dump(aa, open(out_dir + out_name1, 'wb'))
 
 def get_coords(in_dir):
@@ -275,8 +274,7 @@ def get_coords(in_dir):
     mlatr = np.mean(latr)
     mlonr = np.mean(lonr)
     clat = np.cos(mlatr)
-    X, Y = np.meshgrid(RE*clat*(lonr - mlonr), RE*(latr - mlatr))
-    
+    X, Y = np.meshgrid(RE*clat*(lonr - mlonr), RE*(latr - mlatr))    
     return (lon, lat, z, L, M, N, X, Y)
 
 def checknan(fld):
@@ -298,7 +296,7 @@ def extrap_nearest_to_masked(X, Y, fld, fld0=0):
     """
     if np.ma.is_masked(fld):
         if fld.all() is np.ma.masked:
-            print('  filling with ' + str(fld0))
+            #print('  filling with ' + str(fld0))
             fldf = fld0 * np.ones(fld.data.shape)
             fldd = fldf.data
             checknan(fldd)
@@ -338,8 +336,6 @@ def get_extrapolated(in_fn, L, M, N, X, Y, z):
     for vn in vn_list:
         V[vn] = np.nan + np.ones(b[vn].shape)
     V['dt'] = b['dt']    
-    # some utility functions    
-
     # extrapolate ssh
     vn = 'ssh'
     v = b[vn]
@@ -377,8 +373,91 @@ def get_extrapolated(in_fn, L, M, N, X, Y, z):
         vv[v.mask] = 0
         V[vn] = vv.data  
     # calculate potential temperature
-    z3 = z.reshape((N,1,1))
-    V['theta'] = seawater.ptmp(V['s3d'], V['t3d'], z3)
-    
+    press_db = -z.reshape((N,1,1))
+    V['theta'] = seawater.ptmp(V['s3d'], V['t3d'], press_db)    
     return V
+
+def get_xyr(G, vn):
+    # ROMS lon, lat arrays
+    if vn in ['ssh', 'theta', 's3d']:
+        xr = G['lon_rho']
+        yr = G['lat_rho']
+    elif vn in ['ubar', 'u3d']:
+        xr = G['lon_u']
+        yr = G['lat_u']
+    elif vn in ['vbar', 'v3d']:
+        xr = G['lon_v']
+        yr = G['lat_v']
+    else:
+        print('Unknown variable name for get_xyr: ' + vn)
+    return xr, yr
+
+def get_zr(G, S, vn):
+    # get z on the ROMS grids
+    h = G['h']
+    if vn in ['theta', 's3d']:
+        zr = zrfun.get_z(h, 0*h, S, only_rho=True)
+    elif vn in ['u3d']:    
+        xru, yru = get_xyr(G, 'ubar')
+        hu = zfun.interp_scattered_on_plaid(G['lon_u'], G['lat_u'],
+                    G['lon_rho'][0,:], G['lat_rho'][:,0], h, exnan=False)
+        hu = np.reshape(hu, G['lon_u'].shape)
+        zr = zrfun.get_z(hu, 0*hu, S, only_rho=True)    
+    elif vn in ['v3d']:    
+        hv = zfun.interp_scattered_on_plaid(G['lon_v'], G['lat_v'],
+                    G['lon_rho'][0,:], G['lat_rho'][:,0], h, exnan=False)
+        hv = np.reshape(hv, G['lon_v'].shape)
+        zr = zrfun.get_z(hv, 0*hv, S, only_rho=True)
+    else:
+        print('Unknown variable name for get_zr: ' + vn)
+    return zr
+
+def get_interpolated(G, S, b, lon, lat, z, N):
+    # start input dict
+    c = dict()
+    # 2D fields
+    for vn in ['ssh', 'ubar', 'vbar']:
+        xr, yr = get_xyr(G, vn)
+        Mr, Lr = xr.shape
+        u = b[vn]
+        uu = zfun.interp_scattered_on_plaid(xr, yr, lon, lat, u)
+        uu = np.reshape(uu, xr.shape)
+        if np.isnan(uu).any():
+            print('Warning: nans in output array for ' + vn)
+        else:
+            c[vn] = uu
+    # 3D fields
+    for vn in ['theta', 's3d', 'u3d', 'v3d']:
+        xr, yr = get_xyr(G, vn)
+        zr = get_zr(G, S, vn)
+        Nr, Mr, Lr = zr.shape
+        v = b[vn]
+        # create an intermediate array, which is on the ROMS lon, lat grid
+        # but has the HyCOM vertical grid
+        # get interpolants
+        xi0, xi1, xf = zfun.get_interpolant(xr, lon, extrap_nan=True)
+        yi0, yi1, yf = zfun.get_interpolant(yr, lat, extrap_nan=True)
+        # bi linear interpolation
+        u00 = v[:,yi0,xi0]
+        u10 = v[:,yi1,xi0]
+        u01 = v[:,yi0,xi1]
+        u11 = v[:,yi1,xi1]
+        vi = (1-yf)*((1-xf)*u00 + xf*u01) + yf*((1-xf)*u10 + xf*u11)
+        vi = vi.reshape((N, Mr, Lr))
+        # make interpolants to go from the HyCOM vertical grid to the
+        # ROMS vertical grid
+        I0, I1, FR = zfun.get_interpolant(zr, z, extrap_nan=True)
+        zrs = zr.shape    
+        vif = vi.flatten()
+        LL = np.tile(np.arange(Lr), Mr*Nr)
+        MM = np.tile(np.repeat(np.arange(Mr), Lr), Nr)
+        f0 = LL + MM*Lr + I0*Mr*Lr
+        f1 = LL + MM*Lr + I1*Mr*Lr
+        vv = (1-FR)*vif[f0] + FR*vif[f1]
+        vv = vv.reshape(zrs)
+        if np.isnan(vv).any():
+            print('Warning: nans in output array for ' + vn)
+        else:
+            c[vn] = vv
+    return c
 

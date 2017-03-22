@@ -40,20 +40,16 @@ Ldir, Lfun = ffun.intro()
 from datetime import datetime, timedelta
 #import shutil
 import pickle
+import netCDF4 as nc
 
 import zrfun
 import Ofun
+import Ofun_nc
 from importlib import reload
 reload(Ofun)
-
-#import Ofun_nc
+reload(Ofun_nc)
 
 start_time = datetime.now()
-
-# get grid and S info
-[G] = zrfun.get_basic_info(Ldir['grid'] + 'grid.nc', getS=False, getT=False)
-S_info_dict = Lfun.csv_to_dict(Ldir['grid'] + 'S_COORDINATE_INFO.csv')
-S = zrfun.get_S(S_info_dict)
 
 vnl_full = ['ssh','s3d','t3d','u3d','v3d']
 exnum = '91.2'
@@ -137,28 +133,49 @@ for vn in ['lon', 'lat', 'z']:
     coord_dict[vn] = coords_dict[exnum1][vn]
 pickle.dump(coord_dict, open(c_out_dir + 'coord_dict.p', 'wb'))    
         
-# filter in time
+#%% filter in time
 fh_dir = Ldir['LOogf_fd']
 Ofun.time_filter(h_in_dir, h_list, fh_dir, Ldir)
-
 
 #%% extrapolate
 lon, lat, z, L, M, N, X, Y = Ofun.get_coords(fh_dir)
 a = os.listdir(fh_dir)
 aa = [item for item in a if item[:2]=='fh']
 for fn in aa:    
-    print('\nExtrapolating ' + fn)    
+    print('-Extrapolating ' + fn)    
     in_fn = fh_dir + fn
     V = Ofun.get_extrapolated(in_fn, L, M, N, X, Y, z)
     pickle.dump(V, open(fh_dir + 'x' + fn, 'wb'))
 
 # and interpolate to ROMS format
-#Ofun.interpolate_to_roms(data_dir, G, S)
-#
-## write in ROMS format
-#Ofun.write_roms_files(data_dir, out_dir)
-#
-#
+# get grid and S info
+[G] = zrfun.get_basic_info(Ldir['grid'] + 'grid.nc', getS=False, getT=False)
+S_info_dict = Lfun.csv_to_dict(Ldir['grid'] + 'S_COORDINATE_INFO.csv')
+S = zrfun.get_S(S_info_dict)
+# get list if files to work on
+a = os.listdir(fh_dir)
+aa = [item for item in a if item[:3]=='xfh']
+# HyCOM grid info
+lon, lat, z, L, M, N, X, Y = Ofun.get_coords(fh_dir)
+# load a dict of hycom fields
+dt_list = []
+count = 0
+c_dict = dict()
+for fn in aa:
+    print('-Interpolating ' + fn + ' to ROMS grid')
+    in_fn = fh_dir + fn
+    b = pickle.load(open(in_fn, 'rb'))
+    dt_list.append(b['dt'])
+    c = Ofun.get_interpolated(G, S, b, lon, lat, z, N)   
+    c_dict[count] = c
+    count += 1
+    
+#%% Write to ROMS forcing files
+nc_dir = Ldir['LOogf_f']
+Ofun_nc.make_clm_file(Ldir, nc_dir, fh_dir, c_dict, dt_list, S, G)
+Ofun_nc.make_ini_file(nc_dir)
+Ofun_nc.make_bry_file(nc_dir)
+
 #%% prepare for finale
 import collections
 result_dict = collections.OrderedDict()
@@ -169,21 +186,22 @@ result_dict['end_time'] = end_time.strftime(time_format)
 dt_sec = (end_time - start_time).seconds
 result_dict['total_seconds'] = str(dt_sec)
 
-# code for checking temporary results
-fh_list0 = os.listdir(fh_dir)
-fh_list = [item for item in fh_list0 if item[:2]=='fh']
-a = pickle.load(open(fh_dir + fh_list[0], 'rb'))
-dt0 = a['dt']
-a = pickle.load(open(fh_dir + fh_list[-1], 'rb'))
-dt1 = a['dt']
+ds = nc.Dataset(nc_dir + 'ocean_clm.nc')
+ot = ds['ocean_time'][:]
+ds.close()
+dt0 = Lfun.modtime_to_datetime(ot[0])
+dt1 = Lfun.modtime_to_datetime(ot[-1])
 
 result_dict['var_start_time'] = dt0.strftime(time_format)
 result_dict['var_end_time'] = dt1.strftime(time_format)
 
-if os.path.isfile(fh_dir + fh_list[-1]):
-   result_dict['result'] = 'success'
-else:
-   result_dict['result'] = 'fail'
+nc_list = ['ocean_clm.nc', 'ocean_ini.nc', 'ocean_bry.nc']
+result_dict['result'] = 'success'
+for fn in nc_list:
+    if os.path.isfile(nc_dir + fn):
+        pass
+    else:
+       result_dict['result'] = 'fail'
 
 #%% ************** END CASE-SPECIFIC CODE *****************
 

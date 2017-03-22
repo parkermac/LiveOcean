@@ -12,6 +12,10 @@ to the ROMS lon, lat, and then interpolating vertically to the ROMS z.
 By making maximum use of flattening and reshaping to avoid loops the
 performance is excellent (and gives results that are identical to the versions
 that use loops).  We achieve about a 25x speed up.
+
+This version of the code is meant to prototype the functions we will use
+in make_forcing_main.py.
+
 """
 
 import os
@@ -25,7 +29,6 @@ Ldir['date_string'] = '2013.01.01'
 Ldir['LOogf_fd'] = (Ldir['LOo'] + Ldir['gtag'] + '/f' + Ldir['date_string']
         + '/ocn1/Data/')
 
-import matplotlib.pyplot as plt
 
 import zfun
 import zrfun
@@ -34,8 +37,10 @@ import numpy as np
 import time
 
 import Ofun
+
 from importlib import reload
 reload(Ofun)
+reload(zfun)
 
 in_dir = Ldir['LOogf_fd']
 
@@ -57,96 +62,94 @@ lon, lat, z, L, M, N, X, Y = Ofun.get_coords(in_dir)
 in_fn = in_dir + aa[0]
 b = pickle.load(open(in_fn, 'rb'))
 
-# ROMS lon, lat arrays
-xr = G['lon_rho']
-yr = G['lat_rho']
-# ROMS grid sizes
-Nr = S['N']
-Mr, Lr = xr.shape
+def get_xyr(G, vn):
+    # ROMS lon, lat arrays
+    if vn in ['ssh', 'theta', 's3d']:
+        xr = G['lon_rho']
+        yr = G['lat_rho']
+    elif vn in ['ubar', 'u3d']:
+        xr = G['lon_u']
+        yr = G['lat_u']
+    elif vn in ['vbar', 'v3d']:
+        xr = G['lon_v']
+        yr = G['lat_v']
+    else:
+        print('Unknown variable name for get_xyr: ' + vn)
+    return xr, yr
 
-c = dict()
-
-# 2D fields
-for vn in ['ssh', 'ubar', 'vbar']:
-    u = b[vn]
-    uu = zfun.interp_scattered_on_plaid(xr, yr, lon, lat, u)
-    uu = np.reshape(uu, xr.shape)
-    c[vn] = uu
-
-# choose a 3D variable to work on
-for vn in ['theta', 's3d', 'u3d', 'v3d']:
-    v = b[vn]
-    # create an intermediate array, which is on the ROMS lon, lat grid
-    # but has the HyCOM vertical grid
-    # get interpolants
-    xi0, xi1, xf = zfun.get_interpolant(xr, lon, extrap_nan=True)
-    yi0, yi1, yf = zfun.get_interpolant(yr, lat, extrap_nan=True)
-    # bi linear interpolation
-    u00 = v[:,yi0,xi0]
-    u10 = v[:,yi1,xi0]
-    u01 = v[:,yi0,xi1]
-    u11 = v[:,yi1,xi1]
-    vi = (1-yf)*((1-xf)*u00 + xf*u01) + yf*((1-xf)*u10 + xf*u11)
-    vi = vi.reshape((N, Mr, Lr))
-    # get z on the ROMS grid    
+def get_zr(G, S, vn):
+    # get z on the ROMS grids
     h = G['h']
-    zr = zrfun.get_z(h, 0*h, S, only_rho=True)
-    # make interpolants to go from the HyCOM vertical grid to the
-    # ROMS vertical grid
-    I0, I1, FR = zfun.get_interpolant(zr, z, extrap_nan=True)
-    zrs = zr.shape
-    
-    vif = vi.flatten()
-    LL = np.tile(np.arange(Lr), Mr*Nr)
-    MM = np.tile(np.repeat(np.arange(Mr), Lr), Nr)
-    f0 = LL + MM*Lr + I0*Mr*Lr
-    f1 = LL + MM*Lr + I1*Mr*Lr
-    vv = (1-FR)*vif[f0] + FR*vif[f1]
-    vv = vv.reshape(zrs)
+    if vn in ['theta', 's3d']:
+        zr = zrfun.get_z(h, 0*h, S, only_rho=True)
+    elif vn in ['u3d']:    
+        xru, yru = get_xyr(G, 'ubar')
+        hu = zfun.interp_scattered_on_plaid(G['lon_u'], G['lat_u'],
+                    G['lon_rho'][0,:], G['lat_rho'][:,0], h, exnan=False)
+        hu = np.reshape(hu, G['lon_u'].shape)
+        zr = zrfun.get_z(hu, 0*hu, S, only_rho=True)    
+    elif vn in ['v3d']:    
+        hv = zfun.interp_scattered_on_plaid(G['lon_v'], G['lat_v'],
+                    G['lon_rho'][0,:], G['lat_rho'][:,0], h, exnan=False)
+        hv = np.reshape(hv, G['lon_v'].shape)
+        zr = zrfun.get_z(hv, 0*hv, S, only_rho=True)
+    else:
+        print('Unknown variable name for get_zr: ' + vn)
+    return zr
 
-if np.isnan(vv).any():
-    print('Warning: nans in output array')
-    
-#%% plotting
+def get_interpolated(G, S, b, lon, lat, z, N):
+    # start input dict
+    c = dict()
+    # 2D fields
+    for vn in ['ssh', 'ubar', 'vbar']:
+        xr, yr = get_xyr(G, vn)
+        Mr, Lr = xr.shape
+        u = b[vn]
+        uu = zfun.interp_scattered_on_plaid(xr, yr, lon, lat, u)
+        uu = np.reshape(uu, xr.shape)
+        if np.isnan(uu).any():
+            print('Warning: nans in output array for ' + vn)
+        else:
+            c[vn] = uu
+    # 3D fields
+    for vn in ['theta', 's3d', 'u3d', 'v3d']:
+        xr, yr = get_xyr(G, vn)
+        zr = get_zr(G, S, vn)
+        Nr, Mr, Lr = zr.shape
+        v = b[vn]
+        # create an intermediate array, which is on the ROMS lon, lat grid
+        # but has the HyCOM vertical grid
+        # get interpolants
+        xi0, xi1, xf = zfun.get_interpolant(xr, lon, extrap_nan=True)
+        yi0, yi1, yf = zfun.get_interpolant(yr, lat, extrap_nan=True)
+        # bi linear interpolation
+        u00 = v[:,yi0,xi0]
+        u10 = v[:,yi1,xi0]
+        u01 = v[:,yi0,xi1]
+        u11 = v[:,yi1,xi1]
+        vi = (1-yf)*((1-xf)*u00 + xf*u01) + yf*((1-xf)*u10 + xf*u11)
+        vi = vi.reshape((N, Mr, Lr))
+        # make interpolants to go from the HyCOM vertical grid to the
+        # ROMS vertical grid
+        I0, I1, FR = zfun.get_interpolant(zr, z, extrap_nan=True)
+        zrs = zr.shape    
+        vif = vi.flatten()
+        LL = np.tile(np.arange(Lr), Mr*Nr)
+        MM = np.tile(np.repeat(np.arange(Mr), Lr), Nr)
+        f0 = LL + MM*Lr + I0*Mr*Lr
+        f1 = LL + MM*Lr + I1*Mr*Lr
+        vv = (1-FR)*vif[f0] + FR*vif[f1]
+        vv = vv.reshape(zrs)
+        if np.isnan(vv).any():
+            print('Warning: nans in output array for ' + vn)
+        else:
+            c[vn] = vv
+    return c
 
-plt.close('all')
+tt0 = time.time()
+c = get_interpolated(G, S, b, lon, lat, z, N)   
+print('Interpolation to ROMS took %0.1f seconds' % (time.time() - tt0))
 
-# 2D fields
-fig, axes = plt.subplots(2, 3, figsize=(13,8))
-
-cmap = 'rainbow'
-
-ax = axes[0, 0]
-pc = ax.pcolormesh(lon, lat, v[-1,:,:], cmap=cmap)
-fig.colorbar(pc, ax=ax)
-A = ax.axis()
-
-ax = axes[0, 1]
-pc = ax.pcolormesh(xr, yr, vi[-1,:,:], cmap=cmap)
-fig.colorbar(pc, ax=ax)
-ax.axis(A)
-
-ax = axes[0, 2]
-pc = ax.pcolormesh(xr, yr, vv[-1,:,:], cmap=cmap)
-fig.colorbar(pc, ax=ax)
-ax.axis(A)
-
-ax = axes[1, 0]
-pc = ax.pcolormesh(lon, z, v[:,int(M/2),:], cmap=cmap)
-fig.colorbar(pc, ax=ax)
-A = ax.axis()
-
-ax = axes[1, 1]
-pc = ax.pcolormesh(xr[int(Mr/2),:], z, vi[:,int(Mr/2),:], cmap=cmap)
-fig.colorbar(pc, ax=ax)
-ax.axis(A)
-
-ax = axes[1, 2]
-pc = ax.pcolormesh(xr[int(Mr/2),:], zr[:,int(Mr/2),:], vv[:,int(Mr/2),:], cmap=cmap)
-fig.colorbar(pc, ax=ax)
-ax.axis(A)
-
-plt.show()
 
 
 

@@ -7,7 +7,7 @@ Parker MacCready
 import netCDF4 as nc
 import numpy as np
 
-def interp_scattered_on_plaid(x, y, xvec, yvec, u):
+def interp_scattered_on_plaid(x, y, xvec, yvec, u, exnan=True):
     """
     Gets values of the field u at locations (x,y).
 
@@ -35,11 +35,12 @@ def interp_scattered_on_plaid(x, y, xvec, yvec, u):
     Returns a vector ui the same length as x and y.
 
     Note that because it relies on "get_interpolant" out-of-bounds
-    values default to nan.
+    values default to nan, unless you pass it the optional argument
+    exnan=False)
     """
     # get interpolants
-    xi0, xi1, xf = get_interpolant(x,xvec, extrap_nan=True)
-    yi0, yi1, yf = get_interpolant(y,yvec, extrap_nan=True)
+    xi0, xi1, xf = get_interpolant(x,xvec, extrap_nan=exnan)
+    yi0, yi1, yf = get_interpolant(y,yvec, extrap_nan=exnan)
 
     # bi linear interpolation
     u00 = u[yi0,xi0]
