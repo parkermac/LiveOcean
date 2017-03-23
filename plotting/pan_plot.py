@@ -15,6 +15,8 @@ run pan_plot.py -g cascadia2 -t frc2 -x lo1 -d 2013.01.01 -hs 25
 
 run pan_plot.py -g aestus1 -t A1 -x ae1 -d 2013.01.31 -hs 25
 
+run pan_plot.py -g cas1 -t f1 -x r820 -d 2013.01.01 -hs 25
+
 """
 
 #%% setup

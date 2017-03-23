@@ -32,7 +32,7 @@ if Ldir['run_type'] == 'backfill':
 elif Ldir['run_type'] == 'forecast':
     days_to_run = float(Ldir['forecast_days'])
 
-dtsec = 30 # time step in seconds INTEGER (should fit evenly into 3600 sec)
+dtsec = 40 # time step in seconds INTEGER (should fit evenly into 3600 sec)
 restart_nrrec = '-1' # '-1' for a non-crash restart file, otherwise '1' or '2'
 his_interval = 3600 # seconds to define and write to history files
 rst_interval = 1 # days between writing to the restart file (e.g. 5)
@@ -45,8 +45,8 @@ zw_height = '10.0d0'
 # DERIVED VALUES
 
 if multi_core:
-    ntilei = '12' # number of tiles in I-direction (6)
-    ntilej = '6' # number of tiles in J-direction (12)
+    ntilei = '9' # number of tiles in I-direction (6)
+    ntilej = '16' # number of tiles in J-direction (12)
 else:
     ntilei = '1'
     ntilej = '1'
