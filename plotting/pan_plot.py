@@ -34,15 +34,15 @@ import roms_plots; reload(roms_plots)
 #%% get optional command line arguments, any order
 parser = argparse.ArgumentParser()
 parser.add_argument('-g', '--gridname', nargs='?', type=str,
-                    default='cascadia1')
+                    default='cas1')
 parser.add_argument('-t', '--tag', nargs='?', type=str,
-                    default='base')
+                    default='f1')
 parser.add_argument('-x', '--ex_name', nargs='?', type=str,
-                    default='lobio1')
+                    default='r820')
 parser.add_argument('-d', '--date_string', nargs='?', type=str,
-                    default='2013.09.19')
+                    default='2013.01.31')
 parser.add_argument('-hs', '--hour_string', nargs='?', type=str,
-                    default='02')
+                    default='25')
 parser.add_argument('-nd', '--num_days', nargs='?', type=int,
                     default=0) # number of additional days
 args = parser.parse_args()

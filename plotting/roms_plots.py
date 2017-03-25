@@ -27,7 +27,7 @@ def get_in_dict(plot_type):
     # If you use () then the limits will be set by the first plot
     # and then held constant at those levels thereafter.    
     vlims['salt'] = (28, 34)
-    vlims['temp'] = (8, 18)
+    vlims['temp'] = (7, 18)
     vlims['NO3'] = (0, 40)
     vlims['phytoplankton'] = (0,30)#(0, 40)
     vlims['zooplankton'] = (0, 4)
@@ -567,7 +567,7 @@ def P_sect(in_dict):
     zeta = ds['zeta'][:].squeeze()
     zr = zrfun.get_z(h, zeta, S, only_rho=True)
 
-    vn = 'oxygen'
+    vn = 'salt'
     try:
         vlims[vn]
     except KeyError:
@@ -593,7 +593,8 @@ def P_sect(in_dict):
 
     # CREATE THE SECTION
     # create track by hand
-    if True:
+    if False:
+        zdeep = -3500
         #x = np.linspace(lon.min(), -124, 500)
         if True:
             x = np.linspace(lon.min(), lon.max(), 500)
@@ -607,6 +608,7 @@ def P_sect(in_dict):
         Ldir = Lfun.Lstart()
         tracks_path = Ldir['data'] + 'tracks/'
         which_track = 'jdf2psTrack'
+        zdeep = -400
         # get the track to interpolate onto
         mat = matfun.loadmat(tracks_path + which_track + '.mat')
         x = mat['x']
@@ -708,7 +710,7 @@ def P_sect(in_dict):
     ax.plot(dist, v2['zbot'], '-k', linewidth=2)
     ax.plot(dist, v2['zeta'], '-b', linewidth=1)
     ax.set_xlim(dist.min(), dist.max())
-    ax.set_ylim(-3500, 5)
+    ax.set_ylim(zdeep, 5)
     vlims = pfun.auto_lims(v3['sectvarf'])
     cs = ax.pcolormesh(v3['distf'], v3['zrf'], v3['sectvarf'],
                        vmin=vlims[0],
