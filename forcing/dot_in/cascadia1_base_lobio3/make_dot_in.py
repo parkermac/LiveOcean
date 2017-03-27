@@ -25,6 +25,13 @@ gtag = Ldir['gtag']
 gtagex = gtag + '_' + Ldir['ex_name']
 EX_NAME = Ldir['ex_name'].upper()
 
+# account for differences when using biology
+# NOTE: this is not  robust because it depends on a specific ex_name
+if 'bio' in Ldir['ex_name']:
+    do_bio = True
+else:
+    do_bio = False
+
 multi_core = True # use more than one core
 
 if Ldir['run_type'] == 'backfill':
@@ -45,8 +52,8 @@ zw_height = '10.0d0'
 # DERIVED VALUES
 
 if multi_core:
-    ntilei = '9' # number of tiles in I-direction (6)
-    ntilej = '16' # number of tiles in J-direction (12)
+    ntilei = '6' # number of tiles in I-direction (6)
+    ntilej = '12' # number of tiles in J-direction (12)
 else:
     ntilei = '1'
     ntilej = '1'
@@ -73,7 +80,12 @@ grid_dir = '/fjdata1/parker/LiveOcean_data/grids/' + Ldir['gridname'] + '/'
 force_dir = loo_dir + gtag + '/' + f_string + '/'
 roms_dir = '/pmr1/parker/LiveOcean_roms/'
 
-roms_name = 'ROMS_820'
+if do_bio:
+    roms_name = 'LO_ROMS'
+    bio_tag = '_bio'
+else:
+    roms_name = 'ROMS'
+    bio_tag = ''
 
 # the .in file
 dot_in_name = 'liveocean.in' # name of the .in file
@@ -87,8 +99,8 @@ out_dir0 = roms_dir + 'output/' + gtagex + '/'
 out_dir = out_dir0 + f_string + '/'
 
 atm_dir = 'atm/' # which atm forcing files to use
-ocn_dir = 'ocn1/' # which ocn forcing files to use
-riv_dir = 'riv1/' # which riv forcing files to use
+ocn_dir = 'ocn/' # which ocn forcing files to use
+riv_dir = 'riv/' # which riv forcing files to use
 tide_dir = 'tide/' # which tide forcing files to use
 
 if Ldir['start_type'] == 'continuation':
@@ -121,3 +133,20 @@ for line in f:
     f2.write(line2)
 f.close()
 f2.close()
+
+## npxd2o_Banas.in ###########
+
+f = open('npzd2o_Banas_BLANK.in','r')
+bio_dot_in_name = 'npzd2o_Banas.in'
+f3 = open(dot_in_dir + bio_dot_in_name,'w')
+in_varlist = ['force_dir','riv_dir','bio_tag']
+for line in f:
+    for var in in_varlist:
+        if '$'+var+'$' in line:
+            line2 = line.replace('$'+var+'$', str(eval(var)))
+            line = line2
+        else:
+            line2 = line
+    f3.write(line2)
+f.close()
+f3.close()

@@ -150,7 +150,7 @@ LtracerSponge == 9*F
 ! Nudging/relaxation time scales, inverse scales will be computed
 ! internally: [1:NBT,Ngrids].
 
-      TNUDG == 9*360.0d0                       ! days
+      TNUDG == 9*3.0d0                       ! days
 
 
 ! Set lateral boundary conditions keyword. Notice that a value is expected
@@ -233,7 +233,7 @@ ad_LBC(isTvar) ==   RadNud     RadNud     Clo     Clo \    ! idbio(1), NO3
 ! climatology fields: [NBT,Ngrids] values are expected. See glossary below
 ! for details.
 
-  LtracerCLM == 9*F
+  LtracerCLM == 9*T
 
 ! Logical switches (TRUE/FALSE) to nudge the desired biological tracer
 ! climatology field. If not analytical climatology fields, users need to
@@ -241,9 +241,9 @@ ad_LBC(isTvar) ==   RadNud     RadNud     Clo     Clo \    ! idbio(1), NO3
 ! climatology NetCDF file that are needed for nudging; [NBT,Ngrids]
 ! values are expected. See glossary below for details.
 
-  LnudgeTCLM == 9*F
+  LnudgeTCLM == 9*T
 
-!  SSFNAME == /gscratch/coenv/siedlesa/ROMS_WOAC/Ocn/2007/rivers.nc
+  SSFNAME == $force_dir$$riv_dir$rivers$bio_tag$.nc
 
 
 ! Logical switches (TRUE/FALSE) to activate writing of biological tracers
