@@ -586,7 +586,9 @@ Dout(iTvdif) == T T     ! temp_vdiff, ...    vertical diffusion
      HISNAME == $out_dir$ocean_his.nc
      AVGNAME == $out_dir$ocean_avg.nc
      DIANAME == $out_dir$ocean_dia.nc
-     
+
+! Input ASCII parameter filenames.
+     BPARNAM = $dot_in_dir$npzd2o_Banas.in     
 
 
 
