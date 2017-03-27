@@ -110,7 +110,7 @@ if Ldir['start_type'] == 'continuation':
     ini_fullname = out_dir0 + f_string_yesterday + '/' + ininame
 elif Ldir['start_type'] == 'new':
     nrrec = '0' # '0' for a history or ini file
-    ininame = 'ocean_ini.nc' # could be an ini or history file
+    ininame = 'ocean_ini' + bio_tag + '.nc' # could be an ini or history file
     ini_fullname = force_dir + ocn_dir + ininame
 
 # END DERIVED VALUES
