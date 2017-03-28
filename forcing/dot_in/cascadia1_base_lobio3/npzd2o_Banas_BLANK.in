@@ -233,7 +233,7 @@ ad_LBC(isTvar) ==   RadNud     RadNud     Clo     Clo \    ! idbio(1), NO3
 ! climatology fields: [NBT,Ngrids] values are expected. See glossary below
 ! for details.
 
-  LtracerCLM == 9*T
+  LtracerCLM == 9*F
 
 ! Logical switches (TRUE/FALSE) to nudge the desired biological tracer
 ! climatology field. If not analytical climatology fields, users need to
@@ -241,7 +241,7 @@ ad_LBC(isTvar) ==   RadNud     RadNud     Clo     Clo \    ! idbio(1), NO3
 ! climatology NetCDF file that are needed for nudging; [NBT,Ngrids]
 ! values are expected. See glossary below for details.
 
-  LnudgeTCLM == 9*T
+  LnudgeTCLM == 9*F
 
   SSFNAME == $force_dir$$riv_dir$rivers$bio_tag$.nc
 
