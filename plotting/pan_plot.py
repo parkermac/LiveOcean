@@ -42,7 +42,7 @@ parser.add_argument('-x', '--ex_name', nargs='?', type=str,
 parser.add_argument('-d', '--date_string', nargs='?', type=str,
                     default='2013.01.31')
 parser.add_argument('-hs', '--hour_string', nargs='?', type=str,
-                    default='25')
+                    default='02')
 parser.add_argument('-nd', '--num_days', nargs='?', type=int,
                     default=0) # number of additional days
 args = parser.parse_args()

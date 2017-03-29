@@ -241,7 +241,7 @@ ad_LBC(isTvar) ==   RadNud     RadNud     Clo     Clo \    ! idbio(1), NO3
 ! climatology NetCDF file that are needed for nudging; [NBT,Ngrids]
 ! values are expected. See glossary below for details.
 
-  LnudgeTCLM == 9*F
+  LnudgeTCLM == 9*T
 
   SSFNAME == $force_dir$$riv_dir$rivers$bio_tag$.nc
 
