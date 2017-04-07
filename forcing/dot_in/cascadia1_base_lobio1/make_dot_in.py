@@ -99,7 +99,7 @@ out_dir0 = roms_dir + 'output/' + gtagex + '/'
 out_dir = out_dir0 + f_string + '/'
 
 atm_dir = 'atm/' # which atm forcing files to use
-ocn_dir = 'ocn/' # which ocn forcing files to use
+ocn_dir = 'ocn1/' # which ocn forcing files to use
 riv_dir = 'riv/' # which riv forcing files to use
 tide_dir = 'tide/' # which tide forcing files to use
 
@@ -134,7 +134,7 @@ for line in f:
 f.close()
 f2.close()
 
-## npxd2o_Banas.in ###########
+## npzd2o_Banas.in ###########
 
 f = open('npzd2o_Banas_BLANK.in','r')
 bio_dot_in_name = 'npzd2o_Banas.in'

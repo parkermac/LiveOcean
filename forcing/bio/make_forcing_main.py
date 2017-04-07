@@ -14,14 +14,17 @@ Ldir, Lfun = ffun.intro()
 #Ldir['date_string'] = '2014.03.11'
 
 #%% ****************** CASE-SPECIFIC CODE *****************
+
+ocn_dir = 'ocn1'
+
 import shutil
 fn_list = []
 fn_list.append((Ldir['LOo'] + Ldir['gtag'] +
-    '/f' + Ldir['date_string'] + '/ocn/ocean_clm'))
+    '/f' + Ldir['date_string'] + '/' + ocn_dir + '/ocean_clm'))
 fn_list.append((Ldir['LOo'] + Ldir['gtag'] +
-    '/f' + Ldir['date_string'] + '/ocn/ocean_bry'))
+    '/f' + Ldir['date_string'] + '/' + ocn_dir + '/ocean_bry'))
 fn_list.append((Ldir['LOo'] + Ldir['gtag'] +
-    '/f' + Ldir['date_string'] + '/ocn/ocean_ini'))
+    '/f' + Ldir['date_string'] + '/' + ocn_dir + '/ocean_ini'))
 fn_list.append((Ldir['LOo'] + Ldir['gtag'] +
     '/f' + Ldir['date_string'] + '/riv/rivers'))
 for fn in fn_list:

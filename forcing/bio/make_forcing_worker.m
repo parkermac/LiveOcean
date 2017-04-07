@@ -26,9 +26,10 @@ gdir = [Ldir.data,'grids/',Ldir.gridname,'/'];
 grdname = [gdir,'grid.nc'];
 
 % define locations of existing ocn and riv files
-clmname = [Ldir.out,Ldir.gtag,'/f',date_string,'/ocn/ocean_clm_bio.nc'];
-bryname = [Ldir.out,Ldir.gtag,'/f',date_string,'/ocn/ocean_bry_bio.nc'];
-ininame = [Ldir.out,Ldir.gtag,'/f',date_string,'/ocn/ocean_ini_bio.nc'];
+ocn_dir = 'ocn1';
+clmname = [Ldir.out,Ldir.gtag,'/f',date_string,'/',ocn_dir,'/ocean_clm_bio.nc'];
+bryname = [Ldir.out,Ldir.gtag,'/f',date_string,'/',ocn_dir,'/ocean_bry_bio.nc'];
+ininame = [Ldir.out,Ldir.gtag,'/f',date_string,'/',ocn_dir,'/ocean_ini_bio.nc'];
 rivname = [Ldir.out,Ldir.gtag,'/f',date_string,'/riv/rivers_bio.nc'];
 
 %%
