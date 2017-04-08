@@ -59,7 +59,7 @@ for which_forecast in f_df.index[-args.num_days:]:
             nc_list = force_dict[which_force]
             if set(nc_list).issubset(set(lll)):
                 f_df.ix[which_forecast, which_force] = 'YES'
-                if which_force in ['atm', 'ocn']:
+                if which_force in ['atm', 'ocn', 'ocn1']:
                     try:
                         time_format = '%Y.%m.%d %H:%M:%S'
                         ps = Lfun.csv_to_dict(force_dir + 'Info/process_status.csv')
