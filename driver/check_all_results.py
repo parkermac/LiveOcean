@@ -43,6 +43,7 @@ for item in os.listdir(f_dir0):
 force_dict = {'atm': ['lwrad_down.nc', 'Pair.nc', 'Qair.nc', 'rain.nc',
                       'swrad.nc', 'Tair.nc', 'Uwind.nc', 'Vwind.nc'],
               'ocn': ['ocean_bry.nc', 'ocean_clm.nc', 'ocean_ini.nc'],
+              'ocn1': ['ocean_bry.nc', 'ocean_clm.nc', 'ocean_ini.nc'],
               'riv': ['rivers.nc', ],
               'tide': ['tides.nc', ]}
 
