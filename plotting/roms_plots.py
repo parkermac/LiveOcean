@@ -164,21 +164,22 @@ def P_basic(in_dict):
         pfun.topfig()
     return out_dict
 
-def P_carbon(in_dict):
+def P_dive_vort(in_dict):
+    # plots surface fields of divergence and vorticity.
     # START
     fig = plt.figure(figsize=figsize)
     ds = nc.Dataset(in_dict['fn'])
     vlims = in_dict['vlims'].copy()
     out_dict['vlims'] = vlims
-
     # PLOT CODE
+    u = ds['u'][0, -1, :, :]
+    v = ds['v'][0, -1, :, :]
+    [G] = zrfun.get_basic_info(in_dict['fn'], getG=True, getS=False, getT=False)
+    dive = (np.diff(u, axis=1)/G['DX'][:, 1:-1])[1:-1, :] + (np.diff(v, axis = 0)/G['DY'][1:-1, :])[:, 1:-1]
     # panel 1
     ax = fig.add_subplot(121)
-    vn = 'TIC'
-    tstr = 'Surface ' + tstr_dict[vn]
-    cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn,
-            vlims=vlims[vn], cmap=cmap_dict[vn], fac=fac_dict[vn],
-            do_mask_salish=True)
+    cs = plt.pcolormesh(G['lon_psi'], G['lat_psi'], dive, cmap='bwr', vmin=-1e-4, vmax=1e-4)
+    tstr = 'Surface Divergence (1/s)'
     fig.colorbar(cs)
     pfun.add_bathy_contours(ax, ds, txt=True)
     pfun.add_coast(ax)
@@ -186,12 +187,12 @@ def P_carbon(in_dict):
     pfun.dar(ax)
     ax.set_xlabel('Longitude')
     ax.set_ylabel('Latitude')
-    ax.set_title(tstr + units_dict[vn])
+    ax.set_title(tstr)
     pfun.add_info(ax, in_dict['fn'])
     pfun.add_windstress_flower(ax, ds)
     # panel 2
     ax = fig.add_subplot(122)
-    vn = 'alkalinity'
+    vn = 'salt'
     tstr = 'Surface ' + tstr_dict[vn]
     cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn,
             vlims=vlims[vn], cmap=cmap_dict[vn], fac=fac_dict[vn],

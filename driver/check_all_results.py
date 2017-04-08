@@ -46,7 +46,7 @@ force_dict = {'atm': ['lwrad_down.nc', 'Pair.nc', 'Qair.nc', 'rain.nc',
               'riv': ['rivers.nc', ],
               'tide': ['tides.nc', ]}
 
-clist = ['atm', 'ocn', 'riv', 'tide', 'dot_in', 'his', 'lp', 'azu']
+clist = ['atm', 'ocn', 'ocn1', 'riv', 'tide', 'dot_in', 'his', 'lp', 'azu']
 
 f_df = pd.DataFrame(index=f_dir0_list, columns=clist)
 
