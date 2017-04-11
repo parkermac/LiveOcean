@@ -53,7 +53,7 @@ Ldir['gtagex'] = Ldir['gtag'] + '_' + args.ex_name
 # choose the type of list to make
 print(30*'*' + ' pan_plot ' + 30*'*')
 print('\n%s\n' % '** Choose List type (return for test) **')
-lt_list = ['test', 'low_pass', 'hindcast', 'forecast', 'old_style', 'atlantis']
+lt_list = ['test', 'low_pass', 'hindcast', 'forecast', 'old_style', 'atlantis', 'salish', 'salish_seq']
 Nlt = len(lt_list)
 lt_dict = dict(zip(range(Nlt), lt_list))
 for nlt in range(Nlt):
@@ -140,6 +140,16 @@ elif list_type=='atlantis':
     fn = (Ldir['parent'] + 'roms/output/salish_2006_4_lp/f2006.07.30/' +
         'low_passed.nc')
     fn_list.append(fn)
+elif list_type=='salish':
+    fn_list = []
+    fn = (Ldir['parent'] + 'roms/output/salish_2006_4/ocean_his_5020.nc')
+    fn_list.append(fn)
+elif list_type=='salish_seq':
+    fn_list = []
+    for ii in range(4993, 5076): # have 4993 through 5075 on mac
+        nstr = ('0000' + str(ii))[-4:]
+        fn = (Ldir['parent'] + 'roms/output/salish_2006_4/ocean_his_' + nstr + '.nc')
+        fn_list.append(fn)
 
 #%% plot
 in_dict = roms_plots.get_in_dict(plot_type)

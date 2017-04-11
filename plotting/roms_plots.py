@@ -176,35 +176,44 @@ def P_dive_vort(in_dict):
     v = ds['v'][0, -1, :, :]
     [G] = zrfun.get_basic_info(in_dict['fn'], getG=True, getS=False, getT=False)
     dive = (np.diff(u, axis=1)/G['DX'][:, 1:-1])[1:-1, :] + (np.diff(v, axis = 0)/G['DY'][1:-1, :])[:, 1:-1]
+    
+    x = G['lon_psi'] # matrix
+    y = G['lat_psi'] # matrix
+    vv = zfun.interp_scattered_on_plaid(x, y, G['lon_rho'][0,:], G['lat_rho'][:,0], G['DX'])
+    dxp = np.reshape(vv, G['lon_psi'].shape)
+    vv = zfun.interp_scattered_on_plaid(x, y, G['lon_rho'][0,:], G['lat_rho'][:,0], G['DY'])
+    dyp = np.reshape(vv, G['lat_psi'].shape)
+    vort = np.diff(v, axis=1)/dxp - np.diff(u, axis=0)/dyp
+    
+    aa = [-122.95, -122.55, 47.6, 48]
+    scl = 5e-4
     # panel 1
     ax = fig.add_subplot(121)
-    cs = plt.pcolormesh(G['lon_psi'], G['lat_psi'], dive, cmap='bwr', vmin=-1e-4, vmax=1e-4)
+    cs = plt.pcolormesh(G['lon_psi'], G['lat_psi'], dive, cmap='bwr',
+                        vmin=-scl, vmax=scl)
     tstr = 'Surface Divergence (1/s)'
-    fig.colorbar(cs)
+    #fig.colorbar(cs)
     pfun.add_bathy_contours(ax, ds, txt=True)
     pfun.add_coast(ax)
-    ax.axis(pfun.get_aa(ds))
+    ax.axis(aa)
     pfun.dar(ax)
     ax.set_xlabel('Longitude')
     ax.set_ylabel('Latitude')
     ax.set_title(tstr)
     pfun.add_info(ax, in_dict['fn'])
-    pfun.add_windstress_flower(ax, ds)
+    
     # panel 2
     ax = fig.add_subplot(122)
-    vn = 'salt'
-    tstr = 'Surface ' + tstr_dict[vn]
-    cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn,
-            vlims=vlims[vn], cmap=cmap_dict[vn], fac=fac_dict[vn],
-            do_mask_salish=True)
+    cs = plt.pcolormesh(G['lon_rho'], G['lat_rho'], vort, cmap='bwr',
+                        vmin=-scl, vmax=scl)
+    tstr = 'Surface Vorticity (1/s)'
     fig.colorbar(cs)
     pfun.add_bathy_contours(ax, ds)
     pfun.add_coast(ax)
-    ax.axis(pfun.get_aa(ds))
+    ax.axis(aa)
     pfun.dar(ax)
     ax.set_xlabel('Longitude')
-    ax.set_title(tstr + units_dict[vn])
-    pfun.add_velocity_vectors(ax, ds, in_dict['fn'])
+    ax.set_title(tstr)
 
     # FINISH
     ds.close()
