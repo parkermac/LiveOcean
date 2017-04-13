@@ -1,11 +1,34 @@
 """
-This module contains functions for extracting data from ROMS history files.
+This module contains utility functions for interpolation, filtering
+and inspection.
 
 Parker MacCready
 """
 
 import netCDF4 as nc
 import numpy as np
+
+def interp2(x, y, X, Y, U):
+    """
+    Interpolate field U(X,Y) to u(x,y).  All grids are assumed to be plaid.
+    """
+    if is_plaid(x) and is_plaid(y) and is_plaid(Y) and is_plaid(Y):
+        uu = interp_scattered_on_plaid(x, y, X[0,:], Y[:,0], U)
+        u = np.reshape(uu, x.shape)
+        return u
+    else:
+        pass
+
+def is_plaid(x):
+    """
+    Test if a numpy array is plaid.
+    """
+    if not isinstance(x, np.ndarray):
+        return False
+    elif not ((x[:,0]==x[:,1]).all() or (x[0,:]==x[1,:]).all()):
+        return False
+    else:
+        return True
 
 def interp_scattered_on_plaid(x, y, xvec, yvec, u, exnan=True):
     """

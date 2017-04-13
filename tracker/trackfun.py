@@ -24,7 +24,8 @@ def get_tracks(fn_list, plon0, plat0, pcs0, dir_tag,
     pcsA = pcs0.copy()
 
     # get basic info
-    G, S = zrfun.get_basic_info(fn_list[0], getT=False)
+    G = zrfun.get_basic_info(fn_list[0], only_G=True)
+    S = zrfun.get_basic_info(fn_list[0], only_S=True)
 
     # get time vector of history files
     NT = len(fn_list)

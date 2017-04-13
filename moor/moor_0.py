@@ -122,7 +122,8 @@ Lat = np.array(float(Ldir['lat_str']))
 # get grid info
 indir = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/f' + date_list[0] + '/'
 fn = indir + 'ocean_his_0002.nc'
-[G, S] = zrfun.get_basic_info(fn, getS=True, getT=False)
+G = zrfun.get_basic_info(fn, only_G=True)
+S = zrfun.get_basic_info(fn, only_S=True)
 
 # get interpolants for this point
 Xi0 = dict(); Yi0 = dict()

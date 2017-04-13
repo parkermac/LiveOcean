@@ -41,7 +41,7 @@ start_time = datetime.now()
 out_fn = Ldir['LOogf_f'] + 'tides.nc'
 grid_fn = Ldir['grid'] + 'grid.nc'
 
-[G] = zrfun.get_basic_info(grid_fn, getS=False, getT=False)
+G = zrfun.get_basic_info(grid_fn, only_G=True)
 
 dst = nc.Dataset(out_fn, 'w', format='NETCDF3_CLASSIC')
 

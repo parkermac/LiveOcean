@@ -122,7 +122,7 @@ def add_velocity_vectors(ax, ds, fn, v_scl=3, v_leglen=0.5, nngrid=80):
     # v_scl: scale velocity vector (smaller to get longer arrows)
     # v_leglen: m/s for velocity vector legend
     # GET DATA
-    [G] = zrfun.get_basic_info(fn, getS=False, getT=False)
+    G = zrfun.get_basic_info(fn, only_G=True)
     u = ds['u'][0, -1, :, :].squeeze()
     v = ds['v'][0, -1, :, :].squeeze()
     # ADD VELOCITY VECTORS
@@ -180,7 +180,7 @@ def add_windstress_flower(ax, ds, t_scl=0.2, t_leglen=0.1):
 
 def add_info(ax, fn):
     # put info on plot
-    [T] = zrfun.get_basic_info(fn, getG=False, getS=False)
+    T = zrfun.get_basic_info(fn, only_T=True)
     ax.text(.95, .07, T['tm'].strftime('%Y-%m-%d'),
         horizontalalignment='right', transform=ax.transAxes)
     ax.text(.95, .04, T['tm'].strftime('%H:%M') + ' UTC',

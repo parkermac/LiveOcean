@@ -40,7 +40,7 @@ reload(Ofun)
 in_dir = Ldir['LOogf_fd']
 
 # get grid and S info
-[G] = zrfun.get_basic_info(Ldir['grid'] + 'grid.nc', getS=False, getT=False)
+G = zrfun.get_basic_info(Ldir['grid'] + 'grid.nc', only_G=True)
 S_info_dict = Lfun.csv_to_dict(Ldir['grid'] + 'S_COORDINATE_INFO.csv')
 S = zrfun.get_S(S_info_dict)
 

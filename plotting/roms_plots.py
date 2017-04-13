@@ -174,15 +174,13 @@ def P_dive_vort(in_dict):
     # PLOT CODE
     u = ds['u'][0, -1, :, :]
     v = ds['v'][0, -1, :, :]
-    [G] = zrfun.get_basic_info(in_dict['fn'], getG=True, getS=False, getT=False)
-    dive = (np.diff(u, axis=1)/G['DX'][:, 1:-1])[1:-1, :] + (np.diff(v, axis = 0)/G['DY'][1:-1, :])[:, 1:-1]
-    
+    G = zrfun.get_basic_info(in_dict['fn'], only_G=True)
+    dive = ((np.diff(u, axis=1)/G['DX'][:, 1:-1])[1:-1, :]
+            + (np.diff(v, axis = 0)/G['DY'][1:-1, :])[:, 1:-1])   
     x = G['lon_psi'] # matrix
     y = G['lat_psi'] # matrix
-    vv = zfun.interp_scattered_on_plaid(x, y, G['lon_rho'][0,:], G['lat_rho'][:,0], G['DX'])
-    dxp = np.reshape(vv, G['lon_psi'].shape)
-    vv = zfun.interp_scattered_on_plaid(x, y, G['lon_rho'][0,:], G['lat_rho'][:,0], G['DY'])
-    dyp = np.reshape(vv, G['lat_psi'].shape)
+    dxp = zfun.interp2(x, y, G['lon_rho'], G['lat_rho'], G['DX'])
+    dyp = zfun.interp2(x, y, G['lon_rho'], G['lat_rho'], G['DY'])
     vort = np.diff(v, axis=1)/dxp - np.diff(u, axis=0)/dyp
     
     aa = [-122.95, -122.55, 47.6, 48]
@@ -950,7 +948,7 @@ def P_tracks(in_dict):
     windage = 0.0 # a small number >= 0 [0.02]
     ndiv = 1 # number of divisions to make between saves for the integration
 
-    G, S, T = zrfun.get_basic_info(fn)
+    G, S, T = zrfun.get_basic_info(in_dict['fn'])
 
     in_dir = fn[:fn.rindex('/')+1]
     fn_list_raw = os.listdir(in_dir)
