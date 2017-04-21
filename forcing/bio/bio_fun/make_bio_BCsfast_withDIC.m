@@ -164,6 +164,17 @@ if exist(clmname,'file')
     netcdf.putAtt(ncid,variddic,'long_name','DIC climatology');
     netcdf.putAtt(ncid,variddic,'units','MicroMolar C');
     
+    % PM Edit 2017.04.21 Adding a time attribute
+    netcdf.putAtt(ncid,varidn,'time','salt_time');
+    netcdf.putAtt(ncid,varidp,'time','salt_time');
+    netcdf.putAtt(ncid,varidz,'time','salt_time');
+    netcdf.putAtt(ncid,varidd,'time','salt_time');
+    netcdf.putAtt(ncid,varidLd,'time','salt_time');
+    netcdf.putAtt(ncid,varidPIC,'time','salt_time');
+    netcdf.putAtt(ncid,varido,'time','salt_time');
+    netcdf.putAtt(ncid,varida,'time','salt_time');
+    netcdf.putAtt(ncid,variddic,'time','salt_time');
+    
     %%finish defining
     netcdf.endDef(ncid);
     
