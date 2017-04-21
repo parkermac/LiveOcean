@@ -297,6 +297,9 @@ GridsInLayer =  1
  LnudgeM3CLM == T                          ! 3D momentum
 
   LnudgeTCLM == T T                        ! temperature, salinity, inert
+  
+! Input climatology nudging coefficients file name.
+     NUDNAME == $grid_dir$nudgcoef.nc
 
 ! Logical switches (TRUE/FALSE) to activate writing of fields into
 ! HISTORY output file.

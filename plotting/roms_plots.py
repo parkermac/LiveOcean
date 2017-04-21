@@ -897,7 +897,7 @@ def P_sectA(in_dict):
         np.linspace(1, 34, 34), colors='k')
     ax.set_xlabel('Distance (km)')
     ax.set_ylabel('Z (m)')
-    ax.set_title(varname)
+    ax.set_title(vn)
 
     # FINISH
     ds.close()
@@ -958,16 +958,39 @@ def P_tracks(in_dict):
             fn_list.append(in_dir + item)
     ndays = round(len(fn_list)/24)
     
-    x0 = G['lon_rho'][0, 1]
-    x1 = G['lon_rho'][0, -2]
-    y0 = G['lat_rho'][1, 0]
-    y1 = G['lat_rho'][-2, 0]
-    nyp = 30
-    mlr = np.pi*(np.mean([y0, y1]))/180
-    xyRatio = np.cos(mlr) * (x1 - x0) / (y1 - y0)
-    lonvec = np.linspace(x0, x1, (nyp * xyRatio).astype(int))
-    latvec = np.linspace(y0, y1, nyp)
-    lonmat, latmat = np.meshgrid(lonvec, latvec)
+    if False: # Even spread over whole domain
+        x0 = G['lon_rho'][0, 1]
+        x1 = G['lon_rho'][0, -2]
+        y0 = G['lat_rho'][1, 0]
+        y1 = G['lat_rho'][-2, 0]
+        nyp = 30
+        mlr = np.pi*(np.mean([y0, y1]))/180
+        xyRatio = np.cos(mlr) * (x1 - x0) / (y1 - y0)
+        lonvec = np.linspace(x0, x1, (nyp * xyRatio).astype(int))
+        latvec = np.linspace(y0, y1, nyp)
+        lonmat, latmat = np.meshgrid(lonvec, latvec)
+    else: # MERHAB Version
+        nyp = 7
+        x0 = -126
+        x1 = -125
+        y0 = 48
+        y1 = 49
+        mlr = np.pi*(np.mean([y0, y1]))/180
+        xyRatio = np.cos(mlr) * (x1 - x0) / (y1 - y0)
+        lonvec = np.linspace(x0, x1, (nyp * xyRatio).astype(int))
+        latvec = np.linspace(y0, y1, nyp)
+        lonmat_1, latmat_1 = np.meshgrid(lonvec, latvec)
+        x0 = -125
+        x1 = -124
+        y0 = 44
+        y1 = 45
+        mlr = np.pi*(np.mean([y0, y1]))/180
+        xyRatio = np.cos(mlr) * (x1 - x0) / (y1 - y0)
+        lonvec = np.linspace(x0, x1, (nyp * xyRatio).astype(int))
+        latvec = np.linspace(y0, y1, nyp)
+        lonmat_2, latmat_2 = np.meshgrid(lonvec, latvec)
+        lonmat = np.concatenate((lonmat_1.flatten(), lonmat_2.flatten()))
+        latmat = np.concatenate((latmat_1.flatten(), latmat_2.flatten()))
     plon00 = lonmat.flatten()
     plat00 = latmat.flatten()
     pcs00 = np.array([-.05]) # unimportant when surface=True
@@ -1005,12 +1028,13 @@ def P_tracks(in_dict):
 
     # panel 1
     ax = fig.add_subplot(111)
-    vn = 'phytoplankton'
+    vn = 'salt'
     tstr = 'Surface ' + tstr_dict[vn] +' and ' + str(ndays) + ' day Tracks'
     cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn,
-            vlims=vlims[vn], cmap=cmap_dict[vn], fac=fac_dict[vn], alpha = .3)
+            vlims=vlims[vn], cmap=cmap_dict[vn], fac=fac_dict[vn], alpha = .5,
+            do_mask_salish=False)
     fig.colorbar(cs)
-    #pfun.add_bathy_contours(ax, ds)
+    pfun.add_bathy_contours(ax, ds, txt=True)
     pfun.add_coast(ax)
     ax.axis(pfun.get_aa(ds))
     pfun.dar(ax)
@@ -1020,8 +1044,8 @@ def P_tracks(in_dict):
     pfun.add_info(ax, in_dict['fn'])
 
     # add the tracks
-    ax.plot(P['lon'], P['lat'], '-k')
-    ax.plot(P['lon'][0,:],P['lat'][0,:],'ok',
+    ax.plot(P['lon'], P['lat'], '-w', linewidth=3)
+    ax.plot(P['lon'][0,:],P['lat'][0,:],'or',
             markersize=6, alpha = 1, markeredgecolor='k')
 
     # FINISH

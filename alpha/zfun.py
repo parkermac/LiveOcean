@@ -39,7 +39,7 @@ def interp_scattered_on_plaid(x, y, xvec, yvec, u, exnan=True):
     Appears to be super fast.
     
     Example:
-    lon and lat are vectors the define the plaid grid that
+    lon and lat are vectors that define the plaid grid that
         matrix v is defined on
     v = b['ssh']
     x = G['lon_rho'] # matrix
@@ -98,7 +98,6 @@ def get_interpolant(x, xvec, extrap_nan=False):
 
     If the x is ON a point in xvec the default is to return
     the index of that point and the one above.
-
     """
     
     from warnings import filterwarnings
@@ -186,26 +185,18 @@ def filt_AB8d(data):
     % weighted average of the data over the previous 8 days from time t,
     % with the weighting decaying from 1 to 1/e at t - 8 days.  There are 192
     % hours in 8 days.
-
     Input:
         assumed to be a 1D numpy array
-
     Output:
         a vector of the same size you started with,
         padded with NaN's at the ends.
     """
-
     fl = 8*24;
-
     filt = np.exp(np.linspace(-1,0,fl))
     filt = filt/filt.sum();
-
     smooth = np.nan*data
-
     for ii in range(fl+1, len(data)):
-
         smooth[ii] = (filt*data[ii-fl+1: ii + 1]).sum()
-
     return smooth
 
 def filt_hanning(data, n=40):
