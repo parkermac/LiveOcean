@@ -116,15 +116,15 @@ do
     hf="../shared/hf72a"
     np_num=72
   elif [ $run_type = "backfill" ] ; then
-    hf="../shared/hf144"
-    np_num=144
+    hf="../shared/hf72b"
+    np_num=72
   fi
 
   # the actual ROMS run command
   if [ $HOME = "/Users/PM5" ] ; then # testing
-    echo "/cm/shared/local/openmpi-ifort/bin/mpirun -np $np_num -machinefile $hf oceanM $Rf/liveocean.in > $log_file &"
+    echo "/cm/shared/local/openmpi-ifort/bin/mpirun -np $np_num -machinefile $hf oceanG $Rf/liveocean.in > $log_file &"
   elif [ $HOME == "/home/parker" ] ; then # the real thing
-    /cm/shared/local/openmpi-ifort/bin/mpirun -np $np_num -machinefile $hf oceanM $Rf/liveocean.in > $log_file &
+    /cm/shared/local/openmpi-ifort/bin/mpirun -np $np_num -machinefile $hf oceanG $Rf/liveocean.in > $log_file &
     # Check that ROMS has finished successfully.
     PID1=$!
     wait $PID1
