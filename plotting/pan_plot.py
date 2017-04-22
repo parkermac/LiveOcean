@@ -38,11 +38,11 @@ parser.add_argument('-g', '--gridname', nargs='?', type=str,
 parser.add_argument('-t', '--tag', nargs='?', type=str,
                     default='base')
 parser.add_argument('-x', '--ex_name', nargs='?', type=str,
-                    default='lobio1')
+                    default='lobio3')
 parser.add_argument('-d', '--date_string', nargs='?', type=str,
-                    default='2017.04.20')
+                    default='2013.01.01')
 parser.add_argument('-hs', '--hour_string', nargs='?', type=str,
-                    default='02')
+                    default='25')
 parser.add_argument('-nd', '--num_days', nargs='?', type=int,
                     default=0) # number of additional days
 args = parser.parse_args()

@@ -51,7 +51,7 @@
 ! Light attenuation due to seawater [1/m]
 ! If AttSW is nonzero, then this is AttSW at a reference salinity of 32
 
-      AttSW == 0.0654d0
+      AttSW == 0.1d0
 
 ! Light attenuation by phytoplankton [1/uM/m]
 
@@ -59,7 +59,7 @@
 
 ! Light attenuation by salinity [1/psu/m]
 
-      AttS == 0.0d0
+      AttS == 0.013d0
 
 ! phytoplankton initial slope of P-I curve [(uM/d) / (Watts/m2)]
 
@@ -119,7 +119,7 @@
 
 ! sinking velocity for large detritus [m/day]
 
-      LdetWsink == 120.0d0
+      LdetWsink == 80.0d0
 
 ! CO2 partial pressure in the air (parts per million by volume),
 ! {377.0d0}.
