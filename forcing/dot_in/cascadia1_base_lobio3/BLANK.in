@@ -141,7 +141,7 @@ GridsInLayer =  1
 ! Harmonic/biharmonic horizontal diffusion of tracer for nonlinear model
 ! and adjoint-based algorithms: [1:NAT+NPT,Ngrids].
 
-        TNU2 == 2*0.0d0                         ! m2/s
+        TNU2 == 2*2.0d0                         ! m2/s
         TNU4 == 2*0.0d0                         ! m4/s
 
 ! Harmonic/biharmonic, horizontal viscosity coefficient for nonlinear model
