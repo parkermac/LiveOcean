@@ -17,6 +17,7 @@ def interp2(x, y, X, Y, U):
         u = np.reshape(uu, x.shape)
         return u
     else:
+        print('grids not plaid')
         pass
 
 def is_plaid(x):

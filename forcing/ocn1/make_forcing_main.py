@@ -9,7 +9,7 @@ as well as regular forecasts.
 
 To run from the command line in LiveOcean/driver/:
     
-./driver_forcing1.sh -g cas1 -t base -r backfill -0 20130101 -1 20130101
+./driver_forcing1.sh -g cas1 -t base -f ocn1 -r backfill -0 20130101 -1 20130101
 
 To test in python on mac:
 
@@ -20,6 +20,9 @@ run make_forcing_main.py -g cas1 -t base -r backfill -d 2013.01.01
 
 This has a huge gap, but still works:
 run make_forcing_main.py -g cas1 -t base -r backfill -d 2012.12.01
+
+This will add the bio variables:
+run make_forcing_main.py -g cas1 -t base -x lobio3 -r backfill -d 2013.01.01
 
 Or try a forecast
 This has a huge gap, but still works:
@@ -173,6 +176,11 @@ for fn in aa:
 #%% Write to ROMS forcing files
 nc_dir = Ldir['LOogf_f']
 Ofun_nc.make_clm_file(Ldir, nc_dir, fh_dir, c_dict, dt_list, S, G)
+
+# add bio variable if needed
+if 'bio' in Ldir['ex_name']:
+    Ofun_nc.add_bio(nc_dir)
+    
 Ofun_nc.make_ini_file(nc_dir)
 Ofun_nc.make_bry_file(nc_dir)
 

@@ -83,10 +83,10 @@ def add_bathy_contours(ax, ds, depth_levs = [], txt=False):
     lon = ds['lon_rho'][:]
     lat = ds['lat_rho'][:]
     if len(depth_levs) == 0:
-        ax.contour(lon, lat, h, [200], colors='k')
+        ax.contour(lon, lat, h, [200], colors='m')
         ax.contour(lon, lat, h, [2000], colors='g')
         if txt==True:
-            ax.text(.95, .95, '200 m', color='k',
+            ax.text(.95, .95, '200 m', color='m',
                     horizontalalignment='right',
                     transform=ax.transAxes)
             ax.text(.95, .92, '2000 m', color='g',

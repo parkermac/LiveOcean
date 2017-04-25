@@ -399,12 +399,13 @@ def P_bio2(in_dict):
 def P_layer(in_dict):
     # START
     fig = plt.figure(figsize=figsize)
-    ds = nc.Dataset(in_dict['fn'])
-    
+    ds = nc.Dataset(in_dict['fn'])    
     vlims = in_dict['vlims'].copy()
-    vlims['salt'] = ()
-    vlims['temp'] = ()
     
+    # set variables to plt
+    vn_list = ['NO3', 'Ldetritus']
+    for vn in vn_list: # use auto scaling
+        vlims[vn] = ()
     out_dict['vlims'] = vlims
     
     # PLOT CODE
@@ -412,12 +413,11 @@ def P_layer(in_dict):
     
     # panel 1
     ax = fig.add_subplot(121)
-    vn = 'salt'
+    vn = vn_list[0]
     tstr = tstr_dict[vn]
     laym = pfun.get_laym(ds, zfull, ds['mask_rho'][:], vn, in_dict['z_level'])
     cmap=cmap_dict[vn]
     fac=fac_dict[vn]
-    #vlims[vn] = ()
     if len(vlims[vn]) == 0:
         vlims[vn] = pfun.auto_lims(laym)
     out_dict['vlims'][vn] = vlims[vn]
@@ -438,12 +438,11 @@ def P_layer(in_dict):
     
     # panel 2
     ax = fig.add_subplot(122)
-    vn = 'temp'
+    vn = vn_list[1]
     tstr = tstr_dict[vn]
     laym = pfun.get_laym(ds, zfull, ds['mask_rho'][:], vn, in_dict['z_level'])
     cmap=cmap_dict[vn]
     fac=fac_dict[vn]
-    #vlims[vn] = ()
     if len(vlims[vn]) == 0:
         vlims[vn] = pfun.auto_lims(laym)
     out_dict['vlims'][vn] = vlims[vn]
@@ -958,12 +957,12 @@ def P_tracks(in_dict):
             fn_list.append(in_dir + item)
     ndays = round(len(fn_list)/24)
     
-    if False: # Even spread over whole domain
+    if True: # Evenly spread over whole domain
         x0 = G['lon_rho'][0, 1]
         x1 = G['lon_rho'][0, -2]
         y0 = G['lat_rho'][1, 0]
         y1 = G['lat_rho'][-2, 0]
-        nyp = 30
+        nyp = 50
         mlr = np.pi*(np.mean([y0, y1]))/180
         xyRatio = np.cos(mlr) * (x1 - x0) / (y1 - y0)
         lonvec = np.linspace(x0, x1, (nyp * xyRatio).astype(int))
@@ -1044,9 +1043,9 @@ def P_tracks(in_dict):
     pfun.add_info(ax, in_dict['fn'])
 
     # add the tracks
-    ax.plot(P['lon'], P['lat'], '-w', linewidth=3)
-    ax.plot(P['lon'][0,:],P['lat'][0,:],'or',
-            markersize=6, alpha = 1, markeredgecolor='k')
+    ax.plot(P['lon'], P['lat'], '-k', linewidth=2)
+    ax.plot(P['lon'][-1,:],P['lat'][-1,:],'or',
+            markersize=3, alpha = 1, markeredgecolor='k')
 
     # FINISH
     ds.close()

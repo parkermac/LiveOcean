@@ -84,6 +84,61 @@ def make_clm_file(Ldir, nc_dir, fh_dir, c_dict, dt_list, S, G):
     foo.close()
     print('-Writing ocean_clm.nc')
 
+def add_bio(nc_dir):
+    # name output file
+    clm_fn = nc_dir + 'ocean_clm.nc'
+    foo = nc.Dataset(clm_fn, 'a', format='NETCDF3_CLASSIC')
+#    vn_dict =  {'NO3':'MicroMolar',
+#                'phytoplankton':'MicroMolar N',
+#                'zooplankton':'MicroMolar N',
+#                'detritus':'MicroMolar N',
+#                'Ldetritus':'MicroMolar N',
+#                'CaCO3':'MicroMolar C',
+#                'oxygen':'MicroMolar O',
+#                'alkalinity':'MicroMolar',
+#                'TIC':'MicroMolar C'}
+    vn_dict =  {'NO3':'MicroMolar'}
+
+    salt = foo['salt'][:]
+    for vn in vn_dict.keys():
+        vv = foo.createVariable(vn, float, ('salt_time', 's_rho', 'eta_rho', 'xi_rho'))
+        vv.long_name = vn + ' climatology'
+        vv.units = vn_dict[vn]
+        vv.time = 'salt_time'
+        V = create_bio_var(salt, vn)
+        vv[:] = V
+    foo.close()
+    print('-Writing bio variables to ocean_clm.nc')
+
+def create_bio_var(salt, vn):
+    if vn == 'NO3':
+        # Salinity vs. NO3 [uM], Ryan McCabe 8/2015
+        # NO3 = mm*salt + bb;
+        mm = 0*salt
+        bb = 0*salt
+        ind = (salt < 31.898)
+        mm[ind] = 0
+        bb[ind] = 0
+        ind = ((salt >= 31.898) & (salt < 33.791))
+        mm[ind] = 16.3958
+        bb[ind] = -522.989
+        ind = ((salt >= 33.791) & (salt < 34.202))
+        mm[ind] = 29.6973
+        bb[ind] = -972.4545
+        ind = ((salt >= 34.202) & (salt < 34.482))
+        mm[ind] = 8.0773
+        bb[ind] = -233.0007;
+        ind = ((salt >= 34.482) & (salt < 35))
+        mm[ind] = -28.6251
+        bb[ind] = 1032.5686
+        NO3 = mm*salt + bb
+        # Set maximum NO3 to 45 microMolar (found at ~800m depth), based on
+        # evidence from historical NO3 data in NODC World Ocean Database.
+        NO3[NO3 > 45] = 45;
+        # Ensure that there are no negative values.
+        NO3[NO3 < 0] = 0;
+        return NO3
+        
 def make_ini_file(nc_dir):
     # Initial condition, copied from first time of ocean_clm.nc
     ds1 = nc.Dataset(nc_dir + 'ocean_clm.nc', mode='r')
