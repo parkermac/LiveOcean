@@ -31,7 +31,9 @@ def get_hycom_file_list(exnum):
     # initiate the file list
     fn_list = []   
     # get the xml of the catalog
-    xml_name = ('http://beta.hycom.org/thredds/catalog/GLBu0.08/expt_' + 
+    # xml_name = ('http://beta.hycom.org/thredds/catalog/GLBu0.08/expt_' +
+    #             exnum + '/forecasts/catalog.xml')
+    xml_name = ('http://tds.hycom.org/thredds/catalog/GLBu0.08/expt_' + 
                 exnum + '/forecasts/catalog.xml')
     try:
         xfile = U.urlopen(xml_name, timeout=30)

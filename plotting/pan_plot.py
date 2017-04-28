@@ -40,9 +40,9 @@ parser.add_argument('-t', '--tag', nargs='?', type=str,
 parser.add_argument('-x', '--ex_name', nargs='?', type=str,
                     default='lobio3')
 parser.add_argument('-d', '--date_string', nargs='?', type=str,
-                    default='2013.03.10')
+                    default='2013.04.28')
 parser.add_argument('-hs', '--hour_string', nargs='?', type=str,
-                    default='25')
+                    default='01')
 parser.add_argument('-nd', '--num_days', nargs='?', type=int,
                     default=0) # number of additional days
 args = parser.parse_args()

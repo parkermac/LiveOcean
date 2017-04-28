@@ -957,7 +957,7 @@ def P_tracks(in_dict):
             fn_list.append(in_dir + item)
     ndays = round(len(fn_list)/24)
     
-    if True: # Evenly spread over whole domain
+    if False: # Evenly spread over whole domain
         x0 = G['lon_rho'][0, 1]
         x1 = G['lon_rho'][0, -2]
         y0 = G['lat_rho'][1, 0]

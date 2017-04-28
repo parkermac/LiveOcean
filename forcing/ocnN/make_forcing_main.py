@@ -31,7 +31,7 @@ import zfun
 
 #%% ****************** CASE-SPECIFIC CODE *****************
 
-from datetime import datetime, timedelta
+from datetime import datetime
 import time
 
 #import shutil
@@ -50,40 +50,30 @@ reload(Ofun_nc)
 reload(Ofun)
 
 start_time = datetime.now()
-
-if Ldir['run_type'] == 'forecast':    
-    pass
-       
-elif Ldir['run_type'] == 'backfill':
-    pass    
-        
 in_dir = Ldir['roms'] + 'output/cas1_f1_r820/f' + Ldir['date_string']
-
 nc_dir = Ldir['LOogf']
 
 # get grid and S info
 G = zrfun.get_basic_info(Ldir['grid'] + 'grid.nc', only_G=True)
 S_info_dict = Lfun.csv_to_dict(Ldir['grid'] + 'S_COORDINATE_INFO.csv')
 S = zrfun.get_S(S_info_dict)
-# get list if files to work on
-a = os.listdir(in_dir)
-h_list = [item for item in a if 'ocean_his' in item]
+# get list of files to work on
+h_list_full = os.listdir(in_dir)
+h_list = [item for item in h_list_full if 'ocean_his' in item]
 
+# debugging
 testing = True
 if testing:
-    h_list = [h_list[0]]
-    
+    h_list = h_list[:2]
+
+# get list of times    
 t_list = []
 for h in h_list:
     T = zrfun.get_basic_info(in_dir + '/' + h, only_T=True)
     t_list.append(T['ocean_time'][0])
 
-
-# name output file
+# name and create output file
 clm_fn = nc_dir + 'ocean_clm.nc'
-# get rid of the old version, if it exists
-
-
 # get rid of the old version, if it exists
 try:
     os.remove(clm_fn)
@@ -93,43 +83,30 @@ ds1 = nc.Dataset(clm_fn, 'w', format='NETCDF3_CLASSIC')
 
 # create dimensions
 ds1.createDimension('ocean_time', len(h_list)) # could use None                  
-ds1.createDimension('s_rho', S['N']) # should match ds0.dimensions['N'].size
+ds1.createDimension('s_rho', S['N']) # must match ds0.dimensions['N'].size
 ds1.createDimension('s_w', S['N'] + 1)
-
 for tag in ['rho', 'u', 'v']:
     ds1.createDimension('eta_'+tag, G['lat_'+tag].shape[0])
-    ds1.createDimension('xi_'+tag, G['lon_'+tag].shape[1])
-    
+    ds1.createDimension('xi_'+tag, G['lon_'+tag].shape[1])    
 # add time data    
 v1 = ds1.createVariable('ocean_time', float, ('ocean_time',))
 v1.units = 'seconds since 1970.01.01 UTC'
 v1[:] = np.array(t_list)
 
-tt = 0
-
+# loop over all hours and add processed fields
+tt = 0 # hour counter
 for h in h_list:
-    ds0 = nc.Dataset(in_dir + '/' + h)
-    
+    ds0 = nc.Dataset(in_dir + '/' + h)  
+    if S['N'] != ds0.dimensions['N'].size:
+        print('Vertical dimensions inconsistent!')
+        break
     tt0 = time.time()                    
-
-    # copy attributes
-    #for name in ds0.ncattrs():
-    #    print(name)
-    #    ds1.setncattr(name, ds0.getncattr(name))
-    # copy dimensions
-#    for name, dimension in ds0.dimensions.items():
-#        print(name)
-#        ds1.createDimension(
-#            name, (len(dimension) if not dimension.isunlimited() else None))
-
-    # process nessary fields
-    yes_list = ['zeta', 'ubar', 'vbar']
-    no_list = ['rho', 'AKv', 'AKs', 'w']
+    yes_list = ['zeta', 'ubar', 'vbar'] # only do these 2D fields
+    no_list = ['rho', 'AKv', 'AKs', 'w'] # exclude these 3D fields
     for name, v0 in ds0.variables.items():
         
         if (len(v0.dimensions) >= 4 and name not in no_list) or name in yes_list:
         #if name in ['salt']:            
-            print(name + ' tt = ' + str(tt))
             if tt == 0:
                 v1 = ds1.createVariable(name, v0.datatype, v0.dimensions)
                 v1.time = v0.time
@@ -146,68 +123,59 @@ for h in h_list:
             elif 'eta_v' in v0.dimensions:
                 tag = 'v'
             else:
-                print('problem with dimensions')
-                
+                print('problem with dimensions')                
             X = ds0['lon_' + tag][:]
             Y = ds0['lat_' + tag][:]
             x = G['lon_' + tag]
             y = G['lat_' + tag]
             mask = G['mask_' + tag]
                 
-            F = ds0[name][:].squeeze()
-                        
+            F = ds0[name][:].squeeze()                        
             if len(F.shape) == 2:
                 fx = Ofun.extrap_nearest_to_masked(X, Y, F)
                 ff = zfun.interp2(x, y, X, Y, fx)
                 fm = np.ma.masked_where(mask==False, ff)
                 ds1[name][tt,:,:] = fm
             elif len(F.shape) == 3:
+                # For the 3D variables we pull apart the extrapolation and
+                # interpolation methods so that the KD Tree and the
+                # interpolants are only calculated for the first depth.  This
+                # gives a 20x speedup (!) mainly because of the interpolants.
+                # This ASSUMES that the mask is the same at all s-levels.
                 for iz in range(F.shape[0]):
+                    # EXTRAPOLATION
                     fld = F[iz, :, :].squeeze()
-                    if True:
-                        # do the extrapolation using nearest neighbor
-                        fldf = fld.copy() # initialize the "filled" field
-                        if iz==0:
-                            xyorig = np.array((X[~fld.mask],Y[~fld.mask])).T
-                            xynew = np.array((X[fld.mask],Y[fld.mask])).T
-                            a = cKDTree(xyorig).query(xynew)
-                            aa = a[1]
-                        fldf[fld.mask] = fld[~fld.mask][aa]
-                        fx = fldf.data
-                    else:                    
-                        fx = Ofun.extrap_nearest_to_masked(X, Y, fld)
-                        
-                    if True:
-                        if iz==0:
-                            # get interpolants
-                            xi0, xi1, xf = zfun.get_interpolant(x,X[0,:], extrap_nan=True)
-                            yi0, yi1, yf = zfun.get_interpolant(y,Y[:,0], extrap_nan=True)                    
-                        # bi linear interpolation
-                        u00 = fx[yi0,xi0]
-                        u10 = fx[yi1,xi0]
-                        u01 = fx[yi0,xi1]
-                        u11 = fx[yi1,xi1]
-                        fi = (1-yf)*((1-xf)*u00 + xf*u01) + yf*((1-xf)*u10 + xf*u11)
-                        ff = np.reshape(fi, x.shape)
-                    else:
-                        ff = zfun.interp2(x, y, X, Y, fx)
+                    # do the extrapolation using nearest neighbor
+                    fldf = fld.copy() # initialize the "filled" field
+                    if iz==0:
+                        xyorig = np.array((X[~fld.mask],Y[~fld.mask])).T
+                        xynew = np.array((X[fld.mask],Y[fld.mask])).T
+                        a = cKDTree(xyorig).query(xynew)
+                        aa = a[1]
+                    fldf[fld.mask] = fld[~fld.mask][aa]
+                    fx = fldf.data
+                    # INTERPOLATION    
+                    if iz==0:
+                        # get interpolants
+                        xi0, xi1, xf = zfun.get_interpolant(x,X[0,:], extrap_nan=True)
+                        yi0, yi1, yf = zfun.get_interpolant(y,Y[:,0], extrap_nan=True)                    
+                    # bi linear interpolation
+                    u00 = fx[yi0,xi0]
+                    u10 = fx[yi1,xi0]
+                    u01 = fx[yi0,xi1]
+                    u11 = fx[yi1,xi1]
+                    fi = (1-yf)*((1-xf)*u00 + xf*u01) + yf*((1-xf)*u10 + xf*u11)
+                    ff = np.reshape(fi, x.shape)
                     fm = np.ma.masked_where(mask==False, ff)
-                    ds1[name][tt,iz,:,:] = fm
-                                    
-    print(' took %0.3f seconds' % (time.time() - tt0)) 
-            
-    tt += 1
-            
-    ds0.close()
-    
+                    ds1[name][tt,iz,:,:] = fm                                    
+    print('Hour %d took %0.1f seconds' % (tt, time.time() - tt0))             
+    tt += 1            
+    ds0.close()    
 ds1.close()
   
-#%% Write to ROMS forcing files
-
-#nc_dir = Ldir['LOogf_f']
-#    
-#Ofun_nc.make_ini_file(nc_dir)
-#Ofun_nc.make_bry_file(nc_dir)
+#%% Write other ROMS forcing files    
+Ofun_nc.make_ini_file(nc_dir)
+Ofun_nc.make_bry_file(nc_dir)
 
 #%% prepare for finale
 import collections
