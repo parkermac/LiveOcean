@@ -14,7 +14,6 @@ To test in python on mac:
 
 cd /Users/PM5/Documents/LiveOcean/forcing/ocnN
 
-This is a normal case (no gaps)
 run make_forcing_main.py -g sal0 -t f1 -r backfill -d 2013.01.31
 
 """
@@ -79,7 +78,11 @@ try:
     os.remove(clm_fn)
 except OSError:
     pass # assume error was because the file did not exist
-ds1 = nc.Dataset(clm_fn, 'w', format='NETCDF3_CLASSIC')
+#ds1 = nc.Dataset(clm_fn, 'w', format='NETCDF3_CLASSIC') # fails
+#ds1 = nc.Dataset(clm_fn, 'w', format='NETCDF4_CLASSIC') # works
+# the version below works with large files, and it matches the format
+# of the history files we are using, so I assume it will work with ROMS.
+ds1 = nc.Dataset(clm_fn, 'w', format='NETCDF3_64BIT_OFFSET')
 
 # create dimensions
 ds1.createDimension('ocean_time', len(h_list)) # could use None                  
@@ -167,7 +170,7 @@ for h in h_list:
                     fi = (1-yf)*((1-xf)*u00 + xf*u01) + yf*((1-xf)*u10 + xf*u11)
                     ff = np.reshape(fi, x.shape)
                     fm = np.ma.masked_where(mask==False, ff)
-                    ds1[name][tt,iz,:,:] = fm                                    
+                    ds1[name][tt,iz,:,:] = fm                                                                                       
     print('Hour %d took %0.1f seconds' % (tt, time.time() - tt0))             
     tt += 1            
     ds0.close()    
