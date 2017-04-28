@@ -73,7 +73,7 @@ grid_dir = '/fjdata1/parker/LiveOcean_data/grids/' + Ldir['gridname'] + '/'
 force_dir = loo_dir + gtag + '/' + f_string + '/'
 roms_dir = '/pmr1/parker/LiveOcean_roms/'
 
-roms_name = 'ROMS_820N'
+roms_name = 'ROMS_820'
 
 # the .in file
 dot_in_name = 'liveocean.in' # name of the .in file
