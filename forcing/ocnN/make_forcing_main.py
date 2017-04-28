@@ -50,7 +50,7 @@ reload(Ofun)
 
 start_time = datetime.now()
 in_dir = Ldir['roms'] + 'output/cas1_f1_r820/f' + Ldir['date_string']
-nc_dir = Ldir['LOogf']
+nc_dir = Ldir['LOogf_f']
 
 # get grid and S info
 G = zrfun.get_basic_info(Ldir['grid'] + 'grid.nc', only_G=True)
@@ -61,7 +61,7 @@ h_list_full = os.listdir(in_dir)
 h_list = [item for item in h_list_full if 'ocean_his' in item]
 
 # debugging
-testing = False
+testing = True
 if testing:
     h_list = h_list[:2]
 

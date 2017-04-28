@@ -64,15 +64,15 @@ GridsInLayer =  1
 !                           h               h
 !
 !                   1       2       3       4
-   LBC(isFsur) ==   Cha     Cha     Clo     Clo         ! free-surface
-   LBC(isUbar) ==   Fla     Fla     Clo     Clo         ! 2D U-momentum
-   LBC(isVbar) ==   Fla     Fla     Clo     Clo         ! 2D V-momentum
-   LBC(isUvel) ==   RadNud     RadNud     Clo     Clo         ! 3D U-momentum
-   LBC(isVvel) ==   RadNud     RadNud     Clo     Clo         ! 3D V-momentum
-   LBC(isMtke) ==   RadNud     RadNud     Clo     Clo         ! mixing TKE
+   LBC(isFsur) ==   Cha     Clo     Clo     Cha         ! free-surface
+   LBC(isUbar) ==   Fla     Clo     Clo     Fla         ! 2D U-momentum
+   LBC(isVbar) ==   Fla     Clo     Clo     Fla         ! 2D V-momentum
+   LBC(isUvel) ==   RadNud     Clo     Clo     RadNud         ! 3D U-momentum
+   LBC(isVvel) ==   RadNud     Clo     Clo     RadNud         ! 3D V-momentum
+   LBC(isMtke) ==   RadNud     Clo     Clo     RadNud         ! mixing TKE
 
-   LBC(isTvar) ==   RadNud     RadNud     Clo     Clo \       ! temperature
-                    RadNud     RadNud     Clo     Clo \       ! salinity
+   LBC(isTvar) ==   RadNud     Clo     Clo     RadNud \       ! temperature
+                    RadNud     Clo     Clo     RadNud \       ! salinity
 
 ! Set lateral open boundary edge volume conservation switch for
 ! nonlinear model and adjoint-based algorithms. Usually activated
