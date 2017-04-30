@@ -61,7 +61,7 @@ h_list_full = os.listdir(in_dir)
 h_list = [item for item in h_list_full if 'ocean_his' in item]
 
 # debugging
-testing = False
+testing = True
 if testing:
     h_list = h_list[:2]
 
