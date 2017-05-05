@@ -919,7 +919,7 @@ def P_tracks(in_dict):
     # hours in the folder
 
     # START
-    fig = plt.figure(figsize=(12, 12))
+    fig = plt.figure(figsize=(6, 9))
     ds = nc.Dataset(in_dict['fn'])
     vlims = in_dict['vlims'].copy()
     out_dict['vlims'] = vlims
@@ -962,7 +962,7 @@ def P_tracks(in_dict):
         x1 = G['lon_rho'][0, -2]
         y0 = G['lat_rho'][1, 0]
         y1 = G['lat_rho'][-2, 0]
-        nyp = 50
+        nyp = 30
         mlr = np.pi*(np.mean([y0, y1]))/180
         xyRatio = np.cos(mlr) * (x1 - x0) / (y1 - y0)
         lonvec = np.linspace(x0, x1, (nyp * xyRatio).astype(int))
@@ -1037,15 +1037,36 @@ def P_tracks(in_dict):
     pfun.add_coast(ax)
     ax.axis(pfun.get_aa(ds))
     pfun.dar(ax)
-    ax.set_xlabel('Longitude')
-    ax.set_ylabel('Latitude')
-    ax.set_title(tstr)
-    pfun.add_info(ax, in_dict['fn'])
+    fs1 = 16
+    ax.set_xlabel('Longitude', fontsize=fs1)
+    ax.set_ylabel('Latitude', fontsize=fs1)
+    ax.set_title(tstr, fontsize=fs1)
+    pfun.add_info(ax, in_dict['fn'], fs=fs1-2)
 
     # add the tracks
+    c_start = 'w'; s_start = 4
+    c_end = 'r'; s_end = 6
     ax.plot(P['lon'], P['lat'], '-k', linewidth=2)
-    ax.plot(P['lon'][-1,:],P['lat'][-1,:],'or',
-            markersize=3, alpha = 1, markeredgecolor='k')
+    ax.plot(P['lon'][0,:],P['lat'][0,:],'o'+c_start,
+            markersize=s_start, alpha = 1, markeredgecolor='k')
+    ax.plot(P['lon'][-1,:],P['lat'][-1,:],'o'+c_end,
+            markersize=s_end, alpha = 1, markeredgecolor='k')
+    
+    # add info about the tracks    
+    x0 = .7; x1 = .9
+    y0 = .15; y1 = .3
+    ax.plot([x0, x1], [y0, y1], '-k', linewidth=2, transform=ax.transAxes)
+    ax.plot(x0, y0,'o'+c_start,
+            markersize=s_start, alpha = 1, markeredgecolor='k', transform=ax.transAxes)
+    ax.plot(x1, y1,'o'+c_end,
+            markersize=s_end, alpha = 1, markeredgecolor='k', transform=ax.transAxes)
+    # and some labels
+    ax.text(x0+.02, y0, 'start', horizontalalignment='left',
+            verticalalignment='center', fontstyle='italic', transform=ax.transAxes)
+    ax.text(x1-.02, y1, 'end', horizontalalignment='right',
+            verticalalignment='center', fontstyle='italic', transform=ax.transAxes)
+   
+    fig.tight_layout()
 
     # FINISH
     ds.close()

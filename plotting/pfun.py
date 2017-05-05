@@ -82,14 +82,16 @@ def add_bathy_contours(ax, ds, depth_levs = [], txt=False):
     h = ds['h'][:]
     lon = ds['lon_rho'][:]
     lat = ds['lat_rho'][:]
+    c1 = 'k'
+    c2 = 'k'
     if len(depth_levs) == 0:
-        ax.contour(lon, lat, h, [200], colors='m')
-        ax.contour(lon, lat, h, [2000], colors='g')
+        ax.contour(lon, lat, h, [200], colors=c1, linewidths=0.5)
+        ax.contour(lon, lat, h, [2000], colors=c2, linewidths=0.5)
         if txt==True:
-            ax.text(.95, .95, '200 m', color='m',
+            ax.text(.95, .95, '200 m', color=c1,
                     horizontalalignment='right',
                     transform=ax.transAxes)
-            ax.text(.95, .92, '2000 m', color='g',
+            ax.text(.95, .92, '2000 m', color=c2,
                     horizontalalignment='right',transform=ax.transAxes)
     else:
         ax.contour(lon, lat, h, depth_levs, colors='g')
@@ -178,16 +180,16 @@ def add_windstress_flower(ax, ds, t_scl=0.2, t_leglen=0.1):
     ax.text(.85, .15, str(t_leglen) + ' Pa',
         horizontalalignment='center', alpha=t_alpha, transform=ax.transAxes)
 
-def add_info(ax, fn):
+def add_info(ax, fn, fs=12):
     # put info on plot
     T = zrfun.get_basic_info(fn, only_T=True)
     ax.text(.95, .07, T['tm'].strftime('%Y-%m-%d'),
-        horizontalalignment='right', transform=ax.transAxes)
+        horizontalalignment='right', transform=ax.transAxes, fontsize=fs)
     ax.text(.95, .04, T['tm'].strftime('%H:%M') + ' UTC',
-        horizontalalignment='right', transform=ax.transAxes)
+        horizontalalignment='right', transform=ax.transAxes, fontsize=fs)
     ax.text(.06, .04, fn.split('/')[-3],
         verticalalignment='bottom', transform=ax.transAxes,
-        rotation='vertical')
+        rotation='vertical', fontsize=fs)
 
 def get_aa(ds):
     x = ds['lon_psi'][0,:]

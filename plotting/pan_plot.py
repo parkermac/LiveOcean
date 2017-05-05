@@ -38,52 +38,66 @@ parser.add_argument('-g', '--gridname', nargs='?', type=str,
 parser.add_argument('-t', '--tag', nargs='?', type=str,
                     default='base')
 parser.add_argument('-x', '--ex_name', nargs='?', type=str,
-                    default='lobio3')
+                    default='lobio1')
 parser.add_argument('-d', '--date_string', nargs='?', type=str,
-                    default='2013.04.28')
+                    default='2017.05.04')
 parser.add_argument('-hs', '--hour_string', nargs='?', type=str,
-                    default='01')
+                    default='02')
 parser.add_argument('-nd', '--num_days', nargs='?', type=int,
                     default=0) # number of additional days
+                    
+parser.add_argument('-lt', '--list_type', nargs='?', type=str,
+                    default='test')
+parser.add_argument('-pt', '--plot_type', nargs='?', type=str,
+                    default='')
+parser.add_argument('-fno', '--fn_out', nargs='?', type=str,
+                    default='')
+
 args = parser.parse_args()
 
 Ldir = Lfun.Lstart(args.gridname, args.tag)
 Ldir['gtagex'] = Ldir['gtag'] + '_' + args.ex_name
 
 # choose the type of list to make
-print(30*'*' + ' pan_plot ' + 30*'*')
-print('\n%s\n' % '** Choose List type (return for test) **')
-lt_list = ['test', 'low_pass', 'hindcast', 'forecast', 'old_style', 'atlantis', 'salish', 'salish_seq']
-Nlt = len(lt_list)
-lt_dict = dict(zip(range(Nlt), lt_list))
-for nlt in range(Nlt):
-    print(str(nlt) + ': ' + lt_list[nlt])
-
-my_nlt = input('-- Input number -- ')
-if len(my_nlt)==0:
-    list_type = 'test'
+if len(args.list_type) == 0:
+    print(30*'*' + ' pan_plot ' + 30*'*')
+    print('\n%s\n' % '** Choose List type (return for test) **')
+    lt_list = ['test', 'low_pass', 'hindcast', 'forecast', 'old_style', 'atlantis', 'salish', 'salish_seq']
+    Nlt = len(lt_list)
+    lt_dict = dict(zip(range(Nlt), lt_list))
+    for nlt in range(Nlt):
+        print(str(nlt) + ': ' + lt_list[nlt])
+    my_nlt = input('-- Input number -- ')
+    if len(my_nlt)==0:
+        list_type = 'test'
+    else:
+        list_type = lt_dict[int(my_nlt)]
 else:
-    list_type = lt_dict[int(my_nlt)]
+    list_type = args.list_type
 
 dt0 = datetime.strptime(args.date_string, '%Y.%m.%d')
 dt1 = dt0 + timedelta(args.num_days)
 
 #%% choose the type of plot to make
-print('\n%s\n' % '** Choose Plot type (return for P_basic) **')
-pt_list_raw = dir(roms_plots)
-pt_list = []
-for pt in pt_list_raw:
-    if pt[:2] == 'P_':
-        pt_list.append(pt)
-Npt = len(pt_list)
-pt_dict = dict(zip(range(Npt), pt_list))
-for npt in range(Npt):
-    print(str(npt) + ': ' + pt_list[npt])
-my_npt = input('-- Input number -- ')
-if len(my_npt)==0:
-    plot_type = 'P_basic'
+if len(args.plot_type) == 0:
+    print('\n%s\n' % '** Choose Plot type (return for P_basic) **')
+    pt_list_raw = dir(roms_plots)
+    pt_list = []
+    for pt in pt_list_raw:
+        if pt[:2] == 'P_':
+            pt_list.append(pt)
+    Npt = len(pt_list)
+    pt_dict = dict(zip(range(Npt), pt_list))
+    for npt in range(Npt):
+        print(str(npt) + ': ' + pt_list[npt])
+    my_npt = input('-- Input number -- ')
+    if len(my_npt)==0:
+        plot_type = 'P_basic'
+    else:
+        plot_type = pt_dict[int(my_npt)]
 else:
-    plot_type = pt_dict[int(my_npt)]
+    plot_type = args.plot_type
+    
 whichplot = getattr(roms_plots, plot_type)
 
 def make_fn_list(dt0, dt1, Ldir, hourmax=24):
@@ -155,28 +169,36 @@ elif list_type=='salish_seq':
 in_dict = roms_plots.get_in_dict(plot_type)
 vlims = in_dict['vlims']
 
-if len(fn_list) == 1:
-    # plot to screen
+if len(args.fn_out) == 0:
+    if len(fn_list) == 1:
+        # plot to screen
+        fn = fn_list[0]
+        in_dict['fn'] = fn
+        in_dict['fn_out'] = ''
+        out_dict = whichplot(in_dict)
+    elif len(fn_list) > 1:
+        #prepare a directory for results
+        outdir0 = Ldir['LOo'] + 'plots/'
+        Lfun.make_dir(outdir0, clean=False)
+        outdir = outdir0 + list_type + '_' + plot_type + '_' + Ldir['gtagex'] + '/'
+        Lfun.make_dir(outdir, clean=True)
+        # plot to a folder of files
+        jj = 0
+        for fn in fn_list:
+            nouts = ('0000' + str(jj))[-4:]
+            outname = 'plot_' + nouts + '.png'
+            outfile = outdir + outname
+            print('Plotting ' + fn)
+            in_dict['fn'] = fn
+            in_dict['fn_out'] = outfile
+            in_dict['vlims'] = vlims
+            out_dict = whichplot(in_dict)
+            vlims = out_dict['vlims']
+            jj += 1
+else:
+    # plot to file
     fn = fn_list[0]
     in_dict['fn'] = fn
-    in_dict['fn_out'] = ''
+    in_dict['fn_out'] = args.fn_out
     out_dict = whichplot(in_dict)
-elif len(fn_list) > 1:
-    #prepare a directory for results
-    outdir0 = Ldir['LOo'] + 'plots/'
-    Lfun.make_dir(outdir0, clean=False)
-    outdir = outdir0 + list_type + '_' + plot_type + '_' + Ldir['gtagex'] + '/'
-    Lfun.make_dir(outdir, clean=True)
-    # plot to a folder of files
-    jj = 0
-    for fn in fn_list:
-        nouts = ('0000' + str(jj))[-4:]
-        outname = 'plot_' + nouts + '.png'
-        outfile = outdir + outname
-        print('Plotting ' + fn)
-        in_dict['fn'] = fn
-        in_dict['fn_out'] = outfile
-        in_dict['vlims'] = vlims
-        out_dict = whichplot(in_dict)
-        vlims = out_dict['vlims']
-        jj += 1
+ 

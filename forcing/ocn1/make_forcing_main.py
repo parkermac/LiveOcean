@@ -25,8 +25,7 @@ This will add the bio variables:
 run make_forcing_main.py -g cas1 -t base -x lobio3 -r backfill -d 2013.01.01
 
 Or try a forecast
-This has a huge gap, but still works:
-run make_forcing_main.py -g cas1 -t base -r forecast
+run make_forcing_main.py -g cascadia1 -t base -r forecast
 
 """
 
@@ -56,12 +55,14 @@ start_time = datetime.now()
 
 vnl_full = ['ssh','s3d','t3d','u3d','v3d']
 exnum = '91.2'
+testing = False
 
 if Ldir['run_type'] == 'forecast':    
     h_out_dir = out_dir = Ldir['LOogf_fd']      
     print('** START getting catalog')
     # create a list of url's of the preprocessed HYCOM files for this forecast
     fn_list = Ofun.get_hycom_file_list(exnum)
+    print('** END getting catalog')
     # get a selection of the raw list (e.g. one per day)
     varf_dict, dt_list = Ofun.get_varf_dict(fn_list, Ldir)
     var_list = list(varf_dict.keys())    
@@ -69,7 +70,9 @@ if Ldir['run_type'] == 'forecast':
     #get the data and pack it in pickle files
     for vns in var_list:
         this_list = varf_dict[vns]
-        for fn in this_list:# [:2]: # debugging
+        if testing:
+            this_list = [this_list[0]]
+        for fn in this_list:
             a = Ofun.get_extraction(fn, vns)
             dts = datetime.strftime(a['dt'], '%Y.%m.%d')
             out_fn = h_out_dir + 'h' + dts + '.p'

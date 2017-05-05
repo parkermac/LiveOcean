@@ -23,22 +23,41 @@ import zrfun
 def get_hycom_file_list(exnum):
     """
     This parses the specified catalog.xml and returns a list containing
-    the full paths to all the HYVOM NetCDF files in the rcurrent forecast.
+    the full paths to all the HYCOM NetCDF files in the current forecast.
     """   
-    # look at Beautiful Soup?  Easier?
     import xml.etree.ElementTree as ET
-    import urllib.request as U    
-    # initiate the file list
-    fn_list = []   
-    # get the xml of the catalog
-    # xml_name = ('http://beta.hycom.org/thredds/catalog/GLBu0.08/expt_' +
-    #             exnum + '/forecasts/catalog.xml')
+    from urllib.request import Request, urlopen
+    from urllib.error import URLError
+    from socket import timeout
+    import time
+             
     xml_name = ('http://tds.hycom.org/thredds/catalog/GLBu0.08/expt_' + 
-                exnum + '/forecasts/catalog.xml')
-    try:
-        xfile = U.urlopen(xml_name, timeout=30)
-    except:
-        print('problem getting xfile')
+                exnum + '/forecasts/catalog.xml')  
+    req = Request(xml_name)
+    counter = 1
+    got_file = False
+    while (counter <= 10) and (got_file == False):
+        print('Attempting to get catalog XML, counter = ' + str(counter))    
+        tt0 = time.time()
+        try:
+            xfile = urlopen(req, timeout=30)
+        except URLError as e:
+            if hasattr(e, 'reason'):
+                print(' *We failed to reach a server.')
+                print(' -Reason: ', e.reason)
+            elif hasattr(e, 'code'):
+                print(' *The server couldn\'t fulfill the request.')
+                print(' -Error code: ', e.code)
+        except timeout:
+            print(' *Socket timed out')
+        else:
+            got_file = True
+            print(' Worked fine')
+        print(' -took %0.1f seconds' % (time.time() - tt0)) 
+        counter += 1
+        
+    # initiate the file list
+    fn_list = []           
     tree = ET.parse(xfile)
     xfile.close()
     root = tree.getroot()
