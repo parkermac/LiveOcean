@@ -40,14 +40,14 @@ parser.add_argument('-t', '--tag', nargs='?', type=str,
 parser.add_argument('-x', '--ex_name', nargs='?', type=str,
                     default='lobio1')
 parser.add_argument('-d', '--date_string', nargs='?', type=str,
-                    default='2017.05.04')
+                    default='2013.09.19')
 parser.add_argument('-hs', '--hour_string', nargs='?', type=str,
                     default='02')
 parser.add_argument('-nd', '--num_days', nargs='?', type=int,
                     default=0) # number of additional days
                     
 parser.add_argument('-lt', '--list_type', nargs='?', type=str,
-                    default='test')
+                    default='')
 parser.add_argument('-pt', '--plot_type', nargs='?', type=str,
                     default='')
 parser.add_argument('-fno', '--fn_out', nargs='?', type=str,

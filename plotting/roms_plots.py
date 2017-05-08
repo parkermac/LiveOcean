@@ -26,7 +26,7 @@ def get_in_dict(plot_type):
     vlims = dict()
     # If you use () then the limits will be set by the first plot
     # and then held constant at those levels thereafter.    
-    vlims['salt'] = (28, 34)
+    vlims['salt'] = (15, 35)#(28, 34)
     vlims['temp'] = (7, 18)
     vlims['NO3'] = (0, 40)
     vlims['phytoplankton'] = (0,30)#(0, 40)
@@ -51,8 +51,8 @@ def get_in_dict(plot_type):
 # module defaults (available inside the methods)
 
 # colormaps
-cmap_dict = {'salt': 'jet', #cmo.cm.haline,
-             'temp': 'jet',#'bwr', #cmo.cm.thermal,
+cmap_dict = {'salt': 'gist_ncar', #cmo.cm.haline,
+             'temp': 'nipy_spectral',#'bwr', #cmo.cm.thermal,
              'NO3': cmo.cm.dense,
              'phytoplankton': 'jet',#cmo.cm.algae,
              'zooplankton': cmo.cm.matter,
@@ -403,7 +403,8 @@ def P_layer(in_dict):
     vlims = in_dict['vlims'].copy()
     
     # set variables to plt
-    vn_list = ['NO3', 'Ldetritus']
+    vn_list = ['TIC', 'alkalinity']
+    #vn_list = ['salt', 'temp']
     for vn in vn_list: # use auto scaling
         vlims[vn] = ()
     out_dict['vlims'] = vlims
