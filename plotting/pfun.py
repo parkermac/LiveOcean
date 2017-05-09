@@ -120,17 +120,23 @@ def add_map_field(ax, ds, varname, slev=-1, vlims=(), cmap='rainbow',
     cs = ax.pcolormesh(x, y, v*fac, vmin=vlims[0], vmax=vlims[1], cmap=cmap, alpha=alpha)
     return cs, vlims
 
-def add_velocity_vectors(ax, ds, fn, v_scl=3, v_leglen=0.5, nngrid=80):
+def add_velocity_vectors(ax, ds, fn, v_scl=3, v_leglen=0.5, nngrid=80, zlev=0):
     # v_scl: scale velocity vector (smaller to get longer arrows)
     # v_leglen: m/s for velocity vector legend
     # GET DATA
     G = zrfun.get_basic_info(fn, only_G=True)
-    u = ds['u'][0, -1, :, :].squeeze()
-    v = ds['v'][0, -1, :, :].squeeze()
+    if zlev == 0:
+        u = ds['u'][0, -1, :, :].squeeze()
+        v = ds['v'][0, -1, :, :].squeeze()
+    else:
+        zfull_u = get_zfull(ds, fn, 'u')
+        zfull_v = get_zfull(ds, fn, 'v')
+        u = get_laym(ds, zfull_u, ds['mask_u'][:], 'u', zlev).squeeze()
+        v = get_laym(ds, zfull_v, ds['mask_v'][:], 'v', zlev).squeeze()
     # ADD VELOCITY VECTORS
     # set masked values to 0
-    ud = u.data; ud[G['mask_u']==False] = 0
-    vd = v.data; vd[G['mask_v']==False] = 0
+    ud = u.data; ud[u.mask]=0
+    vd = v.data; vd[v.mask]=0
     # create interpolant
     import scipy.interpolate as intp
     ui = intp.interp2d(G['lon_u'][0, :], G['lat_u'][:, 0], ud)

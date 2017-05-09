@@ -40,21 +40,6 @@ else:
 moor_file = m_dict[my_npt]
 fn = indir + moor_file
 
-##%% calculate pH and Aragonite saturation state
-
-# now done beforehand with add_C_vars.py
-
-#import subprocess
-#func = ("run_co2sys(\'" +
-#    indir + "\',\'" +
-#    moor_file + "\',\'" +
-#    'input3' + "\')")
-#cmd = Ldir['which_matlab']
-#run_cmd = [cmd, "-nojvm", "-nodisplay", "-r", func, "&"]
-#proc = subprocess.Popen(run_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-#out, err = proc.communicate() # "out" is the screen output of the matlab code
-##print(out.decode())
-
 #%% load and organize data
 
 v0_list = ['h', 'lon_rho', 'lat_rho', 'lon_u', 'lat_u', 'lon_v', 'lat_v']
@@ -80,15 +65,28 @@ for vv in ds.variables:
 V = dict()
 
 #list_to_plot = v3_list_rho + v3_list_w + v2_list
-list_to_plot = v3_list_rho
-try:
-    list_to_plot.remove('CaCO3')
-except ValueError:
-    pass
-#list_to_plot = ['alkalinity',]
-
-#for vv in ds.variables:
-#    V[vv] = ds.variables[vv][:]
+if False:
+    list_to_plot = v3_list_rho
+    try:
+        list_to_plot.remove('CaCO3')
+    except ValueError:
+        pass
+else: # do it by hand
+    list_to_plot = ['u',
+     'v',
+     'temp',
+     'salt',
+     'NO3',
+     'phytoplankton',
+     'zooplankton',
+     'detritus',
+     'Ldetritus',
+     'oxygen',
+     'TIC',
+     'alkalinity',
+     'PH',
+     'ARAG',
+     'z_rho']
 
 ltp = list_to_plot.copy()
 
@@ -100,8 +98,6 @@ for vv in ltp:
 ds.close()
 
 #%% plotting
-
-#plt.close()
 
 ylim_dict = {'alkalinity':(2200, 2540)}
 
@@ -122,7 +118,7 @@ dt_ticks = []
 dt_ticks_yr = []
 dt_ticklabels = []
 for yr in [2013, 2014, 2015, 2016]:
-    for mo in [1, 7]:
+    for mo in [1,4,7,10]:
         dt = datetime(yr, mo, 1).date()
         if dt > mdt[0].date() and dt < mdt[-1].date():
             dt_ticks.append(dt)
@@ -132,15 +128,18 @@ for yr in [2013, 2014, 2015, 2016]:
 
 cc = 0
 #nmid = round(V['salt'].shape[0]/2)
-nmid = 20
+N = V['salt'].shape[0]
+nbot = 0
+nmid = 3
+ntop = 6
 for vn in list_to_plot:
     ir = int(np.floor(cc/NC))
     ic = int(cc - NC*ir)
     ax = axes[ir, ic]
     if V[vn].ndim == 2:
-        ax.plot(mdt, V[vn][-1,:], '-r')
+        ax.plot(mdt, V[vn][ntop,:], '-r')
         ax.plot(mdt, V[vn][nmid,:],'-g')
-        ax.plot(mdt, V[vn][0,:], '-b')
+        ax.plot(mdt, V[vn][nbot,:], '-b')
     elif V[vn].ndim == 1:
         ax.plot(mdt, V[vn])
 
@@ -170,5 +169,7 @@ for vn in list_to_plot:
             horizontalalignment='left',
             transform=ax.transAxes)
     cc += 1
+
+plt.suptitle(fn)
 
 plt.show()

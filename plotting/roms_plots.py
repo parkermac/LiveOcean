@@ -44,7 +44,7 @@ def get_in_dict(plot_type):
     in_dict['vlims'] = vlims
         
     # OTHER
-    in_dict['z_level'] = -1500 # z level to plot
+    in_dict['z_level'] = -500 # z level to plot
         
     return in_dict
 
@@ -57,11 +57,11 @@ cmap_dict = {'salt': 'gist_ncar', #cmo.cm.haline,
              'phytoplankton': 'jet',#cmo.cm.algae,
              'zooplankton': cmo.cm.matter,
              'oxygen': 'jet',#cmo.cm.oxy,
-             'TIC': cmo.cm.matter,
+             'TIC': 'gist_ncar',#cmo.cm.matter,
              'alkalinity': cmo.cm.solar,
              'PH': 'jet',
              'ARAG': 'rainbow',
-             'Ldetritus': 'jet'}
+             'Ldetritus': 'rainbow'}
 
 # units (after multiplying by fac)
 units_dict = {'salt': '',
@@ -403,7 +403,7 @@ def P_layer(in_dict):
     vlims = in_dict['vlims'].copy()
     
     # set variables to plt
-    vn_list = ['TIC', 'alkalinity']
+    vn_list = ['Ldetritus','TIC']
     #vn_list = ['salt', 'temp']
     for vn in vn_list: # use auto scaling
         vlims[vn] = ()
@@ -454,6 +454,10 @@ def P_layer(in_dict):
     cb.update_ticks()
     pfun.add_bathy_contours(ax, ds)
     pfun.add_coast(ax)
+    # ****
+    pfun.add_velocity_vectors(ax, ds, in_dict['fn'], v_scl=.5, v_leglen=0.1,
+                              nngrid=120, zlev=in_dict['z_level'])
+    # ****
     ax.axis(pfun.get_aa(ds))
     pfun.dar(ax)
     ax.set_xlabel('Longitude')

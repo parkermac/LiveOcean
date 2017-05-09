@@ -19,10 +19,11 @@ function run_co2sys(indir, moor_file, in3)
 % takes 4 sec with nn = 1000 and pHTol = 0.001
 % for a full surface field
 
-% *** Need to rwwrite following the forcing/carbon version which is
+% *** Need to rewrite following the forcing/carbon version which is
 % cleaner. ***
 
 addpath('../shared/seawater')
+addpath('../shared'); % gives access to CO2SYS_PM.m
 
 ncid = netcdf.open([indir,moor_file], 'WRITE');
 % get the full listing of variables and their info

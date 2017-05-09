@@ -20,6 +20,7 @@ alp = os.path.abspath('../alpha')
 if alp not in sys.path:
     sys.path.append(alp)
 import Lfun
+import zfun
 #from importlib import reload
 #reload(Lfun)
 
@@ -54,6 +55,7 @@ cmd = Ldir['which_matlab']
 run_cmd = [cmd, "-nojvm", "-nodisplay", "-r", func, "&"]
 proc = subprocess.Popen(run_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 out, err = proc.communicate() # "out" is the screen output of the matlab code
-#print(out.decode())
+print(out.decode())
+print(err.decode())
 
-#zfun.ncd(fn)
+zfun.ncd(fn)
