@@ -407,6 +407,9 @@ def P_layer(in_dict):
     #vn_list = ['salt', 'temp']
     for vn in vn_list: # use auto scaling
         vlims[vn] = ()
+    # and override
+    vlims['Ldetritus'] = (0, 0.01)
+    vlims['TIC'] = (2350, 2450)
     out_dict['vlims'] = vlims
     
     # PLOT CODE
