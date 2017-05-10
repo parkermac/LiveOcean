@@ -8,7 +8,16 @@ Module of plotting functions.
 # path we assume it is on the path here too.
 import numpy as np
 import netCDF4 as nc
+
+import os
+which_home = os.environ.get("HOME") # This works even when called by cron.
+if which_home == '/Users/PM5': # mac version
+    pass
+elif which_home == '/home/parker': # fjord version
+    import matplotlib as mpl
+    mpl.use('Agg')
 import matplotlib.pyplot as plt
+
 import cmocean as cmo
 
 from importlib import reload
