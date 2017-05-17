@@ -18,6 +18,7 @@ if alp not in sys.path:
 import Lfun
 Ldir = Lfun.Lstart()
 import zrfun
+import zfun
 
 import numpy as np
 
@@ -198,10 +199,12 @@ def add_windstress_flower(ax, ds, t_scl=0.2, t_leglen=0.1):
 def add_info(ax, fn, fs=12):
     # put info on plot
     T = zrfun.get_basic_info(fn, only_T=True)
-    ax.text(.95, .07, T['tm'].strftime('%Y-%m-%d'),
-        horizontalalignment='right', transform=ax.transAxes, fontsize=fs)
-    ax.text(.95, .04, T['tm'].strftime('%H:%M') + ' UTC',
-        horizontalalignment='right', transform=ax.transAxes, fontsize=fs)
+    ax.text(.95, .075, T['tm'].strftime('%Y-%m-%d'),
+        horizontalalignment='right' , verticalalignment='bottom',
+        transform=ax.transAxes, fontsize=fs)
+    ax.text(.95, .065, T['tm'].strftime('%H:%M') + ' UTC',
+        horizontalalignment='right', verticalalignment='top',
+        transform=ax.transAxes, fontsize=fs)
     ax.text(.06, .04, fn.split('/')[-3],
         verticalalignment='bottom', transform=ax.transAxes,
         rotation='vertical', fontsize=fs)
@@ -365,6 +368,108 @@ def mask_salish(fld, lon, lat):
     RR = P.contains_points(R) # boolean    
     fld = np.ma.masked_where(RR.reshape(lon.shape), fld)
     return fld
+    
+def get_section(ds, vn, x, y, in_dict):
+    
+    # PLOT CODE
+    from warnings import filterwarnings
+    filterwarnings('ignore') # skip a warning message
+
+    # GET DATA
+    G, S, T = zrfun.get_basic_info(in_dict['fn'])
+    h = G['h']
+    zeta = ds['zeta'][:].squeeze()
+    zr = zrfun.get_z(h, zeta, S, only_rho=True)
+
+    sectvar = ds[vn][:].squeeze()
+
+    L = G['L']
+    M = G['M']
+    N = S['N']
+
+    lon = G['lon_rho']
+    lat = G['lat_rho']
+    mask = G['mask_rho']
+    maskr = mask.reshape(1, M, L).copy()
+    mask3 = np.tile(maskr, [N, 1, 1])
+    zbot = -h # don't need .copy() because of the minus operation
+
+    # make sure fields are masked
+    zeta[mask==False] = np.nan
+    zbot[mask==False] = np.nan
+    sectvar[mask3==False] = np.nan
+
+    # create dist
+    earth_rad = zfun.earth_rad(np.mean(lat[:,0])) # m
+    xrad = np.pi * x /180
+    yrad = np.pi * y / 180
+    dx = earth_rad * np.cos(yrad[1:]) * np.diff(xrad)
+    dy = earth_rad * np.diff(yrad)
+    ddist = np.sqrt(dx**2 + dy**2)
+    dist = np.zeros(len(x))
+    dist[1:] = ddist.cumsum()/1000 # km
+    # find the index of zero
+    i0, i1, fr = zfun.get_interpolant(np.zeros(1), dist)
+    idist0 = i0
+    distr = dist.reshape(1, len(dist)).copy()
+    dista = np.tile(distr, [N, 1]) # array
+    # pack fields to process in dicts
+    d2 = dict()
+    d2['zbot'] = zbot
+    d2['zeta'] = zeta
+    d2['lon'] = lon
+    d2['lat'] = lat
+    d3 = dict()
+    d3['zr'] = zr
+    d3['sectvar'] = sectvar
+    # get vectors describing the (plaid) grid
+    xx = lon[1,:]
+    yy = lat[:,1]
+    col0, col1, colf = zfun.get_interpolant(x, xx)
+    row0, row1, rowf = zfun.get_interpolant(y, yy)
+    # and prepare them to do the bilinear interpolation
+    colff = 1 - colf
+    rowff = 1 - rowf
+    # now actually do the interpolation
+    # 2-D fields
+    v2 = dict()
+    for fname in d2.keys():
+        fld = d2[fname]
+        fldi = (rowff*(colff*fld[row0, col0] + colf*fld[row0, col1])
+        + rowf*(colff*fld[row1, col0] + colf*fld[row1, col1]))
+        if type(fldi) == np.ma.core.MaskedArray:
+            fldi = fldi.data # just the data, not the mask
+        v2[fname] = fldi
+    # 3-D fields
+    v3 = dict()
+    for fname in d3.keys():
+        fld = d3[fname]
+        fldi = (rowff*(colff*fld[:, row0, col0] + colf*fld[:, row0, col1])
+        + rowf*(colff*fld[:, row1, col0] + colf*fld[:, row1, col1]))
+        if type(fldi) == np.ma.core.MaskedArray:
+            fldid = fldi.data # just the data, not the mask
+            fldid[fldi.mask == True] = np.nan
+        v3[fname] = fldid
+    v3['dist'] = dista # distance in km
+    # make "full" fields by padding top and bottom
+    nana = np.nan * np.ones((N + 2, len(dist))) # blank array
+    v3['zrf'] = nana.copy()
+    v3['zrf'][0,:] = v2['zbot']
+    v3['zrf'][1:-1,:] = v3['zr']
+    v3['zrf'][-1,:] = v2['zeta']
+    #
+    v3['sectvarf'] = nana.copy()
+    v3['sectvarf'][0,:] = v3['sectvar'][0,:]
+    v3['sectvarf'][1:-1,:] = v3['sectvar']
+    v3['sectvarf'][-1,:] = v3['sectvar'][-1,:]
+    #
+    v3['distf'] = nana.copy()
+    v3['distf'][0,:] = v3['dist'][0,:]
+    v3['distf'][1:-1,:] = v3['dist']
+    v3['distf'][-1,:] = v3['dist'][-1,:]    
+    
+    
+    return v2, v3, dist, idist0
 
 
 

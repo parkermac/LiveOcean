@@ -1,22 +1,32 @@
 """
 Plot fields in one or more history files.
 
-On fjord this needs to be run with an X window.
+On fjord this can be run from the command line, no X window needed,
+but it is only for plotting to files, not the screen:
 
-Examples of running from the command line:
+python pan_plot.py -x lobio3 -d 2013.01.02 -fno test.png -lt low_pass -pt P_basic
+
+Running from the terminal on my mac, and making a movie:
+    
+python pan_plot.py -g aestus1 -t A1 -x ae1 -d 2013.02.07 -lt hindcast -pt P_sectA -mov True
+
+
+
+Running from the ipython command line:
 
 cd /Users/PM5/Documents/LiveOcean/plotting
 
-run pan_plot.py -d 2015.02.01
+run pan_plot.py
 
-run pan_plot.py -g cascadia2 -t frc2 -x lo1 -d 2013.01.09
-
-run pan_plot.py -g cascadia2 -t frc2 -x lo1 -d 2013.01.01 -hs 25
-
-run pan_plot.py -g aestus1 -t A1 -x ae1 -d 2013.01.31 -hs 25
+run pan_plot.py -g aestus1 -t A1 -x ae1 -d 2013.02.07
 
 run pan_plot.py -g cas1 -t f1 -x r820 -d 2013.01.01 -hs 25
 
+run pan_plot.py -x lobio3 -d 2013.01.02 -fno test.png -lt low_pass -pt P_basic
+
+run pan_plot.py -g aestus1 -t A1 -x ae1 -d 2013.02.07 -lt backfill -pt P_sectA -mov True
+
+run pan_plot.py -g cascadia1 -t base -x lobio1 -d 2017.05.04 -lt snapshot -pt P_tracks
 """
 
 #%% setup
@@ -45,13 +55,15 @@ parser.add_argument('-hs', '--hour_string', nargs='?', type=str,
                     default='02')
 parser.add_argument('-nd', '--num_days', nargs='?', type=int,
                     default=0) # number of additional days
-                    
+# more arguments that allow you to bypass the interactive choices                    
 parser.add_argument('-lt', '--list_type', nargs='?', type=str,
                     default='')
 parser.add_argument('-pt', '--plot_type', nargs='?', type=str,
                     default='')
 parser.add_argument('-fno', '--fn_out', nargs='?', type=str,
                     default='')
+parser.add_argument('-mov', '--make_movie', nargs='?', type=bool,
+                    default=False)
 
 args = parser.parse_args()
 
@@ -61,15 +73,16 @@ Ldir['gtagex'] = Ldir['gtag'] + '_' + args.ex_name
 # choose the type of list to make
 if len(args.list_type) == 0:
     print(30*'*' + ' pan_plot ' + 30*'*')
-    print('\n%s\n' % '** Choose List type (return for test) **')
-    lt_list = ['test', 'low_pass', 'hindcast', 'forecast', 'old_style', 'atlantis', 'salish', 'salish_seq']
+    print('\n%s\n' % '** Choose List type (return for snapshot) **')
+    lt_list = ['snapshot', 'low_pass', 'backfill', 'forecast', 'old_style',
+               'atlantis', 'salish', 'salish_seq']
     Nlt = len(lt_list)
     lt_dict = dict(zip(range(Nlt), lt_list))
     for nlt in range(Nlt):
         print(str(nlt) + ': ' + lt_list[nlt])
     my_nlt = input('-- Input number -- ')
     if len(my_nlt)==0:
-        list_type = 'test'
+        list_type = 'snapshot'
     else:
         list_type = lt_dict[int(my_nlt)]
 else:
@@ -120,7 +133,7 @@ def make_fn_list(dt0, dt1, Ldir, hourmax=24):
     return fn_list
 
 #%% choose which file(s) to plot
-if list_type == 'test':
+if list_type == 'snapshot':
     # return a single default file name in the list
     fn_list = [Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/' +
                'f' + args.date_string +
@@ -171,13 +184,13 @@ vlims = in_dict['vlims']
 
 if len(args.fn_out) == 0:
     if len(fn_list) == 1:
-        # plot to screen
+        # plot a single image to screen
         fn = fn_list[0]
         in_dict['fn'] = fn
         in_dict['fn_out'] = ''
         out_dict = whichplot(in_dict)
     elif len(fn_list) > 1:
-        #prepare a directory for results
+        # prepare a directory for results
         outdir0 = Ldir['LOo'] + 'plots/'
         Lfun.make_dir(outdir0, clean=False)
         outdir = outdir0 + list_type + '_' + plot_type + '_' + Ldir['gtagex'] + '/'
@@ -195,8 +208,13 @@ if len(args.fn_out) == 0:
             out_dict = whichplot(in_dict)
             vlims = out_dict['vlims']
             jj += 1
+        # and make a movie
+        if args.make_movie:
+            ff_str = ("ffmpeg -r 8 -pattern_type glob -i " + 
+            " '"+outdir+"*.png' -c:v libx264 -pix_fmt yuv420p -crf 25 "+outdir+"movie.mp4")
+            os.system(ff_str)        
 else:
-    # plot to file
+    # plot a single image to a file
     fn = fn_list[0]
     in_dict['fn'] = fn
     in_dict['fn_out'] = args.fn_out

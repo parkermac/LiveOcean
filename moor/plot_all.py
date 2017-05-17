@@ -63,6 +63,7 @@ for vv in ds.variables:
 # load everything into a dict
 # (is this a good idea?)
 V = dict()
+Vu = dict() # units
 
 #list_to_plot = v3_list_rho + v3_list_w + v2_list
 if False:
@@ -93,7 +94,15 @@ ltp = list_to_plot.copy()
 ltp.append('ocean_time')
 
 for vv in ltp:
-    V[vv] = ds.variables[vv][:]
+    V[vv] = ds[vv][:]
+    Vu[vv] = ds[vv].units
+    
+    
+# an experiment about how much TIC change to expect from Ldetritus decomposition
+ad_hoc = 500
+V['dTIC'] = np.cumsum(V['Ldetritus'], axis=1)*.1*6.625 * ad_hoc
+Vu['dTIC'] = Vu['TIC']
+list_to_plot.append('dTIC')
 
 ds.close()
 
@@ -106,7 +115,7 @@ NP = len(list_to_plot)
 NR = np.maximum(1, np.ceil(np.sqrt(NP)).astype(int))
 NC = np.ceil(np.sqrt(NP)).astype(int)
 
-fig, axes = plt.subplots(nrows=NR, ncols=NC, figsize=(17,9), squeeze=False)
+fig, axes = plt.subplots(nrows=NR, ncols=NC, figsize=(13,8), squeeze=False)
 
 days = (V['ocean_time'] - V['ocean_time'][0])/86400.
 
@@ -131,7 +140,7 @@ cc = 0
 N = V['salt'].shape[0]
 nbot = 0
 nmid = 3
-ntop = 6
+ntop = 7
 for vn in list_to_plot:
     ir = int(np.floor(cc/NC))
     ic = int(cc - NC*ir)
@@ -168,8 +177,12 @@ for vn in list_to_plot:
     ax.text(.05, .85, vn,
             horizontalalignment='left',
             transform=ax.transAxes)
+    ax.text(.05, .75, Vu[vn],
+            horizontalalignment='left',
+            transform=ax.transAxes)
     cc += 1
 
+#fig.tight_layout()
 plt.suptitle(fn)
 
 plt.show()

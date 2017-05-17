@@ -7,6 +7,9 @@ Designed for ROMS output with plaid lat, lon grids.
 Recoded the integration scheme around 7/15/2016 to use new version of
 get_interpolant.py, and to better handle many particles.
 
+Recoded this driver to split the run up into 1-day chunks, because of
+memory issues inlarge runs.
+
 PERFORMANCE: With the new fast version is took about 12 seconds
 for a day of integration for 6-600 particles, and only increased to
 19 seconds for 6000 particles.  The old slow version was faster
@@ -24,7 +27,6 @@ This program is mainly a DRIVER where you supply:
     - duration in days to track
     - forward or backward in time
     - some other flags
-
 """
 
 #%% setup
@@ -175,45 +177,70 @@ for nic in range(number_of_start_days):
     dt = dt + timedelta(days_between_starts)
 
 # make sure the output directory exists
-outdir = Ldir['LOo'] + 'tracks/'
-Lfun.make_dir(outdir)
+outdir0 = Ldir['LOo'] + 'tracks/'
+Lfun.make_dir(outdir0)
+
 
 #%% step through the experiments (one for each start day)
-for idt in idt_list:
+for idt0 in idt_list:
 
-    fn_list = trackfun.get_fn_list(idt, Ldir)
-
-    T0 = zrfun.get_basic_info(fn_list[0], only_T=True)
-    Tend = zrfun.get_basic_info(fn_list[-1], only_T=True)
-    Ldir['date_string0'] = datetime.strftime(T0['tm'],'%Y.%m.%d')
-    Ldir['date_string1'] = datetime.strftime(Tend['tm'],'%Y.%m.%d')
-
-    print(50*'*')
-    print('Calculating tracks from ' + Ldir['date_string0'] +
-          ' to ' + Ldir['date_string1'])
-
-    #%% DO THE TRACKING
-    tt0 = time.time()
-
-    P, G, S = trackfun.get_tracks(fn_list, plon0, plat0, pcs0,
-                                  dir_tag, method, surface, ndiv, windage)
-
-    print(' - Took %0.1f sec for %d days'
-          % (time.time() - tt0, Ldir['days_to_track']))
-
-    #%% save the results
-    outname = (
-        Ldir['gtagex'] + '_' +
-        Ldir['ic_name'] + '_' +
-        Ldir['method'] + '_' +
-        'ndiv' + str(Ldir['ndiv']) + '_' +
-        Ldir['dir_tag'] + '_' +
-        'surface' + str(Ldir['surface']) + '_' +
-        'windage' + str(Ldir['windage']) + '_' +
-        Ldir['date_string0'] + '_' +
-        str(Ldir['days_to_track']) + 'days' +
-        '.p')
-
-    pickle.dump( (P, G, S, Ldir) , open( outdir + outname, 'wb' ) )
-    print('Results saved to:\n' + outname)
-    print(50*'*')
+    # split the calculation up into one-day chunks    
+    for nd in range(Ldir['days_to_track']):
+        
+        idt = idt0 + timedelta(days=nd)
+        
+        # make sure out file list starts at the start of the day
+        if nd > 0: 
+            fn_last = fn_list[-1]
+        fn_list = trackfun.get_fn_list_1day(idt, Ldir)        
+        if nd > 0:
+            fn_list = [fn_last] + fn_list
+            
+        T0 = zrfun.get_basic_info(fn_list[0], only_T=True)
+        Tend = zrfun.get_basic_info(fn_list[-1], only_T=True)
+        Ldir['date_string0'] = datetime.strftime(T0['tm'],'%Y.%m.%d')
+        Ldir['date_string1'] = datetime.strftime(Tend['tm'],'%Y.%m.%d')
+    
+        print(50*'*')
+        print('Calculating tracks from ' + Ldir['date_string0'] +
+              ' to ' + Ldir['date_string1'])
+           
+        #%% DO THE TRACKING
+        if nd == 0: # first day
+            # make the output directory            
+            outdir = (outdir0 +
+                Ldir['gtagex'] + '_' +
+                Ldir['ic_name'] + '_' +
+                Ldir['method'] + '_' +
+                'ndiv' + str(Ldir['ndiv']) + '_' +
+                Ldir['dir_tag'] + '_' +
+                'surface' + str(Ldir['surface']) + '_' +
+                'windage' + str(Ldir['windage']) + '_' +
+                Ldir['date_string0'] + '_' +
+                str(Ldir['days_to_track']) + 'days/')
+            Lfun.make_dir(outdir, clean=True)
+            # do the tracking
+            tt0 = time.time()    
+            P, G, S = trackfun.get_tracks(fn_list, plon0, plat0, pcs0,
+                                          dir_tag, method, surface, ndiv, windage)    
+            print(' - Took %0.1f sec for 1 day' % (time.time() - tt0))        
+            # save the results
+            outname = 'day_' + ('00000' + str(nd))[-5:] + '.p'
+            pickle.dump( (P, G, S, Ldir) , open( outdir + outname, 'wb' ) )
+            print('Results saved to:\n' + outname)
+            print(50*'*')
+        else: # subsequent days
+            tt0 = time.time()
+            # get initial condition            
+            plon0 = P['lon'][-1,:]
+            plat0 = P['lat'][-1,:]
+            pcs0 = P['cs'][-1,:]
+            # do the tracking
+            P, G, S = trackfun.get_tracks(fn_list, plon0, plat0, pcs0,
+                                          dir_tag, method, surface, ndiv, windage)    
+            print(' - Took %0.1f sec for 1 day' % (time.time() - tt0))
+            # save the results
+            outname = 'day_' + ('00000' + str(nd))[-5:] + '.p'
+            pickle.dump( (P, Ldir) , open( outdir + outname, 'wb' ) )
+            print('Results saved to:\n' + outname)
+            print(50*'*')

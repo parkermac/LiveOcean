@@ -411,7 +411,15 @@ def get_fn_list(idt, Ldir):
             for hh in range(2,26):
                 hhhh = ('0000' + str(hh))[-4:]
                 fn_list.append(indir + 'ocean_his_' + hhhh + '.nc')
+    return fn_list
 
-
-
+def get_fn_list_1day(idt, Ldir):
+    # LiveOcean version, for 1 day only
+    fn_list = []
+    dd = idt.strftime('%Y.%m.%d')
+    indir = (Ldir['roms'] + 'output/' + Ldir['gtagex'] +
+            '/f' + dd + '/')
+    for hh in range(2,26):
+        hhhh = ('0000' + str(hh))[-4:]
+        fn_list.append(indir + 'ocean_his_' + hhhh + '.nc')
     return fn_list

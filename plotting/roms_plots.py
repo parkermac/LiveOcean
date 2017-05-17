@@ -60,14 +60,14 @@ def get_in_dict(plot_type):
 # module defaults (available inside the methods)
 
 # colormaps
-cmap_dict = {'salt': 'gist_ncar', #cmo.cm.haline,
-             'temp': 'nipy_spectral',#'bwr', #cmo.cm.thermal,
+cmap_dict = {'salt': 'rainbow', #cmo.cm.haline, 'gist_ncar'
+             'temp': 'jet',#cmo.cm.thermal, #'bwr', cmo.cm.thermal, 'nipy_spectral'
              'NO3': cmo.cm.dense,
              'phytoplankton': 'jet',#cmo.cm.algae,
              'zooplankton': cmo.cm.matter,
              'oxygen': 'jet',#cmo.cm.oxy,
-             'TIC': 'gist_ncar',#cmo.cm.matter,
-             'alkalinity': cmo.cm.solar,
+             'TIC': 'rainbow', #cmo.cm.matter,
+             'alkalinity': 'rainbow', #cmo.cm.solar,
              'PH': 'jet',
              'ARAG': 'rainbow',
              'Ldetritus': 'rainbow'}
@@ -110,7 +110,7 @@ tstr_dict = {'salt': 'Salinity',
              'ARAG': '$\Omega_{arag}$',
              'Ldetritus': 'Ldetritus'}
 
-figsize = (12,8) # laptop
+figsize = (13,8) # laptop
 # figsize = (18,10) # big screen
 out_dict = dict()
 
@@ -283,6 +283,57 @@ def P_pH_Arag(in_dict):
         pfun.topfig()
     return out_dict
 
+def P_Carbon(in_dict):
+    # START
+    fig = plt.figure(figsize=figsize)
+    ds = nc.Dataset(in_dict['fn'])
+    vlims = in_dict['vlims'].copy()
+    out_dict['vlims'] = vlims
+
+    # PLOT CODE
+    # panel 1
+    ax = fig.add_subplot(121)
+    vn = 'TIC'
+    tstr = 'Surface ' + tstr_dict[vn]
+    cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn,
+            vlims=vlims[vn], cmap=cmap_dict[vn], fac=fac_dict[vn],
+            do_mask_salish=True)
+    fig.colorbar(cs)
+    pfun.add_bathy_contours(ax, ds, txt=True)
+    pfun.add_coast(ax)
+    ax.axis(pfun.get_aa(ds))
+    pfun.dar(ax)
+    ax.set_xlabel('Longitude')
+    ax.set_ylabel('Latitude')
+    ax.set_title(tstr + units_dict[vn])
+    pfun.add_info(ax, in_dict['fn'])
+    pfun.add_windstress_flower(ax, ds)
+    # panel 2
+    ax = fig.add_subplot(122)
+    vn = 'alkalinity'
+    tstr = 'Surface ' + tstr_dict[vn]
+    cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn,
+            vlims=vlims[vn], cmap=cmap_dict[vn], fac=fac_dict[vn],
+            do_mask_salish=True)
+    fig.colorbar(cs)
+    pfun.add_bathy_contours(ax, ds)
+    pfun.add_coast(ax)
+    ax.axis(pfun.get_aa(ds))
+    pfun.dar(ax)
+    ax.set_xlabel('Longitude')
+    ax.set_title(tstr + units_dict[vn])
+    pfun.add_velocity_vectors(ax, ds, in_dict['fn'])
+
+    # FINISH
+    ds.close()
+    if len(in_dict['fn_out']) > 0:
+        plt.savefig(in_dict['fn_out'])
+        plt.close()
+    else:
+        plt.show()
+        pfun.topfig()
+    return out_dict
+
 def P_bio4(in_dict):
     # START
     ds = nc.Dataset(in_dict['fn'])
@@ -332,65 +383,6 @@ def P_bio4(in_dict):
         if ic == 0:
             ax.set_ylabel('Latitude')
         ax.set_title(tstr_dict[vn] + units_dict[vn])
-        if cc == 0:
-            pfun.add_info(ax, in_dict['fn'])
-        cc += 1
-
-    # FINISH
-    ds.close()
-    if len(in_dict['fn_out']) > 0:
-        plt.savefig(in_dict['fn_out'])
-        plt.close()
-    else:
-        plt.show()
-        pfun.topfig()
-    return out_dict
-
-def P_bio2(in_dict):
-    # START
-    ds = nc.Dataset(in_dict['fn'])
-    vlims = in_dict['vlims'].copy()
-    out_dict['vlims'] = vlims
-    vn_list = ['phytoplankton', 'oxygen']
-    NP = len(vn_list)
-    NR = 1
-    NC = NP
-    #figsize = (18,10)
-    fig, axes = plt.subplots(nrows=NR, ncols=NC, figsize=figsize,
-                             squeeze=False)
-    cc = 0
-    for vn in vn_list:
-        ir = int(np.floor(cc/NC))
-        ic = int(cc - NC*ir)
-        # PLOT CODE
-        ax = axes[ir, ic]
-        tstr = tstr_dict[vn]
-        try:
-            vlims[vn]
-        except KeyError:
-            vlims[vn] = ()
-        if vn == 'oxygen':
-            cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn,
-                    vlims=vlims[vn], cmap=cmap_dict[vn], fac=fac_dict[vn],
-                    slev=0)
-            ax.text(.95, .04, 'BOTTOM',
-                    horizontalalignment='right', transform=ax.transAxes)
-        else:
-            cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn,
-                    vlims=vlims[vn], cmap=cmap_dict[vn], fac=fac_dict[vn])
-        fig.colorbar(cs, ax=ax)
-        if ic == 0:
-            pfun.add_bathy_contours(ax, ds, txt=True)
-        else:
-            pfun.add_bathy_contours(ax, ds)
-        pfun.add_coast(ax)
-        ax.axis(pfun.get_aa(ds))
-        pfun.dar(ax)
-        if ir == NR-1:
-            ax.set_xlabel('Longitude')
-        if ic == 0:
-            ax.set_ylabel('Latitude')
-        ax.set_title(tstr + units_dict[vn])
         if cc == 0:
             pfun.add_info(ax, in_dict['fn'])
         cc += 1
@@ -572,24 +564,15 @@ def P_sect(in_dict):
     # plots a section (distance, z)
 
     # START
-    fig = plt.figure(figsize=(20,8))
+    fig = plt.figure(figsize=figsize)
     ds = nc.Dataset(in_dict['fn'])
     vlims = in_dict['vlims'].copy()
     out_dict['vlims'] = vlims
 
     # PLOT CODE
-    from warnings import filterwarnings
-    filterwarnings('ignore') # skip this warning message:
-    #/Applications/anaconda/lib/python3.5/site-packages/
-    #matplotlib/colors.py:581: RuntimeWarning:
-    #invalid value encountered in less
-    #cbook._putmask(xa, xa < 0.0, -1)
 
     # GET DATA
     G, S, T = zrfun.get_basic_info(in_dict['fn'])
-    h = G['h']
-    zeta = ds['zeta'][:].squeeze()
-    zr = zrfun.get_z(h, zeta, S, only_rho=True)
 
     vn = 'salt'
     try:
@@ -597,27 +580,11 @@ def P_sect(in_dict):
     except KeyError:
         vlims[vn] = ()
 
-    sectvar = ds[vn][:].squeeze()
-
-    L = G['L']
-    M = G['M']
-    N = S['N']
-
-    lon = G['lon_rho']
-    lat = G['lat_rho']
-    mask = G['mask_rho']
-    maskr = mask.reshape(1, M, L).copy()
-    mask3 = np.tile(maskr, [N, 1, 1])
-    zbot = -h # don't need .copy() because of the minus operation
-
-    # make sure fields are masked
-    zeta[mask==False] = np.nan
-    zbot[mask==False] = np.nan
-    sectvar[mask3==False] = np.nan
-
     # CREATE THE SECTION
     # create track by hand
     if False:
+        lon = G['lon_rho']
+        lat = G['lat_rho']
         zdeep = -3500
         #x = np.linspace(lon.min(), -124, 500)
         if True:
@@ -638,76 +605,7 @@ def P_sect(in_dict):
         x = mat['x']
         y = mat['y']
 
-    # create dist
-    earth_rad = zfun.earth_rad(np.mean(lat[:,0])) # m
-    xrad = np.pi * x /180
-    yrad = np.pi * y / 180
-    dx = earth_rad * np.cos(yrad[1:]) * np.diff(xrad)
-    dy = earth_rad * np.diff(yrad)
-    ddist = np.sqrt(dx**2 + dy**2)
-    dist = np.zeros(len(x))
-    dist[1:] = ddist.cumsum()/1000 # km
-    # find the index of zero
-    i0, i1, fr = zfun.get_interpolant(np.zeros(1), dist)
-    idist0 = i0
-    distr = dist.reshape(1, len(dist)).copy()
-    dista = np.tile(distr, [N, 1]) # array
-    # pack fields to process in dicts
-    d2 = dict()
-    d2['zbot'] = zbot
-    d2['zeta'] = zeta
-    d2['lon'] = lon
-    d2['lat'] = lat
-    d3 = dict()
-    d3['zr'] = zr
-    d3['sectvar'] = sectvar
-    # get vectors describing the (plaid) grid
-    xx = lon[1,:]
-    yy = lat[:,1]
-    col0, col1, colf = zfun.get_interpolant(x, xx)
-    row0, row1, rowf = zfun.get_interpolant(y, yy)
-    # and prepare them to do the bilinear interpolation
-    colff = 1 - colf
-    rowff = 1 - rowf
-    # now actually do the interpolation
-    # 2-D fields
-    v2 = dict()
-    for fname in d2.keys():
-        fld = d2[fname]
-        fldi = (rowff*(colff*fld[row0, col0] + colf*fld[row0, col1])
-        + rowf*(colff*fld[row1, col0] + colf*fld[row1, col1]))
-        if type(fldi) == np.ma.core.MaskedArray:
-            fldi = fldi.data # just the data, not the mask
-        v2[fname] = fldi
-    # 3-D fields
-    v3 = dict()
-    for fname in d3.keys():
-        fld = d3[fname]
-        fldi = (rowff*(colff*fld[:, row0, col0] + colf*fld[:, row0, col1])
-        + rowf*(colff*fld[:, row1, col0] + colf*fld[:, row1, col1]))
-        if type(fldi) == np.ma.core.MaskedArray:
-            fldid = fldi.data # just the data, not the mask
-            fldid[fldi.mask == True] = np.nan
-        v3[fname] = fldid
-    v3['dist'] = dista # distance in km
-    # make "full" fields by padding top and bottom
-    nana = np.nan * np.ones((N + 2, len(dist))) # blank array
-    v3['zrf'] = nana.copy()
-    v3['zrf'][0,:] = v2['zbot']
-    v3['zrf'][1:-1,:] = v3['zr']
-    v3['zrf'][-1,:] = v2['zeta']
-    #
-    v3['sectvarf'] = nana.copy()
-    v3['sectvarf'][0,:] = v3['sectvar'][0,:]
-    v3['sectvarf'][1:-1,:] = v3['sectvar']
-    v3['sectvarf'][-1,:] = v3['sectvar'][-1,:]
-    #
-    v3['distf'] = nana.copy()
-    v3['distf'][0,:] = v3['dist'][0,:]
-    v3['distf'][1:-1,:] = v3['dist']
-    v3['distf'][-1,:] = v3['dist'][-1,:]
-    # NOTE: should make this a function
-    # (but note that it is specific to each variable)
+    v2, v3, dist, idist0 = pfun.get_section(ds, vn, x, y, in_dict)
 
     # PLOTTING
 
@@ -715,7 +613,7 @@ def P_sect(in_dict):
     ax = fig.add_subplot(1, 3, 1)
     cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn,
             vlims=vlims[vn], cmap=cmap_dict[vn], fac=fac_dict[vn])
-    fig.colorbar(cs)
+    #fig.colorbar(cs)
     pfun.add_bathy_contours(ax, ds)
     pfun.add_coast(ax)
     ax.axis(pfun.get_aa(ds))
@@ -737,16 +635,17 @@ def P_sect(in_dict):
     ax.set_ylim(zdeep, 5)
     vlims = pfun.auto_lims(v3['sectvarf'])
     cs = ax.pcolormesh(v3['distf'], v3['zrf'], v3['sectvarf'],
-                       vmin=vlims[0],
-                       vmax=vlims[1],
-                       cmap='rainbow')
+                       vmin=vlims[0], vmax=vlims[1], cmap=cmap_dict[vn])
     fig.colorbar(cs)
     cs = ax.contour(v3['distf'], v3['zrf'], v3['sectvarf'],
-        np.linspace(np.floor(vlims[0]), np.ceil(vlims[1]), 20), colors='k')
+        np.linspace(np.floor(vlims[0]), np.ceil(vlims[1]), 20),
+        colors='k', linewidths=0.5)
     ax.set_xlabel('Distance (km)')
     ax.set_ylabel('Z (m)')
     tstr = tstr_dict[vn]
     ax.set_title(tstr)
+    
+    fig.tight_layout()
 
     # FINISH
     ds.close()
@@ -759,161 +658,86 @@ def P_sect(in_dict):
     return out_dict
     
 def P_sectA(in_dict):
-    # plots a section (distance, z)
+    # plots a map and several sections
     # designed for analytical runs, like aestus1
 
     # START
-    fig = plt.figure(figsize=(14,10))
+    fig = plt.figure(figsize=figsize)
     ds = nc.Dataset(in_dict['fn'])
     vlims = in_dict['vlims'].copy()
     out_dict['vlims'] = vlims
-
-    # PLOT CODE
-    from warnings import filterwarnings
-    filterwarnings('ignore') # skip a warning message
-
-    # GET DATA
-    G, S, T = zrfun.get_basic_info(in_dict['fn'])
-    h = G['h']
-    zeta = ds['zeta'][:].squeeze()
-    zr = zrfun.get_z(h, zeta, S, only_rho=True)
-
+    
     vn = 'salt'
     try:
         vlims[vn]
     except KeyError:
         vlims[vn] = ()
-
-    sectvar = ds[vn][:].squeeze()
-
-    L = G['L']
-    M = G['M']
-    N = S['N']
-
-    lon = G['lon_rho']
-    lat = G['lat_rho']
-    mask = G['mask_rho']
-    maskr = mask.reshape(1, M, L).copy()
-    mask3 = np.tile(maskr, [N, 1, 1])
-    zbot = -h # don't need .copy() because of the minus operation
-
-    # make sure fields are masked
-    zeta[mask==False] = np.nan
-    zbot[mask==False] = np.nan
-    sectvar[mask3==False] = np.nan
-
-    # CREATE THE SECTION
-    # create track by hand
-    x = np.linspace(-0.5, 1, 500)
-    y = 45 * np.ones(x.shape)
-
-    # create dist
-    earth_rad = zfun.earth_rad(np.mean(lat[:,0])) # m
-    xrad = np.pi * x /180
-    yrad = np.pi * y / 180
-    dx = earth_rad * np.cos(yrad[1:]) * np.diff(xrad)
-    dy = earth_rad * np.diff(yrad)
-    ddist = np.sqrt(dx**2 + dy**2)
-    dist = np.zeros(len(x))
-    dist[1:] = ddist.cumsum()/1000 # km
-    # find the index of zero
-    i0, i1, fr = zfun.get_interpolant(np.zeros(1), dist)
-    idist0 = i0
-    distr = dist.reshape(1, len(dist)).copy()
-    dista = np.tile(distr, [N, 1]) # array
-    # pack fields to process in dicts
-    d2 = dict()
-    d2['zbot'] = zbot
-    d2['zeta'] = zeta
-    d2['lon'] = lon
-    d2['lat'] = lat
-    d3 = dict()
-    d3['zr'] = zr
-    d3['sectvar'] = sectvar
-    # get vectors describing the (plaid) grid
-    xx = lon[1,:]
-    yy = lat[:,1]
-    col0, col1, colf = zfun.get_interpolant(x, xx)
-    row0, row1, rowf = zfun.get_interpolant(y, yy)
-    # and prepare them to do the bilinear interpolation
-    colff = 1 - colf
-    rowff = 1 - rowf
-    # now actually do the interpolation
-    # 2-D fields
-    v2 = dict()
-    for fname in d2.keys():
-        fld = d2[fname]
-        fldi = (rowff*(colff*fld[row0, col0] + colf*fld[row0, col1])
-        + rowf*(colff*fld[row1, col0] + colf*fld[row1, col1]))
-        if type(fldi) == np.ma.core.MaskedArray:
-            fldi = fldi.data # just the data, not the mask
-        v2[fname] = fldi
-    # 3-D fields
-    v3 = dict()
-    for fname in d3.keys():
-        fld = d3[fname]
-        fldi = (rowff*(colff*fld[:, row0, col0] + colf*fld[:, row0, col1])
-        + rowf*(colff*fld[:, row1, col0] + colf*fld[:, row1, col1]))
-        if type(fldi) == np.ma.core.MaskedArray:
-            fldid = fldi.data # just the data, not the mask
-            fldid[fldi.mask == True] = np.nan
-        v3[fname] = fldid
-    v3['dist'] = dista # distance in km
-    # make "full" fields by padding top and bottom
-    nana = np.nan * np.ones((N + 2, len(dist))) # blank array
-    v3['zrf'] = nana.copy()
-    v3['zrf'][0,:] = v2['zbot']
-    v3['zrf'][1:-1,:] = v3['zr']
-    v3['zrf'][-1,:] = v2['zeta']
-    #
-    v3['sectvarf'] = nana.copy()
-    v3['sectvarf'][0,:] = v3['sectvar'][0,:]
-    v3['sectvarf'][1:-1,:] = v3['sectvar']
-    v3['sectvarf'][-1,:] = v3['sectvar'][-1,:]
-    #
-    v3['distf'] = nana.copy()
-    v3['distf'][0,:] = v3['dist'][0,:]
-    v3['distf'][1:-1,:] = v3['dist']
-    v3['distf'][-1,:] = v3['dist'][-1,:]
-    # NOTE: should make this a function
-    # (but note that it is specific to each variable)
-
+        
     # PLOTTING
 
-    # panel 1
-    ax = fig.add_subplot(211)
-    cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn,
-            vlims=(10,35.5), cmap='rainbow', fac=fac_dict[vn])
+    # map and section lines
+    ax1 = fig.add_subplot(3,1,1)
+    cs, out_dict['vlims'][vn] = pfun.add_map_field(ax1, ds, vn,
+            vlims=vlims[vn], cmap=cmap_dict[vn], fac=fac_dict[vn])
     fig.colorbar(cs)
-    pfun.add_bathy_contours(ax, ds)
-    pfun.add_coast(ax)
-    ax.axis([-.5, 1, 44.8, 45.2])
-    pfun.dar(ax)
-    ax.set_xlabel('Longitude')
-    ax.set_ylabel('Latitude')
-    ax.set_title('Section Track')
-    pfun.add_info(ax, in_dict['fn'])
-    ax.plot(x, y, '-r', linewidth=2)
-    ax.plot(x[idist0], y[idist0], 'or', markersize=10, markerfacecolor='w',
-    markeredgecolor='r', markeredgewidth=2)
-
-    # section
-    ax = fig.add_subplot(212)
+    pfun.add_bathy_contours(ax1, ds)
+    pfun.add_coast(ax1)
+    ax1.axis([-.5, 1, 44.8, 45.2])
+    pfun.dar(ax1)
+    ax1.set_xlabel('Longitude')
+    ax1.set_ylabel('Latitude')
+    pfun.add_info(ax1, in_dict['fn'], fs=9)
+    
+    # thalweg section
+    x = np.linspace(-0.5, 1, 500)
+    y = 45 * np.ones(x.shape)
+    v2, v3, dist, idist0 = pfun.get_section(ds, vn, x, y, in_dict)
+    ax = fig.add_subplot(3,1,2)
     ax.plot(dist, v2['zbot'], '-k', linewidth=2)
     ax.plot(dist, v2['zeta'], '-b', linewidth=1)
     ax.set_xlim(dist.min(), dist.max())
     ax.set_ylim(-25, 2)
     vlims = pfun.auto_lims(v3['sectvarf'])
     cs = ax.pcolormesh(v3['distf'], v3['zrf'], v3['sectvarf'],
-                       vmin=10,
-                       vmax=35.5,
-                       cmap='rainbow')
-    fig.colorbar(cs)
+                       vmin=vlims[0], vmax=vlims[1], cmap=cmap_dict[vn])
+    #fig.colorbar(cs)
     cs = ax.contour(v3['distf'], v3['zrf'], v3['sectvarf'],
-        np.linspace(1, 34, 34), colors='k')
+        np.linspace(1, 35, 35), colors='k', linewidths=.5,)
     ax.set_xlabel('Distance (km)')
     ax.set_ylabel('Z (m)')
     ax.set_title(vn)
+    # add line to map plot
+    ax1.plot(x, y, '-r', linewidth=2)
+    ax1.plot(x[idist0], y[idist0], 'or', markersize=10, markerfacecolor='w',
+        markeredgecolor='r', markeredgewidth=2)
+
+    for ii in range(3):
+        # cross-sections
+        y = np.linspace(44.9, 45.1, 200)
+        x = 0.3*ii * np.ones(y.shape)
+        v2, v3, dist, idist0 = pfun.get_section(ds, vn, x, y, in_dict)
+        # section
+        ax = fig.add_subplot(3,3,ii+7)
+        ax.plot(dist, v2['zbot'], '-k', linewidth=2)
+        ax.plot(dist, v2['zeta'], '-b', linewidth=1)
+        ax.set_xlim(dist.min(), dist.max())
+        ax.set_ylim(-25, 2)
+        vlims = pfun.auto_lims(v3['sectvarf'])
+        cs = ax.pcolormesh(v3['distf'], v3['zrf'], v3['sectvarf'],
+                           vmin=vlims[0], vmax=vlims[1], cmap=cmap_dict[vn])
+        #fig.colorbar(cs)
+        cs = ax.contour(v3['distf'], v3['zrf'], v3['sectvarf'],
+            np.linspace(1, 35, 35), colors='k', linewidths=.5,)
+        ax.set_xlabel('Distance (km)')
+        if ii==0:
+            ax.set_ylabel('Z (m)')
+        # add line to map plot
+        ax1.plot(x, y, '-r', linewidth=2)
+        ax1.plot(x[idist0], y[idist0], 'or', markersize=10, markerfacecolor='w',
+            markeredgecolor='r', markeredgewidth=2)
+            
+    fig.tight_layout()
+    
 
     # FINISH
     ds.close()
@@ -936,7 +760,7 @@ def P_tracks(in_dict):
     # hours in the folder
 
     # START
-    fig = plt.figure(figsize=(6, 9))
+    fig = plt.figure(figsize=(6, 8))
     ds = nc.Dataset(in_dict['fn'])
     vlims = in_dict['vlims'].copy()
     out_dict['vlims'] = vlims
@@ -1099,7 +923,7 @@ def P_aestus(in_dict):
     # designed for the analytical estuary-shelf runs
 
     # START
-    fig = plt.figure(figsize=(14,8))
+    fig = plt.figure(figsize=figsize)
     ds = nc.Dataset(in_dict['fn'])
     vlims = in_dict['vlims'].copy()
     out_dict['vlims'] = vlims
