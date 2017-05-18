@@ -12,7 +12,7 @@ python pan_plot.py -g aestus1 -t A1 -x ae1 -d 2013.02.07 -lt hindcast -pt P_sect
 
 Running for MERHAB:
     
-python pan_plot.py -g cascadia1 -t base -x lobio1 -lt forecast -pt P_tracks_MERHAB -fno /data1/parker/LiveOcean_output/plots/merhab.png
+python /data1/parker/LiveOcean/plotting/pan_plot.py -g cascadia1 -t base -x lobio1 -lt forecast -pt P_tracks_MERHAB -fno /data1/parker/LiveOcean_output/plots/merhab.png
 
 Running from the ipython command line:
 
@@ -29,8 +29,6 @@ run pan_plot.py -x lobio3 -d 2013.01.02 -fno test.png -lt low_pass -pt P_basic
 run pan_plot.py -g aestus1 -t A1 -x ae1 -d 2013.02.07 -lt backfill -pt P_sectA -mov True
 
 run pan_plot.py -g cascadia1 -t base -x lobio1 -d 2017.05.04 -lt snapshot -pt P_tracks
-
-run pan_plot.py -g cascadia1 -t base -x lobio1 -lt forecast -pt P_tracks_MERHAB -fno 
 
 """
 
