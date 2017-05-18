@@ -10,7 +10,9 @@ Running from the terminal on my mac, and making a movie:
     
 python pan_plot.py -g aestus1 -t A1 -x ae1 -d 2013.02.07 -lt hindcast -pt P_sectA -mov True
 
-
+Running for MERHAB:
+    
+python pan_plot.py -g cascadia1 -t base -x lobio1 -lt forecast -pt P_tracks_MERHAB -fno /data1/parker/LiveOcean_output/plots/merhab.png
 
 Running from the ipython command line:
 
@@ -27,6 +29,9 @@ run pan_plot.py -x lobio3 -d 2013.01.02 -fno test.png -lt low_pass -pt P_basic
 run pan_plot.py -g aestus1 -t A1 -x ae1 -d 2013.02.07 -lt backfill -pt P_sectA -mov True
 
 run pan_plot.py -g cascadia1 -t base -x lobio1 -d 2017.05.04 -lt snapshot -pt P_tracks
+
+run pan_plot.py -g cascadia1 -t base -x lobio1 -lt forecast -pt P_tracks_MERHAB -fno 
+
 """
 
 #%% setup
@@ -50,7 +55,7 @@ parser.add_argument('-t', '--tag', nargs='?', type=str,
 parser.add_argument('-x', '--ex_name', nargs='?', type=str,
                     default='lobio1')
 parser.add_argument('-d', '--date_string', nargs='?', type=str,
-                    default='2013.09.19')
+                    default='2017.05.11')
 parser.add_argument('-hs', '--hour_string', nargs='?', type=str,
                     default='02')
 parser.add_argument('-nd', '--num_days', nargs='?', type=int,
