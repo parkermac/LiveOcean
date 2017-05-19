@@ -784,6 +784,7 @@ def P_tracks(in_dict):
     for item in fn_list_raw:
         if 'ocean_his' in item:
             fn_list.append(in_dir + item)
+    fn_list.sort()
     # and estimate the number of days,
     ndays = round(len(fn_list)/24)
     # and use the LAST file for the map field overlay
