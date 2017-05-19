@@ -123,8 +123,6 @@ def get_interpolant(x, xvec, extrap_nan=False):
     if np.isnan(xvec).any():
         itp_err('nan found in xvec')
     if not np.all(np.diff(xvec) > 0):
-        for xv in xvec:
-            print(str(xv))
         itp_err('xvec must be monotonic and increasing')
 
     nx = len(x)

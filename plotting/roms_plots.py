@@ -801,14 +801,6 @@ def P_tracks(in_dict):
 
     G, S, T = zrfun.get_basic_info(in_dict['fn'])
     T0 = zrfun.get_basic_info(fn_list[0], only_T=True)
-
-    in_dir = fn[:fn.rindex('/')+1]
-    fn_list_raw = os.listdir(in_dir)
-    fn_list = []
-    for item in fn_list_raw:
-        if 'ocean_his' in item:
-            fn_list.append(in_dir + item)
-    ndays = round(len(fn_list)/24)
     
     # Evenly spread over whole domain
     x0 = G['lon_rho'][0, 1]
@@ -974,14 +966,6 @@ def P_tracks_MERHAB(in_dict):
 
     G, S, T = zrfun.get_basic_info(in_dict['fn'])
     T0 = zrfun.get_basic_info(fn_list[0], only_T=True)
-
-    in_dir = fn[:fn.rindex('/')+1]
-    fn_list_raw = os.listdir(in_dir)
-    fn_list = []
-    for item in fn_list_raw:
-        if 'ocean_his' in item:
-            fn_list.append(in_dir + item)
-    ndays = round(len(fn_list)/24)
     
     nyp = 7
     x0 = -126
