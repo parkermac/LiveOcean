@@ -79,7 +79,8 @@ Ldir['gtagex'] = Ldir['gtag'] + '_' + args.ex_name
 if len(args.list_type) == 0:
     print(30*'*' + ' pan_plot ' + 30*'*')
     print('\n%s\n' % '** Choose List type (return for snapshot) **')
-    lt_list = ['snapshot', 'low_pass', 'backfill', 'forecast', 'old_style',
+    lt_list = ['snapshot', 'low_pass', 'backfill', 'forecast',
+               'merhab', 'old_style',
                'atlantis', 'salish', 'salish_seq']
     Nlt = len(lt_list)
     lt_dict = dict(zip(range(Nlt), lt_list))
@@ -143,6 +144,14 @@ if list_type == 'snapshot':
     fn_list = [Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/' +
                'f' + args.date_string +
                '/ocean_his_00' + args.hour_string + '.nc']
+elif list_type == 'merhab':
+    # return a single file name for today's forecast
+    dt = datetime.now()
+    args.date_string = dt.strftime('%Y.%m.%d')
+    fn_list = [Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/' +
+               'f' + args.date_string + '/ocean_his_0002.nc']
+    args.fn_out = (Ldir['LOo'] + 'plots/merhab_tracks_'
+                   + args.date_string + '.png')
 elif list_type == 'hindcast':
     fn_list = make_fn_list(dt0,dt1,Ldir)
 elif list_type == 'forecast':

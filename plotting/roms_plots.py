@@ -1064,8 +1064,8 @@ def P_tracks_MERHAB(in_dict):
             markersize=s_end, alpha = 1, markeredgecolor='k')
     
     # add info about the tracks    
-    x0 = .7; x1 = .9
-    y0 = .15; y1 = .3
+    x0 = .8; x1 = .9
+    y0 = .25; y1 = .3
     ax.plot([x0, x1], [y0, y1], '-k', linewidth=2, transform=ax.transAxes)
     ax.plot(x0, y0,'o'+c_start,
             markersize=s_start, alpha = 1, markeredgecolor='k', transform=ax.transAxes)
