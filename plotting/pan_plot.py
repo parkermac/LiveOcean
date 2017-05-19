@@ -10,11 +10,10 @@ Running from the terminal on my mac, and making a movie:
     
 python pan_plot.py -g aestus1 -t A1 -x ae1 -d 2013.02.07 -lt hindcast -pt P_sectA -mov True
 
-Running for MERHAB:
+Running for MERHAB from the linux command line on mac or fjord,
+BUT right now it has to be run from LiveOcean/plotting/
     
-python /data1/parker/LiveOcean/plotting/pan_plot.py
--g cascadia1 -t base -x lobio1 -lt snapshot -d 2017.05.18 -pt P_tracks_MERHAB
--fno /data1/parker/LiveOcean_output/plots/merhab.png
+python /data1/parker/LiveOcean/plotting/pan_plot.py -g cascadia1 -t base -x lobio1 -lt merhab -pt P_tracks_MERHAB
 
 Running from the ipython command line:
 
@@ -30,7 +29,7 @@ run pan_plot.py -x lobio3 -d 2013.01.02 -fno test.png -lt low_pass -pt P_basic
 
 run pan_plot.py -g aestus1 -t A1 -x ae1 -d 2013.02.07 -lt backfill -pt P_sectA -mov True
 
-run pan_plot.py -g cascadia1 -t base -x lobio1 -d 2017.05.18 -lt snapshot -pt P_tracks_MERHAB
+run pan_plot.py -g cascadia1 -t base -x lobio1 -d 2017.05.18 -lt snapshot -pt P_tracks
 
 """
 
@@ -60,7 +59,7 @@ parser.add_argument('-hs', '--hour_string', nargs='?', type=str,
                     default='02')
 parser.add_argument('-nd', '--num_days', nargs='?', type=int,
                     default=0) # number of additional days
-# more arguments that allow you to bypass the interactive choices                    
+# more arguments that allow you to bypass the interactive choices
 parser.add_argument('-lt', '--list_type', nargs='?', type=str,
                     default='')
 parser.add_argument('-pt', '--plot_type', nargs='?', type=str,
@@ -139,19 +138,23 @@ def make_fn_list(dt0, dt1, Ldir, hourmax=24):
     return fn_list
 
 #%% choose which file(s) to plot
-if list_type == 'snapshot':
+if list_type == 'snapshot' and plot_type != 'P_tracks_MERHAB':
     # return a single default file name in the list
     fn_list = [Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/' +
                'f' + args.date_string +
                '/ocean_his_00' + args.hour_string + '.nc']
-elif list_type == 'merhab':
-    # return a single file name for today's forecast
-    dt = datetime.now()
-    args.date_string = dt.strftime('%Y.%m.%d')
+elif plot_type == 'P_tracks_MERHAB':
+    if list_type == 'merhab':
+        # return a single file name for today's forecast
+        dt = datetime.now()
+        args.date_string = dt.strftime('%Y.%m.%d')
+    elif list_type == 'snapshot':
+        pass # use args.date_string
     fn_list = [Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/' +
                'f' + args.date_string + '/ocean_his_0002.nc']
     args.fn_out = (Ldir['LOo'] + 'plots/merhab_tracks_'
                    + args.date_string + '.png')
+    #print(args.fn_out)
 elif list_type == 'hindcast':
     fn_list = make_fn_list(dt0,dt1,Ldir)
 elif list_type == 'forecast':
