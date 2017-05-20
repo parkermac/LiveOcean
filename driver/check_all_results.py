@@ -40,7 +40,7 @@ for item in os.listdir(f_dir0):
     if item[0] == 'f' and len(item) == 11:
         f_dir0_list.append(item)
 f_dir0_list.sort()
-f_dir0_list = f_dir0_list[-args.num_days:]
+#f_dir0_list = f_dir0_list[-args.num_days:]
 
 force_dict = {'atm': ['lwrad_down.nc', 'Pair.nc', 'Qair.nc', 'rain.nc',
                       'swrad.nc', 'Tair.nc', 'Uwind.nc', 'Vwind.nc'],
