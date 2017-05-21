@@ -141,4 +141,4 @@ f_df = f_df.sort_index()
 #pd.set_option('display.max_rows', args.num_days)
 #
 # This prints just end rows
-print(f_df[-args.num_days:])
+print(f_df)
