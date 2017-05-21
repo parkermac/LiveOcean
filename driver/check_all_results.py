@@ -22,7 +22,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-g", "--gridname", type=str, default='cascadia1')
 parser.add_argument("-t", "--tag", type=str, default='base')
 parser.add_argument("-x", "--ex_name", type=str, default='lobio1')
-parser.add_argument("-nd", "--num_days", type=int, default=10)
+parser.add_argument("-nd", "--num_days", type=int, default=3)
 args = parser.parse_args()
 
 Ldir = Lfun.Lstart(args.gridname, args.tag)
@@ -109,25 +109,28 @@ try:
 except:
     pass
 
-# what has been pushed to Azure (just the last num_days)
-from azure.storage.blob import BlobService
-azu_dict = Lfun.csv_to_dict(Ldir['data'] + 'accounts/azure_pm_2015.05.25.csv')
-account = azu_dict['account']
-key = azu_dict['key']
-blob_service = BlobService(account_name=account, account_key=key)
-for f_string in f_df.index:
-    ff_string = f_string.replace('.','')
-    containername = ff_string
-    try:
-        blob_service.create_container(containername)
-        blob_service.set_container_acl(containername, x_ms_blob_public_access='container')
-        blobs = blob_service.list_blobs(containername)
-        his_list = []
-        for blob in blobs:
-            his_list.append(blob.name)
-        f_df.loc[f_string, 'azu'] = str(int(his_list[-1][-7:-3]))
-    except:
-        pass
+if False:
+    # what has been pushed to Azure (just the last num_days)
+    from azure.storage.blob import BlobService
+    azu_dict = Lfun.csv_to_dict(Ldir['data'] + 'accounts/azure_pm_2015.05.25.csv')
+    account = azu_dict['account']
+    key = azu_dict['key']
+    blob_service = BlobService(account_name=account, account_key=key)
+    for f_string in f_df.index:
+        ff_string = f_string.replace('.','')
+        containername = ff_string
+        try:
+            blob_service.create_container(containername)
+            blob_service.set_container_acl(containername, x_ms_blob_public_access='container')
+            blobs = blob_service.list_blobs(containername)
+            his_list = []
+            for blob in blobs:
+                his_list.append(blob.name)
+                #print(blob.name)
+            his_list.sort()
+            f_df.loc[f_string, 'azu'] = str(int(his_list[-1][-7:-3]))
+        except:
+            pass
 
 # mark missing things
 f_df[f_df.isnull()] = '--'
