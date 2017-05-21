@@ -77,18 +77,19 @@ for which_forecast in f_df.index:
                         f_df.loc[which_forecast, which_force] = str((vdt1-vdt0).days) + 'd'
                     except:
                         pass
-                elif which_force in ['carbon', 'low_pass']:
-                    try:
-                        ps = Lfun.csv_to_dict(force_dir + 'Info/process_status.csv')
-                        if ps['result'] == 'success':
-                            f_df.loc[which_forecast, which_force] = 'YES'
-                    except:
-                        pass
-            else:
-                f_df.loc[which_forecast, which_force] = 'no'
         except:
             # assume the directory is missing
             f_df.loc[which_forecast, which_force] = '--'
+    for which_force in ['carbon', 'low_pass']:
+        try:
+            ps = Lfun.csv_to_dict(force_dir + 'Info/process_status.csv')
+            if ps['result'] == 'success':
+                f_df.loc[which_forecast, which_force] = 'YES'
+            else:
+                f_df.loc[which_forecast, which_force] = 'no'
+        except:
+            pass
+
 
 # what forecasts have been run successfully
 r_dir0 = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/'
