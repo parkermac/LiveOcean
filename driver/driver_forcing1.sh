@@ -5,8 +5,11 @@
 # allowing for either a forecast or backfill.
 
 # This version (8/21/2016) is designed to handle jobs more gracefully.
+
 # And on 5/20/2017 I made it so that it could be run again and only re-make
-# the forcing directory if needed. (Need an override flag?)
+# the forcing directory if needed.
+# Add the flag -c (for clobber) to override this behavior and force it to
+# remake the forcing.
 
 # NOTE: must be run from fjord.
 
@@ -41,6 +44,7 @@ fi
 # you can also use long names like --ex_name instead of -x
 
 ex_name="placeholder"
+clobber_flag=0
 while [ "$1" != "" ] ; do
   case $1 in
     -g | --gridname )  shift
@@ -63,6 +67,9 @@ while [ "$1" != "" ] ; do
       ;;
     -1 | --ymd1 )  shift
       ymd1=$1
+      ;;
+    -c | --clobber )
+      clobber_flag=1
       ;;
   esac
   shift
@@ -111,8 +118,8 @@ do
   
   already_done_flag=0
   # check to see if the job has already completed successfully
-  if [ -f $checkfile ]; then
-    if grep -q "result,success" $checkfile ; then
+  if [ -f $checkfile ] && [ $clobber_flag -eq 0 ]; then
+    if grep -q "result,success" $checkfile; then
       echo "- No action needed: job completed successfully already."
       already_done_flag=1
     else
@@ -120,7 +127,7 @@ do
     fi
   fi
   
-  if [ $already_done_flag -eq 0 ]; then
+  if [ $already_done_flag -eq 0 ] || [ $clobber_flag -eq 1 ]; then
     
     if [ -d $LOogf_f ]
     then

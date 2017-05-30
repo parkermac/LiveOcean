@@ -204,18 +204,14 @@ def get_S(S_info_dict):
     Code to calculate S-coordinate vectors from the parameters
     in S_COORDINATE_INFO.csv.
     Need to check this carefully against the matlab version.
-    #% recoded for python on 7/7/2016 from:
-    #% Z_scoord.m  5/21/2007  Parker MacCready
-    #% this creates the structure S, which would be used for example by
-    #% Z_s2z.m, given basic grid parameters
-    #% IMPORTANT: note that this is the Song & Haidvogel 1994 stretching
-    #% function, ROMS Vstretching = 1. If one chooses a different stretching
-    #% function (as of March 2011 Vstretching can be 1, 2, or 3) then this code
-    #% must be updated to include the proper stretching transformation!
-    #% edited by DAS to include more things in S stucture
-    #% edited by SNG March 2011 to include all of the current available ROMS
-    #% stretching functions, 1-4 see:
-    #% https://www.myroms.org/wiki/index.php/Vertical_S-coordinate#Vertical_Stretching_Functions
+    # recoded for python on 7/7/2016 from:
+    # Z_scoord.m  5/21/2007  Parker MacCready
+    # this creates the structure S, which would be used for example by
+    # Z_s2z.m, given basic grid parameters
+    # edited by DAS to include more things in S stucture
+    # edited by SNG March 2011 to include all of the current available ROMS
+    # stretching functions, 1-4 see:
+    # https://www.myroms.org/wiki/index.php/Vertical_S-coordinate#Vertical_Stretching_Functions
     """
     S = dict()
     for item in S_info_dict.keys():

@@ -61,11 +61,11 @@ h_list_full = os.listdir(in_dir)
 h_list = [item for item in h_list_full if 'ocean_his' in item]
 
 # debugging
-testing = True
+testing = False
 if testing:
     h_list = h_list[:2]
 
-# get list of times    
+# get list of times
 t_list = []
 for h in h_list:
     T = zrfun.get_basic_info(in_dir + '/' + h, only_T=True)
@@ -103,13 +103,13 @@ for h in h_list:
     if S['N'] != ds0.dimensions['N'].size:
         print('Vertical dimensions inconsistent!')
         break
-    tt0 = time.time()                    
+    tt0 = time.time()
     yes_list = ['zeta', 'ubar', 'vbar'] # only do these 2D fields
     no_list = ['rho', 'AKv', 'AKs', 'w'] # exclude these 3D fields
     for name, v0 in ds0.variables.items():
         
         if (len(v0.dimensions) >= 4 and name not in no_list) or name in yes_list:
-        #if name in ['salt']:            
+        #if name in ['salt']:
             if tt == 0:
                 v1 = ds1.createVariable(name, v0.datatype, v0.dimensions)
                 v1.time = v0.time
@@ -126,14 +126,14 @@ for h in h_list:
             elif 'eta_v' in v0.dimensions:
                 tag = 'v'
             else:
-                print('problem with dimensions')                
+                print('problem with dimensions')
             X = ds0['lon_' + tag][:]
             Y = ds0['lat_' + tag][:]
             x = G['lon_' + tag]
             y = G['lat_' + tag]
             mask = G['mask_' + tag]
                 
-            F = ds0[name][:].squeeze()                        
+            F = ds0[name][:].squeeze()
             if len(F.shape) == 2:
                 fx = Ofun.extrap_nearest_to_masked(X, Y, F)
                 ff = zfun.interp2(x, y, X, Y, fx)
@@ -161,7 +161,7 @@ for h in h_list:
                     if iz==0:
                         # get interpolants
                         xi0, xi1, xf = zfun.get_interpolant(x,X[0,:], extrap_nan=True)
-                        yi0, yi1, yf = zfun.get_interpolant(y,Y[:,0], extrap_nan=True)                    
+                        yi0, yi1, yf = zfun.get_interpolant(y,Y[:,0], extrap_nan=True)
                     # bi linear interpolation
                     u00 = fx[yi0,xi0]
                     u10 = fx[yi1,xi0]
@@ -170,13 +170,13 @@ for h in h_list:
                     fi = (1-yf)*((1-xf)*u00 + xf*u01) + yf*((1-xf)*u10 + xf*u11)
                     ff = np.reshape(fi, x.shape)
                     fm = np.ma.masked_where(mask==False, ff)
-                    ds1[name][tt,iz,:,:] = fm                                                                                       
-    print('Hour %d took %0.1f seconds' % (tt, time.time() - tt0))             
-    tt += 1            
-    ds0.close()    
+                    ds1[name][tt,iz,:,:] = fm
+    print('Hour %d took %0.1f seconds' % (tt, time.time() - tt0))
+    tt += 1
+    ds0.close()
 ds1.close()
   
-#%% Write other ROMS forcing files    
+#%% Write other ROMS forcing files
 Ofun_nc.make_ini_file(nc_dir)
 Ofun_nc.make_bry_file(nc_dir)
 
