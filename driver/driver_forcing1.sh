@@ -3,12 +3,12 @@
 # This runs the code to create forcing for one or more days,
 # for any of the types of forcing,
 # allowing for either a forecast or backfill.
-
-# This version (8/21/2016) is designed to handle jobs more gracefully.
-
-# And on 5/20/2017 I made it so that it could be run again and only re-make
-# the forcing directory if needed.
-# Add the flag -c (for clobber) to override this behavior and force it to
+#
+# CHANGES:
+# 8/21/2016 Various edits to handle jobs more gracefully.
+# 5/20/2017 I made it so that it could be run again but only re-make
+# the forcing directory if needed.  Then on 5/30/2017 Added the optional flag
+# -c (for clobber) to override this behavior and force it to
 # remake the forcing.
 
 # NOTE: must be run from fjord.
@@ -31,6 +31,7 @@ fi
 #  if backfill, then you must provide two more arguments
 # -0 start date: yyyymmdd
 # -1 end date: yyyymmdd
+# -c force it to remake the forcing, even if it already exists
 #
 # example call to do backfill:
 # ./driver_forcing1.sh -g cascadia1 -t base -f atm -r backfill -0 20140201 -1 20140203
@@ -44,7 +45,7 @@ fi
 # you can also use long names like --ex_name instead of -x
 
 ex_name="placeholder"
-clobber_flag=0
+clobber_flag=0 # the default (0) is to not clobber, unless the -c argument is used
 while [ "$1" != "" ] ; do
   case $1 in
     -g | --gridname )  shift

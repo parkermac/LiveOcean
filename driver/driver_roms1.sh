@@ -2,10 +2,15 @@
 
 # This runs ROMS for one or more days, allowing for either
 # a forecast or backfill.
-
-# This version (8/2/2016) is designed to handle ROMS jobs more gracefully,
+#
+# CHANGES:
+# 8/2/2016 This version is designed to handle ROMS jobs more gracefully,
 # using advice from here:
 # http://unix.stackexchange.com/questions/76717/bash-launch-background-process-and-check-when-it-ends
+# 5/30/2017 I made it so that it could be run again but only re-make
+# the forcing directory if needed.  Then added the optional flag
+# -c (for clobber) to override this behavior and force it to
+# redo the run.
 
 # NOTE: must be run from gaggle, and depends on other drivers having been run first
 
@@ -61,6 +66,9 @@ while [ "$1" != "" ]; do
     -1 | --ymd1 )  shift
       ymd1=$1
       ;;
+    -c | --clobber )
+      clobber_flag=1
+      ;;
   esac
   shift
 done
@@ -97,56 +105,71 @@ do
   Rf=$R_parent"/output/"$gtagex"/"$f_string
   #echo $Rf
   log_file=$Rf"/log"
-
-  # Make the dot in file.
-  # Note that the python code creates an empty f_string directory.
-  # Also cd to where the ROMS executable lives.
-  cd $LO_parent"/forcing/dot_in/"$gtagex
-  source $HOME"/.bashrc"
-  if [ $D = $D0 ] && [ $start_type = "new" ] ; then
-    python ./make_dot_in.py -g $gridname -t $tag -s $start_type -r $run_type -d $DD -x $ex_name
-    cd $R_parent"/makefiles/"$ex_name"_tideramp"
-  else
-    python ./make_dot_in.py -g $gridname -t $tag  -s continuation -r $run_type -d $DD -x $ex_name
-    cd $R_parent"/makefiles/"$ex_name
-  fi
-
-  # choose which cores to run on
-  if [ $run_type = "forecast" ] ; then
-    hf="../shared/hf72a"
-    np_num=72
-  elif [ $run_type = "backfill" ] ; then
-    hf="../shared/hf72b"
-    np_num=72
-  fi
-
-  # the actual ROMS run command
-  if [ $HOME = "/Users/PM5" ] ; then # testing
-    echo "/cm/shared/local/openmpi-ifort/bin/mpirun -np $np_num -machinefile $hf oceanM $Rf/liveocean.in > $log_file &"
-  elif [ $HOME == "/home/parker" ] ; then # the real thing
-    /cm/shared/local/openmpi-ifort/bin/mpirun -np $np_num -machinefile $hf oceanM $Rf/liveocean.in > $log_file &
-    # Check that ROMS has finished successfully.
-    PID1=$!
-    wait $PID1
-    echo "run completed for" $f_string
-  fi
   
-  # check the log_file to see if we should continue
-  if grep -q "Blowing-up" $log_file ; then
-    echo "- Run blew up!"
-    while_flag=1
-  elif grep -q "ERROR" $log_file ; then
-    echo "- Run had an error."
-    while_flag=1
-  elif grep -q "ROMS/TOMS: DONE" $log_file ; then
-    echo "- Run completed successfully."
-    # will continue because we don't change while_flag
-  else
-    echo "- Something else happened."
-    while_flag=1
+  already_done_flag=0
+  # check to see if the job has already completed successfully
+  if [ -f $log_file ] && [ $clobber_flag -eq 0 ]; then
+    if grep -q "ROMS/TOMS: DONE" $log_file ; then
+      echo "- No action needed: job completed successfully already."
+      already_done_flag=1
+    else
+      echo "- Trying job again."
+    fi
   fi
+
+  if [ $already_done_flag -eq 0 ] || [ $clobber_flag -eq 1 ]; then
+
+    # Make the dot in file.
+    # Note that the python code creates an empty f_string directory.
+    # Also cd to where the ROMS executable lives.
+    cd $LO_parent"/forcing/dot_in/"$gtagex
+    source $HOME"/.bashrc"
+    if [ $D = $D0 ] && [ $start_type = "new" ] ; then
+      python ./make_dot_in.py -g $gridname -t $tag -s $start_type -r $run_type -d $DD -x $ex_name
+      cd $R_parent"/makefiles/"$ex_name"_tideramp"
+    else
+      python ./make_dot_in.py -g $gridname -t $tag  -s continuation -r $run_type -d $DD -x $ex_name
+      cd $R_parent"/makefiles/"$ex_name
+    fi
+
+    # choose which cores to run on
+    if [ $run_type = "forecast" ] ; then
+      hf="../shared/hf72a"
+      np_num=72
+    elif [ $run_type = "backfill" ] ; then
+      hf="../shared/hf72b"
+      np_num=72
+    fi
+
+    # the actual ROMS run command
+    if [ $HOME = "/Users/PM5" ] ; then # testing
+      echo "/cm/shared/local/openmpi-ifort/bin/mpirun -np $np_num -machinefile $hf oceanM $Rf/liveocean.in > $log_file &"
+    elif [ $HOME == "/home/parker" ] ; then # the real thing
+      /cm/shared/local/openmpi-ifort/bin/mpirun -np $np_num -machinefile $hf oceanM $Rf/liveocean.in > $log_file &
+      # Check that ROMS has finished successfully.
+      PID1=$!
+      wait $PID1
+      echo "run completed for" $f_string
+    fi
   
-  echo $(date)
+    # check the log_file to see if we should continue
+    if grep -q "Blowing-up" $log_file ; then
+      echo "- Run blew up!"
+      while_flag=1
+    elif grep -q "ERROR" $log_file ; then
+      echo "- Run had an error."
+      while_flag=1
+    elif grep -q "ROMS/TOMS: DONE" $log_file ; then
+      echo "- Run completed successfully."
+      # will continue because we don't change while_flag
+    else
+      echo "- Something else happened."
+      while_flag=1
+    fi
+  
+    echo $(date)
+
+  fi # end of already_done_flag test
 
   # This function increments the day.
   # NOTE: it changes y, m, d, and D, even in the scope of this shell script!
