@@ -10,6 +10,8 @@ Running from the terminal on my mac, and making a movie:
     
 python pan_plot.py -g aestus1 -t A1 -x ae1 -d 2013.02.07 -lt hindcast -pt P_sectA -mov True
 
+python pan_plot.py -g aestus1 -t A1 -x ae1 -d 2013.02.01 -lt hindcast -pt P_sectA -mov True -nd 13
+
 Running for MERHAB from the linux command line on mac or fjord,
 BUT right now it has to be run from LiveOcean/plotting/
     
