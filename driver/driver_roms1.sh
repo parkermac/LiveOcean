@@ -31,7 +31,7 @@ fi
 # -x name of the ROMS executable to use
 # -s new or continuation
 # -r forecast or backfill
-#  if backfill, then you must provide two more arguments
+#  if backfill, then you must provide two more arguments:
 # -0 start date: yyyymmdd
 # -1 end date: yyyymmdd
 #
@@ -137,8 +137,8 @@ do
       hf="../shared/hf72a"
       np_num=72
     elif [ $run_type = "backfill" ] ; then
-      hf="../shared/hf72b"
-      np_num=72
+      hf="../shared/hf144"
+      np_num=144
     fi
 
     # the actual ROMS run command

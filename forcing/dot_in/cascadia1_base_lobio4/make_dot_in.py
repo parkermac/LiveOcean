@@ -49,8 +49,8 @@ zw_height = '10.0d0'
 # DERIVED VALUES
 
 if multi_core:
-    ntilei = '6' # number of tiles in I-direction (6)
-    ntilej = '12' # number of tiles in J-direction (12)
+    ntilei = '8' # number of tiles in I-direction (6)
+    ntilej = '18' # number of tiles in J-direction (12)
 else:
     ntilei = '1'
     ntilej = '1'
