@@ -36,7 +36,7 @@ blob_service = BlockBlobService(account_name=account, account_key=key)
 blob_service.create_container(containername)
 blob_service.set_container_acl(containername, public_access=PublicAccess.Container)
 
-if True: # testing
+if False: # testing
     nend = 6
 else:
     if Ldir['run_type'] == 'backfill':
@@ -51,26 +51,10 @@ try:
         hisname = 'ocean_his_' + ncpad + '.nc'
         dirname = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/' + f_string + '/'
         fname = dirname + hisname
-        
-        #from azure.storage.blob import ContentSettings
         bname = open(fname, 'rb')
-        blob_service.create_blob_from_stream(
-            containername,
-            hisname,
-            bname)#,
-            #content_settings=ContentSettings(content_type='image/png')
-            #        )
-        
-        # bname = open(fname, 'rb')
-        # #blob_service.put_block_blob_from_file(containername, hisname, bname)
-        # block_blob_service.create_blob_from_stream(
-        #     containername,
-        #     hisname,
-        #     bname)
+        blob_service.create_blob_from_stream(containername, hisname, bname)
         print('done putting ' + hisname)
         bname.close()
-        
-        #from azure.storage.blob import ContentSettings
     result = 'success'
 except:
     result = 'fail'
