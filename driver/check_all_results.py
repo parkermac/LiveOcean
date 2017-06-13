@@ -115,11 +115,11 @@ except:
     pass
 
 # what has been pushed to Azure (just the last num_days)
-from azure.storage.blob import BlobService
+from azure.storage.blob import BlockBlobService
 azu_dict = Lfun.csv_to_dict(Ldir['data'] + 'accounts/azure_pm_2015.05.25.csv')
 account = azu_dict['account']
 key = azu_dict['key']
-blob_service = BlobService(account_name=account, account_key=key)
+blob_service = BlockBlobService(account_name=account, account_key=key)
 for f_string in f_list:
     ff_string = f_string.replace('.','')
     containername = ff_string
