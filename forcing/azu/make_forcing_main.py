@@ -52,12 +52,20 @@ try:
         dirname = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/' + f_string + '/'
         fname = dirname + hisname
         
-        bname = open(fname, 'rb')
-        #blob_service.put_block_blob_from_file(containername, hisname, bname)
-        block_blob_service.create_blob_from_stream(
+        from azure.storage.blob import ContentSettings
+        blob_service.create_blob_from_path(
             containername,
             hisname,
-            bname)
+            fname)#,
+            #content_settings=ContentSettings(content_type='image/png')
+            #        )
+        
+        # bname = open(fname, 'rb')
+        # #blob_service.put_block_blob_from_file(containername, hisname, bname)
+        # block_blob_service.create_blob_from_stream(
+        #     containername,
+        #     hisname,
+        #     bname)
         print('done putting ' + hisname)
         bname.close()
         
