@@ -116,6 +116,7 @@ except:
 
 # what has been pushed to Azure (just the last num_days)
 from azure.storage.blob import BlockBlobService
+from azure.storage.blob import PublicAccess
 azu_dict = Lfun.csv_to_dict(Ldir['data'] + 'accounts/azure_pm_2015.05.25.csv')
 account = azu_dict['account']
 key = azu_dict['key']
@@ -125,7 +126,7 @@ for f_string in f_list:
     containername = ff_string
     try:
         blob_service.create_container(containername)
-        blob_service.set_container_acl(containername, x_ms_blob_public_access='container')
+        blob_service.set_container_acl(containername, public_access=PublicAccess.Container)
         blobs = blob_service.list_blobs(containername)
         his_list = []
         for blob in blobs:
