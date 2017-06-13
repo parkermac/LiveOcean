@@ -52,11 +52,12 @@ try:
         dirname = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/' + f_string + '/'
         fname = dirname + hisname
         
-        from azure.storage.blob import ContentSettings
-        blob_service.create_blob_from_path(
+        #from azure.storage.blob import ContentSettings
+        bname = open(fname, 'rb')
+        blob_service.create_blob_from_stream(
             containername,
             hisname,
-            fname)#,
+            bname)#,
             #content_settings=ContentSettings(content_type='image/png')
             #        )
         
