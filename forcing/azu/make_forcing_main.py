@@ -37,7 +37,7 @@ blob_service.create_container(containername)
 blob_service.set_container_acl(containername, public_access=PublicAccess.Container)
 
 if True: # testing
-    nend = 3
+    nend = 6
 else:
     if Ldir['run_type'] == 'backfill':
         nend = 26
