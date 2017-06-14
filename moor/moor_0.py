@@ -4,25 +4,19 @@ Extract a mooring-like record.
 For 24 hour days on my mac this is fast, like 1-2 sec per day, but on
 fjord it takes more like 22 sec per day, or 2 hours per year.
 
-On fjord for low-passed files it takes 20 minutes per year, with no apparent
+On fjord for daily values it takes 20 minutes per year, with no apparent
 decrease of performance if there are multiple jobs going.
 
 This can be run from the linux command line:
 
-This runs with default values (RISE north, three days in September 2015)
-python roms_moor0.py
+e.g. with the default gridname, tag, and ex_name:
 
-This changes the days to run
-python moor_0.py -d0 2015.07.10 -d1 2015.08.01
+python moor_0.py -sn netarts -l daily -lon -124 -lat 45.4025 -d0 2015.01.01 -d1 2015.12.31
 
-This gets an IRIS mooring record (on fjord):
-python moor_0.py -sn J26A -lon -125.4664 -lat 44.6547 -d0 2013.01.02 -d1 2015.11.01
+NOTE: Using the flag -l daily it will get one value per day, choosing
+low_passed.nc if it exists, or ocean_his_0002.nc if not.
+The flag -l backfill gets 24 hours per day
 
-python moor_0.py -sn J26C -lon -125.4653 -lat 44.6534 -d0 2013.01.02 -d1 2015.11.01
-
-python moor_0.py -sn netarts -l low_pass -lon -123.94444 -lat 45.4025 -d0 2015.01.01 -d1 2015.12.31
-
-And you can also change the run, the station name and location, etc.
 """
 
 # setup
@@ -44,13 +38,10 @@ tag = 'base'
 ex_name = 'lobio1'
 date_string0 = datetime(2015,9,18).strftime(format='%Y.%m.%d')
 date_string1 = datetime(2015,9,20).strftime(format='%Y.%m.%d')
-list_type = 'backfill' # backfill, low_pass
-#sta_name = 'RN'
-#lon_str = '-124.5'
-#lat_str = '47'
-sta_name = 'netarts'
-lon_str = '-124'
-lat_str = '45.4025'
+list_type = 'daily' # backfill, daily
+sta_name = 'RN'
+lon_str = '-124.5'
+lat_str = '47'
 
 # get command line arguments
 import argparse
@@ -218,25 +209,32 @@ if Ldir['list_type'] == 'backfill':
         if count == 0 and False:
             zfun.ncd(ds)
         count += 1
-elif Ldir['list_type'] == 'low_pass':
+elif Ldir['list_type'] == 'daily':
     # gets one at a time
     count = 0
     for dd in date_list:
         print('Working on date_list item: ' + dd)
         sys.stdout.flush()
         indir = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/f' + dd + '/'
-        fn = indir + 'low_passed.nc'
+        fnlp = indir + 'low_passed.nc'
+        fnhis = indir + 'ocean_his_0002.nc'
+        if os.path.isfile(fnlp):
+            # first choice is to use low_passed.nc
+            fn = fnlp
+        elif os.path.isfile(fnhis):
+            # otherwise use the first history file
+            fn = fnhis
+        else:
+            print('Daily file not found!')
+            break
         ds = nc.Dataset(fn)
         for vv in v1_list:
             vtemp = ds.variables[vv][:].squeeze()
             V[vv] = np.append(V[vv], vtemp)
         for vv in v2_list:
             xi01, yi01, aix, aiy = get_its(ds, vv, Xi0, Yi0, Xi1, Yi1, Aix, Aiy)
-            vvtemp = ds.variables[vv][:, yi01, xi01].squeeze()           
+            vvtemp = ds.variables[vv][:, yi01, xi01].squeeze()
             vtemp = ( aiy*((aix*vvtemp).sum(-1)) ).sum(-1)
-#            print(vv)
-#            print(vvtemp)
-#            print(vtemp)
             V[vv] = np.append(V[vv], vtemp)
         for vv in v3_list_rho:
             xi01, yi01, aix, aiy = get_its(ds, vv, Xi0, Yi0, Xi1, Yi1, Aix, Aiy)

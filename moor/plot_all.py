@@ -85,9 +85,10 @@ else: # do it by hand
      'oxygen',
      'TIC',
      'alkalinity',
-     'PH',
-     'ARAG',
-     'z_rho']
+     'z_rho']#,
+     # 'PH',
+     # 'ARAG',
+     # 'z_rho']
 
 ltp = list_to_plot.copy()
 
@@ -96,13 +97,12 @@ ltp.append('ocean_time')
 for vv in ltp:
     V[vv] = ds[vv][:]
     Vu[vv] = ds[vv].units
-    
-    
+        
 # an experiment about how much TIC change to expect from Ldetritus decomposition
-ad_hoc = 500
-V['dTIC'] = np.cumsum(V['Ldetritus'], axis=1)*.1*6.625 * ad_hoc
-Vu['dTIC'] = Vu['TIC']
-list_to_plot.append('dTIC')
+#ad_hoc = 500
+#V['dTIC'] = np.cumsum(V['Ldetritus'], axis=1)*.1*6.625 * ad_hoc
+#Vu['dTIC'] = Vu['TIC']
+#list_to_plot.append('dTIC')
 
 ds.close()
 

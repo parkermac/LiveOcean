@@ -43,6 +43,7 @@ fi
 #
 # you can also use long names like --ex_name instead of -x
 
+clobber_flag=0 # the default (0) is to not clobber, unless the -c argument is used
 while [ "$1" != "" ]; do
   case $1 in
     -g | --gridname )  shift
