@@ -69,6 +69,13 @@ Vu = dict()
 #list_to_plot = v3_list_rho + v3_list_w + v2_list
 list_to_plot = v3_list_rho
 
+# hand edit variables not to look at
+for v in ['CaCO3', 'PH', 'ARAG', 'u', 'v', 'rho']:
+    try:
+        list_to_plot.remove(v)
+    except ValueError:
+        pass
+
 ltp = list_to_plot.copy()
 ltp.append('ocean_time')
 # gather data (including ocean_time and units
@@ -122,9 +129,9 @@ else:
 cc = 0
 nmid = round(V['salt'].shape[0]/2)
 N = V['salt'].shape[0]
-nbot = 0
-nmid = nmid
-ntop = N-1
+nbot = 5#0
+nmid = 30#nmid
+ntop = 35#N-1
 for vn in list_to_plot:
     ir = int(np.floor(cc/NC))
     ic = int(cc - NC*ir)
@@ -148,6 +155,7 @@ for vn in list_to_plot:
             ax.plot([dtyr, dtyr], aa, '-k')
         ax.set_ylim(aa)
     else:
+        ax.set_xlim(0,180)
         if ir == NR-1:
             ax.set_xlabel('Days')
 

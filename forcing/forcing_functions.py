@@ -41,6 +41,9 @@ def intro():
     parser.add_argument('-s', '--start_type', nargs='?', const=start_type, type=str, default=start_type)
     parser.add_argument('-d', '--date_string', nargs='?', const=date_string, type=str, default=date_string)
     parser.add_argument('-x', '--ex_name', nargs='?', const=ex_name, type=str, default=ex_name)
+    # only used by make_dot_in.py
+    parser.add_argument('-np', '--np_num', nargs='?', const=ex_name, type=int, default=72)
+    parser.add_argument('-bu', '--blow_ups', nargs='?', const=ex_name, type=int, default=0)
     args = parser.parse_args()
 
     # get the dict Ldir
@@ -56,6 +59,9 @@ def intro():
     Ldir['start_type'] = args.start_type
     Ldir['date_string'] = args.date_string
     Ldir['ex_name'] = args.ex_name
+    # only used by make_dot_in.py
+    Ldir['np_num'] = args.np_num
+    Ldir['blow_ups'] = args.blow_ups
 
     # Make the directory tree for this forcing, if needed. This is redundant
     # with what the driver does (except that it clobbers nothing), and is

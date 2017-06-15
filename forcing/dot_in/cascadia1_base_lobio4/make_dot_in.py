@@ -26,7 +26,6 @@ gtagex = gtag + '_' + Ldir['ex_name']
 EX_NAME = Ldir['ex_name'].upper()
 
 # account for differences when using biology
-# NOTE: this is not  robust because it depends on a specific ex_name
 do_bio = True
 
 multi_core = True # use more than one core
@@ -36,7 +35,13 @@ if Ldir['run_type'] == 'backfill':
 elif Ldir['run_type'] == 'forecast':
     days_to_run = float(Ldir['forecast_days'])
 
-dtsec = 30 # time step in seconds INTEGER (should fit evenly into 3600 sec)
+# time step in seconds INTEGER (should fit evenly into 3600 sec)
+if Ldir['blow_ups'] == 0:
+    dtsec = 200 
+elif Ldir['blow_ups'] == 1:
+    dtsec = 100
+else:
+    print('Unsupported number of blow ups: %d' % (Ldir['blow_ups']))
 restart_nrrec = '-1' # '-1' for a non-crash restart file, otherwise '1' or '2'
 his_interval = 3600 # seconds to define and write to history files
 rst_interval = 1 # days between writing to the restart file (e.g. 5)
@@ -49,8 +54,14 @@ zw_height = '10.0d0'
 # DERIVED VALUES
 
 if multi_core:
-    ntilei = '8' # number of tiles in I-direction (6)
-    ntilej = '18' # number of tiles in J-direction (12)
+    if Ldir['np_num'] == 72:
+        ntilei = '6' # number of tiles in I-direction (6)
+        ntilej = '12' # number of tiles in J-direction (12)
+    elif Ldir['np_num'] == 144:
+        ntilei = '8' # number of tiles in I-direction (6)
+        ntilej = '18' # number of tiles in J-direction (12)
+    else:
+        print('Unsupported number of processors: %d' % (Ldir['np_num']))
 else:
     ntilei = '1'
     ntilej = '1'
@@ -81,7 +92,7 @@ if do_bio:
     roms_name = 'LO_ROMS'
     bio_tag = '_bio'
 else:
-    roms_name = 'ROMS'
+    roms_name = 'ROMS' # obsolete, I suspect
     bio_tag = ''
 
 # the .in file
