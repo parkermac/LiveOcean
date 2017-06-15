@@ -37,9 +37,9 @@ elif Ldir['run_type'] == 'forecast':
 
 # time step in seconds INTEGER (should fit evenly into 3600 sec)
 if Ldir['blow_ups'] == 0:
-    dtsec = 200 
+    dtsec = 60 
 elif Ldir['blow_ups'] == 1:
-    dtsec = 100
+    dtsec = 30
 else:
     print('Unsupported number of blow ups: %d' % (Ldir['blow_ups']))
 restart_nrrec = '-1' # '-1' for a non-crash restart file, otherwise '1' or '2'
