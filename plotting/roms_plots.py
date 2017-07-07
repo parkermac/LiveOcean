@@ -173,6 +173,61 @@ def P_basic(in_dict):
         pfun.topfig()
     return out_dict
 
+def P_basicN(in_dict):
+    # Like P_basic, but optimized for the new nested grid sal0
+
+    # START
+    fig = plt.figure(figsize=(16,8))
+    ds = nc.Dataset(in_dict['fn'])
+    vlims = in_dict['vlims'].copy()
+    out_dict['vlims'] = vlims
+
+    # PLOT CODE
+    #depth_levs = [50, 100, 150, 200]
+    vlims['salt'] = (25,32)
+    vlims['temp'] = (6,7.5)
+    # panel 1
+    vn = 'salt'
+    tstr = 'Surface ' + tstr_dict[vn]
+    ax = fig.add_subplot(121)
+    vn = 'salt'
+    cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn,
+            vlims=vlims[vn], cmap=cmap_dict[vn], fac=fac_dict[vn])
+    fig.colorbar(cs)
+    #pfun.add_bathy_contours(ax, ds, depth_levs=depth_levs)
+    pfun.add_coast(ax)
+    ax.axis(pfun.get_aa(ds))
+    pfun.dar(ax)
+    ax.set_xlabel('Longitude')
+    ax.set_ylabel('Latitude')
+    ax.set_title(tstr + units_dict[vn])
+    pfun.add_info(ax, in_dict['fn'])
+    #pfun.add_windstress_flower(ax, ds, t_scl=1, t_leglen=0.1, center=(.25,.4))
+    # panel 2
+    ax = fig.add_subplot(122)
+    vn = 'temp'
+    tstr = 'Surface ' + tstr_dict[vn]
+    cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn,
+            vlims=vlims[vn], cmap='rainbow', fac=fac_dict[vn])
+    fig.colorbar(cs)
+    #pfun.add_bathy_contours(ax, ds, depth_levs=depth_levs)
+    pfun.add_coast(ax)
+    ax.axis(pfun.get_aa(ds))
+    pfun.dar(ax)
+    ax.set_xlabel('Longitude')
+    ax.set_title(tstr + units_dict[vn])
+#    pfun.add_velocity_vectors(ax, ds, in_dict['fn'],
+#                              v_scl=10, v_leglen=1, nngrid=70, center=(.25,.4))    
+    # FINISH
+    ds.close()
+    if len(in_dict['fn_out']) > 0:
+        plt.savefig(in_dict['fn_out'])
+        plt.close()
+    else:
+        plt.show()
+        pfun.topfig()
+    return out_dict
+
 def P_dive_vort(in_dict):
     # plots surface fields of divergence and vorticity.
     # START

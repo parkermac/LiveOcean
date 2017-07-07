@@ -130,9 +130,11 @@ def add_map_field(ax, ds, varname, slev=-1, vlims=(), cmap='rainbow',
     cs = ax.pcolormesh(x, y, v*fac, vmin=vlims[0], vmax=vlims[1], cmap=cmap, alpha=alpha)
     return cs, vlims
 
-def add_velocity_vectors(ax, ds, fn, v_scl=3, v_leglen=0.5, nngrid=80, zlev=0):
+def add_velocity_vectors(ax, ds, fn, v_scl=3, v_leglen=0.5, nngrid=80, zlev=0, center=(.7,.05)):
     # v_scl: scale velocity vector (smaller to get longer arrows)
     # v_leglen: m/s for velocity vector legend
+    xc = center[0]
+    yc = center[1]
     # GET DATA
     G = zrfun.get_basic_info(fn, only_G=True)
     if zlev == 0:
@@ -166,14 +168,14 @@ def add_velocity_vectors(ax, ds, fn, v_scl=3, v_leglen=0.5, nngrid=80, zlev=0):
     # plot velocity vectors
     ax.quiver(xx[mask], yy[mask], uu[mask], vv[mask],
         units='y', scale=v_scl, scale_units='y', color='k')
-    ax.quiver([.7, .7] , [.05, .05], [v_leglen, v_leglen],
+    ax.quiver([xc, xc] , [yc, yc], [v_leglen, v_leglen],
               [v_leglen, v_leglen],
         units='y', scale=v_scl, scale_units='y', color='k',
         transform=ax.transAxes)
-    ax.text(.75, .05, str(v_leglen) + ' $ms^{-1}$',
+    ax.text(xc+.05, yc, str(v_leglen) + ' $ms^{-1}$',
         horizontalalignment='left', transform=ax.transAxes)
 
-def add_windstress_flower(ax, ds, t_scl=0.2, t_leglen=0.1):
+def add_windstress_flower(ax, ds, t_scl=0.2, t_leglen=0.1, center=(.85,.25)):
     # ADD MEAN WINDSTRESS VECTOR
     # t_scl: scale windstress vector (smaller to get longer arrows)
     # t_leglen: # Pa for wind stress vector legend
@@ -181,19 +183,21 @@ def add_windstress_flower(ax, ds, t_scl=0.2, t_leglen=0.1):
     tauy = ds['svstr'][:].squeeze()
     tauxm = taux.mean()
     tauym = tauy.mean()
-    ax.quiver([.85, .85] , [.25, .25], [tauxm, tauxm], [tauym, tauym],
+    x = center[0]
+    y = center[1]
+    ax.quiver([x, x] , [y, y], [tauxm, tauxm], [tauym, tauym],
         units='y', scale=t_scl, scale_units='y', color='k',
         transform=ax.transAxes)
     tt = 1./np.sqrt(2)
     t_alpha = 0.3
-    ax.quiver([.85, .85] , [.25, .25],
+    ax.quiver([x, x] , [y, y],
         t_leglen*np.array([0,tt,1,tt,0,-tt,-1,-tt]),
         t_leglen*np.array([1,tt,0,-tt,-1,-tt,0,tt]),
         units='y', scale=t_scl, scale_units='y', color='k', alpha=t_alpha,
         transform=ax.transAxes)
-    ax.text(.85, .12,'Windstress',
+    ax.text(x, y-.13,'Windstress',
         horizontalalignment='center', alpha=t_alpha, transform=ax.transAxes)
-    ax.text(.85, .15, str(t_leglen) + ' Pa',
+    ax.text(x, y-.1, str(t_leglen) + ' Pa',
         horizontalalignment='center', alpha=t_alpha, transform=ax.transAxes)
 
 def add_info(ax, fn, fs=12):
