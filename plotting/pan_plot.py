@@ -8,9 +8,9 @@ python pan_plot.py -x lobio3 -d 2013.01.02 -fno test.png -lt low_pass -pt P_basi
 
 Running from the terminal on my mac, and making a movie:
     
-python pan_plot.py -g aestus1 -t A1 -x ae1 -d 2013.02.07 -lt hindcast -pt P_sectA -mov True
+python pan_plot.py -g aestus1 -t A1 -x ae1 -d 2013.02.07 -lt backfill -pt P_sectA -mov True
 
-python pan_plot.py -g aestus1 -t A1 -x ae1 -d 2013.02.01 -lt hindcast -pt P_sectA -mov True -nd 13
+python pan_plot.py -g aestus1 -t A1 -x ae1 -d 2013.02.01 -lt backfill -pt P_sectA -mov True -nd 13
 
 Running for MERHAB from the linux command line on mac or fjord,
 BUT right now it has to be run from LiveOcean/plotting/
@@ -157,7 +157,7 @@ elif plot_type == 'P_tracks_MERHAB':
     args.fn_out = (Ldir['LOo'] + 'plots/merhab_tracks_'
                    + args.date_string + '.png')
     #print(args.fn_out)
-elif list_type == 'hindcast':
+elif list_type == 'backfill':
     fn_list = make_fn_list(dt0,dt1,Ldir)
 elif list_type == 'forecast':
     dt0 = datetime.now()
