@@ -36,13 +36,19 @@ multi_core = True # use more than one core
 
 if Ldir['run_type'] == 'backfill':
     days_to_run = 1.0
-else:
-    days_to_run = 3.0
+elif Ldir['run_type'] == 'forecast':
+    days_to_run = float(Ldir['forecast_days'])
 
-dtsec = 40 # time step in seconds INTEGER (should fit evenly into 3600 sec)
+# time step in seconds INTEGER (should fit evenly into 3600 sec)
+if Ldir['blow_ups'] == 0:
+    dtsec = 60 
+elif Ldir['blow_ups'] == 1:
+    dtsec = 30
+else:
+    print('Unsupported number of blow ups: %d' % (Ldir['blow_ups']))
 restart_nrrec = '-1' # '-1' for a non-crash restart file, otherwise '1' or '2'
 his_interval = 3600 # seconds to define and write to history files
-rst_interval = 10 # days between writing to the restart file (e.g. 5)
+rst_interval = 1 # days between writing to the restart file (e.g. 5)
 
 zqt_height = '2.0d0'
 zw_height = '10.0d0'
@@ -52,8 +58,14 @@ zw_height = '10.0d0'
 # DERIVED VALUES
 
 if multi_core:
-    ntilei = '6' # number of tiles in I-direction (6)
-    ntilej = '12' # number of tiles in J-direction (12)
+    if Ldir['np_num'] == 72:
+        ntilei = '6' # number of tiles in I-direction (6)
+        ntilej = '12' # number of tiles in J-direction (12)
+    elif Ldir['np_num'] == 144:
+        ntilei = '8' # number of tiles in I-direction (6)
+        ntilej = '18' # number of tiles in J-direction (12)
+    else:
+        print('Unsupported number of processors: %d' % (Ldir['np_num']))
 else:
     ntilei = '1'
     ntilej = '1'

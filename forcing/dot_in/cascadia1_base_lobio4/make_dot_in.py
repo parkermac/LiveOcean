@@ -142,7 +142,7 @@ for line in f:
 f.close()
 f2.close()
 
-## npxd2o_Banas.in ###########
+## npzd2o_Banas.in ###########
 
 f = open('npzd2o_Banas_BLANK.in','r')
 bio_dot_in_name = 'npzd2o_Banas.in'

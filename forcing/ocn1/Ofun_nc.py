@@ -173,8 +173,8 @@ def create_bio_var(salt, vn):
             print('Salt out of range for TIC regression')
         # Salinity vs. TIC [uM]
         # TIC = mm*salt + bb
-        mm = zeros(size(salt))
-        bb = zeros(size(salt))
+        mm = 0*salt
+        bb = 0*salt
         ind = (salt < 31.887)
         mm[ind] = 27.7967
         bb[ind] = 1112.2027
@@ -190,7 +190,7 @@ def create_bio_var(salt, vn):
         ind = ((salt >= 34.504) & (salt < 35))
         mm[ind] = -12.7457
         bb[ind] = 2893.77
-        DIC = mm*salt + bb
+        TIC = mm*salt + bb
         return TIC
     elif vn == ['Talk']:
         if np.nanmax(salt) > 36:
@@ -206,7 +206,7 @@ def create_bio_var(salt, vn):
         ind = ((salt >= 33.915) & (salt < 35))
         mm[ind] = 246.2214
         bb[ind] = -6034.6841
-        TAlk = mm*salt + bb
+        Talk = mm*salt + bb
         return Talk
         
 def make_ini_file(nc_dir):
