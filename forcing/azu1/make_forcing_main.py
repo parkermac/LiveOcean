@@ -36,7 +36,7 @@ import netCDF4 as nc
 import zrfun
 import numpy as np
 
-testing = True
+testing = False
 
 print(' - Pushing surface forecast file to Azure for ' + Ldir['date_string'])
 f_string = 'f' + Ldir['date_string']
