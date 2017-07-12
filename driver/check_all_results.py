@@ -130,7 +130,8 @@ for f_string in f_list:
         blobs = blob_service.list_blobs(containername)
         his_list = []
         for blob in blobs:
-            his_list.append(blob.name)
+            if 'ocean_his' in blob.name:
+                his_list.append(blob.name)
             #print(blob.name)
         his_list.sort()
         f_df.loc[f_string, 'azu'] = str(int(his_list[-1][-7:-3]))

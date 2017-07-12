@@ -29,7 +29,7 @@ import matplotlib.pyplot as plt
 
 Ldir = Lfun.Lstart('cascadia1', 'base')
 Ldir['gtagex'] = Ldir['gtag'] + '_lobio1'
-f_string = 'f2017.05.18'
+f_string = 'f2017.07.11'
 in_dir = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/' + f_string + '/'
 out_name = 'ocean_surface.nc'
 out_fn = in_dir + out_name
@@ -52,7 +52,7 @@ for vn in vn_list2:
 
 plt.close('all')
     
-for vn in vn_list2t + vn_list3t:
+for vn in vn_list2t + vn_list3t + ['u', 'v']:
     fig = plt.figure(figsize=(12,8))
     nplot = 1
     for tlev in [0, -1]:
