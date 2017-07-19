@@ -1,14 +1,11 @@
 """
 This is the main program for making the LOW PASS forcing file.
 
-Also this is the first attempt to use the new forcing functions.
+Performance: about 5 minutes per day on fjord to do
+    a low pass of cascadia1_base_lobio1
 
-Performance: 44 sec per day (mac) or ~5 hours per year of days.
-    But, it took 70 sec on fjord, and 12 hours for a year
-    (no bio variables).
-    8/23/2016 It takes about 345 sec per day on fjord to do
-    a low pass of cascadia1_base_lobio1,
-    or about 3 hours per month. (140 sec per day on my mac)
+For testing on my mac run in ipython as
+run make_forcing_main.py -d 2017.05.18
 """
 
 import os
@@ -44,9 +41,6 @@ if Ldir['run_type'] == 'backfill':
             flist.append(indir + 'ocean_his_' + hnum + '.nc')
     # remove the last item
     flist.pop() # cute
-    # make output name (full path)
-    out_fn = (Ldir['roms'] + 'output/' + Ldir['gtagex'] +
-        '/f' + Ldir['date_string'] + '/low_passed.nc')
 elif Ldir['run_type'] == 'forecast':
     # use the middle day of the last forecast (= yesterday)
     # and today and tomorrow from today's forecast
@@ -69,9 +63,15 @@ elif Ldir['run_type'] == 'forecast':
             for ii in range(2,49): # use range(2,49) to use Godin 71 hour filter
                 hnum = ('0000' + str(ii))[-4:]
                 flist.append(indir + 'ocean_his_' + hnum + '.nc')
-    # make output name (full path)
-    out_fn = (Ldir['roms'] + 'output/' + Ldir['gtagex'] +
-        '/f' + Ldir['date_string'] + '/low_passed.nc')
+
+# make output name (full path)
+out_fn = (Ldir['roms'] + 'output/' + Ldir['gtagex'] +
+    '/f' + Ldir['date_string'] + '/low_passed.nc')
+# get rid of the old version, if it exists
+try:
+    os.remove(out_fn)
+except OSError:
+    pass # assume error was because the file did not exist
 
 # create the filter
 nf = len(flist)

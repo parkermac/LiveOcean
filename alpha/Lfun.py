@@ -22,7 +22,7 @@ def Lstart(gridname='BLANK', tag='BLANK'):
     if which_home == '/Users/PM5': # mac version
         Ldir['parent'] = '/Users/PM5/Documents/'
         Ldir['roms'] = Ldir['parent'] + 'LiveOcean_roms/'
-        Ldir['which_matlab'] = '/Applications/MATLAB_R2015b.app/bin/matlab'
+        Ldir['which_matlab'] = '/Applications/MATLAB_R2017a.app/bin/matlab'
     elif which_home == '/home/parker': # fjord version
         Ldir['parent'] = '/data1/parker/'
         Ldir['roms'] = '/pmr1/parker/LiveOcean_roms/'
