@@ -807,13 +807,10 @@ def P_sectA(in_dict):
 def P_tracks_MERHAB(in_dict):
     # Use tracker to create surface drifter tracks for MERHAB 
     # It automatically makes tracks for as long as there are
-    # hours in the folder.
-    
-    # should be run with "-lt snapshot" but then it overrides the specific
-    # time of the history file.
+    # hours in the folder, as a folder of movie frames.
 
     # START
-    fig = plt.figure(figsize=(6, 8))
+    fig = plt.figure(figsize=(12, 8))
     vlims = in_dict['vlims'].copy()
     out_dict['vlims'] = vlims
 
@@ -824,6 +821,7 @@ def P_tracks_MERHAB(in_dict):
     if pth not in sys.path:
         sys.path.append(pth)
     import trackfun
+    import pickle
 
     # need to get Ldir, which means unpacking gtagex
     fn = in_dict['fn']
@@ -840,92 +838,109 @@ def P_tracks_MERHAB(in_dict):
         if 'ocean_his' in item:
             fn_list.append(in_dir + item)
     fn_list.sort()
+    
+    # trim fn_list to end at the selected hour
+    fn_list_full = fn_list.copy() # but save the full list
+    fn_list = fn_list[:fn_list.index(fn)+1]
     # and estimate the number of days,
     ndays = round(len(fn_list)/24)
-    # and use the LAST file for the map field overlay
-    in_dict['fn'] = fn_list[-1]
+    # and use the CURRENT file for the map field overlay
     ds = nc.Dataset(in_dict['fn'])
-
-    # some run specifications
-    ic_name = 'test' # 'jdf' or 'cr' or etc.
-    dir_tag = 'forward' # 'forward' or 'reverse'
-    method = 'rk4' # 'rk2' or 'rk4'
-    surface = True # Boolean, True for trap to surface
-    windage = 0.0 # a small number >= 0 [0.02]
-    ndiv = 1 # number of divisions to make between saves for the integration
 
     G, S, T = zrfun.get_basic_info(in_dict['fn'])
     T0 = zrfun.get_basic_info(fn_list[0], only_T=True)
-    
-    # # Evenly spread over whole domain
-    # x0 = G['lon_rho'][0, 1]
-    # x1 = G['lon_rho'][0, -2]
-    # y0 = G['lat_rho'][1, 0]
-    # y1 = G['lat_rho'][-2, 0]
-    # nyp = 30
-    # mlr = np.pi*(np.mean([y0, y1]))/180
-    # xyRatio = np.cos(mlr) * (x1 - x0) / (y1 - y0)
-    # lonvec = np.linspace(x0, x1, (nyp * xyRatio).astype(int))
-    # latvec = np.linspace(y0, y1, nyp)
-    # lonmat, latmat = np.meshgrid(lonvec, latvec)
-    
-    nyp = 7
-    x0 = -126
-    x1 = -125
-    y0 = 48
-    y1 = 49
-    mlr = np.pi*(np.mean([y0, y1]))/180
-    xyRatio = np.cos(mlr) * (x1 - x0) / (y1 - y0)
-    lonvec = np.linspace(x0, x1, (nyp * xyRatio).astype(int))
-    latvec = np.linspace(y0, y1, nyp)
-    lonmat_1, latmat_1 = np.meshgrid(lonvec, latvec)
-    x0 = -125
-    x1 = -124
-    y0 = 44
-    y1 = 45
-    mlr = np.pi*(np.mean([y0, y1]))/180
-    xyRatio = np.cos(mlr) * (x1 - x0) / (y1 - y0)
-    lonvec = np.linspace(x0, x1, (nyp * xyRatio).astype(int))
-    latvec = np.linspace(y0, y1, nyp)
-    lonmat_2, latmat_2 = np.meshgrid(lonvec, latvec)
-    lonmat = np.concatenate((lonmat_1.flatten(), lonmat_2.flatten()))
-    latmat = np.concatenate((latmat_1.flatten(), latmat_2.flatten()))
-    plon00 = lonmat.flatten()
-    plat00 = latmat.flatten()
-    pcs00 = np.array([-.05]) # unimportant when surface=True
 
-    # save some things in Ldir
-    Ldir['gtagex'] = gtagex
-    Ldir['ic_name'] = ic_name
-    Ldir['dir_tag'] = dir_tag
-    Ldir['method'] = method
-    Ldir['surface'] = surface
-    Ldir['windage'] = windage
-    Ldir['ndiv'] = ndiv
+    if len(fn_list) == 2:
+        # only do the tracking at the start
+        
+        # some run specifications
+        ic_name = 'test' # 'jdf' or 'cr' or etc.
+        dir_tag = 'forward' # 'forward' or 'reverse'
+        method = 'rk4' # 'rk2' or 'rk4'
+        surface = True # Boolean, True for trap to surface
+        windage = 0.0 # a small number >= 0 [0.02]
+        ndiv = 1 # number of divisions to make between saves for the integration
 
-    # make the full IC vectors, which will have equal length
-    # (one value for each particle)
-    NSP = len(pcs00)
-    NXYP = len(plon00)
-    plon0 = plon00.reshape(NXYP,1) * np.ones((NXYP,NSP))
-    plat0 = plat00.reshape(NXYP,1) * np.ones((NXYP,NSP))
-    pcs0 = np.ones((NXYP,NSP)) * pcs00.reshape(1,NSP)
-    plon0 = plon0.flatten()
-    plat0 = plat0.flatten()
-    pcs0 = pcs0.flatten()
-
-    # DO THE TRACKING
-    import time
-    tt0 = time.time()
     
-    P, Gtr, Str = trackfun.get_tracks(fn_list, plon0, plat0, pcs0,
-                                  dir_tag, method, surface, ndiv, windage)
-    print('  took %0.1f seconds' % (time.time() - tt0))
+        # # Evenly spread over whole domain
+        # x0 = G['lon_rho'][0, 1]
+        # x1 = G['lon_rho'][0, -2]
+        # y0 = G['lat_rho'][1, 0]
+        # y1 = G['lat_rho'][-2, 0]
+        # nyp = 30
+        # mlr = np.pi*(np.mean([y0, y1]))/180
+        # xyRatio = np.cos(mlr) * (x1 - x0) / (y1 - y0)
+        # lonvec = np.linspace(x0, x1, (nyp * xyRatio).astype(int))
+        # latvec = np.linspace(y0, y1, nyp)
+        # lonmat, latmat = np.meshgrid(lonvec, latvec)
+    
+        nyp = 7
+        x0 = -126
+        x1 = -125
+        y0 = 48
+        y1 = 49
+        mlr = np.pi*(np.mean([y0, y1]))/180
+        xyRatio = np.cos(mlr) * (x1 - x0) / (y1 - y0)
+        lonvec = np.linspace(x0, x1, (nyp * xyRatio).astype(int))
+        latvec = np.linspace(y0, y1, nyp)
+        lonmat_1, latmat_1 = np.meshgrid(lonvec, latvec)
+        x0 = -125
+        x1 = -124
+        y0 = 44
+        y1 = 45
+        mlr = np.pi*(np.mean([y0, y1]))/180
+        xyRatio = np.cos(mlr) * (x1 - x0) / (y1 - y0)
+        lonvec = np.linspace(x0, x1, (nyp * xyRatio).astype(int))
+        latvec = np.linspace(y0, y1, nyp)
+        lonmat_2, latmat_2 = np.meshgrid(lonvec, latvec)
+        lonmat = np.concatenate((lonmat_1.flatten(), lonmat_2.flatten()))
+        latmat = np.concatenate((latmat_1.flatten(), latmat_2.flatten()))
+        plon00 = lonmat.flatten()
+        plat00 = latmat.flatten()
+        pcs00 = np.array([-.05]) # unimportant when surface=True
+
+        # save some things in Ldir
+        Ldir['gtagex'] = gtagex
+        Ldir['ic_name'] = ic_name
+        Ldir['dir_tag'] = dir_tag
+        Ldir['method'] = method
+        Ldir['surface'] = surface
+        Ldir['windage'] = windage
+        Ldir['ndiv'] = ndiv
+
+        # make the full IC vectors, which will have equal length
+        # (one value for each particle)
+        NSP = len(pcs00)
+        NXYP = len(plon00)
+        plon0 = plon00.reshape(NXYP,1) * np.ones((NXYP,NSP))
+        plat0 = plat00.reshape(NXYP,1) * np.ones((NXYP,NSP))
+        pcs0 = np.ones((NXYP,NSP)) * pcs00.reshape(1,NSP)
+        plon0 = plon0.flatten()
+        plat0 = plat0.flatten()
+        pcs0 = pcs0.flatten()
+
+        # DO THE TRACKING
+        import time
+        tt0 = time.time()
+    
+        P, Gtr, Str = trackfun.get_tracks(fn_list_full, plon0, plat0, pcs0,
+                                      dir_tag, method, surface, ndiv, windage)
+        print('  took %0.1f seconds' % (time.time() - tt0))
+        
+        fo = in_dict['fn_out']
+        out_dir = fo[:fo.rindex('/')+1]
+        out_fn = out_dir + 'tracks.p'
+        pickle.dump(P, open(out_fn, 'wb'))
+    else:
+        fo = in_dict['fn_out']
+        out_dir = fo[:fo.rindex('/')+1]
+        out_fn = out_dir + 'tracks.p'
+        P = pickle.load(open(out_fn, 'rb'))
 
     # PLOT CODE
 
     # panel 1
-    ax = fig.add_subplot(111)
+    ax = fig.add_subplot(121)
     vn = 'salt'
     tstr = 'Surface ' + tstr_dict[vn] +' and ' + str(ndays) + ' day Tracks'
     cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn,
@@ -940,7 +955,6 @@ def P_tracks_MERHAB(in_dict):
     ax.set_xlabel('Longitude', fontsize=fs1)
     ax.set_ylabel('Latitude', fontsize=fs1)
     ax.set_title(tstr, fontsize=fs1)
-    
     
     fs = fs1 - 6
     ax.text(.98, .10, T0['tm'].strftime('%Y-%m-%d %H:%M'),
@@ -959,10 +973,11 @@ def P_tracks_MERHAB(in_dict):
     # add the tracks
     c_start = 'w'; s_start = 4
     c_end = 'r'; s_end = 6
-    ax.plot(P['lon'], P['lat'], '-k', linewidth=2)
+    ntt = len(fn_list) -1
+    ax.plot(P['lon'][:ntt,:], P['lat'][:ntt,:], '-k', linewidth=2)
     ax.plot(P['lon'][0,:],P['lat'][0,:],'o'+c_start,
             markersize=s_start, alpha = 1, markeredgecolor='k')
-    ax.plot(P['lon'][-1,:],P['lat'][-1,:],'o'+c_end,
+    ax.plot(P['lon'][ntt,:],P['lat'][ntt,:],'o'+c_end,
             markersize=s_end, alpha = 1, markeredgecolor='k')
     
     # add info about the tracks    
@@ -978,6 +993,22 @@ def P_tracks_MERHAB(in_dict):
             verticalalignment='center', fontstyle='italic', transform=ax.transAxes)
     ax.text(x1-.02, y1, 'end', horizontalalignment='right',
             verticalalignment='center', fontstyle='italic', transform=ax.transAxes)
+   
+    ax = fig.add_subplot(122)
+    vn = 'phytoplankton'
+    tstr = 'Surface ' + tstr_dict[vn]
+    cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn,
+           vlims=vlims[vn], cmap=cmap_dict[vn], fac=fac_dict[vn],
+           do_mask_salish=True)
+    fig.colorbar(cs)
+    pfun.add_bathy_contours(ax, ds, txt=False)
+    pfun.add_coast(ax)
+    ax.axis(pfun.get_aa(ds))
+    pfun.dar(ax)
+    fs1 = 16
+    ax.set_xlabel('Longitude', fontsize=fs1)
+    #ax.set_ylabel('Latitude', fontsize=fs1)
+    ax.set_title(tstr, fontsize=fs1)
    
     fig.tight_layout()
 

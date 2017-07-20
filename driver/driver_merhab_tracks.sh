@@ -76,11 +76,6 @@ if [ -e $HOME"/.profile" ] ; then
   source $HOME"/.profile"
 fi
 
-if [ $run_type = "forecast" ] ; then
-  python ./pan_plot.py -g $gridname -t $tag -x $ex_name -lt merhab -pt P_tracks_MERHAB &
-else
-  python ./pan_plot.py -g $gridname -t $tag -x $ex_name -lt snapshot -d $DD -pt P_tracks_MERHAB &
-fi
+# could add -mov True to this
+python ./pan_plot.py -g $gridname -t $tag -x $ex_name -lt merhab -d $DD -pt P_tracks_MERHAB &
 
-
-  
