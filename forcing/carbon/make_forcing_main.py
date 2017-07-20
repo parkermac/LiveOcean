@@ -21,12 +21,40 @@ Ldir['indir'] = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/f' + Ldir['date_st
 Ldir['h0'] = str(2)
 Ldir['h1'] = str(4)
 # run the code to create the forcing files
-Lfun.run_worker_post(Ldir)
+import subprocess
+
+func = ("make_forcing_worker(\'" +
+    Ldir['gridname'] + "\',\'" +
+    Ldir['tag'] + "\',\'" +
+    Ldir['date_string'] + "\',\'" +
+    Ldir['run_type'] + "\',\'" +
+    Ldir['indir'] + "\',\'" +
+    Ldir['h0'] + "\',\'" +
+    Ldir['h1'] + "\',\'" +
+    Ldir['LOogf_f'] + "\')")
+cmd = Ldir['which_matlab']
+run_cmd = [cmd, "-nojvm", "-nodisplay", "-r", func, "&"]
+subprocess.run(run_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+
+#Lfun.run_worker_post(Ldir)
 
 Ldir['h0'] = str(5)
 Ldir['h1'] = str(7)
+func = ("make_forcing_worker(\'" +
+    Ldir['gridname'] + "\',\'" +
+    Ldir['tag'] + "\',\'" +
+    Ldir['date_string'] + "\',\'" +
+    Ldir['run_type'] + "\',\'" +
+    Ldir['indir'] + "\',\'" +
+    Ldir['h0'] + "\',\'" +
+    Ldir['h1'] + "\',\'" +
+    Ldir['LOogf_f'] + "\')")
+cmd = Ldir['which_matlab']
+run_cmd = [cmd, "-nojvm", "-nodisplay", "-r", func, "&"]
+subprocess.run(run_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 # run the code to create the forcing files
-Lfun.run_worker_post(Ldir)
+#Lfun.run_worker_post(Ldir)
 
 # ************** END CASE-SPECIFIC CODE *****************
 
