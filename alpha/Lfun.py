@@ -100,6 +100,10 @@ def run_worker_post(Ldir, worker_type='matlab'):
     # carbon post-processing code. Eventually I may want to separate
     # out the forcing things from the post-processing things.
     #
+    # It also passes two other pieces of info: h0 and h1 (ints), the hour numbers
+    # of history files to process (including all in between) with the goal
+    # of speeding up the carbon post-processing.
+    #
     if worker_type == 'matlab':
         # pass arguments to a matlab program
         import subprocess
@@ -110,6 +114,8 @@ def run_worker_post(Ldir, worker_type='matlab'):
             Ldir['date_string'] + "\',\'" +
             Ldir['run_type'] + "\',\'" +
             Ldir['indir'] + "\',\'" +
+            Ldir['h0'] + "\',\'" +
+            Ldir['h1'] + "\',\'" +
             Ldir['LOogf_f'] + "\')")
         cmd = Ldir['which_matlab']
         run_cmd = [cmd, "-nojvm", "-nodisplay", "-r", func, "&"]

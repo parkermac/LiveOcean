@@ -6,10 +6,9 @@
 #
 # CHANGES:
 # 8/21/2016 Various edits to handle jobs more gracefully.
-# 5/20/2017 I made it so that it could be run again but only re-make
-# the forcing directory if needed.  Then on 5/30/2017 Added the optional flag
-# -c (for clobber) to override this behavior and force it to
-# remake the forcing.
+# 7/20/2017 By using the optional flag -nc (for do not clobber)
+# it will not remake a forcing file that was already successfully created.
+# The default is to clobber.
 
 # NOTE: must be run from fjord.
 
@@ -45,7 +44,7 @@ fi
 # you can also use long names like --ex_name instead of -x
 
 ex_name="placeholder"
-clobber_flag=0 # the default (0) is to not clobber, unless the -c argument is used
+clobber_flag=1 # the default (1) is to clobber, unless the -nc argument is used
 while [ "$1" != "" ] ; do
   case $1 in
     -g | --gridname )  shift
@@ -69,8 +68,8 @@ while [ "$1" != "" ] ; do
     -1 | --ymd1 )  shift
       ymd1=$1
       ;;
-    -c | --clobber )
-      clobber_flag=1
+    -nc | --do_not_clobber )
+      clobber_flag=0
       ;;
   esac
   shift

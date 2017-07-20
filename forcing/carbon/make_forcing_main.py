@@ -18,10 +18,17 @@ Ldir, Lfun = ffun.intro()
 
 Ldir['indir'] = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/f' + Ldir['date_string'] + '/'
 
-# ************** END CASE-SPECIFIC CODE *****************
-
+Ldir['h0'] = str(2)
+Ldir['h1'] = str(4)
 # run the code to create the forcing files
 Lfun.run_worker_post(Ldir)
+
+Ldir['h0'] = str(5)
+Ldir['h1'] = str(7)
+# run the code to create the forcing files
+Lfun.run_worker_post(Ldir)
+
+# ************** END CASE-SPECIFIC CODE *****************
 
 from datetime import datetime
 print('MAIN end time = ' + str(datetime.now()))
