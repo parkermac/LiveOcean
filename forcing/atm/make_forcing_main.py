@@ -18,4 +18,5 @@ Ldir, Lfun = ffun.intro()
 Lfun.run_worker(Ldir)
 
 from datetime import datetime
-print('MAIN end time = ' + str(datetime.now()))
+time_format = '%Y.%m.%d %H:%M:%S'
+print('MAIN end time = ' + datetime.now().strftime(time_format))

@@ -86,45 +86,13 @@ def run_worker(Ldir, worker_type='matlab'):
             Ldir['run_type'] + "\',\'" +
             Ldir['LOogf_f'] + "\')")
         cmd = Ldir['which_matlab']
-        run_cmd = [cmd, "-nojvm", "-nodisplay", "-r", func, "&"]
-        proc = subprocess.Popen(run_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        out, err = proc.communicate() # "out" is the screen output of the matlab code
-        print(out.decode()) # this ends up as part of the make_forcing_main.py screen output
+        run_cmd = [cmd, "-nojvm", "-nodisplay", "-r", func, "&"]        
+        proc = subprocess.run(run_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        print('\n-main: screen output from worker-')
+        print(proc.stdout.decode())
     else:
         print('other worker types not implemented yet')
-        
-def run_worker_post(Ldir, worker_type='matlab'):
-    # run the worker code using subprocess
-    #
-    # Passes an extra piece of information: an "indir" used by the
-    # carbon post-processing code. Eventually I may want to separate
-    # out the forcing things from the post-processing things.
-    #
-    # It also passes two other pieces of info: h0 and h1 (ints), the hour numbers
-    # of history files to process (including all in between) with the goal
-    # of speeding up the carbon post-processing.
-    #
-    if worker_type == 'matlab':
-        # pass arguments to a matlab program
-        import subprocess
-        
-        func = ("make_forcing_worker(\'" +
-            Ldir['gridname'] + "\',\'" +
-            Ldir['tag'] + "\',\'" +
-            Ldir['date_string'] + "\',\'" +
-            Ldir['run_type'] + "\',\'" +
-            Ldir['indir'] + "\',\'" +
-            Ldir['h0'] + "\',\'" +
-            Ldir['h1'] + "\',\'" +
-            Ldir['LOogf_f'] + "\')")
-        cmd = Ldir['which_matlab']
-        run_cmd = [cmd, "-nojvm", "-nodisplay", "-r", func, "&"]
-        subprocess.run(run_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        #proc = subprocess.Popen(run_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        out, err = proc.communicate() # "out" is the screen output of the matlab code
-        #print(out.decode()) # this ends up as part of the make_forcing_main.py screen output
-    else:
-        print('other worker types not implemented yet')
+
 
 def datetime_to_modtime(dt):
     # This is where we define how time will be treated

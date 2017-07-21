@@ -81,7 +81,8 @@ def intro():
     # screen output
     print('MAIN: frc = ' + args.frc + ', run_type = ' + args.run_type
         + ', date_string = ' + args.date_string)
-    print('MAIN start time = ' + datetime.now().strftime(time_format))
+    print('MAIN start time = ' + datetime.now().strftime(time_format))   
+    sys.stdout.flush()
 
     return Ldir, Lfun
 
