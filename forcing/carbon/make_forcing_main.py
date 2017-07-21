@@ -46,7 +46,7 @@ func = ("make_forcing_worker(\'" +
     Ldir['LOogf_f'] + "\')")
 cmd = Ldir['which_matlab']
 run_cmd = [cmd, "-nodisplay", "-r", func, "&"]
-#subprocess.run(run_cmd)
+subprocess.run(run_cmd)
 
 while h1 < h_list[-1]:
     ii += 1
@@ -70,7 +70,7 @@ while h1 < h_list[-1]:
         Ldir['LOogf_f'] + "\')")
     cmd = Ldir['which_matlab']
     run_cmd = [cmd, "-nodisplay", "-r", func, "&"]
-    #subprocess.run(run_cmd)
+    subprocess.run(run_cmd)
 
 # ************** END CASE-SPECIFIC CODE *****************
 
