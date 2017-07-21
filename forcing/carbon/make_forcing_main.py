@@ -16,45 +16,44 @@ Ldir, Lfun = ffun.intro()
 # use a different version of Lfun.run_worker() because it allows
 # us to tell the worker where the history files are.
 
-Ldir['indir'] = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/f' + Ldir['date_string'] + '/'
-
-Ldir['h0'] = str(2)
-Ldir['h1'] = str(4)
-# run the code to create the forcing files
 import subprocess
 
-func = ("make_forcing_worker(\'" +
-    Ldir['gridname'] + "\',\'" +
-    Ldir['tag'] + "\',\'" +
-    Ldir['date_string'] + "\',\'" +
-    Ldir['run_type'] + "\',\'" +
-    Ldir['indir'] + "\',\'" +
-    Ldir['h0'] + "\',\'" +
-    Ldir['h1'] + "\',\'" +
-    Ldir['LOogf_f'] + "\')")
-cmd = Ldir['which_matlab']
-run_cmd = [cmd, "-nojvm", "-nodisplay", "-r", func, "&"]
-subprocess.run(run_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+Ldir['indir'] = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/f' + Ldir['date_string'] + '/'
 
+# make a list of all history files in the directory
+his_list_raw = os.listdir(Ldir['indir'])
+his_list = [hh for hh in his_list_raw if 'ocean_his' in hh]
+his_list.sort()
+h_list = [int(his[-7:-3]) for his in his_list]
 
-#Lfun.run_worker_post(Ldir)
-
-Ldir['h0'] = str(5)
-Ldir['h1'] = str(7)
-func = ("make_forcing_worker(\'" +
-    Ldir['gridname'] + "\',\'" +
-    Ldir['tag'] + "\',\'" +
-    Ldir['date_string'] + "\',\'" +
-    Ldir['run_type'] + "\',\'" +
-    Ldir['indir'] + "\',\'" +
-    Ldir['h0'] + "\',\'" +
-    Ldir['h1'] + "\',\'" +
-    Ldir['LOogf_f'] + "\')")
-cmd = Ldir['which_matlab']
-run_cmd = [cmd, "-nojvm", "-nodisplay", "-r", func, "&"]
-subprocess.run(run_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-# run the code to create the forcing files
-#Lfun.run_worker_post(Ldir)
+nf = 15
+ii = 0
+h0 = h_list[ii*nf]
+h1 = h_list[(ii+1)*nf - 1]
+print('h0 = %d, h1 =%d' % (h0, h1))
+while h1 < h_list[-1]:
+    ii += 1
+    h0 = h1 + 1
+    try:
+        h1 = h_list[(ii+1)*nf - 1]
+    except IndexError:
+        h1 = h_list[-1]
+    print('h0 = %d, h1 =%d' % (h0, h1))
+    Ldir['h0'] = str(h0)
+    Ldir['h1'] = str(h1)
+    # run the code to create the forcing files
+    func = ("make_forcing_worker(\'" +
+        Ldir['gridname'] + "\',\'" +
+        Ldir['tag'] + "\',\'" +
+        Ldir['date_string'] + "\',\'" +
+        Ldir['run_type'] + "\',\'" +
+        Ldir['indir'] + "\',\'" +
+        Ldir['h0'] + "\',\'" +
+        Ldir['h1'] + "\',\'" +
+        Ldir['LOogf_f'] + "\')")
+    cmd = Ldir['which_matlab']
+    run_cmd = [cmd, "-nodisplay", "-r", func, "&"]
+    subprocess.run(run_cmd)
 
 # ************** END CASE-SPECIFIC CODE *****************
 

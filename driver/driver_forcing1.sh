@@ -93,8 +93,8 @@ D1=$[10#$y1*10000 + 10#$m1*100 + 10#$d1]
 
 gtag=$gridname"_"$tag
 
-while_flag=0
-while [ $D -le $D1 ] && [ $while_flag -eq 0 ]
+keep_going=1 # 1 => keep going, 0 => stop the driver
+while [ $D -le $D1 ] && [ $keep_going -eq 1 ]
 do
   # manipulate the string D to insert dots, using the syntax:
   #    substring = ${string:start_index:count}
@@ -157,10 +157,10 @@ do
     # check the checkfile to see if we should continue
     if grep -q "result,success" $checkfile ; then
       echo "- Job completed successfully."
-      # will continue because we don't change while_flag
+      # will continue because we don't change keep_going
     else
       echo "- Something else happened."
-      while_flag=1
+      keep_going=0
       # stop the driver
     fi
   

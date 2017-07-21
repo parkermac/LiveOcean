@@ -121,7 +121,7 @@ def run_worker_post(Ldir, worker_type='matlab'):
         run_cmd = [cmd, "-nojvm", "-nodisplay", "-r", func, "&"]
         subprocess.run(run_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         #proc = subprocess.Popen(run_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        #out, err = proc.communicate() # "out" is the screen output of the matlab code
+        out, err = proc.communicate() # "out" is the screen output of the matlab code
         #print(out.decode()) # this ends up as part of the make_forcing_main.py screen output
     else:
         print('other worker types not implemented yet')
