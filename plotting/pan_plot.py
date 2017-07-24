@@ -217,7 +217,7 @@ if len(args.fn_out) == 0:
             jj += 1
         # and make a movie
         if args.make_movie:
-            ff_str = ("ffmpeg -r 8 -pattern_type glob -i " + 
+            ff_str = ("ffmpeg -r 8 -i " + 
             outdir+"plot_%04d.png -vcodec libx264 -pix_fmt yuv420p -crf 25 "+outdir+"movie.mp4")
             os.system(ff_str)        
 else:
