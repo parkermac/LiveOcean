@@ -218,7 +218,7 @@ if len(args.fn_out) == 0:
         # and make a movie
         if args.make_movie:
             ff_str = ("ffmpeg -r 8 -pattern_type glob -i " + 
-            " '"+outdir+"*.png' -c:v libx264 -pix_fmt yuv420p -crf 25 "+outdir+"movie.mp4")
+            outdir+"plot_%04d.png -vcodec libx264 -pix_fmt yuv420p -crf 25 "+outdir+"movie.mp4")
             os.system(ff_str)        
 else:
     # plot a single image to a file

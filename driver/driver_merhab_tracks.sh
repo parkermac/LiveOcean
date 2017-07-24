@@ -77,5 +77,5 @@ if [ -e $HOME"/.profile" ] ; then
 fi
 
 # could add -mov True to this
-python ./pan_plot.py -g $gridname -t $tag -x $ex_name -lt merhab -d $DD -pt P_tracks_MERHAB &
+python ./pan_plot.py -g $gridname -t $tag -x $ex_name -lt merhab -d $DD -pt P_tracks_MERHAB -mov True &
 
