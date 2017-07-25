@@ -8,6 +8,7 @@ Created on Fri Jul  7 14:34:50 2017
 This is the main program for pushing files to AZURE.
 
 For testing on my mac run in ipython as
+
 run make_forcing_main.py -d 2017.05.18
 """
 
@@ -23,9 +24,6 @@ Ldir, Lfun = ffun.intro()
 
 from datetime import datetime
 start_time = datetime.now()
-import netCDF4 as nc
-import zrfun
-import numpy as np
 
 print(' - Pushing selected files to Azure for ' + Ldir['date_string'])
 f_string = 'f' + Ldir['date_string']
@@ -46,14 +44,14 @@ blob_service.set_container_acl(containername, public_access=PublicAccess.Contain
 
 # input directory
 in_dir = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/' + f_string + '/'
-
 # output files
 out_list = ['ocean_surface.nc', 'low_passed.nc', 'low_passed_UBC.nc']
 
-result = 'success'
-for out_name in out_list:
-    out_fn = in_dir + out_name
-    #%% write it to Azure
+in_dir2 = Ldir['LOo'] + 'plots/merhab_P_tracks_MERHAB_' + Ldir['gtagex'] + '/'
+out_list2 = ['movie.mp4']
+
+def write_to_azure(out_fn, blob_service, containername, outname):
+    # write it to Azure
     try:
         bname = open(out_fn, 'rb')
         blob_service.create_blob_from_stream(containername, out_name, bname)
@@ -63,6 +61,17 @@ for out_name in out_list:
         # could be FileNotFoundError from open, or an Azure error
         print(' - Unable to write ' + out_name + ' to Azure')
         result = 'fail'
+    return result
+
+result = 'success'
+
+for out_name in out_list:
+    out_fn = in_dir + out_name
+    result = write_to_azure(out_fn, blob_service, containername, out_name)
+    
+for out_name in out_list2:
+    out_fn = in_dir2 + out_name
+    result = write_to_azure(out_fn, blob_service, containername, out_name)
         
 #%% prepare for finale
 import collections

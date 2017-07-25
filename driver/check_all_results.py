@@ -44,7 +44,7 @@ f_list.sort()
 f_list = f_list[-args.num_days:]
 
 # list of properties to inspect
-clist = ['atm', 'ocn1', 'riv', 'tide', 'dot_in', 'his', 'carbon', 'azu', 'low_pass', 'tracks']
+clist = ['atm', 'ocn1', 'riv', 'tide', 'dot_in', 'his', 'carbon', 'azu1', 'low_pass', 'tracks']
 
 # initialize the DataFrame
 f_df = pd.DataFrame(index=f_list, columns=clist)
@@ -55,7 +55,8 @@ force_dict = {'atm': ['lwrad_down.nc', 'Pair.nc', 'Qair.nc', 'rain.nc',
               'ocn': ['ocean_bry.nc', 'ocean_clm.nc', 'ocean_ini.nc'],
               'ocn1': ['ocean_bry.nc', 'ocean_clm.nc', 'ocean_ini.nc'],
               'riv': ['rivers.nc'],
-              'tide': ['tides.nc']}
+              'tide': ['tides.nc'],
+              'azu1': ['ocean_surface.nc', 'low_passed_UBC.nc', 'movie.mp4']}
 if 'bio' in args.ex_name:
     force_dict['ocn'] = ['ocean_bry_bio.nc', 'ocean_clm_bio.nc', 'ocean_ini_bio.nc']
     force_dict['ocn1'] = ['ocean_bry_bio.nc', 'ocean_clm_bio.nc', 'ocean_ini_bio.nc']
@@ -130,17 +131,17 @@ for f_string in f_list:
         blobs = blob_service.list_blobs(containername)
         his_list = []
         for blob in blobs:
-            if 'ocean_his' in blob.name:
-                his_list.append(blob.name)
-            #print(blob.name)
-        his_list.sort()
-        f_df.loc[f_string, 'azu'] = str(int(his_list[-1][-7:-3]))
+            if blob.name in force_dict['azu1']:
+                result = 'YES'
+            else:
+                result = 'NO' + blob.name
+        f_df.loc[f_string, 'azu1'] = result
     except:
         pass
         
-# see if the tracks plot has been made
+# see if the tracks movie has been made
 for f_string in f_list:
-    t_plot = Ldir['LOo'] + 'plots/merhab_tracks_' + f_string[1:] + '.png'
+    t_plot = Ldir['LOo'] + 'plots/merhab_P_tracks_MERHAB_' + Ldir['gtagex'] + '/movie.mp4'
     if os.path.isfile(t_plot):
         f_df.loc[f_string, 'tracks'] = 'YES'
     else:
