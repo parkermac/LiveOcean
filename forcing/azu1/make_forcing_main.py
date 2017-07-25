@@ -45,7 +45,7 @@ blob_service.set_container_acl(containername, public_access=PublicAccess.Contain
 # input directory
 in_dir = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/' + f_string + '/'
 # output files
-out_list = ['ocean_surface.nc', 'low_passed.nc', 'low_passed_UBC.nc']
+out_list = ['ocean_surface.nc', 'low_passed_UBC.nc']
 
 in_dir2 = Ldir['LOo'] + 'plots/merhab_P_tracks_MERHAB_' + Ldir['gtagex'] + '/'
 out_list2 = ['movie.mp4']
