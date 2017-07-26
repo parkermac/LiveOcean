@@ -57,21 +57,28 @@ def write_to_azure(out_fn, blob_service, containername, outname):
         blob_service.create_blob_from_stream(containername, out_name, bname)
         print('done putting ' + out_name)
         bname.close()
+        result = 'success'
     except:
         # could be FileNotFoundError from open, or an Azure error
         print(' - Unable to write ' + out_name + ' to Azure')
         result = 'fail'
     return result
 
-result = 'success'
-
+result_list = []
 for out_name in out_list:
     out_fn = in_dir + out_name
-    result = write_to_azure(out_fn, blob_service, containername, out_name)
+    result_list.append(write_to_azure(out_fn, blob_service, containername, out_name))
     
 for out_name in out_list2:
     out_fn = in_dir2 + out_name
-    result = write_to_azure(out_fn, blob_service, containername, out_name)
+    result_list.append(write_to_azure(out_fn, blob_service, containername, out_name))
+    
+try:
+    ii = result_list.index('fail')
+    result = 'fail'
+    print(ii)
+except ValueError: # no fails in list
+    result = 'success'
         
 #%% prepare for finale
 import collections
