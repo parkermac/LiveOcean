@@ -135,6 +135,7 @@ for f_string in f_list:
                 result = 'YES'
             else:
                 result = 'NO' + blob.name
+                break
         f_df.loc[f_string, 'azu1'] = result
     except:
         pass
