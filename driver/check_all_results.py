@@ -129,13 +129,13 @@ for f_string in f_list:
         blob_service.create_container(containername)
         blob_service.set_container_acl(containername, public_access=PublicAccess.Container)
         blobs = blob_service.list_blobs(containername)
-        his_list = []
+        fn_list = force_dict['azu1'].copy()
         for blob in blobs:
-            if blob.name in force_dict['azu1']:
+            if blob.name in fn_list:
                 result = 'YES'
+                fn_list.pop(fn_list.index(blob.name))
             else:
-                result = 'NO' + blob.name
-                break
+                pass
         f_df.loc[f_string, 'azu1'] = result
     except:
         pass
