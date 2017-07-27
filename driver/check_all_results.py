@@ -124,12 +124,10 @@ blob_service = BlockBlobService(account_name=account, account_key=key)
 for f_string in f_list:
     ff_string = f_string.replace('.','')
     containername = ff_string
-    print(ff_string)
     try:
         blobs = blob_service.list_blobs(containername)
         azu_count = 0
         for blob in blobs:
-            print(blob.name)
             if blob.name in azu_list:
                 azu_count += 1
         f_df.loc[f_string, 'azu1'] = str(azu_count) + '/' + str(len(azu_list))
