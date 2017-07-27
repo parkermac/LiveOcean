@@ -58,6 +58,7 @@ force_dict = {'atm': ['lwrad_down.nc', 'Pair.nc', 'Qair.nc', 'rain.nc',
 if 'bio' in args.ex_name:
     force_dict['ocn1'] = ['ocean_bry_bio.nc', 'ocean_clm_bio.nc', 'ocean_ini_bio.nc']
     force_dict['riv'] = ['rivers_bio.nc']
+    
 # populate the DataFrame with forcing results
 for f_string in f_list:
     for which_force in force_dict.keys():
@@ -116,7 +117,6 @@ except:
 # what has been pushed to Azure
 azu_list = ['ocean_surface.nc', 'low_passed_UBC.nc', 'movie.mp4']
 from azure.storage.blob import BlockBlobService
-#from azure.storage.blob import PublicAccess
 azu_dict = Lfun.csv_to_dict(Ldir['data'] + 'accounts/azure_pm_2015.05.25.csv')
 account = azu_dict['account']
 key = azu_dict['key']
@@ -126,8 +126,6 @@ for f_string in f_list:
     containername = ff_string
     print(ff_string)
     try:
-        #blob_service.create_container(containername)
-        #blob_service.set_container_acl(containername, public_access=PublicAccess.Container)
         blobs = blob_service.list_blobs(containername)
         azu_count = 0
         for blob in blobs:
@@ -138,14 +136,6 @@ for f_string in f_list:
     except:
         pass
         
-## see if the frames for the tracks movie have been made
-#for f_string in f_list:
-#    t_plot = Ldir['LOo'] + 'plots/merhab_P_tracks_MERHAB_' + Ldir['gtagex'] + '/movie.mp4'
-#    if os.path.isfile(t_plot):
-#        f_df.loc[f_string, 'tracks'] = 'YES'
-#    else:
-#        pass
-
 # mark missing things
 f_df[f_df.isnull()] = '--'
 # make sure that the dates are in order
