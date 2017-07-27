@@ -44,7 +44,7 @@ f_list.sort()
 f_list = f_list[-args.num_days:]
 
 # list of properties to inspect
-clist = ['tide', 'riv', 'atm', 'ocn1', 'dot_in', 'his', 'tracks', 'carbon', 'low_pass', 'azu1']
+clist = ['tide', 'riv', 'atm', 'ocn1', 'dot_in', 'his', 'carbon', 'low_pass', 'azu1']
 
 # initialize the DataFrame
 f_df = pd.DataFrame(index=f_list, columns=clist)
@@ -124,13 +124,14 @@ blob_service = BlockBlobService(account_name=account, account_key=key)
 for f_string in f_list:
     ff_string = f_string.replace('.','')
     containername = ff_string
+    print(ff_string)
     try:
         #blob_service.create_container(containername)
         #blob_service.set_container_acl(containername, public_access=PublicAccess.Container)
         blobs = blob_service.list_blobs(containername)
-        fn_list = force_dict['azu1'].copy()
         azu_count = 0
         for blob in blobs:
+            print(blob.name)
             if blob.name in azu_list:
                 azu_count += 1
         f_df.loc[f_string, 'azu1'] = str(azu_count) + '/' + str(len(azu_list))
