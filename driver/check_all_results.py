@@ -44,7 +44,7 @@ f_list.sort()
 f_list = f_list[-args.num_days:]
 
 # list of properties to inspect
-clist = ['atm', 'ocn1', 'riv', 'tide', 'dot_in', 'his', 'carbon', 'azu1', 'low_pass', 'tracks']
+clist = ['tide', 'riv', 'atm', 'ocn1', 'dot_in', 'his', 'tracks', 'carbon', 'low_pass', 'azu1']
 
 # initialize the DataFrame
 f_df = pd.DataFrame(index=f_list, columns=clist)
@@ -52,40 +52,38 @@ f_df = pd.DataFrame(index=f_list, columns=clist)
 # for some things we will look for the existence of specific files as a test of completion
 force_dict = {'atm': ['lwrad_down.nc', 'Pair.nc', 'Qair.nc', 'rain.nc',
                       'swrad.nc', 'Tair.nc', 'Uwind.nc', 'Vwind.nc'],
-              'ocn': ['ocean_bry.nc', 'ocean_clm.nc', 'ocean_ini.nc'],
               'ocn1': ['ocean_bry.nc', 'ocean_clm.nc', 'ocean_ini.nc'],
               'riv': ['rivers.nc'],
-              'tide': ['tides.nc'],
-              'azu1': ['ocean_surface.nc', 'low_passed_UBC.nc', 'movie.mp4']}
+              'tide': ['tides.nc']}
 if 'bio' in args.ex_name:
-    force_dict['ocn'] = ['ocean_bry_bio.nc', 'ocean_clm_bio.nc', 'ocean_ini_bio.nc']
     force_dict['ocn1'] = ['ocean_bry_bio.nc', 'ocean_clm_bio.nc', 'ocean_ini_bio.nc']
     force_dict['riv'] = ['rivers_bio.nc']
-#
+# populate the DataFrame with forcing results
 for f_string in f_list:
     for which_force in force_dict.keys():
-        force_dir = f_dir0 + f_string + '/' + which_force + '/'
-        try:
-            lll = os.listdir(force_dir)
-            nc_list = force_dict[which_force]
-            if set(nc_list).issubset(set(lll)):
-                f_df.loc[f_string, which_force] = 'YES'
-                # and in some cases looks for specific time info
-                if which_force in ['atm', 'ocn', 'ocn1']:
-                    try:
-                        time_format = '%Y.%m.%d %H:%M:%S'
-                        ps = Lfun.csv_to_dict(force_dir + 'Info/process_status.csv')
-                        dt0 = datetime.strptime(ps['start_time'], time_format)
-                        dt1 = datetime.strptime(ps['end_time'], time_format)
-                        vdt0 = datetime.strptime(ps['var_start_time'], time_format)
-                        vdt1 = datetime.strptime(ps['var_end_time'], time_format)
-                        f_df.loc[f_string, which_force] = str((vdt1-vdt0).days) + 'd'
-                    except:
-                        pass
-        except:
-            # assume the directory is missing
-            pass
-
+        force_dir = f_dir0 + f_string + '/' + which_force + '/'        
+        if which_force in ['atm', 'ocn', 'ocn1']:
+            #  in these cases looks for specific time info
+            try:
+                time_format = '%Y.%m.%d %H:%M:%S'
+                ps = Lfun.csv_to_dict(force_dir + 'Info/process_status.csv')
+                dt0 = datetime.strptime(ps['start_time'], time_format)
+                dt1 = datetime.strptime(ps['end_time'], time_format)
+                vdt0 = datetime.strptime(ps['var_start_time'], time_format)
+                vdt1 = datetime.strptime(ps['var_end_time'], time_format)
+                f_df.loc[f_string, which_force] = str((vdt1-vdt0).days) + 'd'
+            except:
+                pass
+        else:
+            # otherwise just look to see that the nc file(s) are there
+            try:
+                lll = os.listdir(force_dir)
+                nc_list = force_dict[which_force]
+                if set(nc_list).issubset(set(lll)):
+                    f_df.loc[f_string, which_force] = 'YES'
+            except:
+                pass
+                
 # for other things look in the Info
 for f_string in f_list:
     for which_force in ['carbon', 'low_pass']:
@@ -115,9 +113,10 @@ try:
 except:
     pass
 
-# what has been pushed to Azure (just the last num_days)
+# what has been pushed to Azure
+azu_list = ['ocean_surface.nc', 'low_passed_UBC.nc', 'movie.mp4']
 from azure.storage.blob import BlockBlobService
-from azure.storage.blob import PublicAccess
+#from azure.storage.blob import PublicAccess
 azu_dict = Lfun.csv_to_dict(Ldir['data'] + 'accounts/azure_pm_2015.05.25.csv')
 account = azu_dict['account']
 key = azu_dict['key']
@@ -126,38 +125,29 @@ for f_string in f_list:
     ff_string = f_string.replace('.','')
     containername = ff_string
     try:
-        blob_service.create_container(containername)
-        blob_service.set_container_acl(containername, public_access=PublicAccess.Container)
+        #blob_service.create_container(containername)
+        #blob_service.set_container_acl(containername, public_access=PublicAccess.Container)
         blobs = blob_service.list_blobs(containername)
         fn_list = force_dict['azu1'].copy()
+        azu_count = 0
         for blob in blobs:
-            if blob.name in fn_list:
-                result = 'YES'
-                fn_list.pop(fn_list.index(blob.name))
-            else:
-                pass
-        f_df.loc[f_string, 'azu1'] = result
+            if blob.name in azu_list:
+                azu_count += 1
+        f_df.loc[f_string, 'azu1'] = str(azu_count) + '/' + str(len(azu_list))
     except:
         pass
         
-# see if the tracks movie has been made
-for f_string in f_list:
-    t_plot = Ldir['LOo'] + 'plots/merhab_P_tracks_MERHAB_' + Ldir['gtagex'] + '/movie.mp4'
-    if os.path.isfile(t_plot):
-        f_df.loc[f_string, 'tracks'] = 'YES'
-    else:
-        pass
+## see if the frames for the tracks movie have been made
+#for f_string in f_list:
+#    t_plot = Ldir['LOo'] + 'plots/merhab_P_tracks_MERHAB_' + Ldir['gtagex'] + '/movie.mp4'
+#    if os.path.isfile(t_plot):
+#        f_df.loc[f_string, 'tracks'] = 'YES'
+#    else:
+#        pass
 
 # mark missing things
 f_df[f_df.isnull()] = '--'
-
 # make sure that the dates are in order
 f_df = f_df.sort_index()
-
 # print to the screen
-#
-# This prints beginning and end rows
-#pd.set_option('display.max_rows', args.num_days)
-#
-# This prints just end rows
 print(f_df)
