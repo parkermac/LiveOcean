@@ -12,6 +12,7 @@ python pan_plot.py -g aestus1 -t A1 -x ae1 -d 2013.02.07 -lt backfill -pt P_sect
 python pan_plot.py -g aestus1 -t A1 -x ae1 -d 2013.02.01 -lt backfill -pt P_sectA -mov True -nd 13
 
 Running from the ipython command line:
+(but for some reason the movei code does not work when run from spyder)
 
 cd /Users/PM5/Documents/LiveOcean/plotting
 run pan_plot.py
@@ -144,6 +145,8 @@ elif plot_type == 'P_tracks_MERHAB':
     fn_list_raw = os.listdir(in_dir)
     fn_list = [(in_dir + ff) for ff in fn_list_raw if 'ocean_his' in ff]
     fn_list.sort()
+    # testing - make a shorter list
+    #fn_list = fn_list[:10]
     fn_list.pop(0) # remove the first hour
 elif list_type == 'backfill':
     fn_list = make_fn_list(dt0,dt1,Ldir)
@@ -218,7 +221,8 @@ if len(args.fn_out) == 0:
         # and make a movie
         if args.make_movie:
             ff_str = ("ffmpeg -r 8 -i " + 
-            outdir+"plot_%04d.png -vcodec libx264 -pix_fmt yuv420p -crf 25 "+outdir+"movie.mp4")
+            outdir+"plot_%04d.png -vcodec libx264 -pix_fmt yuv420p -crf 25 "
+            +outdir+"movie.mp4")
             os.system(ff_str)        
 else:
     # plot a single image to a file
