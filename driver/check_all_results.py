@@ -44,7 +44,7 @@ f_list.sort()
 f_list = f_list[-args.num_days:]
 
 # list of properties to inspect
-clist = ['tide', 'riv', 'atm', 'ocn1', 'dot_in', 'his', 'carbon', 'low_pass', 'azu1']
+clist = ['tide', 'riv', 'atm', 'ocn1', 'dot_in', 'his', 'tracks_m', 'carbon', 'low_pass', 'ubc', 'surface', 'azu1']
 
 # initialize the DataFrame
 f_df = pd.DataFrame(index=f_list, columns=clist)
@@ -87,7 +87,7 @@ for f_string in f_list:
                 
 # for other things look in the Info
 for f_string in f_list:
-    for which_force in ['carbon', 'low_pass']:
+    for which_force in ['tracks_m', 'carbon', 'low_pass', 'ubc', 'surface']:
         force_dir = f_dir0 + f_string + '/' + which_force + '/'
         try:
             ps = Lfun.csv_to_dict(force_dir + 'Info/process_status.csv')

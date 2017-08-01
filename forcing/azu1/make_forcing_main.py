@@ -45,10 +45,7 @@ blob_service.set_container_acl(containername, public_access=PublicAccess.Contain
 # input directory
 in_dir = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/' + f_string + '/'
 # output files
-out_list = ['ocean_surface.nc', 'low_passed_UBC.nc']
-
-in_dir2 = Ldir['LOo'] + 'plots/merhab_P_tracks_MERHAB_' + Ldir['gtagex'] + '/'
-out_list2 = ['movie.mp4']
+out_list = ['ocean_surface.nc', 'low_passed_UBC.nc', 'movie.mp4']
 
 def write_to_azure(out_fn, blob_service, containername, outname):
     # write it to Azure
@@ -67,10 +64,6 @@ def write_to_azure(out_fn, blob_service, containername, outname):
 result_list = []
 for out_name in out_list:
     out_fn = in_dir + out_name
-    result_list.append(write_to_azure(out_fn, blob_service, containername, out_name))
-    
-for out_name in out_list2:
-    out_fn = in_dir2 + out_name
     result_list.append(write_to_azure(out_fn, blob_service, containername, out_name))
     
 try:
