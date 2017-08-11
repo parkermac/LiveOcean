@@ -9,11 +9,11 @@ Module of plotting functions.
 import numpy as np
 import netCDF4 as nc
 
-import os
-which_home = os.environ.get("HOME") # This works even when called by cron.
-if which_home == '/Users/PM5': # mac version
+import Lfun
+Ldir = Lfun.Lstart()
+if Ldir['env'] == 'pm_mac': # mac version
     pass
-elif which_home == '/home/parker': # fjord version
+elif Ldir['env'] == 'fjord': # fjord version
     import matplotlib as mpl
     mpl.use('Agg')
 import matplotlib.pyplot as plt

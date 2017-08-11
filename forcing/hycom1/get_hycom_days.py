@@ -25,10 +25,9 @@ import pickle
 out_dir = Ldir['data'] + 'hycom1/'
 Lfun.make_dir(out_dir, clean=False)
 
-which_home = os.environ.get("HOME") # This works even when called by cron.
-if which_home == '/Users/PM5': # mac version
+if Ldir['env'] == 'pm_mac': # mac version
     testing = True
-elif which_home == '/home/parker': # fjord version
+elif Ldir['env'] == 'fjord': # fjord version
     testing = False
 
 if testing:

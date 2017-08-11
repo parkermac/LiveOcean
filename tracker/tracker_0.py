@@ -66,7 +66,7 @@ ndiv = 1 # number of divisions to make between saves for the integration
 # set run time information (multiple experiments)
 # always start on a day (no hours)
 # 
-if Ldir['parent'] == '/Users/PM5/Documents/':
+if Ldir['env'] == 'pm_mac':
     # mac version
     if gtagex == 'cascadia1_base_lo1':
         dt_first_day = datetime(2015,9,19)
@@ -83,7 +83,7 @@ if Ldir['parent'] == '/Users/PM5/Documents/':
         number_of_start_days = 3
         days_between_starts = 1
         days_to_track = 2
-elif Ldir['parent'] == '/data1/parker/':
+elif Ldir['env'] == 'fjord':
     # fjord version
     if gtagex == 'cascadia1_base_lo1':
         dt_first_day = datetime(2014,11,1)

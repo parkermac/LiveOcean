@@ -19,11 +19,13 @@ def Lstart(gridname='BLANK', tag='BLANK'):
     # Build information on the directory structure.
     import os
     which_home = os.environ.get("HOME") # This works even when called by cron.
-    if which_home == '/Users/PM5': # mac version
-        Ldir['parent'] = '/Users/PM5/Documents/'
+    if which_home == '/Users/pm7': # mac version
+        Ldir['env'] = 'pm_mac'
+        Ldir['parent'] = which_home + '/Documents/'
         Ldir['roms'] = Ldir['parent'] + 'LiveOcean_roms/'
         Ldir['which_matlab'] = '/Applications/MATLAB_R2017a.app/bin/matlab'
     elif which_home == '/home/parker': # fjord version
+        Ldir['env'] = 'fjord'
         Ldir['parent'] = '/data1/parker/'
         Ldir['roms'] = '/pmr1/parker/LiveOcean_roms/'
         Ldir['which_matlab'] = '/usr/local/bin/matlab'

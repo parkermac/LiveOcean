@@ -12,7 +12,7 @@ To run from the command line in LiveOcean/driver/:
 
 To test in python on mac:
 
-cd /Users/PM5/Documents/LiveOcean/forcing/ocnN
+cd ~/Documents/LiveOcean/forcing/ocnN
 
 run make_forcing_main.py -g sal0 -t f1 -r backfill -d 2013.01.31
 

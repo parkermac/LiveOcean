@@ -13,8 +13,8 @@
 # NOTE: must be run from fjord.
 
 # set a path and connect to a library of functions
-if [ $HOME = "/Users/PM5" ] ; then
-  LO_parent="/Users/PM5/Documents/LiveOcean"
+if [ $HOME = "/Users/pm7" ] ; then
+  LO_parent=$HOME"/Documents/LiveOcean"
 elif [ $HOME = "/home/parker" ] ; then
   LO_parent="/data1/parker/LiveOcean"
 fi
@@ -139,7 +139,9 @@ do
     
     # Make the forcing.
     cd $LO_parent"/forcing/"$frc
-    source $HOME"/.bashrc"
+    if [ -e $HOME"/.bashrc" ] ; then
+      source $HOME"/.bashrc"
+    fi
     if [ -e $HOME"/.bash_profile" ] ; then
       source $HOME"/.bash_profile"
     fi

@@ -15,9 +15,9 @@ Ldir = Lfun.Lstart()
 
 import pandas as pd
 
-if Ldir['parent'] == '/Users/PM5/Documents/':
-    f_dir0 = Ldir['parent'] + 'LiveOcean_files/wrf/'
-elif Ldir['parent'] == '/data1/parker/': 
+if Ldir['env'] == 'pm_mac':
+    f_dir0 = Ldir['parent'] + 'LiveOcean_data/wrf/'
+elif Ldir['env'] == 'fjord': 
     f_dir0 = '/pmraid3/darr/tstwrf/tmpwrf/'
 
 # directory names are like 2012100700

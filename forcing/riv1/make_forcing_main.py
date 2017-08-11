@@ -3,7 +3,7 @@ This is the main program for making the RIV forcing file.
 
 For development run from the command line in spyder as, e.g.:
 
-cd /Users/PM5/Documents/LiveOcean/forcing/riv1
+cd ~/Documents/LiveOcean/forcing/riv1
 
 test historical:
 run make_forcing_main.py -g cascadia2 -t frc2 -r backfill -d 2013.01.01

@@ -13,7 +13,7 @@ To run from the command line in LiveOcean/driver/:
 
 To test in python on mac:
 
-cd /Users/PM5/Documents/LiveOcean/forcing/ocn1
+cd ~/Documents/LiveOcean/forcing/ocn1
 
 This is a normal case (no gaps)
 run make_forcing_main.py -g cas1 -t base -r backfill -d 2013.01.01

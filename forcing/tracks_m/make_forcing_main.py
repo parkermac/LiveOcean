@@ -5,7 +5,7 @@ This is the main program for creating the MERHAB TRACKS plots and movie.
 
 For testing on my mac run in ipython as
 
-cd /Users/PM5/Documents/LiveOcean/forcing/tracks_m
+cd ~/Documents/LiveOcean/forcing/tracks_m
 
 run make_forcing_main.py -d 2017.05.18
 """

@@ -6,6 +6,8 @@ Created on Wed Jul 27 07:14:06 2016
 
 Code to look at the ocn files on a given day.
 
+Only set up to work on mac.
+
 """
 
 #%% setup
@@ -24,7 +26,7 @@ import numpy as np
 
 #%% where to look
 
-dir0 = '/Users/PM5/Documents/LiveOcean_output/'
+dir0 = '~/Documents/LiveOcean_output/'
 case = 1
 if case == 1:
     gtag = 'cascadia2_frc2'

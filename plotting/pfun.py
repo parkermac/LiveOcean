@@ -22,11 +22,9 @@ import zfun
 
 import numpy as np
 
-import os
-which_home = os.environ.get("HOME") # This works even when called by cron.
-if which_home == '/Users/PM5': # mac version
+if Ldir['env'] == 'pm_mac': # mac version
     pass
-elif which_home == '/home/parker': # fjord version
+elif Ldir['env'] == 'fjord': # fjord version
     import matplotlib as mpl
     mpl.use('Agg')
 
@@ -472,6 +470,24 @@ def get_section(ds, vn, x, y, in_dict):
     v3['distf'][1:-1,:] = v3['dist']
     v3['distf'][-1,:] = v3['dist'][-1,:]    
     
+    # attempt to skip over nan's
+    v3.pop('zr')
+    v3.pop('sectvar')
+    v3.pop('dist')
+    mask3 = ~np.isnan(v3['sectvarf'][:])
+    print(mask3.shape)
+    mask2 = mask3[-1,:]
+    dist = dist[mask2]
+    NC = len(dist)
+    NR = mask3.shape[0]
+    for k in v2.keys():
+        print('v2 key: ' + k)
+        v2[k] = v2[k][mask2]
+    for k in v3.keys():
+        print('v3 key: ' + k)
+        v3[k] = v3[k][mask3]
+        v3[k] = v3[k].reshape((NR, NC))
+        print(v3[k].shape)
     
     return v2, v3, dist, idist0
 

@@ -7,7 +7,6 @@ Created on Thu Mar 16 16:25:41 2017
 
 Extract filtered fields from LiveOcean "fh...p" files.
 
-cd /Users/PM5
 """
 
 # setup

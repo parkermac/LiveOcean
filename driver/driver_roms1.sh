@@ -11,9 +11,11 @@
 # NOTE: must be run from gaggle, and depends on other drivers having been run first
 
 # set paths and connect to a library of functions
-if [ $HOME = "/Users/PM5" ] ; then
-  LO_parent="/Users/PM5/Documents/LiveOcean"
-  R_parent="/Users/PM5/Documents/LiveOcean_roms"
+testing=0
+if [ $HOME = "/Users/pm7" ] ; then
+  LO_parent=$HOME"/Documents/LiveOcean"
+  R_parent=$HOME"/Documents/LiveOcean_roms"
+  testing=1
 elif [ $HOME = "/home/parker" ] ; then
   LO_parent="/fjdata1/parker/LiveOcean"
   R_parent="/pmr1/parker/LiveOcean_roms"
@@ -116,7 +118,15 @@ do
   # Run make_dot_in.py, which creates an empty f_string directory,
   # and then cd to where the ROMS executable lives.
   cd $LO_parent"/forcing/dot_in/"$gtagex
-  source $HOME"/.bashrc"
+  if [ -e $HOME"/.bashrc" ] ; then
+    source $HOME"/.bashrc"
+  fi
+  if [ -e $HOME"/.bash_profile" ] ; then
+    source $HOME"/.bash_profile"
+  fi
+  if [ -e $HOME"/.profile" ] ; then
+    source $HOME"/.profile"
+  fi
   if [ $D = $D0 ] && [ $start_type = "new" ] ; then
     python ./make_dot_in.py -g $gridname -t $tag -s $start_type -r $run_type -d $DD -x $ex_name -np $np_num -bu $blow_ups
     sleep 30
@@ -128,9 +138,9 @@ do
   fi
 
   # the actual ROMS run command
-  if [ $HOME = "/Users/PM5" ] ; then # testing
+  if [ $testing -eq 1 ] ; then # testing
     echo "/cm/shared/local/openmpi-ifort/bin/mpirun -np $np_num -machinefile $hf oceanM $Rf/liveocean.in > $log_file &"
-  elif [ $HOME == "/home/parker" ] ; then # the real thing
+  elif [ $testing -eq 0 ] ; then # the real thing
     /cm/shared/local/openmpi-ifort/bin/mpirun -np $np_num -machinefile $hf oceanM $Rf/liveocean.in > $log_file &
     # Check that ROMS has finished successfully.
     PID1=$!
@@ -139,24 +149,26 @@ do
   fi
 
   # check the log_file to see if we should continue
-  if grep -q "Blowing-up" $log_file ; then
-    echo "- Run blew up!"
-    blow_ups=$(( $blow_ups + 1 )) #increment the blow ups
-    if [ $blow_ups -le 1 ] ; then
+  if [ -e $log_file ] ; then
+    if grep -q "Blowing-up" $log_file ; then
+      echo "- Run blew up!"
+      blow_ups=$(( $blow_ups + 1 )) #increment the blow ups
+      if [ $blow_ups -le 1 ] ; then
+        keep_going=1
+      else
+        keep_going=0
+      fi
+    elif grep -q "ERROR" $log_file ; then
+      echo "- Run had an error."
+      keep_going=0
+    elif grep -q "ROMS/TOMS: DONE" $log_file ; then
+      echo "- Run completed successfully."
       keep_going=1
+      blow_ups=0
     else
+      echo "- Something else happened."
       keep_going=0
     fi
-  elif grep -q "ERROR" $log_file ; then
-    echo "- Run had an error."
-    keep_going=0
-  elif grep -q "ROMS/TOMS: DONE" $log_file ; then
-    echo "- Run completed successfully."
-    keep_going=1
-    blow_ups=0
-  else
-    echo "- Something else happened."
-    keep_going=0
   fi
 
   echo $(date)

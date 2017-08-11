@@ -12,7 +12,7 @@ It is for Analytical runs.
 
 To test in python on mac:
 
-cd /Users/PM5/Documents/LiveOcean/forcing/ocnA
+cd ~/Documents/LiveOcean/forcing/ocnA
 
 run make_forcing_main.py -g aestus1 -t A1 -r backfill -d 2013.01.01
 

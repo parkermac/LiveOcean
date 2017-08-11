@@ -1,5 +1,5 @@
 function run_co2sys(indir, moor_file, in3)
-% indir = '/Users/PM5/Documents/LiveOcean_output/moor/'
+% indir = '~/Documents/LiveOcean_output/moor/'
 % moor_file = 'cascadia1_base_lobio1_NH10_low_pass_2013.06.02_2014.12.30.nc'
 
 % test of co2sys with ROMS fields

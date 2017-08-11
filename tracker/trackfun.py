@@ -383,7 +383,7 @@ def get_V(vn_list, ds, plon, plat, pcs, R, surface):
 def get_fn_list(idt, Ldir):
     if Ldir['gtagex'] == 'D2005_his':
         # Other ROMS runs version
-        indir = '/Users/PM5/Documents/roms/output/' + Ldir['gtagex'] + '/'
+        indir = Ldir['parent'] + 'roms/output/' + Ldir['gtagex'] + '/'
         save_num_list = range(1,365*24)
         save_dt_list = []
         dt00 = datetime(2005,1,1)

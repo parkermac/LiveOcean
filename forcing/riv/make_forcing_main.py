@@ -3,7 +3,7 @@ This is the main program for making the RIV forcing file.
 
 For development run from the command line in spyder as, e.g.:
     
-cd /Users/PM5/Documents/LiveOcean/forcing/riv
+cd ~/Documents/LiveOcean/forcing/riv
 
 test forecast:
 run make_forcing_main.py -g cascadia1 -t base -r forecast

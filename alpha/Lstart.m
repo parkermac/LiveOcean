@@ -20,9 +20,11 @@ Ldir.gtag = [Ldir.gridname,'_',Ldir.tag];
 % and get the parent
 which_home = getenv('HOME');
 switch which_home
-    case '/Users/PM5'
-        Ldir.parent = '/Users/PM5/Documents/';
+    case '/Users/pm7';
+        Ldir.env = 'pm_mac'
+        Ldir.parent = [which_home,'/Documents/'];
     case '/home/parker'
+        Ldir.env = 'fjord';
         Ldir.parent = '/data1/parker/';
     otherwise
         disp('Trouble filling out environment variables in Ldir')

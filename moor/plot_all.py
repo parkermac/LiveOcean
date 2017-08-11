@@ -19,6 +19,18 @@ import Lfun
 #reload(Lfun)
 #import zfun
 
+# set limits
+lim_dict = {'temp': (5, 20),
+        'salt': (25, 35),
+        'NO3': (-1, 45),
+        'phytoplankton': (-1, 14),
+        'zooplankton': (-.1, 1),
+        'detritus': (-.1, 2.5),
+        'Ldetritus': (-.01, .15),
+        'oxygen': (-10, 350),
+        'TIC': (1900, 2400),
+        'alkalinity': (1900, 2400)}
+
 Ldir = Lfun.Lstart()
 indir = Ldir['LOo'] + 'moor/'
 
@@ -129,9 +141,9 @@ else:
 cc = 0
 nmid = round(V['salt'].shape[0]/2)
 N = V['salt'].shape[0]
-nbot = 5#0
-nmid = 30#nmid
-ntop = 35#N-1
+nbot = 0
+nmid = nmid
+ntop = N-1
 for vn in list_to_plot:
     ir = int(np.floor(cc/NC))
     ic = int(cc - NC*ir)
@@ -142,6 +154,11 @@ for vn in list_to_plot:
         ax.plot(mdt, V[vn][nbot,:], '-b')
     elif V[vn].ndim == 1:
         ax.plot(mdt, V[vn])
+    
+    try:    
+        ax.set_ylim(lim_dict[vn][0], lim_dict[vn][1])
+    except KeyError:
+        pass
 
     ax.set_xlim(mdt[0], mdt[-1])
     if do_ticks:
@@ -155,7 +172,6 @@ for vn in list_to_plot:
             ax.plot([dtyr, dtyr], aa, '-k')
         ax.set_ylim(aa)
     else:
-        ax.set_xlim(0,180)
         if ir == NR-1:
             ax.set_xlabel('Days')
 

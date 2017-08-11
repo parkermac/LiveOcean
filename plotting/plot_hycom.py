@@ -118,6 +118,6 @@ for vn in vn_list:
     cnum += 1
 
 plt.show()
-#plt.savefig('/Users/PM5/Desktop/hycom' + tag + '.png')
+#plt.savefig('~/Desktop/hycom' + tag + '.png')
 
 

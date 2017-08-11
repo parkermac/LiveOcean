@@ -10,7 +10,7 @@ function make_forcing_worker(gridname, tag, date_string, run_type, outdir)
 % tag = 'base';
 % date_string = '2014.03.11';
 % run_type = 'backfill';
-% outdir = '/Users/PM5/Desktop/';
+% outdir = '~/Desktop/';
 
 %%
 addpath('../../alpha'); Ldir = Lstart(gridname, tag);

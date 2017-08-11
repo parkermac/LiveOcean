@@ -14,7 +14,7 @@ python pan_plot.py -g aestus1 -t A1 -x ae1 -d 2013.02.01 -lt backfill -pt P_sect
 Running from the ipython command line:
 (but for some reason the movei code does not work when run from spyder)
 
-cd /Users/PM5/Documents/LiveOcean/plotting
+cd ~/Documents/LiveOcean/plotting
 run pan_plot.py
 run pan_plot.py -g aestus1 -t A1 -x ae1 -d 2013.02.07
 run pan_plot.py -g cas1 -t f1 -x r820 -d 2013.01.01 -hs 25

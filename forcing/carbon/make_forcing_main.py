@@ -8,7 +8,7 @@ To run from the command line in LiveOcean/driver/:
 
 To test in python on mac:
 
-cd /Users/PM5/Documents/LiveOcean/forcing/carbon
+cd ~/Documents/LiveOcean/forcing/carbon
 
 run make_forcing_main.py -r backfill -d 2017.05.18
 
