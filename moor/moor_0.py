@@ -38,7 +38,7 @@ tag = 'base'
 ex_name = 'lobio1'
 date_string0 = datetime(2015,9,18).strftime(format='%Y.%m.%d')
 date_string1 = datetime(2015,9,20).strftime(format='%Y.%m.%d')
-list_type = 'daily' # backfill, daily
+list_type = 'daily' # backfill, daily, low_passed
 sta_name = 'RN'
 lon_str = '-124.5'
 lat_str = '47'
@@ -209,7 +209,7 @@ if Ldir['list_type'] == 'backfill':
         if count == 0 and False:
             zfun.ncd(ds)
         count += 1
-elif Ldir['list_type'] == 'daily':
+elif (Ldir['list_type'] == 'daily') or (Ldir['list_type'] == 'low_passed'):
     # gets one at a time
     count = 0
     for dd in date_list:
@@ -218,15 +218,10 @@ elif Ldir['list_type'] == 'daily':
         indir = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/f' + dd + '/'
         fnlp = indir + 'low_passed.nc'
         fnhis = indir + 'ocean_his_0002.nc'
-        if os.path.isfile(fnlp):
-            # first choice is to use low_passed.nc
-            fn = fnlp
-        elif os.path.isfile(fnhis):
-            # otherwise use the first history file
-            fn = fnhis
-        else:
-            print('Daily file not found!')
-            break
+        if Ldir['list_type'] == 'daily':
+            fn = indir + 'ocean_his_0002.nc'
+        elif Ldir['list_type'] == 'low_passed':
+            fn = indir + 'low_passed.nc'
         ds = nc.Dataset(fn)
         for vv in v1_list:
             vtemp = ds.variables[vv][:].squeeze()
