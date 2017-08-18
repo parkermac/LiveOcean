@@ -20,16 +20,16 @@ import Lfun
 #import zfun
 
 # set limits
-lim_dict = {'temp': (5, 20),
+lim_dict = {'temp': (0, 20),
         'salt': (25, 35),
-        'NO3': (-1, 45),
+        'NO3': (-1, 48),
         'phytoplankton': (-1, 14),
         'zooplankton': (-.1, 1),
         'detritus': (-.1, 2.5),
         'Ldetritus': (-.01, .15),
         'oxygen': (-10, 350),
-        'TIC': (1900, 2400),
-        'alkalinity': (1900, 2400)}
+        'TIC': (1900, 2600),
+        'alkalinity': (1900, 2600)}
 
 Ldir = Lfun.Lstart()
 indir = Ldir['LOo'] + 'moor/'
@@ -128,13 +128,16 @@ do_ticks = False
 if nyears >= 2:
     do_ticks = True
     for yr in range(yr0, yr1+1):
-        for mo in [1,6]:
+        for mo in [1,7]:
             dt = datetime(yr, mo, 1).date()
             if dt > mdt[0].date() and dt < mdt[-1].date():
                 dt_ticks.append(dt)
                 if mo == 1:
                     dt_ticks_yr.append(dt)
-                dt_ticklabels.append(dt.strftime('%Y/%m'))
+                if mo == 7:
+                    dt_ticklabels.append(dt.strftime('%Y'))
+                else:
+                    dt_ticklabels.append('')
 else:
     mdt = days
 
