@@ -74,7 +74,7 @@ for tt = 1:length(hr_vec)
     hr = hr_vec(tt);
     hrs = ['00',num2str(hr)]; hrs = hrs(end-1:end);
     infile_list_d2{tt} = [indir12,'wrfout.ocean_d2.',yrs,mos,dys, ...
-        '00.f',hrs,'.0000'];
+        '12.f',hrs,'.0000'];
     forecast_hour{tt} = hrs; % used for rain calculation
 end
 
