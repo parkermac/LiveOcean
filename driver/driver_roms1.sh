@@ -108,8 +108,8 @@ do
 
   # choose which cores to run on (must be consistent in dot_in)
   if [ $run_type = "forecast" ] ; then
-    hf="../shared/hf144"
-    np_num=144
+    hf="../shared/hf72b"
+    np_num=72
   elif [ $run_type = "backfill" ] ; then
     hf="../shared/hf144"
     np_num=144
