@@ -56,8 +56,9 @@ reload(trackfun)
 #%% ************ USER INPUT **************************************
 
 # some run specifications
-gtagex = 'cascadia1_base_lobio1' # e.g. 'cascadia1_base_lo1' or 'D2005_his'
-ic_name = 'test' # 'jdf' or 'cr' or etc.
+exp_name = 'test'
+gtagex = 'cascadia1_base_lobio1' # e.g. 'cascadia1_base_lobio1' or 'D2005_his'
+ic_name = 'grid0' # 'jdf' or 'cr' or etc.
 dir_tag = 'forward' # 'forward' or 'reverse'
 method = 'rk4' # 'rk2' or 'rk4'
 surface = True # Boolean, True for trap to surface
@@ -73,7 +74,7 @@ if Ldir['env'] == 'pm_mac':
     # mac version
     if gtagex == 'cascadia1_base_lobio1':
         dt_first_day = datetime(2017,8,5)
-        number_of_start_days = 1
+        number_of_start_days = 2
         days_between_starts = 1
         days_to_track = 2
 elif Ldir['env'] == 'fjord':
@@ -87,7 +88,7 @@ elif Ldir['env'] == 'fjord':
 # and the length of pcs00 is however many vertical positions you have at
 # each lat, lon
 
-if ic_name in ['test']:
+if ic_name in ['grid0']:
     lonvec = np.linspace(-127, -123.9, 20)
     latvec = np.linspace(43.5, 49.5, 30)
     lonmat, latmat = np.meshgrid(lonvec, latvec)
@@ -98,11 +99,11 @@ if ic_name in ['test']:
 if len(plon00) != len(plat00):
     print('Problem with length of initial lat, lon vectors')
     sys.exit()
+    
 # ********* END USER INPUT *************************************
 
-#%%
-
 # save some things in Ldir
+Ldir['exp_name'] = exp_name
 Ldir['gtagex'] = gtagex
 Ldir['ic_name'] = ic_name
 Ldir['dir_tag'] = dir_tag
@@ -134,9 +135,24 @@ for nic in range(number_of_start_days):
 outdir0 = Ldir['LOo'] + 'tracks/'
 Lfun.make_dir(outdir0)
 
+# make the output directory
+outdir1 = Ldir['exp_name'] + '/'
+outdir = outdir0 + outdir1
+Lfun.make_dir(outdir, clean=True)
+print(50*'*' + '\nWriting to ' + outdir)
+
+# write a csv file of experiment information
+import collections
+exp_dict = collections.OrderedDict()
+exp_list = ['exp_name', 'gtagex', 'ic_name', 'method', 'ndiv',
+        'dir_tag', 'surface', 'windage']
+for item in exp_list:
+    exp_dict[item] = str(Ldir[item])
+Lfun.dict_to_csv(exp_dict, outdir + 'exp_info.csv')
+
 # info for NetCDF output
 name_unit_dict = {'lon':('Longitude','degrees'), 'lat':('Latitude','degrees'),
-    'cs':('Fractional Z','Dimensionless'), 'ot':('Ocean Time','Seconds since 1/1/1970'),
+    'cs':('Fractional Z','Dimensionless'), 'ot':('Ocean Time','Seconds since 1/1/1970 UTC'),
     'z':('Z','m'), 'zeta':('Surface Z','m'), 'zbot':('Bottom Z','m'),
     'salt':('Salinity','Dimensionless'), 'temp':('Potential Temperature','Degrees C'),
     'u':('EW Velocity','meters s-1'), 'v':('NS Velocity','meters s-1'),
@@ -145,8 +161,9 @@ name_unit_dict = {'lon':('Longitude','degrees'), 'lat':('Latitude','degrees'),
     'h':('Bottom Depth','m')}
 
 #%% step through the experiments (one for each start day)
+write_grid_file = True
 for idt0 in idt_list:
-
+    
     # split the calculation up into one-day chunks    
     for nd in range(Ldir['days_to_track']):
         
@@ -158,38 +175,43 @@ for idt0 in idt_list:
         fn_list = trackfun.get_fn_list_1day(idt, Ldir)        
         if nd > 0:
             fn_list = [fn_last] + fn_list
+        
+        if write_grid_file:
+            # write a file of grid info
+            dsh = nc4.Dataset(fn_list[0])
+            dsg = nc4.Dataset(outdir + 'grid.nc', 'w')
+            # lists of variables to process
+            dlist = ['xi_rho', 'eta_rho', 'xi_psi', 'eta_psi']
+            vn_list2 = [ 'lon_rho', 'lat_rho', 'lon_psi', 'lat_psi', 'mask_rho', 'h']
+            # Copy dimensions
+            for dname, the_dim in dsh.dimensions.items():
+                if dname in dlist:
+                    dsg.createDimension(dname, len(the_dim))
+            # Copy variables
+            for vn in vn_list2:
+                varin = dsh[vn]
+                vv = dsg.createVariable(vn, varin.dtype, varin.dimensions)
+                vv.setncatts({k: varin.getncattr(k) for k in varin.ncattrs()})
+                vv[:] = dsh[vn][:]
+            dsh.close()
+            dsg.close()
+            write_grid_file = False
             
         T0 = zrfun.get_basic_info(fn_list[0], only_T=True)
-        Tend = zrfun.get_basic_info(fn_list[-1], only_T=True)
         Ldir['date_string0'] = datetime.strftime(T0['tm'],'%Y.%m.%d')
-        Ldir['date_string1'] = datetime.strftime(Tend['tm'],'%Y.%m.%d')
-    
-        print(50*'*')
-        print('Calculating tracks from ' + Ldir['date_string0'] +
-              ' to ' + Ldir['date_string1'])
            
         #%% DO THE TRACKING
         if nd == 0: # first day
-            # make the output directory            
-            outdir = (outdir0 +
-                Ldir['gtagex'] + '_' +
-                Ldir['ic_name'] + '_' +
-                Ldir['method'] + '_' +
-                'ndiv' + str(Ldir['ndiv']) + '_' +
-                Ldir['dir_tag'] + '_' +
-                'surface' + str(Ldir['surface']) + '_' +
-                'windage' + str(Ldir['windage']) + '_' +
-                Ldir['date_string0'] + '_' +
-                str(Ldir['days_to_track']) + 'days/')
-            Lfun.make_dir(outdir, clean=True)
+            
             # do the tracking
             tt0 = time.time()    
             P, G, S = trackfun.get_tracks(fn_list, plon0, plat0, pcs0,
                                           dir_tag, method, surface, ndiv, windage)    
-            print(' - Took %0.1f sec for 1 day' % (time.time() - tt0))        
             # save the results to NetCDF
             NT, NP = P['lon'].shape
-            outname = 'tracks.nc'
+            outname = ('release_' + Ldir['date_string0'] + '_' +
+                str(Ldir['days_to_track']) + 'days'+ '.nc')
+            print(' - ' + outname)
             out_fn = outdir + outname
             ds = nc4.Dataset(out_fn, 'w')
             ds.createDimension('Time', None)
@@ -205,10 +227,7 @@ for idt0 in idt_list:
                 vv.units = name_unit_dict[vn][1]
                 vv[:] = P[vn][:]
             ds.close()
-            print('Results saved to:\n' + outname)
-            print(50*'=')
         else: # subsequent days
-            tt0 = time.time()
             # get initial condition
             plon0 = P['lon'][-1,:]
             plat0 = P['lat'][-1,:]
@@ -216,7 +235,6 @@ for idt0 in idt_list:
             # do the tracking
             P, G, S = trackfun.get_tracks(fn_list, plon0, plat0, pcs0,
                                           dir_tag, method, surface, ndiv, windage)    
-            print(' - Took %0.1f sec for 1 day' % (time.time() - tt0))
             # save the results
             ds = nc4.Dataset(out_fn, 'a')
             NTx, NPx = ds['lon'][:].shape
@@ -227,4 +245,6 @@ for idt0 in idt_list:
                 else:
                     ds[vn][NTx:,:] = P[vn][1:,:]
             ds.close()
-            print(50*'-')
+    print(' - Took %0.1f sec for %s day(s)' %
+            (time.time() - tt0, str(Ldir['days_to_track'])))
+    print(50*'=')

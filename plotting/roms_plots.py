@@ -53,7 +53,7 @@ def get_in_dict(plot_type):
     in_dict['vlims'] = vlims
         
     # OTHER
-    in_dict['z_level'] = -500 # z level to plot
+    in_dict['z_level'] = -250 # z level to plot
         
     return in_dict
 
@@ -459,8 +459,9 @@ def P_layer(in_dict):
     vlims = in_dict['vlims'].copy()
     
     # set variables to plt
-    vn_list = ['Ldetritus','TIC']
-    #vn_list = ['salt', 'temp']
+    #vn_list = ['Ldetritus','TIC']
+    vn_list = ['salt', 'temp']
+    #vn_list = ['NO3', 'temp']
     for vn in vn_list: # use auto scaling
         vlims[vn] = ()
     # and override
