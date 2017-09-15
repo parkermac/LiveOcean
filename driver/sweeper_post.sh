@@ -18,6 +18,6 @@ for frc in 'tracks_m' 'carbon' 'low_pass' 'ubc' 'surface' 'azu1'; do
   wait $PID1
   echo "job completed for" $frc "at" $(date)
   echo $(date)
-  sleep 2
+  sleep 10
 
 done
