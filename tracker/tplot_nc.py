@@ -34,23 +34,24 @@ indir_list = []
 for d in indir_list_raw:
     if os.path.isdir(indir0 + d):
         indir_list.append(d)
+indir_list.sort()
+
 Npt = len(indir_list)
-indir_dict = dict(zip(range(Npt), indir_list))
-
-testing = False
-if testing == False:
-    print('\n%s\n' % '** Choose directory to plot **')
-    for npt in range(Npt):
-        print(str(npt) + ': ' + indir_list[npt])
-    my_npt = int(input('-- Input number -- '))
-else:
-    my_npt = 0
-indir = indir_dict[my_npt] + '/'
-
+#
+print('\n%s\n' % '** Choose Experiment to plot **')
+for npt in range(Npt):
+    print(str(npt) + ': ' + indir_list[npt])
+my_npt = int(input('-- Experiment number -- '))
+indir = indir_list[my_npt] + '/'
+#
 rel_list = [rel for rel in os.listdir(indir0 + indir) if 'release' in rel]
 rel_list.sort()
-
-rel = rel_list[0]
+Nrl = len(rel_list)
+print('\n%s\n' % '** Choose Release file to plot **')
+for nrl in range(Nrl):
+    print(str(nrl) + ': ' + rel_list[nrl])
+my_nrl = int(input('-- Release number -- '))
+rel = rel_list[my_nrl]
 
 dsr = nc4.Dataset(indir0 + indir + rel)
 dsg = nc4.Dataset(indir0 + indir + 'grid.nc')

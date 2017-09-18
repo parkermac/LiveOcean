@@ -124,9 +124,9 @@ NXYP = len(plon00)
 plon0 = plon00.reshape(NXYP,1) * np.ones((NXYP,NSP))
 plat0 = plat00.reshape(NXYP,1) * np.ones((NXYP,NSP))
 pcs0 = np.ones((NXYP,NSP)) * pcs00.reshape(1,NSP)
-plon0 = plon0.flatten()
-plat0 = plat0.flatten()
-pcs0 = pcs0.flatten()
+plon00 = plon0.flatten()
+plat00 = plat0.flatten()
+pcs00 = pcs0.flatten()
 
 # make the list of start days (datetimes)
 idt_list = []
@@ -206,6 +206,10 @@ for idt0 in idt_list:
            
         #%% DO THE TRACKING
         if nd == 0: # first day
+            
+            plon0 = plon00.copy()
+            plat0 = plat00.copy()
+            pcs0 = pcs00.copy()
             
             # do the tracking
             tt0 = time.time()    
