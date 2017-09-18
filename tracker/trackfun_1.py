@@ -17,7 +17,7 @@ import netCDF4 as nc4
 from datetime import datetime, timedelta
 
 def get_tracks(fn_list, plon0, plat0, pcs0, dir_tag,
-               method, surface, ndiv, windage):
+               method, surface, ndiv, windage, trim_loc=False):
 
     plonA = plon0.copy()
     platA = plat0.copy()
@@ -82,12 +82,17 @@ def get_tracks(fn_list, plon0, plat0, pcs0, dir_tag,
 
         if counter == 0:
 
-            # remove points on land
-            SALT = get_V(['salt'], ds0, plonA, platA, pcsA, R, surface)
-            SALT = SALT.flatten()
-            plon = plonA[~np.isnan(SALT)].copy()
-            plat = platA[~np.isnan(SALT)].copy()
-            pcs = pcsA[~np.isnan(SALT)].copy()
+            if trim_loc == True:
+                # remove points on land
+                SALT = get_V(['salt'], ds0, plonA, platA, pcsA, R, surface)
+                SALT = SALT.flatten()
+                plon = plonA[~np.isnan(SALT)].copy()
+                plat = platA[~np.isnan(SALT)].copy()
+                pcs = pcsA[~np.isnan(SALT)].copy()
+            else:
+                plon = plonA.copy()
+                plat = platA.copy()
+                pcs = pcsA.copy()
 
             # create result arrays
             NP = len(plon)

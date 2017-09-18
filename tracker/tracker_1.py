@@ -50,19 +50,19 @@ Ldir = Lfun.Lstart()
 
 from importlib import reload
 import zrfun
-import trackfun
-reload(trackfun)
+import trackfun_1 as tf1
+reload(tf1)
 
 #%% ************ USER INPUT **************************************
 
 # some run specifications
-exp_name = 'test'
+exp_name = 'DeadBirds2_0.02'
 gtagex = 'cascadia1_base_lobio1' # e.g. 'cascadia1_base_lobio1' or 'D2005_his'
 ic_name = 'grid0' # 'jdf' or 'cr' or etc.
 dir_tag = 'forward' # 'forward' or 'reverse'
 method = 'rk4' # 'rk2' or 'rk4'
 surface = True # Boolean, True for trap to surface
-windage = 0.0 # a small number >= 0
+windage = 0.02 # a small number >= 0
 ndiv = 1 # number of divisions to make between saves for the integration
         # e.g. if ndiv = 3 and we have hourly saves, we use a 20 minute step
         # for the integration (but still only report fields hourly)
@@ -79,7 +79,11 @@ if Ldir['env'] == 'pm_mac':
         days_to_track = 2
 elif Ldir['env'] == 'fjord':
     # fjord version
-    pass
+    if gtagex == 'cascadia1_base_lobio1':
+        dt_first_day = datetime(2014,9,1)
+        number_of_start_days = 2#212
+        days_between_starts = 1
+        days_to_track = 14
 
 # set particle initial locations, all numpy arrays
 #
@@ -89,8 +93,8 @@ elif Ldir['env'] == 'fjord':
 # each lat, lon
 
 if ic_name in ['grid0']:
-    lonvec = np.linspace(-127, -123.9, 20)
-    latvec = np.linspace(43.5, 49.5, 30)
+    lonvec = np.arange(-127.35, -124.05 + .15, .15)
+    latvec = np.arange(43.1, 49.85 + .15, .15)
     lonmat, latmat = np.meshgrid(lonvec, latvec)
     plon00 = lonmat.flatten()
     plat00 = latmat.flatten()
@@ -172,7 +176,7 @@ for idt0 in idt_list:
         # make sure out file list starts at the start of the day
         if nd > 0: 
             fn_last = fn_list[-1]
-        fn_list = trackfun.get_fn_list_1day(idt, Ldir)        
+        fn_list = tf1.get_fn_list_1day(idt, Ldir)        
         if nd > 0:
             fn_list = [fn_last] + fn_list
         
@@ -205,8 +209,8 @@ for idt0 in idt_list:
             
             # do the tracking
             tt0 = time.time()    
-            P, G, S = trackfun.get_tracks(fn_list, plon0, plat0, pcs0,
-                                          dir_tag, method, surface, ndiv, windage)    
+            P, G, S = tf1.get_tracks(fn_list, plon0, plat0, pcs0,
+                                          dir_tag, method, surface, ndiv, windage, trim_loc=True)
             # save the results to NetCDF
             NT, NP = P['lon'].shape
             outname = ('release_' + Ldir['date_string0'] + '_' +
@@ -233,8 +237,8 @@ for idt0 in idt_list:
             plat0 = P['lat'][-1,:]
             pcs0 = P['cs'][-1,:]
             # do the tracking
-            P, G, S = trackfun.get_tracks(fn_list, plon0, plat0, pcs0,
-                                          dir_tag, method, surface, ndiv, windage)    
+            P, G, S = tf1.get_tracks(fn_list, plon0, plat0, pcs0,
+                                          dir_tag, method, surface, ndiv, windage)
             # save the results
             ds = nc4.Dataset(out_fn, 'a')
             NTx, NPx = ds['lon'][:].shape

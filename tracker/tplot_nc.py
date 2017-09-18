@@ -37,7 +37,7 @@ for d in indir_list_raw:
 Npt = len(indir_list)
 indir_dict = dict(zip(range(Npt), indir_list))
 
-testing = True
+testing = False
 if testing == False:
     print('\n%s\n' % '** Choose directory to plot **')
     for npt in range(Npt):
