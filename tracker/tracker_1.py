@@ -81,7 +81,7 @@ elif Ldir['env'] == 'fjord':
     # fjord version
     if gtagex == 'cascadia1_base_lobio1':
         dt_first_day = datetime(2014,9,1)
-        number_of_start_days = 2#212
+        number_of_start_days = 212
         days_between_starts = 1
         days_to_track = 14
 
