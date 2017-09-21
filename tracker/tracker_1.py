@@ -56,13 +56,13 @@ reload(tf1)
 #%% ************ USER INPUT **************************************
 
 # some run specifications
-exp_name = 'DeadBirds2_0.02'
+exp_name = 'DeadBirds2_0.03'
 gtagex = 'cascadia1_base_lobio1' # e.g. 'cascadia1_base_lobio1' or 'D2005_his'
 ic_name = 'grid0' # 'jdf' or 'cr' or etc.
 dir_tag = 'forward' # 'forward' or 'reverse'
 method = 'rk4' # 'rk2' or 'rk4'
 surface = True # Boolean, True for trap to surface
-windage = 0.02 # a small number >= 0
+windage = 0.03 # a small number >= 0
 ndiv = 1 # number of divisions to make between saves for the integration
         # e.g. if ndiv = 3 and we have hourly saves, we use a 20 minute step
         # for the integration (but still only report fields hourly)
