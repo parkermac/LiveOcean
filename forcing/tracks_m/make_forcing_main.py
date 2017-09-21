@@ -46,12 +46,13 @@ print('\n-main: errors from subprocess-')
 # for some reason the ffmpeg output ends up in stderr
 print(proc.stderr.decode())
 
-# move the movie to the forecast folder
+# move the movie and the last frame to the forecast folder
 in_dir = Ldir['LOo'] + 'plots/merhab_P_tracks_MERHAB_' + Ldir['gtagex'] + '/'
 out_dir = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/' + f_string + '/'
-fn = 'movie.mp4'
-cmd2 = ['cp',in_dir+fn,out_dir+fn]
-proc2 = subprocess.run(cmd2, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+fn_list = ['movie.mp4', 'plot_0070.png']
+for fn in fn_list:
+    cmd2 = ['cp',in_dir+fn,out_dir+fn]
+    proc2 = subprocess.run(cmd2, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 if proc2.returncode == 0:
     result = 'success'

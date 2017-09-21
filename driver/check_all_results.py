@@ -115,7 +115,7 @@ except:
     pass
 
 # what has been pushed to Azure
-azu_list = ['ocean_surface.nc', 'low_passed_UBC.nc', 'movie.mp4']
+azu_list = ['ocean_surface.nc', 'low_passed_UBC.nc', 'movie.mp4', 'plot_0070.png']
 from azure.storage.blob import BlockBlobService
 azu_dict = Lfun.csv_to_dict(Ldir['data'] + 'accounts/azure_pm_2015.05.25.csv')
 account = azu_dict['account']
