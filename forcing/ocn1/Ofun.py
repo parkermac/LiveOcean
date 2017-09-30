@@ -31,7 +31,7 @@ def get_hycom_file_list(exnum):
     from socket import timeout
     import time
              
-    xml_name = ('http://tds.hycom.org/thredds/catalog/GLBu0.08/expt_' + 
+    xml_name = ('http://tds.hycom.org/thredds/catalog/datasets/GLBu0.08/expt_' + 
                 exnum + '/forecasts/catalog.xml')  
     req = Request(xml_name)
     counter = 1
