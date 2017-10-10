@@ -144,17 +144,18 @@ f2.close()
 
 ## npzd2o_Banas.in ###########
 
-f = open('npzd2o_Banas_BLANK.in','r')
-bio_dot_in_name = 'npzd2o_Banas.in'
-f3 = open(dot_in_dir + bio_dot_in_name,'w')
-in_varlist = ['force_dir','riv_dir','bio_tag']
-for line in f:
-    for var in in_varlist:
-        if '$'+var+'$' in line:
-            line2 = line.replace('$'+var+'$', str(eval(var)))
-            line = line2
-        else:
-            line2 = line
-    f3.write(line2)
-f.close()
-f3.close()
+if do_bio:
+    f = open('npzd2o_Banas_BLANK.in','r')
+    bio_dot_in_name = 'npzd2o_Banas.in'
+    f3 = open(dot_in_dir + bio_dot_in_name,'w')
+    in_varlist = ['force_dir','riv_dir','bio_tag']
+    for line in f:
+        for var in in_varlist:
+            if '$'+var+'$' in line:
+                line2 = line.replace('$'+var+'$', str(eval(var)))
+                line = line2
+            else:
+                line2 = line
+        f3.write(line2)
+    f.close()
+    f3.close()
