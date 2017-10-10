@@ -172,6 +172,52 @@ def P_basic(in_dict):
         plt.show()
         pfun.topfig()
     return out_dict
+    
+def P_basic2D(in_dict):
+    # For 2D fields.
+
+    # START
+    fig = plt.figure(figsize=figsize)
+    ds = nc.Dataset(in_dict['fn'])
+    vlims = in_dict['vlims'].copy()
+    out_dict['vlims'] = vlims
+
+    # PLOT CODE
+    # panel 1
+    vn = 'vbar'
+    ax = fig.add_subplot(121)
+    cs, out_dict['vlims'][vn] = pfun.add_map_field2d(ax, ds, vn)
+    fig.colorbar(cs)
+    pfun.add_bathy_contours(ax, ds, txt=True)
+    pfun.add_coast(ax)
+    ax.axis(pfun.get_aa(ds))
+    pfun.dar(ax)
+    ax.set_xlabel('Longitude')
+    ax.set_ylabel('Latitude')
+    ax.set_title(vn)
+    pfun.add_info(ax, in_dict['fn'])
+    # panel 2
+    ax = fig.add_subplot(122)
+    vn = 'ubar'
+    cs, out_dict['vlims'][vn] = pfun.add_map_field2d(ax, ds, vn)
+    fig.colorbar(cs)
+    pfun.add_bathy_contours(ax, ds)
+    pfun.add_coast(ax)
+    ax.axis(pfun.get_aa(ds))
+    pfun.dar(ax)
+    ax.set_xlabel('Longitude')
+    ax.set_title(vn)
+    #pfun.add_velocity_vectors(ax, ds, in_dict['fn'])
+    
+    # FINISH
+    ds.close()
+    if len(in_dict['fn_out']) > 0:
+        plt.savefig(in_dict['fn_out'])
+        plt.close()
+    else:
+        plt.show()
+        pfun.topfig()
+    return out_dict
 
 def P_basicN(in_dict):
     # Like P_basic, but optimized for the new nested grid sal0
