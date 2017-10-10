@@ -91,7 +91,6 @@ class River:
 
     def get_nws_data(self):
         # This gets NWS forecast data.
-
         url_str = ('http://www.nwrfc.noaa.gov/xml/xml.cgi?id=' +
                    self.nws_code +
                    '&pe=HG&dtype=b&numdays=10')
@@ -101,7 +100,6 @@ class River:
             root = tree.getroot()
         except:
             self.memo = 'problem downloading XML'
-
         try:
             flag = True
             # NOTE: you find this tag by looking at any instance of e0.tag
@@ -133,13 +131,9 @@ class River:
     def get_ec_data(self, days, timeout=10):
         # gets Environment Canada data, using code cribbed from:
         #https://bitbucket.org/douglatornell/ecget/src/
-        #0ee6451d3f6123765d899426fc5002494d0575f5/
-        #ecget/river.py?at=default&fileviewer=file-view-default
-
         # NOTE: this will get data up through today, but can only go back
         # 18 months into the past.
         # To get longer records use get_ec_data_historical.
-
         import requests
         import bs4
         try:
@@ -154,14 +148,8 @@ class River:
                 'startDate': days[0].strftime('%Y-%m-%d'),
                 'endDate': days[1].strftime('%Y-%m-%d'),
             }
-
-            #DATA_URL = 'http://wateroffice.ec.gc.ca/report/report_e.html'
-            # the link above stopped working around January 10, 2017
-            # and Doug Latournell (search for ECGet in LiveOcean email)
-            # alerted me to the new one below, which works.
             DATA_URL = 'http://wateroffice.ec.gc.ca/report/real_time_e.html'
             DISCLAIMER_COOKIE = {'disclaimer': 'agree'}
-
             response = requests.get(DATA_URL, params=params,
                                     cookies=DISCLAIMER_COOKIE)
             soup = bs4.BeautifulSoup(response.content, 'lxml')
@@ -175,7 +163,7 @@ class River:
                 data.append([ele for ele in cols if ele]) # Get rid of empty values
             d_dict = dict()
             for item in data:
-                d_dict[pd.to_datetime(item[0])] = float(item[1])
+                d_dict[pd.to_datetime(item[0])] = float(item[1].replace(',',''))
             self.qt = pd.Series(d_dict)
             self.flow_units = '$m^{3}s^{-1}$'
             #self.fix_units() # not needed
@@ -190,11 +178,7 @@ class River:
     def get_ec_data_historical(self, year):
         # gets Environment Canada data, using code cribbed from:
         #https://bitbucket.org/douglatornell/ecget/src/
-        #0ee6451d3f6123765d899426fc5002494d0575f5/
-        #ecget/river.py?at=default&fileviewer=file-view-default
-
-        # NOTE: this will get data up through the end of 2014.
-
+        # NOTE: this will get data up through the end of 2015.
         import requests
         import bs4
         try:
@@ -208,12 +192,8 @@ class River:
                 'y1Max': '1',
                 'y1Min': '1',
             }
-            #DATA_URL = 'http://wateroffice.ec.gc.ca/report/report_e.html'
-            # The URL stopped working around January 10, 2017.  The new
-            # one below appears to work.
             DATA_URL = 'http://wateroffice.ec.gc.ca/report/historical_e.html'
             DISCLAIMER_COOKIE = {'disclaimer': 'agree'}
-
             response = requests.get(DATA_URL, params=params,
                                     cookies=DISCLAIMER_COOKIE)
             soup = bs4.BeautifulSoup(response.content, 'lxml')
@@ -236,7 +216,7 @@ class River:
                         if len(item) == 0:
                             pass
                         else:
-                            this_data = float(item.split()[0])
+                            this_data = float(item.split()[0].replace(',',''))
                             # the split call is to remove trailing letters
                             # that occasionally appear after the data
                             d_dict[datetime(year, imo, day, 12, 0, 0)] = this_data

@@ -310,6 +310,18 @@ def ll2xy(lon, lat, lon0, lat0):
     x = R * clat * np.pi * (lon - lon0) / 180
     y = R * np.pi * (lat - lat0) / 180
     return x, y
+    
+def get_rc(NP):
+    # figure out near-optimal numer of rows and columns for plotting
+    NR = np.maximum(1, np.ceil(np.sqrt(NP)).astype(int))
+    NC = np.ceil(NP/NR).astype(int)
+    return NR, NC
+    
+def get_irc(ii, NC):
+    # get row and column of plot ii when there are NC columns
+    ir = int(np.floor(ii/NC))
+    ic = int(ii - NC*ir)
+    return ir, ic
 
 
 

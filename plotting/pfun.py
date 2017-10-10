@@ -56,10 +56,10 @@ def dar(ax):
     yav = (yl[0] + yl[1])/2
     ax.set_aspect(1/np.sin(np.pi*yav/180))
 
-def add_coast(ax, dir0=Ldir['data']):
+def add_coast(ax, dir0=Ldir['data'], color='k'):
     fn = dir0 + 'coast/coast_pnw.p'
     C = pd.read_pickle(fn)
-    ax.plot(C['lon'].values, C['lat'].values, '-k', linewidth=0.5)
+    ax.plot(C['lon'].values, C['lat'].values, '-', color=color, linewidth=0.5)
 
 def get_coast(dir0=Ldir['data']):
     fn = dir0 + 'coast/coast_pnw.p'
