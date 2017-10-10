@@ -68,7 +68,7 @@ else:
 
 if float(3600/dtsec) != 3600.0/dtsec:
     print('** WARNING: dtsec does not fit evenly into 1 hour **')
-if dtsec == int(dtsec:)
+if dtsec == int(dtsec):
     dt = str(dtsec) + '.0d0' # a string version of dtsec, for the .in file
 else:
     dt = str(dtsec) + 'd0' # a string version of dtsec, for the .in file
