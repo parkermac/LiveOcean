@@ -270,33 +270,33 @@ GridsInLayer =  1
 ! point Sources/Sinks (like river runoff transport) and mass point
 ! Sources/Sinks (like volume vertical influx), [1:Ngrids].
 
-      LuvSrc == T                          ! horizontal momentum transport
+      LuvSrc == F                          ! horizontal momentum transport
        LwSrc == F                          ! volume vertical influx
 
 ! Logical switches (TRUE/FALSE) to activate tracers point Sources/Sinks
 ! (like river runoff) and to specify which tracer variables to consider:
 ! [1:NAT+NPT,Ngrids].  See glossary below for details.
 
-  LtracerSrc == T T                       ! temperature, salinity, inert
+  LtracerSrc == F F                       ! temperature, salinity, inert
 
 ! Logical switches (TRUE/FALSE) to read and process climatology fields.
 ! See glossary below for details.
 
-     LsshCLM == T                          ! sea-surface height
-      Lm2CLM == T                          ! 2D momentum
-      Lm3CLM == T                          ! 3D momentum
+     LsshCLM == F                          ! sea-surface height
+      Lm2CLM == F                          ! 2D momentum
+      Lm3CLM == F                          ! 3D momentum
 
-  LtracerCLM == T T                        ! temperature, salinity, inert
+  LtracerCLM == F F                        ! temperature, salinity, inert
 
 ! Logical switches (TRUE/FALSE) to nudge the desired climatology field(s).
 ! If not analytical climatology fields, users need to turn ON the logical
 ! switches above to process the fields from the climatology NetCDF file
 ! that are needed for nudging. See glossary below for details.
 
- LnudgeM2CLM == T                          ! 2D momentum
- LnudgeM3CLM == T                          ! 3D momentum
+ LnudgeM2CLM == F                          ! 2D momentum
+ LnudgeM3CLM == F                          ! 3D momentum
 
-  LnudgeTCLM == T T                        ! temperature, salinity, inert
+  LnudgeTCLM == F F                        ! temperature, salinity, inert
   
 ! Input climatology nudging coefficients file name.
      NUDNAME == $grid_dir$nudgcoef.nc
