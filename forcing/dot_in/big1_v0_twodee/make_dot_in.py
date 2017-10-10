@@ -37,9 +37,9 @@ elif Ldir['run_type'] == 'forecast':
 
 # time step in seconds INTEGER (should fit evenly into 3600 sec)
 if Ldir['blow_ups'] == 0:
-    dtsec = 4 
+    dtsec = 1 
 elif Ldir['blow_ups'] == 1:
-    dtsec = 2
+    dtsec = 0.5
 else:
     print('Unsupported number of blow ups: %d' % (Ldir['blow_ups']))
 restart_nrrec = '-1' # '-1' for a non-crash restart file, otherwise '1' or '2'
@@ -68,7 +68,10 @@ else:
 
 if float(3600/dtsec) != 3600.0/dtsec:
     print('** WARNING: dtsec does not fit evenly into 1 hour **')
-dt = str(dtsec) + '.0d0' # a string version of dtsec, for the .in file
+if dtsec == int(dtsec:)
+    dt = str(dtsec) + '.0d0' # a string version of dtsec, for the .in file
+else:
+    dt = str(dtsec) + 'd0' # a string version of dtsec, for the .in file
 ninfo = int(his_interval/dtsec) # how often to write info to the log file (# of time steps)
 nhis = int(his_interval/dtsec) # how often to write to the history files
 ndefhis = int(nhis) # how often to create new history files
