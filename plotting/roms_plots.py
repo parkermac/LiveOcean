@@ -177,16 +177,25 @@ def P_basic2D(in_dict):
     # For 2D fields.
 
     # START
-    fig = plt.figure(figsize=figsize)
+    fig = plt.figure(figsize=(20,8))
     ds = nc.Dataset(in_dict['fn'])
     vlims = in_dict['vlims'].copy()
     out_dict['vlims'] = vlims
 
     # PLOT CODE
     # panel 1
-    vn = 'vbar'
-    ax = fig.add_subplot(121)
-    cs, out_dict['vlims'][vn] = pfun.add_map_field2d(ax, ds, vn)
+    
+    ax = fig.add_subplot(131)
+    # we do this one by hand because zeta is not a masked array
+    vn = 'zeta'
+    x = ds['lon_psi'][:]
+    y = ds['lat_psi'][:]
+    v = ds[vn][0, 1:-1, 1:-1].squeeze()
+    m = ds['wetdry_mask_rho'][0, 1:-1, 1:-1].squeeze()
+    vm = np.ma.masked_where(m==0, v)
+    vlims = pfun.auto_lims(vm)
+    cs = ax.pcolormesh(x, y, vm, vmin=vlims[0], vmax=vlims[1], cmap='rainbow')
+    out_dict['vlims'][vn] = vlims
     fig.colorbar(cs)
     pfun.add_bathy_contours(ax, ds, txt=True)
     pfun.add_coast(ax)
@@ -196,10 +205,19 @@ def P_basic2D(in_dict):
     ax.set_ylabel('Latitude')
     ax.set_title(vn)
     pfun.add_info(ax, in_dict['fn'])
+    
     # panel 2
-    ax = fig.add_subplot(122)
+    ax = fig.add_subplot(132)
     vn = 'ubar'
-    cs, out_dict['vlims'][vn] = pfun.add_map_field2d(ax, ds, vn)
+    x = ds['lon_u'][:]
+    y = ds['lat_u'][:]
+    v = ds[vn][0, :, :].squeeze()
+    m = ds['wetdry_mask_u'][0, :, :].squeeze()
+    vm = np.ma.masked_where(m==0, v)
+    #vlims = pfun.auto_lims(vm)
+    vlims = (vm.min(), vm.max())
+    cs = ax.pcolormesh(x, y, vm, vmin=vlims[0], vmax=vlims[1], cmap='rainbow')
+    out_dict['vlims'][vn] = vlims
     fig.colorbar(cs)
     pfun.add_bathy_contours(ax, ds)
     pfun.add_coast(ax)
@@ -207,7 +225,26 @@ def P_basic2D(in_dict):
     pfun.dar(ax)
     ax.set_xlabel('Longitude')
     ax.set_title(vn)
-    #pfun.add_velocity_vectors(ax, ds, in_dict['fn'])
+    
+    # panel 3
+    ax = fig.add_subplot(133)
+    vn = 'vbar'
+    x = ds['lon_v'][:]
+    y = ds['lat_v'][:]
+    v = ds[vn][0, :, :].squeeze()
+    m = ds['wetdry_mask_v'][0, :, :].squeeze()
+    vm = np.ma.masked_where(m==0, v)
+    #vlims = pfun.auto_lims(vm)
+    vlims = (vm.min(), vm.max())
+    cs = ax.pcolormesh(x, y, vm, vmin=vlims[0], vmax=vlims[1], cmap='rainbow')
+    out_dict['vlims'][vn] = vlims
+    fig.colorbar(cs)
+    pfun.add_bathy_contours(ax, ds)
+    pfun.add_coast(ax)
+    ax.axis(pfun.get_aa(ds))
+    pfun.dar(ax)
+    ax.set_xlabel('Longitude')
+    ax.set_title(vn)
     
     # FINISH
     ds.close()
@@ -809,9 +846,9 @@ def P_sectA(in_dict):
     ax.set_ylabel('Z (m)')
     ax.set_title(vn)
     # add line to map plot
-    ax1.plot(x, y, '-r', linewidth=2)
-    ax1.plot(x[idist0], y[idist0], 'or', markersize=10, markerfacecolor='w',
-        markeredgecolor='r', markeredgewidth=2)
+    ax1.plot(x, y, '-k', linewidth=2)
+    ax1.plot(x[idist0], y[idist0], 'ok', markersize=10, markerfacecolor='w',
+        markeredgecolor='k', markeredgewidth=2)
 
     for ii in range(3):
         # cross-sections
@@ -822,7 +859,8 @@ def P_sectA(in_dict):
         ax = fig.add_subplot(3,3,ii+7)
         ax.plot(dist, v2['zbot'], '-k', linewidth=2)
         ax.plot(dist, v2['zeta'], '-b', linewidth=1)
-        ax.set_xlim(dist.min(), dist.max())
+        ax.set_xlim(0, 22.5)
+        #ax.set_xlim(dist.min(), dist.max())
         ax.set_ylim(-25, 2)
         vlims = pfun.auto_lims(v3['sectvarf'])
         cs = ax.pcolormesh(v3['distf'], v3['zrf'], v3['sectvarf'],
@@ -834,9 +872,9 @@ def P_sectA(in_dict):
         if ii==0:
             ax.set_ylabel('Z (m)')
         # add line to map plot
-        ax1.plot(x, y, '-r', linewidth=2)
-        ax1.plot(x[idist0], y[idist0], 'or', markersize=10, markerfacecolor='w',
-            markeredgecolor='r', markeredgewidth=2)
+        ax1.plot(x, y, '-k', linewidth=2)
+        ax1.plot(x[idist0], y[idist0], 'ok', markersize=10, markerfacecolor='w',
+            markeredgecolor='k', markeredgewidth=2)
             
     fig.tight_layout()
     

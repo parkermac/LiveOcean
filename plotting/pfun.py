@@ -72,8 +72,10 @@ def auto_lims(fld):
     """
     A convenience function for automatically setting color limits.
     Input: a numpy array (masked OK)
-    Output: tuple of good-guess colorsclale limits for a pcolormesh plot.
+    Output: tuple of good-guess colorscale limits for a pcolormesh plot.    
     """
+    from warnings import filterwarnings
+    filterwarnings('ignore') # skip some warning messages
     flo = np.nanmax([np.nanmean(fld) - 3*np.nanstd(fld), np.nanmin(fld)])
     fhi = np.nanmin([np.nanmean(fld) + 3*np.nanstd(fld), np.nanmax(fld)])
     return (flo, fhi)
@@ -125,27 +127,6 @@ def add_map_field(ax, ds, varname, slev=-1, vlims=(), cmap='rainbow',
     if do_mask_salish:
         v = mask_salish(v, ds['lon_rho'][1:-1, 1:-1], ds['lat_rho'][1:-1, 1:-1])  
     
-    cs = ax.pcolormesh(x, y, v*fac, vmin=vlims[0], vmax=vlims[1], cmap=cmap, alpha=alpha)
-    return cs, vlims
-
-def add_map_field2d(ax, ds, varname, vlims=(), cmap='rainbow',
-                  fac=1, alpha=1, do_mask_salish=False):
-    cmap = plt.get_cmap(name=cmap)
-    if 'lon_rho' in ds[varname].coordinates:
-        x = ds['lon_psi'][:]
-        y = ds['lat_psi'][:]
-        v = ds[varname][0, 1:-1, 1:-1].squeeze()
-    elif 'lon_v' in ds[varname].coordinates:
-        x = ds['lon_u'][:]
-        y = ds['lat_u'][:]
-        v = ds[varname][0, :, 1:-1].squeeze()
-    elif 'lon_u' in ds[varname].coordinates:
-        x = ds['lon_v'][:]
-        y = ds['lat_v'][:]
-        v = ds[varname][0, 1:-1, :].squeeze()
-    if len(vlims) == 0:
-        vlims = auto_lims(v)
-        
     cs = ax.pcolormesh(x, y, v*fac, vmin=vlims[0], vmax=vlims[1], cmap=cmap, alpha=alpha)
     return cs, vlims
 
@@ -496,19 +477,19 @@ def get_section(ds, vn, x, y, in_dict):
     v3.pop('sectvar')
     v3.pop('dist')
     mask3 = ~np.isnan(v3['sectvarf'][:])
-    print(mask3.shape)
+    #print(mask3.shape)
     mask2 = mask3[-1,:]
     dist = dist[mask2]
     NC = len(dist)
     NR = mask3.shape[0]
     for k in v2.keys():
-        print('v2 key: ' + k)
+        #print('v2 key: ' + k)
         v2[k] = v2[k][mask2]
     for k in v3.keys():
-        print('v3 key: ' + k)
+        #print('v3 key: ' + k)
         v3[k] = v3[k][mask3]
         v3[k] = v3[k].reshape((NR, NC))
-        print(v3[k].shape)
+        #print(v3[k].shape)
     
     return v2, v3, dist, idist0
 
