@@ -69,7 +69,12 @@ for vn in ['salt', 'temp', 'v3d', 'v2d', 'zeta', 'ocean']:
 vv = foo.createVariable('zeta', float, ('zeta_time', 'eta_rho', 'xi_rho'))
 vv.long_name = 'sea surface height climatology'
 vv.units = 'meter'
-vv[:] = 0
+h = G['h']
+zeta = np.zeros_like(h)
+mask = h < 0.1
+zeta[mask] = -h[mask] + 0.1
+
+vv[:,:] = zeta * np.ones((2,1,1))
 vv = foo.createVariable('ubar', float, ('v2d_time', 'eta_u', 'xi_u'))
 vv.long_name = 'vertically averaged u-momentum climatology'
 vv.units = 'meter second-1'
