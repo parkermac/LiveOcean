@@ -92,8 +92,8 @@ roms_dir = '/pmr1/parker/LiveOcean_roms/'
 
 # determin grid size
 # testing
-gfn = Ldir['data'] + 'grids/' + Ldir['gridname'] + '/grid.nc'
-#gfn = grid_dir + 'grid.nc'
+#gfn = Ldir['data'] + 'grids/' + Ldir['gridname'] + '/grid.nc'
+gfn = grid_dir + 'grid.nc'
 ds = nc.Dataset(gfn)
 h = ds['h'][:]
 nrows0, ncols0 = h.shape
