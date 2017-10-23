@@ -161,7 +161,7 @@ def get_z(h, zeta, S, only_rho=False, only_w=False):
     else :
         return make_z_rho(h, zeta, S, N, M, L), make_z_w(h, zeta, S, N, M, L)
 
-def roms_low_pass(flist, outfile, filt0):
+def roms_low_pass(flist, outfile, filt0, exclude=[]):
     """
     Creates a low-passed version of ROMS history files, that are identical
     in structure to history files except that have an ocean)time dimension
@@ -182,20 +182,21 @@ def roms_low_pass(flist, outfile, filt0):
     # create the output file
     shutil.copyfile(flist[0],outfile)
     # create the Datasets
-    ds = nc4.MFDataset(flist)
+    ds = nc4.MFDataset(flist, exclude=exclude)
     dsout = nc4.Dataset(outfile,'a')
     # loop over all variables that have time axes
     for vn in ds.variables:
-        if 'ocean_time' in ds.variables[vn].dimensions:
-            #print(vn + ' ' + str(ds.variables[vn].shape)) # debugging
-            ndim = len(ds.variables[vn].shape)
-            filt_shape = (nf,)
-            for ii in range(ndim-1):
-                filt_shape = filt_shape + (1,)
-            v = ds.variables[vn][:]
-            filt = filt0.reshape(filt_shape)
-            vf = (filt*v).sum(axis=0)
-            dsout.variables[vn][:] = vf.reshape(dsout.variables[vn].shape)
+        if vn not in exclude:
+            if 'ocean_time' in ds.variables[vn].dimensions:
+                #print(vn + ' ' + str(ds.variables[vn].shape)) # debugging
+                ndim = len(ds.variables[vn].shape)
+                filt_shape = (nf,)
+                for ii in range(ndim-1):
+                    filt_shape = filt_shape + (1,)
+                v = ds.variables[vn][:]
+                filt = filt0.reshape(filt_shape)
+                vf = (filt*v).sum(axis=0)
+                dsout.variables[vn][:] = vf.reshape(dsout.variables[vn].shape)
     ds.close()
     dsout.close()
     
