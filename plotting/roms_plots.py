@@ -836,7 +836,8 @@ def P_sectA(in_dict):
     ax.plot(dist, v2['zeta'], '-b', linewidth=1)
     ax.set_xlim(dist.min(), dist.max())
     ax.set_ylim(-25, 2)
-    vlims = pfun.auto_lims(v3['sectvarf'])
+    #vlims = pfun.auto_lims(v3['sectvarf'])
+    vlims = vlims[vn]
     cs = ax.pcolormesh(v3['distf'], v3['zrf'], v3['sectvarf'],
                        vmin=vlims[0], vmax=vlims[1], cmap=cmap_dict[vn])
     #fig.colorbar(cs)
@@ -862,7 +863,7 @@ def P_sectA(in_dict):
         ax.set_xlim(0, 22.5)
         #ax.set_xlim(dist.min(), dist.max())
         ax.set_ylim(-25, 2)
-        vlims = pfun.auto_lims(v3['sectvarf'])
+        #vlims = pfun.auto_lims(v3['sectvarf'])
         cs = ax.pcolormesh(v3['distf'], v3['zrf'], v3['sectvarf'],
                            vmin=vlims[0], vmax=vlims[1], cmap=cmap_dict[vn])
         #fig.colorbar(cs)

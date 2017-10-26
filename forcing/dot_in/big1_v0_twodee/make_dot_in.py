@@ -94,6 +94,14 @@ grid_dir = '/fjdata1/parker/LiveOcean_data/grids/' + Ldir['gridname'] + '/'
 force_dir = loo_dir + gtag + '/' + f_string + '/'
 roms_dir = '/pmr1/parker/LiveOcean_roms/'
 
+# determine grid size
+gfn = grid_dir + 'grid.nc'
+ds = nc.Dataset(gfn)
+h = ds['h'][:]
+nrows0, ncols0 = h.shape
+nrows = nrows0 - 2
+ncols = ncols0 - 2
+
 if do_bio:
     roms_name = 'LO_ROMS'
     bio_tag = '' #'_bio'
@@ -136,7 +144,8 @@ f2 = open(dot_in_dir + dot_in_name,'w')
 in_varlist = ['base_dir','ntilei','ntilej','ntimes','dt','nrrec','ninfo',
     'nhis','dstart','ndefhis','nrst','force_dir','grid_dir','roms_dir',
     'atm_dir','ocn_dir','riv_dir','tide_dir','dot_in_dir',
-    'zqt_height','zw_height','ini_fullname','out_dir','EX_NAME','roms_name','bio_tag']
+    'ini_fullname','out_dir','EX_NAME','roms_name','bio_tag',
+    'nrows','ncols']
 for line in f:
     for var in in_varlist:
         if '$'+var+'$' in line:

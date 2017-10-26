@@ -39,8 +39,8 @@ GridsInLayer =  1
 ! Grid dimension parameters. See notes below in the Glossary for how to set
 ! these parameters correctly.
 
-          Lm == 690            ! Number of I-direction INTERIOR RHO-points
-          Mm == 1430            ! Number of J-direction INTERIOR RHO-points
+          Lm == $ncols$            ! Number of I-direction INTERIOR RHO-points
+          Mm == $nrows$            ! Number of J-direction INTERIOR RHO-points
            N == 1            ! Number of vertical levels
 
         Nbed =  0             ! Number of sediment bed layers
@@ -199,9 +199,9 @@ GridsInLayer =  1
 
 ! Height (m) of atmospheric measurements for Bulk fluxes parameterization.
 
-      BLK_ZQ == $zqt_height$                     ! air humidity
-      BLK_ZT == $zqt_height$                     ! air temperature
-      BLK_ZW == $zw_height$                     ! winds
+      BLK_ZQ == 2.0d0                     ! air humidity
+      BLK_ZT == 2.0d0                     ! air temperature
+      BLK_ZW == 10.0d0                     ! winds
 
 ! Minimum depth for wetting and drying.
 
