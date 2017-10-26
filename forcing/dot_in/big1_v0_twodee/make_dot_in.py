@@ -13,6 +13,8 @@ if fpth not in sys.path:
 import forcing_functions as ffun
 Ldir, Lfun = ffun.intro()
 
+import netCDF4 as nc
+
 from datetime import datetime, timedelta
 fdt = datetime.strptime(Ldir['date_string'], '%Y.%m.%d')
 fdt_yesterday = fdt - timedelta(1)
