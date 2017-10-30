@@ -90,6 +90,14 @@ grid_dir = '/fjdata1/parker/LiveOcean_data/grids/' + Ldir['gridname'] + '/'
 force_dir = loo_dir + gtag + '/' + f_string + '/'
 roms_dir = '/pmr1/parker/LiveOcean_roms/'
 
+# determine grid size
+gfn = grid_dir + 'grid.nc'
+ds = nc.Dataset(gfn)
+h = ds['h'][:]
+nrows0, ncols0 = h.shape
+nrows = nrows0 - 2
+ncols = ncols0 - 2
+
 roms_name = 'LO_ROMS'
 if do_bio:
     bio_tag = '_bio'
