@@ -131,11 +131,17 @@ def P_basic(in_dict):
     out_dict['vlims'] = vlims
 
     # PLOT CODE
+    auto_vlims = True
+    
     # panel 1
     vn = 'salt'
     tstr = 'Surface ' + tstr_dict[vn]
     ax = fig.add_subplot(121)
     vn = 'salt'
+    
+    if auto_vlims:
+        vlims[vn] = ()
+    
     cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn,
             vlims=vlims[vn], cmap=cmap_dict[vn], fac=fac_dict[vn])
     fig.colorbar(cs)
@@ -151,6 +157,10 @@ def P_basic(in_dict):
     # panel 2
     ax = fig.add_subplot(122)
     vn = 'temp'
+    
+    if auto_vlims:
+        vlims[vn] = ()
+    
     tstr = 'Surface ' + tstr_dict[vn]
     cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn,
             vlims=vlims[vn], cmap=cmap_dict[vn], fac=fac_dict[vn])
@@ -191,7 +201,7 @@ def P_basic2D(in_dict):
     x = ds['lon_psi'][:]
     y = ds['lat_psi'][:]
     v = ds[vn][0, 1:-1, 1:-1].squeeze()
-    m = ds['wetdry_mask_rho'][0, 1:-1, 1:-1].squeeze()
+    m = ds['mask_rho'][1:-1, 1:-1].squeeze()
     vm = np.ma.masked_where(m==0, v)
     vlims = pfun.auto_lims(vm)
     cs = ax.pcolormesh(x, y, vm, vmin=vlims[0], vmax=vlims[1], cmap='rainbow')
@@ -212,7 +222,7 @@ def P_basic2D(in_dict):
     x = ds['lon_u'][:]
     y = ds['lat_u'][:]
     v = ds[vn][0, :, :].squeeze()
-    m = ds['wetdry_mask_u'][0, :, :].squeeze()
+    m = ds['mask_u'][:, :].squeeze()
     vm = np.ma.masked_where(m==0, v)
     #vlims = pfun.auto_lims(vm)
     vlims = (vm.min(), vm.max())
@@ -232,7 +242,7 @@ def P_basic2D(in_dict):
     x = ds['lon_v'][:]
     y = ds['lat_v'][:]
     v = ds[vn][0, :, :].squeeze()
-    m = ds['wetdry_mask_v'][0, :, :].squeeze()
+    m = ds['mask_v'][:, :].squeeze()
     vm = np.ma.masked_where(m==0, v)
     #vlims = pfun.auto_lims(vm)
     vlims = (vm.min(), vm.max())
@@ -330,8 +340,9 @@ def P_dive_vort(in_dict):
     dyp = zfun.interp2(x, y, G['lon_rho'], G['lat_rho'], G['DY'])
     vort = np.diff(v, axis=1)/dxp - np.diff(u, axis=0)/dyp
     
-    aa = [-122.95, -122.55, 47.6, 48]
-    scl = 5e-4
+    aa = pfun.get_aa(ds)
+    #aa = [-122.95, -122.55, 47.6, 48]
+    scl = 1e-4
     # panel 1
     ax = fig.add_subplot(121)
     cs = plt.pcolormesh(G['lon_psi'], G['lat_psi'], dive, cmap='bwr',
