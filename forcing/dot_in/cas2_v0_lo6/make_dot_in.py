@@ -55,7 +55,7 @@ rst_interval = 1 # days between writing to the restart file (e.g. 5)
 atm_dir = 'atm/' # which atm forcing files to use
 ocn_dir = 'ocn1/' # which ocn forcing files to use
 riv_dir = 'riv1/' # which riv forcing files to use
-tide_dir = 'tide/' # which tide forcing files to use
+tide_dir = 'tide1/' # which tide forcing files to use
 
 #### END USER DEFINED VALUES ####
 
