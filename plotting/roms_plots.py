@@ -131,8 +131,15 @@ def P_basic(in_dict):
     out_dict['vlims'] = vlims
 
     # PLOT CODE
-    auto_vlims = True
     
+    # HACKS
+    auto_vlims = False
+    #
+    new_vlims = True
+    if new_vlims==True:
+        vlims['salt'] = (24,34)#(28, 34)
+        vlims['temp'] = (5,11)
+        
     # panel 1
     vn = 'salt'
     tstr = 'Surface ' + tstr_dict[vn]
