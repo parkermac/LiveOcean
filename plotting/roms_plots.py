@@ -978,27 +978,43 @@ def P_tracks_MERHAB(in_dict):
         # latvec = np.linspace(y0, y1, nyp)
         # lonmat, latmat = np.meshgrid(lonvec, latvec)
     
-        nyp = 7
-        x0 = -126
-        x1 = -125
-        y0 = 48
-        y1 = 49
-        mlr = np.pi*(np.mean([y0, y1]))/180
-        xyRatio = np.cos(mlr) * (x1 - x0) / (y1 - y0)
-        lonvec = np.linspace(x0, x1, (nyp * xyRatio).astype(int))
-        latvec = np.linspace(y0, y1, nyp)
-        lonmat_1, latmat_1 = np.meshgrid(lonvec, latvec)
-        x0 = -125
-        x1 = -124
-        y0 = 44
-        y1 = 45
-        mlr = np.pi*(np.mean([y0, y1]))/180
-        xyRatio = np.cos(mlr) * (x1 - x0) / (y1 - y0)
-        lonvec = np.linspace(x0, x1, (nyp * xyRatio).astype(int))
-        latvec = np.linspace(y0, y1, nyp)
-        lonmat_2, latmat_2 = np.meshgrid(lonvec, latvec)
-        lonmat = np.concatenate((lonmat_1.flatten(), lonmat_2.flatten()))
-        latmat = np.concatenate((latmat_1.flatten(), latmat_2.flatten()))
+        if False:
+            # standard MERHAB version
+            nyp = 7
+            x0 = -126
+            x1 = -125
+            y0 = 48
+            y1 = 49
+            mlr = np.pi*(np.mean([y0, y1]))/180
+            xyRatio = np.cos(mlr) * (x1 - x0) / (y1 - y0)
+            lonvec = np.linspace(x0, x1, (nyp * xyRatio).astype(int))
+            latvec = np.linspace(y0, y1, nyp)
+            lonmat_1, latmat_1 = np.meshgrid(lonvec, latvec)
+            x0 = -125
+            x1 = -124
+            y0 = 44
+            y1 = 45
+            mlr = np.pi*(np.mean([y0, y1]))/180
+            xyRatio = np.cos(mlr) * (x1 - x0) / (y1 - y0)
+            lonvec = np.linspace(x0, x1, (nyp * xyRatio).astype(int))
+            latvec = np.linspace(y0, y1, nyp)
+            lonmat_2, latmat_2 = np.meshgrid(lonvec, latvec)
+            lonmat = np.concatenate((lonmat_1.flatten(), lonmat_2.flatten()))
+            latmat = np.concatenate((latmat_1.flatten(), latmat_2.flatten()))
+        else:
+            # new version with more release points
+            nyp = 35
+            x0 = -126
+            x1 = -124
+            y0 = 44
+            y1 = 49
+            mlr = np.pi*(np.mean([y0, y1]))/180
+            xyRatio = np.cos(mlr) * (x1 - x0) / (y1 - y0)
+            lonvec = np.linspace(x0, x1, (nyp * xyRatio).astype(int))
+            latvec = np.linspace(y0, y1, nyp)
+            lonmat, latmat = np.meshgrid(lonvec, latvec)
+
+            
         plon00 = lonmat.flatten()
         plat00 = latmat.flatten()
         pcs00 = np.array([-.05]) # unimportant when surface=True
