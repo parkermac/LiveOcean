@@ -978,7 +978,7 @@ def P_tracks_MERHAB(in_dict):
         # latvec = np.linspace(y0, y1, nyp)
         # lonmat, latmat = np.meshgrid(lonvec, latvec)
     
-        if False:
+        if True:
             # standard MERHAB version
             nyp = 7
             x0 = -126
