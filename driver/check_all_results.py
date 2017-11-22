@@ -21,7 +21,7 @@ parser = argparse.ArgumentParser()
 # optional arguments
 parser.add_argument("-g", "--gridname", type=str, default='cascadia1')
 parser.add_argument("-t", "--tag", type=str, default='base')
-parser.add_argument("-x", "--ex_name", type=str, default='lobio1')
+parser.add_argument("-x", "--ex_name", type=str, default='lobio5')
 parser.add_argument("-nd", "--num_days", type=int, default=10)
 args = parser.parse_args()
 
