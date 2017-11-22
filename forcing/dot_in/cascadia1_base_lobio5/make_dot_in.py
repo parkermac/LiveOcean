@@ -107,14 +107,14 @@ out_dir0 = roms_dir + 'output/' + gtagex + '/'
 out_dir = out_dir0 + f_string + '/'
 
 atm_dir = 'atm/' # which atm forcing files to use
-ocn_dir = 'ocn/' # which ocn forcing files to use
+ocn_dir = 'ocn1/' # which ocn forcing files to use
 riv_dir = 'riv/' # which riv forcing files to use
 tide_dir = 'tide/' # which tide forcing files to use
 
 if Ldir['start_type'] == 'continuation':
     nrrec = '0' # '-1' for a hot restart
-    ininame = 'ocean_rst.nc' # for a hot perfect restart
-    #ininame = 'ocean_his_0025.nc' # for a hot restart
+    #ininame = 'ocean_rst.nc' # for a hot perfect restart
+    ininame = 'ocean_his_0025.nc' # for a hot restart
     ini_fullname = out_dir0 + f_string_yesterday + '/' + ininame
 elif Ldir['start_type'] == 'new':
     nrrec = '0' # '0' for a history or ini file
