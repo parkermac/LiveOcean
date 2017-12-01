@@ -72,15 +72,15 @@ tide_dir = 'tide1/' # which tide forcing files to use
 
 if multi_core:
     if Ldir['np_num'] == 72:
-        ntilei = '4' # number of tiles in I-direction (6)
-        ntilej = '9' # number of tiles in J-direction (12)
-        ntilei_a = '4' # number of tiles in I-direction (6)
-        ntilej_a = '9' # number of tiles in J-direction (12)
-    elif Ldir['np_num'] == 144:
         ntilei = '6' # number of tiles in I-direction (6)
         ntilej = '12' # number of tiles in J-direction (12)
         ntilei_a = '6' # number of tiles in I-direction (6)
         ntilej_a = '12' # number of tiles in J-direction (12)
+    elif Ldir['np_num'] == 144:
+        ntilei = '8' # number of tiles in I-direction (6)
+        ntilej = '18' # number of tiles in J-direction (12)
+        ntilei_a = '8' # number of tiles in I-direction (6)
+        ntilej_a = '18' # number of tiles in J-direction (12)
     else:
         print('Unsupported number of processors: %d' % (Ldir['np_num']))
 else:
