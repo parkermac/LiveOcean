@@ -155,8 +155,8 @@ gfn = grid_dir_a + 'grid.nc'
 ds = nc.Dataset(gfn)
 h = ds['h'][:]
 nrows0, ncols0 = h.shape
-nrows_a = nrows0 - 2
-ncols_a = ncols0 - 2
+nrows_a = nrows0 - 7
+ncols_a = ncols0 - 7
 ds.close()
 # determine number of layers
 s_dict = Lfun.csv_to_dict(grid_dir_a + 'S_COORDINATE_INFO.csv')
