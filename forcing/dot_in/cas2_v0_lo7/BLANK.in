@@ -554,8 +554,10 @@ Dout(iTvdif) == T T     ! temp_vdiff, ...    vertical diffusion
 
 ! Input NetCDF file names, [1:Ngrids].
 
-     GRDNAME == $grid_dir$grid.nc $grid_dir_a$grid.nc
-     ININAME == $ini_fullname$ $ini_fullname_a$
+     GRDNAME == $grid_dir$grid.nc \
+  $grid_dir_a$grid.nc
+     ININAME == $ini_fullname$ \
+  $ini_fullname_a$
 
 ! Nesting grids connectivity data: contact points information. This
 ! NetCDF file is special and complex. It is currently generated using
@@ -602,10 +604,14 @@ Dout(iTvdif) == T T     ! temp_vdiff, ...    vertical diffusion
 
 ! Output NetCDF file names, [1:Ngrids].
 
-     RSTNAME == $out_dir$ocean_rst.nc $out_dir$ocean_rst_a.nc
-     HISNAME == $out_dir$ocean_his.nc $out_dir$ocean_his_a.nc
-     AVGNAME == $out_dir$ocean_avg.nc $out_dir$ocean_avg_a.nc
-     DIANAME == $out_dir$ocean_dia.nc $out_dir$ocean_dia_a.nc
+     RSTNAME == $out_dir$ocean_rst.nc \
+  $out_dir$ocean_rst_a.nc
+     HISNAME == $out_dir$ocean_his.nc \
+  $out_dir$ocean_his_a.nc
+     AVGNAME == $out_dir$ocean_avg.nc \
+  $out_dir$ocean_avg_a.nc
+     DIANAME == $out_dir$ocean_dia.nc \
+  $out_dir$ocean_dia_a.nc
 
 ! Input ASCII parameter filenames.
      BPARNAM = $dot_in_dir$npzd2o_Banas.in     
