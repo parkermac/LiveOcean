@@ -12,7 +12,7 @@ fi
 
 for frc in 'tracks_m' 'carbon' 'low_pass' 'ubc' 'surface' 'azu1'; do
 
-  ./driver_forcing1.sh -g cascadia1 -t base -x lobio1 -f $frc -r forecast > $LO_parent/driver/dlog_$frc &
+  ./driver_forcing1.sh -g cascadia1 -t base -x lobio5 -f $frc -r forecast > $LO_parent/driver/dlog_$frc &
   # Check that the job has finished successfully.
   PID1=$!
   wait $PID1
