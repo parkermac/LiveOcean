@@ -215,7 +215,7 @@ elif planB == True:
     ot[-1] += 86400
     print('NEW')
     for tname in ['ocean', 'salt', 'temp', 'v3d', 'v2d', 'zeta']:
-    ds[tname + '_time'][:] = ot
+        ds[tname + '_time'][:] = ot
         print(tname)
         print(ds[tname + '_time'][:])
     ds.close()
