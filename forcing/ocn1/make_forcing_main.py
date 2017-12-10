@@ -70,11 +70,14 @@ if (Ldir['run_type'] == 'forecast') and (planB == False):
     h_out_dir = out_dir = Ldir['LOogf_fd']      
     print('** START getting catalog')
     # create a list of url's of the preprocessed HYCOM files for this forecast
-    try:
-        fn_list = Ofun.get_hycom_file_list(exnum)
-        print('** END getting catalog')
-    except:
-        planB = True
+    
+    planB = True
+    
+    # try:
+    #     fn_list = Ofun.get_hycom_file_list(exnum)
+    #     print('** END getting catalog')
+    # except:
+    #     planB = True
         
     if planB == False:
         # get a selection of the raw list (e.g. one per day)
