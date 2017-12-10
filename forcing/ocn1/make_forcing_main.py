@@ -59,7 +59,7 @@ start_time = datetime.now()
 
 vnl_full = ['ssh','s3d','t3d','u3d','v3d']
 exnum = '91.2'
-testing = True
+testing = False
 
 if testing == False:
     planB = False
@@ -204,61 +204,60 @@ elif planB == True:
         + Ldir['frc'] + '/' + 'ocean_clm.nc')
     clm_today = Ldir['LOogf_f'] + 'ocean_clm.nc'
     
-    print(clm_yesterday)
-    print(clm_today)
+    #print(clm_yesterday)
+    #print(clm_today)
     shutil.copyfile(clm_yesterday, clm_today)
     ds = nc.Dataset(clm_today, 'a')
-    print('OLD')
+    #print('OLD')
     ot = ds['ocean_time'][:]
-    for t in ot:
-        print(t)
+    # for t in ot:
+    #     print(t)
     ot[-1] += 86400
-    print('NEW')
+    #print('NEW')
     for tname in ['ocean', 'salt', 'temp', 'v3d', 'v2d', 'zeta']:
         ds[tname + '_time'][:] = ot
-        print(tname)
-        print(ds[tname + '_time'][:])
+        #print(tname)
+        #print(ds[tname + '_time'][:])
     ds.close()
 
     
-if False:
-    # add bio variable if needed
-    # if 'bio' in Ldir['ex_name']:
-    #     Ofun_nc.add_bio(nc_dir)
+# add bio variable if needed
+# if 'bio' in Ldir['ex_name']:
+#     Ofun_nc.add_bio(nc_dir)
 
-    nc_dir = Ldir['LOogf_f']
-    Ofun_nc.make_ini_file(nc_dir)
-    Ofun_nc.make_bry_file(nc_dir)
+nc_dir = Ldir['LOogf_f']
+Ofun_nc.make_ini_file(nc_dir)
+Ofun_nc.make_bry_file(nc_dir)
 
-    #%% prepare for finale
-    import collections
-    result_dict = collections.OrderedDict()
-    time_format = '%Y.%m.%d %H:%M:%S'
-    result_dict['start_time'] = start_time.strftime(time_format)
-    end_time = datetime.now()
-    result_dict['end_time'] = end_time.strftime(time_format)
-    dt_sec = (end_time - start_time).seconds
-    result_dict['total_seconds'] = str(dt_sec)
+#%% prepare for finale
+import collections
+result_dict = collections.OrderedDict()
+time_format = '%Y.%m.%d %H:%M:%S'
+result_dict['start_time'] = start_time.strftime(time_format)
+end_time = datetime.now()
+result_dict['end_time'] = end_time.strftime(time_format)
+dt_sec = (end_time - start_time).seconds
+result_dict['total_seconds'] = str(dt_sec)
 
-    ds = nc.Dataset(nc_dir + 'ocean_clm.nc')
-    ot = ds['ocean_time'][:]
-    ds.close()
-    dt0 = Lfun.modtime_to_datetime(ot[0])
-    dt1 = Lfun.modtime_to_datetime(ot[-1])
+ds = nc.Dataset(nc_dir + 'ocean_clm.nc')
+ot = ds['ocean_time'][:]
+ds.close()
+dt0 = Lfun.modtime_to_datetime(ot[0])
+dt1 = Lfun.modtime_to_datetime(ot[-1])
 
-    result_dict['var_start_time'] = dt0.strftime(time_format)
-    result_dict['var_end_time'] = dt1.strftime(time_format)
+result_dict['var_start_time'] = dt0.strftime(time_format)
+result_dict['var_end_time'] = dt1.strftime(time_format)
 
-    nc_list = ['ocean_clm.nc', 'ocean_ini.nc', 'ocean_bry.nc']
-    result_dict['result'] = 'success'
-    for fn in nc_list:
-        if os.path.isfile(nc_dir + fn):
-            pass
-        else:
-           result_dict['result'] = 'fail'
+nc_list = ['ocean_clm.nc', 'ocean_ini.nc', 'ocean_bry.nc']
+result_dict['result'] = 'success'
+for fn in nc_list:
+    if os.path.isfile(nc_dir + fn):
+        pass
+    else:
+       result_dict['result'] = 'fail'
 
-    #%% ************** END CASE-SPECIFIC CODE *****************
+#%% ************** END CASE-SPECIFIC CODE *****************
 
-    ffun.finale(result_dict, Ldir, Lfun)
+ffun.finale(result_dict, Ldir, Lfun)
 
 
