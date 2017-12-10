@@ -208,10 +208,14 @@ elif planB == True:
     print(clm_today)
     shutil.copyfile(clm_yesterday, clm_today)
     ds = nc.Dataset(clm_today, 'a')
+    print('OLD')
     ot = ds['ocean_time'][:]
     for t in ot:
         print(t)
     ot[-1] += 86400
+    ds['ocean_time'][:] = ot
+    print('NEW')
+    ot = ds['ocean_time'][:]
     for t in ot:
         print(t)
     ds.close()
