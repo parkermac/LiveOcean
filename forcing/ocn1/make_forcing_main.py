@@ -206,8 +206,12 @@ elif planB == True:
     
     print(clm_yesterday)
     print(clm_today)
-    # shutil.copyfile(clm_yesterday, clm_today)
-    #ds = nc.Dataset(clm_today, 'a')
+    shutil.copyfile(clm_yesterday, clm_today)
+    ds = nc.Dataset(clm_today, 'a')
+    ot = ds['ocean_time'][:]
+    for t in ot:
+        print(ot)
+    ds.close()
 
     
 if False:
