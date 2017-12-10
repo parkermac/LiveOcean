@@ -213,11 +213,11 @@ elif planB == True:
     for t in ot:
         print(t)
     ot[-1] += 86400
-    ds['ocean_time'][:] = ot
     print('NEW')
-    ot = ds['ocean_time'][:]
-    for t in ot:
-        print(t)
+    for tname in ['ocean', 'salt', 'temp', 'v3d', 'v2d', 'zeta']:
+    ds[tname + '_time'][:] = ot
+        print(tname)
+        print(ds[tname + '_time'][:])
     ds.close()
 
     
