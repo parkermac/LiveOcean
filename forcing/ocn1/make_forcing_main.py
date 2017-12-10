@@ -201,7 +201,7 @@ elif planB == True:
     dt_yesterday = dt_today - timedelta(days=1)
     ds_yesterday = datetime.strftime(dt_yesterday, format='%Y.%m.%d')
     clm_yesterday = (Ldir['LOog'] + 'f' + ds_yesterday + '/'
-        + args.frc + '/' + 'ocean_clm.nc')
+        + Ldir['frc'] + '/' + 'ocean_clm.nc')
     clm_today = Ldir['LOogf_f'] + 'ocean_clm.nc'
     
     print(clm_yesterday)
