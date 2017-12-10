@@ -210,7 +210,10 @@ elif planB == True:
     ds = nc.Dataset(clm_today, 'a')
     ot = ds['ocean_time'][:]
     for t in ot:
-        print(ot)
+        print(t)
+    ot[-1] += 86400
+    for t in ot:
+        print(t)
     ds.close()
 
     
