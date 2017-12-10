@@ -71,13 +71,13 @@ if (Ldir['run_type'] == 'forecast') and (planB == False):
     print('** START getting catalog')
     # create a list of url's of the preprocessed HYCOM files for this forecast
     
-    planB = True
+    #planB = True
     
-    # try:
-    #     fn_list = Ofun.get_hycom_file_list(exnum)
-    #     print('** END getting catalog')
-    # except:
-    #     planB = True
+    try:
+        fn_list = Ofun.get_hycom_file_list(exnum)
+        print('** END getting catalog')
+    except:
+        planB = True
         
     if planB == False:
         # get a selection of the raw list (e.g. one per day)
@@ -199,6 +199,7 @@ if planB == False:
     Ofun_nc.make_clm_file(Ldir, nc_dir, fh_dir, c_dict, dt_list, S, G)
     
 elif planB == True:
+    print('**** Using planB ****')
     ds_today = Ldir['date_string']
     dt_today = datetime.strptime(ds_today, '%Y.%m.%d')
     dt_yesterday = dt_today - timedelta(days=1)

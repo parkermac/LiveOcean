@@ -36,11 +36,11 @@ def get_hycom_file_list(exnum):
     req = Request(xml_name)
     counter = 1
     got_file = False
-    while (counter <= 10) and (got_file == False):
+    while (counter <= 3) and (got_file == False):
         print('Attempting to get catalog XML, counter = ' + str(counter))    
         tt0 = time.time()
         try:
-            xfile = urlopen(req, timeout=30)
+            xfile = urlopen(req, timeout=20)
         except URLError as e:
             if hasattr(e, 'reason'):
                 print(' *We failed to reach a server.')
