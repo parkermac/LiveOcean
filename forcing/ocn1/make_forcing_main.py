@@ -197,7 +197,7 @@ if planB == False:
     
 elif planB == True:
     ds_today = Ldir['date_string']
-    dt_today = datetime.strptime(ds_today, format='%Y.%m.%d')
+    dt_today = datetime.strptime(ds_today, '%Y.%m.%d')
     dt_yesterday = dt_today - timedelta(days=1)
     ds_yesterday = datetime.strftime(dt_yesterday, format='%Y.%m.%d')
     clm_yesterday = (Ldir['LOog'] + 'f' + ds_yesterday + '/'
