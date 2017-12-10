@@ -195,7 +195,7 @@ if planB == False:
     nc_dir = Ldir['LOogf_f']
     Ofun_nc.make_clm_file(Ldir, nc_dir, fh_dir, c_dict, dt_list, S, G)
     
-elif PlanB == True:
+elif planB == True:
     ds_today = Ldir['date_string']
     dt_today = datetime.strptime(ds_today, format='%Y.%m.%d')
     dt_yesterday = dt_today - timedelta(days=1)
@@ -207,7 +207,7 @@ elif PlanB == True:
     print(clm_yesterday)
     print(clm_today)
     # shutil.copyfile(clm_yesterday, clm_today)
-    # ds = nc.Dataset(clm_today, 'a')
+    #ds = nc.Dataset(clm_today, 'a')
 
     
 if False:
