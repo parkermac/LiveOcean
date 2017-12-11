@@ -306,9 +306,6 @@ GridsInLayer =  1 1
 
   LnudgeTCLM == T T                        ! temperature, salinity, inert
   
-! Input climatology nudging coefficients file name.
-     NUDNAME == $grid_dir$nudgcoef.nc
-
 ! Logical switches (TRUE/FALSE) to activate writing of fields into
 ! HISTORY output file.
 
@@ -575,8 +572,7 @@ Dout(iTvdif) == T T     ! temp_vdiff, ...    vertical diffusion
      CLMNAME == $force_dir$$ocn_dir$ocean_clm$bio_tag$.nc
 
 ! Input climatology nudging coefficients file name.
-
-!     NUDNAME == ocean_nud.nc
+     NUDNAME == $grid_dir$nudgcoef.nc
 
 ! Input Sources/Sinks forcing (like river runoff) file name.
 
