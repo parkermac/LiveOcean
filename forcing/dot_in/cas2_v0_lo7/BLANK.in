@@ -251,10 +251,15 @@ GridsInLayer =  1 1
 ! Nudging/relaxation time scales, inverse scales will be computed
 ! internally, [1:Ngrids].
 
-       TNUDG == 2*3.0d0 2*3.0d0                ! days
-       ZNUDG == 2*3.0d0                      ! days
-      M2NUDG == 2*3.0d0                      ! days
-      M3NUDG == 2*3.0d0                      ! days
+!       TNUDG == 2*3.0d0 2*3.0d0                ! days
+!       ZNUDG == 2*3.0d0                      ! days
+!      M2NUDG == 2*3.0d0                      ! days
+!      M3NUDG == 2*3.0d0                      ! days
+	  
+       TNUDG == 2*3.0d0                ! days
+       ZNUDG == 3.0d0                      ! days
+      M2NUDG == 3.0d0                      ! days
+      M3NUDG == 3.0d0                      ! days
       
 ! Factor between passive (outflow) and active (inflow) open boundary
 ! conditions, [1:Ngrids]. If OBCFAC > 1, nudging on inflow is stronger
