@@ -295,21 +295,21 @@ GridsInLayer =  1 1
 ! Logical switches (TRUE/FALSE) to read and process climatology fields.
 ! See glossary below for details.
 
-     LsshCLM == T                          ! sea-surface height
-      Lm2CLM == T                          ! 2D momentum
-      Lm3CLM == T                          ! 3D momentum
+     LsshCLM == T F                          ! sea-surface height
+      Lm2CLM == T F                          ! 2D momentum
+      Lm3CLM == T F                          ! 3D momentum
 
-  LtracerCLM == T T                        ! temperature, salinity, inert
+  LtracerCLM == T T F F                        ! temperature, salinity, inert
 
 ! Logical switches (TRUE/FALSE) to nudge the desired climatology field(s).
 ! If not analytical climatology fields, users need to turn ON the logical
 ! switches above to process the fields from the climatology NetCDF file
 ! that are needed for nudging. See glossary below for details.
 
- LnudgeM2CLM == T                          ! 2D momentum
- LnudgeM3CLM == T                          ! 3D momentum
+ LnudgeM2CLM == T F                          ! 2D momentum
+ LnudgeM3CLM == T F                          ! 3D momentum
 
-  LnudgeTCLM == T T                        ! temperature, salinity, inert
+  LnudgeTCLM == T T F F                        ! temperature, salinity, inert
   
 ! Logical switches (TRUE/FALSE) to activate writing of fields into
 ! HISTORY output file.
