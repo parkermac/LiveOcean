@@ -583,24 +583,24 @@ Dout(iTvdif) == T T     ! temp_vdiff, ...    vertical diffusion
 
      SSFNAME == $force_dir$$riv_dir$rivers$bio_tag$.nc
 
-     NFFILES == 17                          ! number of unique forcing files
+     NFFILES == 9                          ! number of unique forcing files
 
      FRCNAME == $force_dir$$tide_dir$tides.nc \
-  $force_dir$$atm_dir$lwrad_down.nc \
-  $force_dir$$atm_dir$Pair.nc \
-  $force_dir$$atm_dir$Qair.nc \
-  $force_dir$$atm_dir$rain.nc \
-  $force_dir$$atm_dir$swrad.nc \
-  $force_dir$$atm_dir$Tair.nc \
-  $force_dir$$atm_dir$Uwind.nc \
-  $force_dir$$atm_dir$Vwind.nc \
+  $force_dir$$atm_dir$lwrad_down.nc |
   $force_dir_a$$atm_dir$lwrad_down.nc \
+  $force_dir$$atm_dir$Pair.nc |
   $force_dir_a$$atm_dir$Pair.nc \
+  $force_dir$$atm_dir$Qair.nc |
   $force_dir_a$$atm_dir$Qair.nc \
+  $force_dir$$atm_dir$rain.nc |
   $force_dir_a$$atm_dir$rain.nc \
+  $force_dir$$atm_dir$swrad.nc |
   $force_dir_a$$atm_dir$swrad.nc \
+  $force_dir$$atm_dir$Tair.nc |
   $force_dir_a$$atm_dir$Tair.nc \
+  $force_dir$$atm_dir$Uwind.nc |
   $force_dir_a$$atm_dir$Uwind.nc \
+  $force_dir$$atm_dir$Vwind.nc |
   $force_dir_a$$atm_dir$Vwind.nc  
 
 ! Output NetCDF file names, [1:Ngrids].
