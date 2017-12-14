@@ -5,7 +5,10 @@ Performance: about 5 minutes per day on fjord to do
     a low pass of cascadia1_base_lobio1
 
 For testing on my mac run in ipython as
+
 run make_forcing_main.py -d 2017.05.18
+
+run make_forcing_main.py -x lobio1 -d 2017.08.06
 """
 
 import os
@@ -83,7 +86,8 @@ else:
     filt0 = zfun.hanning_shape(nf)
 
 # RUN THE FUNCTION
-zrfun.roms_low_pass(flist, out_fn, filt0)
+exclude = ['PH', 'ARAG']
+zrfun.roms_low_pass(flist, out_fn, filt0, exclude=exclude)
 
 #%% prepare for finale
 import collections

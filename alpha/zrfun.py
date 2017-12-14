@@ -164,13 +164,14 @@ def get_z(h, zeta, S, only_rho=False, only_w=False):
 def roms_low_pass(flist, outfile, filt0, exclude=[]):
     """
     Creates a low-passed version of ROMS history files, that are identical
-    in structure to history files except that have an ocean)time dimension
-    are filtered.
+    in structure to history files except that they have an ocean_time dimension
+    and are filtered.
     INPUT:
     * flist is a list of paths to history files
     * outfile is the path of the output file to create
     * filt is a vector of weights for the low-pass.  It must be a numpy
       array whose sum is one, and whose length is equal to len(flist)
+    * exclude is a list of variable names not to filter.
     OUTPUT:
     * creates a single file (outfile)
     """
@@ -184,11 +185,17 @@ def roms_low_pass(flist, outfile, filt0, exclude=[]):
     # create the Datasets
     ds = nc4.MFDataset(flist, exclude=exclude)
     dsout = nc4.Dataset(outfile,'a')
+    # zero out variables we want to exclude
+    for vn in exclude:
+        try:
+            dsout[vn][:] = 0.
+        except IndexError:
+            pass
     # loop over all variables that have time axes
     for vn in ds.variables:
         if vn not in exclude:
             if 'ocean_time' in ds.variables[vn].dimensions:
-                #print(vn + ' ' + str(ds.variables[vn].shape)) # debugging
+                print(vn + ' ' + str(ds.variables[vn].shape)) # debugging
                 ndim = len(ds.variables[vn].shape)
                 filt_shape = (nf,)
                 for ii in range(ndim-1):
