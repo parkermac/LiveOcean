@@ -71,15 +71,9 @@ if (Ldir['run_type'] == 'forecast') and (planB == False):
     print('** START getting catalog')
     # create a list of url's of the preprocessed HYCOM files for this forecast
     
-    #planB = True
-    
     try:
         fn_list = Ofun.get_hycom_file_list(exnum)
         print('** END getting catalog')
-    except:
-        planB = True
-        
-    if planB == False:
         # get a selection of the raw list (e.g. one per day)
         varf_dict, dt_list = Ofun.get_varf_dict(fn_list, Ldir)
         var_list = list(varf_dict.keys())    
@@ -110,6 +104,9 @@ if (Ldir['run_type'] == 'forecast') and (planB == False):
         h_in_dir = h_out_dir
         h_list0 = os.listdir(h_in_dir)
         h_list = [item for item in h_list0 if item[0] == 'h']
+    except:
+        print('*** using planB ***')
+        planB = True
        
 elif (Ldir['run_type'] == 'backfill') and (planB == False):
     # get a list of all available times
