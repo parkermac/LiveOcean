@@ -30,7 +30,7 @@ def intro():
     start_type = 'continuation'  # new or continuation
     # Example of date_string is 2015.09.19
     date_string = datetime.now().strftime(format='%Y.%m.%d')
-    ex_name = 'lobio1'
+    ex_name = 'lobio5'
 
     # optional command line arguments, can be input in any order
     parser = argparse.ArgumentParser()

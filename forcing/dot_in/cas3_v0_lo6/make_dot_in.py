@@ -42,11 +42,14 @@ elif Ldir['run_type'] == 'forecast':
 
 # time step in seconds (should fit evenly into 3600 sec)
 if Ldir['blow_ups'] == 0:
-    dtsec = 20 
+    dtsec = 40 #20
 elif Ldir['blow_ups'] == 1:
-    dtsec = 10
+    dtsec = 20 #10
 else:
     print('Unsupported number of blow ups: %d' % (Ldir['blow_ups']))
+    
+ndtfast = dtsec # was 20
+    
 restart_nrrec = '-1' # '-1' for a non-crash restart file, otherwise '1' or '2'
 his_interval = 3600 # seconds to define and write to history files
 rst_interval = 1 # days between writing to the restart file (e.g. 5)
@@ -148,7 +151,7 @@ in_varlist = ['base_dir','ntilei','ntilej','ntimes','dt','nrrec','ninfo',
     'nhis','dstart','ndefhis','nrst','force_dir','grid_dir','roms_dir',
     'atm_dir','ocn_dir','riv_dir','tide_dir','dot_in_dir',
     'ini_fullname','out_dir','EX_NAME','roms_name','bio_tag',
-    'nrows','ncols', 'nlayers']
+    'nrows','ncols', 'nlayers', 'ndtfast']
 for line in f:
     for var in in_varlist:
         if '$'+var+'$' in line:

@@ -89,7 +89,7 @@ GridsInLayer =  1
 
       NTIMES == $ntimes$
           DT == $dt$
-     NDTFAST == 20
+     NDTFAST == $ndtfast$
 
 ! Model iteration loops parameters.
 
