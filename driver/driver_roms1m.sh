@@ -25,8 +25,8 @@ elif [ $HOME = "/usr/lusers/darrd" ] ; then
   np_num=196
   loenv="mox"
 elif [ $HOME = "/usr/lusers/pmacc" ] ; then
-  LO_top="/gscratch/macc/pmacc/LO/LiveOcean"
-  R_top="/gscratch/macc/pmacc/LO/LiveOcean_roms"
+  LO_top="/gscratch/macc/parker/LiveOcean"
+  R_top="/gscratch/macc/parker/LiveOcean_roms"
   np_num=196
   loenv="mox"
 fi
