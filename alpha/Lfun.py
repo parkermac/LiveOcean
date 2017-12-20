@@ -34,11 +34,11 @@ def Lstart(gridname='BLANK', tag='BLANK'):
         Ldir['parent'] = '/data1/parker/'
         Ldir['roms'] = '/pmr1/parker/LiveOcean_roms/'
         Ldir['which_matlab'] = '/usr/local/bin/matlab'
-    elif which_home '/usr/lusers/darrd':
+    elif which_home == '/usr/lusers/darrd':
         Ldir['env'] = 'mox'
         Ldir['parent'] = '/gscratch/macc/darrd/LOcean2/'
         Ldir['roms'] = '/gscratch/macc/darrd/LOcean2/LiveOcean_roms/'
-    elif which_home = '/usr/lusers/pmacc':
+    elif which_home == '/usr/lusers/pmacc':
         Ldir['env'] = 'mox'
         Ldir['parent'] = '/gscratch/macc/parker/'
         Ldir['roms'] = '/gscratch/macc/parker/LiveOcean_roms/'
