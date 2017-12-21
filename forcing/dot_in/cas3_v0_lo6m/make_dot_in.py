@@ -100,11 +100,11 @@ f_string = 'f' + date_string
 f_string_yesterday = 'f'+ date_string_yesterday
 # where forcing files live (fjord, as seen from gaggle)
 # NOTE: eventually this should not be hard-wired.
-lo_dir = Ldir['parent'] + '/LiveOcean/'
-loo_dir = Ldir['parent'] + '/LiveOcean_output/'
-grid_dir = Ldir['parent'] + '/LiveOcean_data/grids/' + Ldir['gridname'] + '/'
+lo_dir = Ldir['parent'] + 'LiveOcean/'
+loo_dir = Ldir['parent'] + 'LiveOcean_output/'
+grid_dir = Ldir['parent'] + 'LiveOcean_data/grids/' + Ldir['gridname'] + '/'
 force_dir = loo_dir + gtag + '/' + f_string + '/'
-roms_dir = Ldir['parent'] + '/LiveOcean_roms/'
+roms_dir = Ldir['parent'] + 'LiveOcean_roms/'
 
 # determine grid size
 # gfn = grid_dir + 'grid.nc'
