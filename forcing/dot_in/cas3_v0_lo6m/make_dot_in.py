@@ -130,6 +130,8 @@ else:
 
 # the .in file
 dot_in_name = 'liveocean.in' # name of the .in file
+dot_in_dir00 = Ldir['roms'] + 'output/'
+Lfun.make_dir(dot_in_dir00) # make sure it exists
 dot_in_dir0 = Ldir['roms'] + 'output/' + gtagex + '/'
 Lfun.make_dir(dot_in_dir0) # make sure it exists
 dot_in_dir = dot_in_dir0 + f_string +'/'
