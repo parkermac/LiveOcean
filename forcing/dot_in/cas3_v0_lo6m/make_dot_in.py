@@ -14,7 +14,7 @@ import forcing_functions as ffun
 Ldir, Lfun = ffun.intro()
 
 #import netCDF4 as nc
-import numpy as np
+#import numpy as np
 from datetime import datetime, timedelta
 fdt = datetime.strptime(Ldir['date_string'], '%Y.%m.%d')
 fdt_yesterday = fdt - timedelta(1)
@@ -80,8 +80,8 @@ else:
     ntilei = '1'
     ntilej = '1'
 
-if np.mod(3600,dtsec) != 0:
-    print('** WARNING: dtsec does not fit evenly into 1 hour **')
+# if np.mod(3600,dtsec) != 0:
+#     print('** WARNING: dtsec does not fit evenly into 1 hour **')
 if dtsec == int(dtsec):
     dt = str(dtsec) + '.0d0' # a string version of dtsec, for the .in file
 else:
