@@ -13,7 +13,7 @@ if fpth not in sys.path:
 import forcing_functions as ffun
 Ldir, Lfun = ffun.intro()
 
-import netCDF4 as nc
+#import netCDF4 as nc
 import numpy as np
 from datetime import datetime, timedelta
 fdt = datetime.strptime(Ldir['date_string'], '%Y.%m.%d')
@@ -71,6 +71,9 @@ if multi_core:
     elif Ldir['np_num'] == 144:
         ntilei = '8' # number of tiles in I-direction (6)
         ntilej = '18' # number of tiles in J-direction (12)
+    elif Ldir['np_num'] == 196:
+        ntilei = '14' # number of tiles in I-direction
+        ntilej = '14' # number of tiles in J-direction
     else:
         print('Unsupported number of processors: %d' % (Ldir['np_num']))
 else:
@@ -97,20 +100,25 @@ f_string = 'f' + date_string
 f_string_yesterday = 'f'+ date_string_yesterday
 # where forcing files live (fjord, as seen from gaggle)
 # NOTE: eventually this should not be hard-wired.
-lo_dir = '/fjdata1/parker/LiveOcean/'
-loo_dir = '/fjdata1/parker/LiveOcean_output/'
-grid_dir = '/fjdata1/parker/LiveOcean_data/grids/' + Ldir['gridname'] + '/'
+lo_dir = Ldir['parent'] + '/LiveOcean/'
+loo_dir = Ldir['parent'] + '/LiveOcean_output/'
+grid_dir = Ldir['parent'] + '/LiveOcean_data/grids/' + Ldir['gridname'] + '/'
 force_dir = loo_dir + gtag + '/' + f_string + '/'
-roms_dir = '/pmr1/parker/LiveOcean_roms/'
+roms_dir = Ldir['parent'] + '/LiveOcean_roms/'
 
 # determine grid size
-gfn = grid_dir + 'grid.nc'
-ds = nc.Dataset(gfn)
-h = ds['h'][:]
-nrows0, ncols0 = h.shape
-nrows = nrows0 - 2
-ncols = ncols0 - 2
-ds.close()
+# gfn = grid_dir + 'grid.nc'
+# ds = nc.Dataset(gfn)
+# h = ds['h'][:]
+# nrows0, ncols0 = h.shape
+# nrows = nrows0 - 2
+# ncols = ncols0 - 2
+#ds.close()
+
+# hardwired for cas3 becasue we don't have netCDF4
+nrows = 1214 - 2
+ncols = 585 - 2
+
 # determine number of layers
 s_dict = Lfun.csv_to_dict(grid_dir + 'S_COORDINATE_INFO.csv')
 nlayers = str(s_dict['N'])
