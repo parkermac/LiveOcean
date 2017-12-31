@@ -150,38 +150,36 @@ do
     echo "run completed for" $f_string
   elif [ $loenv == "mox" ] ; then 
     python make_back_batch.py $Rf
-    sbatch -p macc -A macc lo_back_batch.sh &
-    # Check that ROMS has finished successfully.
-    PID1=$!
-    wait $PID1
+    JOB=`sbatch -p macc -A macc lo_back_batch.sh | egrep -o -e "\b[0-9]+$"`
+    #sbatch -p macc -A macc lo_back_batch.sh &
+    sbatch -p macc -A macc --dependency=afterok:${JOB} ../shared/sbatch_job.sh
     echo "run completed for" $f_string
   fi
 
-  # # check the log_file to see if we should continue
-  # if grep -q "Blowing-up" $log_file ; then
-  #   echo "- Run blew up!"
-  #   blow_ups=$(( $blow_ups + 1 )) #increment the blow ups
-  #   if [ $blow_ups -le 1 ] ; then
-  #     keep_going=1
-  #   else
-  #     keep_going=0
-  #   fi
-  # elif grep -q "ERROR" $log_file ; then
-  #   echo "- Run had an error."
-  #   keep_going=0
-  # elif grep -q "ROMS/TOMS: DONE" $log_file ; then
-  #   echo "- Run completed successfully."
-  #   keep_going=1
-  #   blow_ups=0
-  # else
-  #   echo "- Something else happened."
-  #   keep_going=0
-  #   #keep_going=1   # I'm not sure why David had this...
-  # fi
-  
-  # workaround for mox
-  keep_going=1
-  blow_ups=0
+  # check the log_file to see if we should continue
+  if grep -q "Blowing-up" $log_file ; then
+    echo "- Run blew up!"
+    blow_ups=$(( $blow_ups + 1 )) #increment the blow ups
+    if [ $blow_ups -le 1 ] ; then
+      keep_going=1
+    else
+      keep_going=0
+    fi
+  elif grep -q "ERROR" $log_file ; then
+    echo "- Run had an error."
+    keep_going=0
+  elif grep -q "ROMS/TOMS: DONE" $log_file ; then
+    echo "- Run completed successfully."
+    keep_going=1
+    blow_ups=0
+  else
+    echo "- Something else happened."
+    keep_going=0
+  fi
+
+  # # workaround for mox
+  # keep_going=1
+  # blow_ups=0
   
   echo $(date)
 
