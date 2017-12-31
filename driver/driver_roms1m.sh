@@ -149,8 +149,6 @@ do
     wait $PID1
     echo "run completed for" $f_string
     # check the log_file to see if we should continue
-    keep_checking_log=1
-    while [ $keep_checking_log -eq 1 ] ; then
     if grep -q "Blowing-up" $log_file ; then
       echo "- Run blew up!"
       blow_ups=$(( $blow_ups + 1 )) #increment the blow ups
@@ -170,7 +168,7 @@ do
       echo "- Something else happened."
       keep_going=0
     fi
-  elif [ $loenv == "mox" ] ; then 
+  elif [ $loenv == "mox" ] ; then
     python make_back_batch.py $Rf
     sbatch -p macc -A macc lo_back_batch.sh &
     # JOB=`sbatch -p macc -A macc lo_back_batch.sh | egrep -o -e "\b[0-9]+$"`
