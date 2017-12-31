@@ -116,7 +116,7 @@ for ii = 1:np
     % PM Edit: increase semidiurnals
 	if cons_nb(2) == '2'
         disp([cons_nb, ': pf = ',num2str(pf)])
-        pf = pf*1.2;
+        pf = pf*1.3;
         disp([cons_nb, ': pf = ',num2str(pf)])        
     end
 	
