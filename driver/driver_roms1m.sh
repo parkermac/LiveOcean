@@ -175,7 +175,7 @@ do
     # sbatch -p macc -A macc --dependency=afterok:${JOB} ../shared/sbatch_job.sh
     # check the log_file to see if we should continue
     keep_checking_log=1
-    while [ $keep_checking_log -eq 1 ] ; then
+    while [ $keep_checking_log -eq 1 ]
       sleep 30
       if [ -e $log_file ] ; then
         if grep -q "Blowing-up" $log_file ; then
