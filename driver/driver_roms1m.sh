@@ -176,6 +176,7 @@ do
     # check the log_file to see if we should continue
     keep_checking_log=1
     while [ $keep_checking_log -eq 1 ]
+    do
       sleep 30
       if [ -e $log_file ] ; then
         if grep -q "Blowing-up" $log_file ; then
