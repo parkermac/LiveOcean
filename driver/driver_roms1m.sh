@@ -105,7 +105,7 @@ blow_ups=0
 # start the main loop over days
 while [ $D -le $D1 ] && [ $keep_going -eq 1 ]
 do
-  echo "********** driver_roms2.sh *******************"
+  echo "********** driver_roms1m.sh *******************"
   echo "  blow ups = " $blow_ups
   
   # manipulate the string D to insert dots, using the syntax:
@@ -152,7 +152,7 @@ do
     if grep -q "Blowing-up" $log_file ; then
       echo "- Run blew up!"
       blow_ups=$(( $blow_ups + 1 )) #increment the blow ups
-      if [ $blow_ups -le 1 ] ; then
+      if [ $blow_ups -le 3 ] ; then
         keep_going=1
       else
         keep_going=0
@@ -183,7 +183,7 @@ do
           echo "- Run blew up!"
           blow_ups=$(( $blow_ups + 1 )) #increment the blow ups
           keep_checking_log=0
-          if [ $blow_ups -le 1 ] ; then
+          if [ $blow_ups -le 3 ] ; then
             keep_going=1
           else
             keep_going=0
