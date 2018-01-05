@@ -41,8 +41,10 @@ Npt = len(indir_list)
 print('\n%s\n' % '** Choose Experiment to plot **')
 for npt in range(Npt):
     print(str(npt) + ': ' + indir_list[npt])
-my_npt = int(input('-- Experiment number -- '))
-indir = indir_list[my_npt] + '/'
+my_npt = input('-- Experiment number (return = 0) --')
+if len(my_npt)==0:
+    my_npt = 0
+indir = indir_list[int(my_npt)] + '/'
 #
 rel_list = [rel for rel in os.listdir(indir0 + indir) if 'release' in rel]
 rel_list.sort()
@@ -50,8 +52,10 @@ Nrl = len(rel_list)
 print('\n%s\n' % '** Choose Release file to plot **')
 for nrl in range(Nrl):
     print(str(nrl) + ': ' + rel_list[nrl])
-my_nrl = int(input('-- Release number -- '))
-rel = rel_list[my_nrl]
+my_nrl = input('-- Release number (return = 0) -- ')
+if len(my_nrl)==0:
+    my_nrl = 0
+rel = rel_list[int(my_nrl)]
 
 dsr = nc4.Dataset(indir0 + indir + rel)
 dsg = nc4.Dataset(indir0 + indir + 'grid.nc')
@@ -63,31 +67,30 @@ dt_list = [Lfun.modtime_to_datetime(ot) for ot in dsr['ot'][:]]
 lonp = dsg['lon_psi'][:]
 latp = dsg['lat_psi'][:]
 
-aa = [lonp.min(), lonp.max(), latp.min(), latp.max()]
-
 # PLOTTING
+
+#aa = [lonp.min(), lonp.max(), latp.min(), latp.max()]
+pad = .02
+aa = [dsr['lon'][:].min()-pad, dsr['lon'][:].max()+pad,
+    dsr['lat'][:].min()-pad, dsr['lat'][:].max()+pad]
 
 plt.close('all')
 fig = plt.figure(figsize=(8,8))
 
 ax = fig.add_subplot(111)
+h = dsg['h'][:]
+mask = dsg['mask_rho'][:]
+zm = -np.ma.masked_where(mask==0, h)
+plt.pcolormesh(lonp, latp, zm[1:-1, 1:-1], vmin=-100, vmax=0, cmap='rainbow')
 pfun.add_coast(ax)
-
-#pfun.add_bathy_contours(ax, G, txt=True)
 ax.axis(aa)
 pfun.dar(ax)
 ax.set_xlabel('Longitude')
 ax.set_ylabel('Latitude')
-# ax.text(.06, .04, ' '.join(p.split('_')),
-#     verticalalignment='bottom', transform=ax.transAxes,
-#     rotation='vertical')
 
-# add the tracks
-ax.plot(dsr['lon'][:], dsr['lat'][:], '-k', alpha = 0.1)
-beach_mask = (dsr['u'][-1,:] == 0) & (dsr['v'][-1,:] == 0)
-ax.plot(dsr['lon'][:,beach_mask], dsr['lat'][:,beach_mask], '-r', linewidth=1)
-ax.plot(dsr['lon'][0,beach_mask],dsr['lat'][0,beach_mask],'or',
-        markersize=5, alpha = .4)
+# add the tracks (packed [time, particle])
+ax.plot(dsr['lon'][:], dsr['lat'][:], '-*k')
+ax.plot(dsr['lon'][0,:], dsr['lat'][0,:], 'og')
+ax.plot(dsr['lon'][-1,:], dsr['lat'][-1,:], 'or')
 
 plt.show()
-#pfun.topfig()

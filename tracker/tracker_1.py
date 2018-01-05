@@ -4,31 +4,12 @@ of tracking backward in time.
 
 Designed for ROMS output with plaid lat, lon grids.
 
-Recoded the integration scheme around 7/15/2016 to use new version of
-get_interpolant.py, and to better handle many particles.
-
-Recoded this driver to split the run up into 1-day chunks, because of
-memory issues in large runs.
-
-Recoded 9/12/2017 to use NetCDF for output, instead of pickle.
-
-PERFORMANCE: With the new fast version is took about 12 seconds
-for a day of integration for 6-600 particles, and only increased to
-19 seconds for 6000 particles.  The old slow version was faster
-for < 100 particles, but otherwise became very slow, scaling linearly
-with the number of particles.  These tests were all with the cascadia1 grid.
-
-The design philosophy is that this should be capable of handling both
-LiveOcean and older versions, like from PNWTOX, of how files are stored.
-It should also work on different platforms (my mac and fjord at this time).
-
 This program is mainly a DRIVER where you supply:
     - which run to work on
     - particle initial locations
     - a list of starting times
     - duration in days to track
-    - forward or backward in time
-    - some other flags
+    - some other flags for options like using turbulent dispersion.
 """
 
 #%% setup
@@ -56,14 +37,14 @@ reload(tf1)
 #%% ************ USER INPUT **************************************
 
 # some run specifications
-exp_name = 'DeadBirds2_0.03'
-gtagex = 'cascadia1_base_lobio1' # e.g. 'cascadia1_base_lobio1' or 'D2005_his'
-ic_name = 'grid0' # 'jdf' or 'cr' or etc.
+exp_name = 'GCtest'
+gtagex = 'cas3_v0_lo6m' # e.g. 'cascadia1_base_lobio1'
+ic_name = 'test0' # 'jdf' or 'cr' or etc.
 dir_tag = 'forward' # 'forward' or 'reverse'
-method = 'rk4' # 'rk2' or 'rk4'
 surface = True # Boolean, True for trap to surface
-windage = 0.03 # a small number >= 0
-ndiv = 1 # number of divisions to make between saves for the integration
+turb = False # Vertical turbulent dispersion
+windage = 0 # a small number >= 0
+ndiv = 10 # number of divisions to make between saves for the integration
         # e.g. if ndiv = 3 and we have hourly saves, we use a 20 minute step
         # for the integration (but still only report fields hourly)
 
@@ -71,19 +52,10 @@ ndiv = 1 # number of divisions to make between saves for the integration
 #
 # always start on a day (no hours)
 if Ldir['env'] == 'pm_mac':
-    # mac version
-    if gtagex == 'cascadia1_base_lobio1':
-        dt_first_day = datetime(2017,8,5)
-        number_of_start_days = 2
-        days_between_starts = 1
-        days_to_track = 2
-elif Ldir['env'] == 'fjord':
-    # fjord version
-    if gtagex == 'cascadia1_base_lobio1':
-        dt_first_day = datetime(2014,9,1)
-        number_of_start_days = 212
-        days_between_starts = 1
-        days_to_track = 14
+    dt_first_day = datetime(2013,1,29)
+    number_of_start_days = 1
+    days_between_starts = 1
+    days_to_track = 1
 
 # set particle initial locations, all numpy arrays
 #
@@ -92,9 +64,9 @@ elif Ldir['env'] == 'fjord':
 # and the length of pcs00 is however many vertical positions you have at
 # each lat, lon
 
-if ic_name in ['grid0']:
-    lonvec = np.arange(-127.35, -124.05 + .15, .15)
-    latvec = np.arange(43.1, 49.85 + .15, .15)
+if ic_name in ['test0']:
+    lonvec = np.linspace(-122.55, -122.51, 10)
+    latvec = np.linspace(47.27, 47.31, 10)
     lonmat, latmat = np.meshgrid(lonvec, latvec)
     plon00 = lonmat.flatten()
     plat00 = latmat.flatten()
@@ -111,8 +83,8 @@ Ldir['exp_name'] = exp_name
 Ldir['gtagex'] = gtagex
 Ldir['ic_name'] = ic_name
 Ldir['dir_tag'] = dir_tag
-Ldir['method'] = method
 Ldir['surface'] = surface
+Ldir['turb'] = turb
 Ldir['windage'] = windage
 Ldir['ndiv'] = ndiv
 Ldir['days_to_track'] = days_to_track
@@ -148,8 +120,8 @@ print(50*'*' + '\nWriting to ' + outdir)
 # write a csv file of experiment information
 import collections
 exp_dict = collections.OrderedDict()
-exp_list = ['exp_name', 'gtagex', 'ic_name', 'method', 'ndiv',
-        'dir_tag', 'surface', 'windage']
+exp_list = ['exp_name', 'gtagex', 'ic_name', 'ndiv',
+        'dir_tag', 'surface', 'turb', 'windage']
 for item in exp_list:
     exp_dict[item] = str(Ldir[item])
 Lfun.dict_to_csv(exp_dict, outdir + 'exp_info.csv')
@@ -176,7 +148,7 @@ for idt0 in idt_list:
         # make sure out file list starts at the start of the day
         if nd > 0: 
             fn_last = fn_list[-1]
-        fn_list = tf1.get_fn_list_1day(idt, Ldir)        
+        fn_list = tf1.get_fn_list_1day(idt, Ldir)
         if nd > 0:
             fn_list = [fn_last] + fn_list
         
@@ -214,7 +186,8 @@ for idt0 in idt_list:
             # do the tracking
             tt0 = time.time()    
             P, G, S = tf1.get_tracks(fn_list, plon0, plat0, pcs0,
-                                          dir_tag, method, surface, ndiv, windage, trim_loc=True)
+                                dir_tag, surface, turb,
+                                ndiv, windage, trim_loc=True)
             # save the results to NetCDF
             NT, NP = P['lon'].shape
             outname = ('release_' + Ldir['date_string0'] + '_' +
@@ -242,7 +215,8 @@ for idt0 in idt_list:
             pcs0 = P['cs'][-1,:]
             # do the tracking
             P, G, S = tf1.get_tracks(fn_list, plon0, plat0, pcs0,
-                                          dir_tag, method, surface, ndiv, windage)
+                                dir_tag, surface, turb,
+                                ndiv, windage)
             # save the results
             ds = nc4.Dataset(out_fn, 'a')
             NTx, NPx = ds['lon'][:].shape

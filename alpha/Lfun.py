@@ -19,29 +19,36 @@ def Lstart(gridname='BLANK', tag='BLANK'):
     # Build information on the directory structure.
     import os
     which_home = os.environ.get("HOME") # This works even when called by cron.
-    if which_home == '/Users/pm7': # mac version
+    which_host = os.environ.get('HOSTNAME')
+    
+    if 'Parkers-MacBook-Pro' in which_host: # mac version
         Ldir['env'] = 'pm_mac'
         Ldir['parent'] = which_home + '/Documents/'
         Ldir['roms'] = Ldir['parent'] + 'LiveOcean_roms/'
         Ldir['which_matlab'] = '/Applications/MATLAB_R2017a.app/bin/matlab'
-    elif which_home == '/home/parker': # fjord version
-        Ldir['env'] = 'fjord'
+        
+    elif (which_home == '/home/parker') and ('fjord' in which_host):
+        Ldir['env'] = 'pm_fjord'
         Ldir['parent'] = '/data1/parker/'
         Ldir['roms'] = '/pmr1/parker/LiveOcean_roms/'
         Ldir['which_matlab'] = '/usr/local/bin/matlab'
-    elif which_home == '/home/parker': # fjord version
-        Ldir['env'] = 'fjord'
+        
+    elif (which_home == '/home/parker') and ('boiler' in which_host):
+        Ldir['env'] = 'pm_boiler'
         Ldir['parent'] = '/data1/parker/'
         Ldir['roms'] = '/pmr1/parker/LiveOcean_roms/'
         Ldir['which_matlab'] = '/usr/local/bin/matlab'
+        
     elif which_home == '/usr/lusers/darrd':
-        Ldir['env'] = 'mox'
+        Ldir['env'] = 'dd_mox'
         Ldir['parent'] = '/gscratch/macc/darrd/LOcean2/'
         Ldir['roms'] = '/gscratch/macc/darrd/LOcean2/LiveOcean_roms/'
+        
     elif which_home == '/usr/lusers/pmacc':
-        Ldir['env'] = 'mox'
+        Ldir['env'] = 'pm_mox'
         Ldir['parent'] = '/gscratch/macc/parker/'
         Ldir['roms'] = '/gscratch/macc/parker/LiveOcean_roms/'
+        
     else:
         print('Trouble filling out environment variables in Ldir')
 

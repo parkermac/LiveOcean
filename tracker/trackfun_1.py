@@ -17,7 +17,7 @@ import netCDF4 as nc4
 from datetime import datetime, timedelta
 
 def get_tracks(fn_list, plon0, plat0, pcs0, dir_tag,
-               method, surface, ndiv, windage, trim_loc=False):
+               surface, turb, ndiv, windage, trim_loc=False):
 
     plonA = plon0.copy()
     platA = plat0.copy()
@@ -25,6 +25,8 @@ def get_tracks(fn_list, plon0, plat0, pcs0, dir_tag,
 
     # get basic info
     G = zrfun.get_basic_info(fn_list[0], only_G=True)
+    maskr = np.ones_like(G['mask_rho'])
+    maskr[G['mask_rho']==False] = 0
     S = zrfun.get_basic_info(fn_list[0], only_S=True)
 
     # get time vector of history files
@@ -84,11 +86,12 @@ def get_tracks(fn_list, plon0, plat0, pcs0, dir_tag,
 
             if trim_loc == True:
                 # remove points on land
-                SALT = get_V(['salt'], ds0, plonA, platA, pcsA, R, surface)
-                SALT = SALT.flatten()
-                plon = plonA[~np.isnan(SALT)].copy()
-                plat = platA[~np.isnan(SALT)].copy()
-                pcs = pcsA[~np.isnan(SALT)].copy()
+                pmask = zfun.interp_scattered_on_plaid(plonA, platA, R['rlonr'], R['rlatr'],
+                    maskr, exnan=True)
+                pcond = pmask == 1
+                plon = plonA[pcond]
+                plat = platA[pcond]
+                pcs = pcsA[pcond]
             else:
                 plon = plonA.copy()
                 plat = platA.copy()
@@ -115,62 +118,65 @@ def get_tracks(fn_list, plon0, plat0, pcs0, dir_tag,
         delt = delta_t/ndiv
 
         for nd in range(ndiv):
+            
+            # save the IC to use for out of bounds backup
+            plonC = plon.copy()
+            platC = plat.copy()
+            pcsC = pcs.copy()
 
             fr0 = nd/ndiv
             fr1 = (nd + 1)/ndiv
             frmid = (fr0 + fr1)/2
 
-            if method == 'rk4':
-                # RK4 integration
+            # RK4 integration
+            V0, ZH0 = get_vel(vn_list_vel, vn_list_zh,
+                                       ds0, ds1, plon, plat, pcs, R, fr0, surface)
+            plon1, plat1, pcs1 = update_position(V0, ZH0, S, delt/2,
+                                                 plon, plat, pcs, surface)
+            V1, ZH1 = get_vel(vn_list_vel, vn_list_zh,
+                                       ds0, ds1, plon1, plat1, pcs1, R, frmid, surface)
+            plon2, plat2, pcs2 = update_position(V1, ZH1, S, delt/2,
+                                                 plon, plat, pcs, surface)
+            V2, ZH2 = get_vel(vn_list_vel, vn_list_zh,
+                                       ds0, ds1, plon2, plat2, pcs2, R, frmid, surface)
+            plon3, plat3, pcs3 = update_position(V2, ZH2, S, delt,
+                                                 plon, plat, pcs, surface)
+            V3, ZH3 = get_vel(vn_list_vel, vn_list_zh,
+                                       ds0, ds1, plon3, plat3, pcs3, R, fr1, surface)
+            # add windage, calculated from the middle time
+            if (surface == True) and (windage > 0):
+                Vwind = get_wind(vn_list_wind, ds0, ds1, plon, plat, pcs, R, frmid, surface)
+                Vwind3 = np.concatenate((windage*Vwind,np.zeros((NP,1))),axis=1)
+            else:
+                Vwind3 = np.zeros((NP,3))
+            plon, plat, pcs = update_position((V0 + 2*V1 + 2*V2 + V3)/6 + Vwind3,
+                                              (ZH0 + 2*ZH1 + 2*ZH2 + ZH3)/6,
+                                              S, delt,
+                                              plon, plat, pcs, surface)
+                                              
+            # if particles are going out of bounds, do not move them
+            pmask = zfun.interp_scattered_on_plaid(plon, plat, R['rlonr'], R['rlatr'],
+                maskr, exnan=True)
+            pcond = pmask < 1
+            dxm = np.diff(R['rlonr']).min()
+            dym = np.diff(R['rlatr']).min()
+            plon[pcond] = plonC[pcond]
+            plat[pcond] = platC[pcond]
+                                              
+            # add turbulence in two distinct timesteps
+            if turb == True:
+                # pull values of VdAKs and add up to 3-dimensions
+                VdAKs = get_dAKs(vn_list_zh, ds0, ds1, plon, plat, pcs, R, S, frmid, surface)
+                VdAKs3 = np.concatenate((np.zeros((NP,2)), VdAKs[:,np.newaxis]), axis=1)
+                # update position with 1/2 of AKs gradient
+                plon, plat, pcs = update_position(VdAKs3/2, (ZH0 + 2*ZH1 + 2*ZH2 + ZH3)/6,
+                                              S, delt, plon, plat, pcs, surface)
+                # update position with rest of turbulence
+                Vturb = get_turb(ds0, ds1, VdAKs, delta_t, plon, plat, pcs, R, frmid, surface)
+                Vturb3 = np.concatenate((np.zeros((NP,2)), Vturb[:,np.newaxis]), axis=1)
+                plon, plat, pcs = update_position(Vturb3, (ZH0 + 2*ZH1 + 2*ZH2 + ZH3)/6,
+                                              S, delt, plon, plat, pcs, surface)
 
-                V0, ZH0 = get_vel(vn_list_vel, vn_list_zh,
-                                           ds0, ds1, plon, plat, pcs, R, fr0, surface)
-
-                plon1, plat1, pcs1 = update_position(V0, ZH0, S, delt/2,
-                                                     plon, plat, pcs, surface)
-                V1, ZH1 = get_vel(vn_list_vel, vn_list_zh,
-                                           ds0, ds1, plon1, plat1, pcs1, R, frmid, surface)
-
-                plon2, plat2, pcs2 = update_position(V1, ZH1, S, delt/2,
-                                                     plon, plat, pcs, surface)
-                V2, ZH2 = get_vel(vn_list_vel, vn_list_zh,
-                                           ds0, ds1, plon2, plat2, pcs2, R, frmid, surface)
-
-                plon3, plat3, pcs3 = update_position(V2, ZH2, S, delt,
-                                                     plon, plat, pcs, surface)
-                V3, ZH3 = get_vel(vn_list_vel, vn_list_zh,
-                                           ds0, ds1, plon3, plat3, pcs3, R, fr1, surface)
-
-                # add windage, calculated from the middle time
-                if (surface == True) and (windage > 0):
-                    Vwind = get_wind(vn_list_wind, ds0, ds1, plon, plat, pcs, R, frmid, surface)
-                    Vwind3 = np.concatenate((windage*Vwind,np.zeros((NP,1))),axis=1)
-                else:
-                    Vwind3 = np.zeros((NP,3))
-
-                plon, plat, pcs = update_position((V0 + 2*V1 + 2*V2 + V3)/6 + Vwind3,
-                                                  (ZH0 + 2*ZH1 + 2*ZH2 + ZH3)/6,
-                                                  S, delt,
-                                                  plon, plat, pcs, surface)
-            elif method == 'rk2':
-                # RK2 integration
-                V0, ZH0 = get_vel(vn_list_vel, vn_list_zh,
-                                           ds0, ds1, plon, plat, pcs, R, fr0, surface)
-
-                plon1, plat1, pcs1 = update_position(V0, ZH0, S, delt/2,
-                                                     plon, plat, pcs, surface)
-                V1, ZH1 = get_vel(vn_list_vel, vn_list_zh,
-                                           ds0, ds1, plon1, plat1, pcs1, R,frmid, surface)
-
-                # add windage, calculated from the middle time
-                if (surface == True) and (windage > 0):
-                    Vwind = get_wind(vn_list_wind, ds0, ds1, plon, plat, pcs, R, frmid, surface)
-                    Vwind3 = np.concatenate((windage*Vwind,np.zeros((NP,1))),axis=1)
-                else:
-                    Vwind3 = np.zeros((NP,3))
-
-                plon, plat, pcs = update_position(V1 + Vwind3, ZH1, S, delt,
-                                                  plon, plat, pcs, surface)
 
         # write positions to the results arrays
         P['lon'][it1,:] = plon
@@ -251,6 +257,76 @@ def get_wind(vn_list_wind, ds0, ds1, plon, plat, pcs, R, frac, surface):
 
     return V
 
+def get_dAKs(vn_list_zh, ds0, ds1, plon, plat, pcs, R, S, frac, surface):
+    # create diffusivity gradient for turbulence calculation
+    
+    # first time step
+    ZH0 = get_V(vn_list_zh, ds0, plon, plat, pcs, R, surface)
+    ZH0[np.isnan(ZH0)] = 0
+    dpcs0 = 1/(ZH0[:,0] + ZH0[:,1]) # change in pcs for a total of a 2m difference
+    
+    #     upper variables
+    pcs0u = pcs-dpcs0
+    pcs0u[pcs0u > S['Cs_r'][-1]] = S['Cs_r'][-1]
+    AKs0u = get_V(['AKs',], ds0, plon, plat, pcs0u, R, surface) # diffusivity
+    z0u = (pcs0u)*(ZH0[:,0]+ZH0[:,1]) # depth = pcs * full-depth
+    
+    #     lower variables
+    pcs0b = pcs+dpcs0
+    pcs0b[pcs0b < S['Cs_r'][0]] = S['Cs_r'][0]
+    AKs0b = get_V(['AKs',], ds0, plon, plat, pcs0b, R, surface) # diffusivity
+    z0b = (pcs0b)*(ZH0[:,0]+ZH0[:,1]) # depth = pcs * full-depth
+    
+    #     combine at midpoint
+    V0 = (AKs0u-AKs0b).squeeze()/(z0u-z0b)
+    
+    # second time step
+    ZH1 = get_V(vn_list_zh, ds1, plon, plat, pcs, R, surface)
+    ZH1[np.isnan(ZH1)] = 0
+    dpcs1 = 1/(ZH1[:,0] + ZH1[:,1]) # change in pcs for 1m difference
+    
+    #     upper variables
+    pcs1u = pcs-dpcs1
+    pcs1u[pcs0u > S['Cs_r'][-1]] = S['Cs_r'][-1]
+    AKs1u = get_V(['AKs',], ds1, plon, plat, pcs1u, R, surface) # diffusivity
+    z1u = (pcs1u)*(ZH1[:,0]+ZH1[:,1]) # depth = pcs * full-depth
+    
+    #     lower variables
+    pcs1b = pcs+dpcs0
+    pcs1b[pcs1b < S['Cs_r'][0]] = S['Cs_r'][0]
+    AKs1b = get_V(['AKs',], ds1, plon, plat, pcs0b, R, surface) # diffusivity
+    z1b = (pcs1b)*(ZH1[:,0]+ZH1[:,1]) # depth = pcs * full-depth
+    
+    #     combine at midpoint
+    V1 = (AKs1u-AKs1b).squeeze()/(z1u-z1b)
+    
+    # average of timesteps
+    V = (1-frac)*V0 + frac*V1
+    
+    return V
+    
+def get_turb(ds0, ds1, dAKs, delta_t, plon, plat, pcs, R, frac, surface):
+    # get the vertical turbulence correction components
+    
+    # getting diffusivity
+    V0 = get_V(['AKs',], ds0, plon, plat, pcs, R, surface).squeeze()
+    V1 = get_V(['AKs',], ds1, plon, plat, pcs, R, surface).squeeze()
+    # replace nans
+    V0[np.isnan(V0)] = 0.0
+    V1[np.isnan(V1)] = 0.0
+    # create weighted average diffusivity
+    Vave = (1 - frac)*V0 + frac*V1
+    
+    # turbulence calculation from Banas, MacCready, and Hickey (2009)
+    # w_turbulence = rand*sqrt(2k/delta(t)) + delta(k)/delta(z)
+    # rand = random array with normal distribution
+    rand = np.random.standard_normal(len(V0))
+    # only using half of gradient, first half already added
+    V = rand*np.sqrt(2*Vave/delta_t) + dAKs/2
+    
+    return V
+# Bartos - end edit to add functions
+
 def get_properties(vn_list_other, ds, it, P, plon, plat, pcs, R, surface):
     # find properties at a position
     OTH = get_V(vn_list_other, ds, plon, plat, pcs, R, surface)
@@ -277,7 +353,7 @@ def get_V(vn_list, ds, plon, plat, pcs, R, surface):
     i1lat_d = dict()
     frlat_d = dict()
     for gg in ['r', 'u', 'v']:
-        exn = False # why False? 8/28/2016
+        exn = True # nan-out particles that leave domain
         i0lon_d[gg], i1lon_d[gg], frlon_d[gg] = zfun.get_interpolant(
                 plon, R['rlon'+gg], extrap_nan=exn)
         i0lat_d[gg], i1lat_d[gg], frlat_d[gg] = zfun.get_interpolant(
@@ -298,7 +374,7 @@ def get_V(vn_list, ds, plon, plat, pcs, R, surface):
             i0cs = i0csr
             i1cs = i1csr
             frcs = frcsr
-        if vn in ['salt','temp','zeta','h','Uwind','Vwind', 'w']:
+        if vn in ['salt','temp','zeta','h','Uwind','Vwind','w','AKs','dAKs_dz']:
             gg = 'r'
         elif vn in ['u']:
             gg = 'u'
@@ -321,7 +397,7 @@ def get_V(vn_list, ds, plon, plat, pcs, R, surface):
         except AttributeError:
             # it is not a masked array
             vv = v0
-        if vn in ['salt','temp','u','v','w'] and surface==False:
+        if vn in ['salt','temp','AKs','u','v','w'] and surface==False:
             # Get just the values around our particle positions.
             # each row in VV corresponds to a "box" around a point
             VV = np.nan* np.ones((NP, 8))
@@ -335,9 +411,11 @@ def get_V(vn_list, ds, plon, plat, pcs, R, surface):
             VV[:,7] = vv[i1cs, i1lat, i1lon]
             # Work on edge values.  If all in a box are masked
             # then that row will be nan's, and also:
-            if vn in ['u', 'v', 'w']:
+            if vn in ['u', 'v', 'w', 'AKs']:
                 # set all velocities to zero if any in the box are masked
-                VV[np.isnan(VV).any(axis=1), :] = 0
+                #VV[np.isnan(VV).any(axis=1), :] = 0
+                mask = np.isnan(VV)
+                VV[mask] = 0
             elif vn in ['salt','temp']:
                 # set all tracers to their average if any in the box are masked
                 newval = np.nanmean(VV, axis=1).reshape(NP, 1) * np.ones((1,8))
@@ -359,7 +437,9 @@ def get_V(vn_list, ds, plon, plat, pcs, R, surface):
             # then that row will be nan's, and also:
             if vn in ['u', 'v', 'w']:
                 # set all velocities to zero if any in the box are masked
-                VV[np.isnan(VV).any(axis=1), :] = 0
+                #VV[np.isnan(VV).any(axis=1), :] = 0
+                mask = np.isnan(VV)
+                VV[mask] = 0
             elif vn in ['salt','temp']:
                 # set all tracers to their average if any in the box are masked
                 newval = np.nanmean(VV, axis=1).reshape(NP, 1) * np.ones((1,4))
@@ -385,39 +465,6 @@ def get_V(vn_list, ds, plon, plat, pcs, R, surface):
         vcount += 1
 
     return V
-
-def get_fn_list(idt, Ldir):
-    if Ldir['gtagex'] == 'D2005_his':
-        # Other ROMS runs version
-        indir = Ldir['parent'] + 'roms/output/' + Ldir['gtagex'] + '/'
-        save_num_list = range(1,365*24)
-        save_dt_list = []
-        dt00 = datetime(2005,1,1)
-        save_dt_list.append(dt00)
-        for sn in save_num_list:
-            save_dt_list.append(dt00 + timedelta(hours=sn))
-        # keys of this dict are datetimes, and values are history numbers
-        save_dt_num_dict = dict(zip(save_dt_list,save_num_list))
-        fn_list = []
-        for hh in range(Ldir['days_to_track']*24 + 1):
-            hh = save_dt_num_dict[idt + timedelta(hours=hh)]
-            hhhh = ('0000' + str(hh))[-4:]
-            fn_list.append(indir + 'ocean_his_' + hhhh + '.nc')
-    else:
-        # LiveOcean version
-        # make the list of input history files
-        date_list = []
-        for nday in range(Ldir['days_to_track']):
-            fdt = idt + timedelta(nday)
-            date_list.append(fdt.strftime('%Y.%m.%d'))
-        fn_list = []
-        for dd in date_list:
-            indir = (Ldir['roms'] + 'output/' + Ldir['gtagex'] +
-                    '/f' + dd + '/')
-            for hh in range(2,26):
-                hhhh = ('0000' + str(hh))[-4:]
-                fn_list.append(indir + 'ocean_his_' + hhhh + '.nc')
-    return fn_list
 
 def get_fn_list_1day(idt, Ldir):
     # LiveOcean version, for 1 day only

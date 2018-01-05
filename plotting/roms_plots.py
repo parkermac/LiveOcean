@@ -13,10 +13,11 @@ import Lfun
 Ldir = Lfun.Lstart()
 if Ldir['env'] == 'pm_mac': # mac version
     pass
-elif Ldir['env'] == 'fjord': # fjord version
+elif Ldir['env'] == 'pm_fjord': # fjord version
     import matplotlib as mpl
     mpl.use('Agg')
 import matplotlib.pyplot as plt
+import pickle
 
 import cmocean as cmo
 
@@ -189,7 +190,76 @@ def P_basic(in_dict):
         plt.show()
         pfun.topfig()
     return out_dict
+
+def P_salish(in_dict):
+    # like basic, but the second panel focuses on the Salish Sea
+
+    # START
+    fig = plt.figure(figsize=figsize)
+    ds = nc.Dataset(in_dict['fn'])
+    vlims = in_dict['vlims'].copy()
+    out_dict['vlims'] = vlims
+
+    # PLOT CODE
     
+    # HACKS
+    auto_vlims = False
+    #
+    new_vlims = True
+    if new_vlims==True:
+        vlims['salt'] = (24,34)#(28, 34)
+        vlims['temp'] = (5,11)
+        
+    # panel 1
+    vn = 'salt'
+    tstr = 'Surface ' + tstr_dict[vn]
+    ax = fig.add_subplot(121)
+    vn = 'salt'
+    
+    if auto_vlims:
+        vlims[vn] = ()
+    
+    cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn,
+            vlims=vlims[vn], cmap=cmap_dict[vn], fac=fac_dict[vn])
+    fig.colorbar(cs)
+    pfun.add_bathy_contours(ax, ds, txt=True)
+    pfun.add_coast(ax)
+    ax.axis(pfun.get_aa(ds))
+    pfun.dar(ax)
+    ax.set_xlabel('Longitude')
+    ax.set_ylabel('Latitude')
+    ax.set_title(tstr + units_dict[vn])
+    pfun.add_info(ax, in_dict['fn'])
+    pfun.add_windstress_flower(ax, ds)
+    # panel 2
+    ax = fig.add_subplot(122)
+    vn = 'salt'
+    
+    if auto_vlims:
+        vlims[vn] = ()
+    
+    tstr = 'Surface ' + tstr_dict[vn]
+    cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn,
+            vlims=(26,32), cmap=cmap_dict[vn], fac=fac_dict[vn])
+    fig.colorbar(cs)
+    pfun.add_bathy_contours(ax, ds)
+    pfun.add_coast(ax)
+    ax.axis([-124, -122, 47, 49.5])
+    pfun.dar(ax)
+    ax.set_xlabel('Longitude')
+    ax.set_title(tstr + units_dict[vn])
+    #pfun.add_velocity_vectors(ax, ds, in_dict['fn'])
+    
+    # FINISH
+    ds.close()
+    if len(in_dict['fn_out']) > 0:
+        plt.savefig(in_dict['fn_out'])
+        plt.close()
+    else:
+        plt.show()
+        pfun.topfig()
+    return out_dict
+
 def P_basic2D(in_dict):
     # For 2D fields.
 
@@ -754,13 +824,26 @@ def P_sect(in_dict):
     else:
         import Lfun
         Ldir = Lfun.Lstart()
-        tracks_path = Ldir['data'] + 'tracks/'
-        which_track = 'jdf2psTrack'
-        zdeep = -400
+        tracks_path = Ldir['data'] + 'tracks_new/'
+        which_track = 'HC_north.p'
+        track_fn = tracks_path + which_track
+        zdeep = -120
         # get the track to interpolate onto
-        mat = matfun.loadmat(tracks_path + which_track + '.mat')
-        x = mat['x']
-        y = mat['y']
+        pdict = pickle.load(open(track_fn, 'rb'))
+        xx = pdict['lon_poly']
+        yy = pdict['lat_poly']
+        for ii in range(len(xx)-1):
+            x0 = xx[ii]
+            x1 = xx[ii+1]
+            y0 = yy[ii]
+            y1 = yy[ii+1]
+            nn = 20
+            if ii == 0:
+                x = np.linspace(x0, x1, nn)
+                y = np.linspace(y0,y1, nn)
+            else:
+                x = np.concatenate((x, np.linspace(x0, x1, nn)[1:]))
+                y = np.concatenate((y, np.linspace(y0, y1, nn)[1:]))
 
     v2, v3, dist, idist0 = pfun.get_section(ds, vn, x, y, in_dict)
 
@@ -769,19 +852,20 @@ def P_sect(in_dict):
     # panel 1
     ax = fig.add_subplot(1, 3, 1)
     cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn,
-            vlims=vlims[vn], cmap=cmap_dict[vn], fac=fac_dict[vn])
+            vlims=(24,32), cmap=cmap_dict[vn], fac=fac_dict[vn])
     #fig.colorbar(cs)
     pfun.add_bathy_contours(ax, ds)
     pfun.add_coast(ax)
-    ax.axis(pfun.get_aa(ds))
+    #ax.axis(pfun.get_aa(ds))
+    ax.axis([-123.25, -122.25, 47, 48.5])
     pfun.dar(ax)
     ax.set_xlabel('Longitude')
     ax.set_ylabel('Latitude')
     ax.set_title('Bathymetry and Section Track')
     pfun.add_info(ax, in_dict['fn'])
-    pfun.add_windstress_flower(ax, ds)
+    #pfun.add_windstress_flower(ax, ds)
     ax.plot(x, y, '-r', linewidth=2)
-    ax.plot(x[idist0], y[idist0], 'or', markersize=10, markerfacecolor='w',
+    ax.plot(x[idist0], y[idist0], 'or', markersize=5, markerfacecolor='w',
     markeredgecolor='r', markeredgewidth=2)
 
     # section
@@ -790,7 +874,8 @@ def P_sect(in_dict):
     ax.plot(dist, v2['zeta'], '-b', linewidth=1)
     ax.set_xlim(dist.min(), dist.max())
     ax.set_ylim(zdeep, 5)
-    vlims = pfun.auto_lims(v3['sectvarf'])
+    #vlims = pfun.auto_lims(v3['sectvarf'])
+    vlims=(29,31)
     cs = ax.pcolormesh(v3['distf'], v3['zrf'], v3['sectvarf'],
                        vmin=vlims[0], vmax=vlims[1], cmap=cmap_dict[vn])
     fig.colorbar(cs)

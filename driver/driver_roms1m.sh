@@ -12,23 +12,24 @@ if [ $HOME = "/Users/pm7" ] ; then
   R_top=$HOME"/Documents/LiveOcean_roms"
   hf="../shared/hf144"
   np_num=144
-  loenv="mac"
+  loenv="pm_mac"
 elif [ $HOME = "/home/parker" ] ; then
+  # NOTE: should use HOSTNAME
   LO_top="/fjdata1/parker/LiveOcean"
   R_top="/pmr1/parker/LiveOcean_roms"
   hf="../shared/hf144"
   np_num=144
-  loenv="gaggle"
+  loenv="pm_gaggle"
 elif [ $HOME = "/usr/lusers/darrd" ] ; then
   LO_top="/gscratch/macc/darrd/LOcean2/LiveOcean"
   R_top="/gscratch/macc/darrd/LOcean2/LiveOcean_roms"
   np_num=196
-  loenv="mox"
+  loenv="dd_mox"
 elif [ $HOME = "/usr/lusers/pmacc" ] ; then
   LO_top="/gscratch/macc/parker/LiveOcean"
   R_top="/gscratch/macc/parker/LiveOcean_roms"
   np_num=196
-  loenv="mox"
+  loenv="pm_mox"
 fi
 . $LO_top"/driver/common.lib"
 
@@ -140,9 +141,9 @@ do
   fi
 
   # run ROMS
-  if [ $loenv == "mac" ] ; then # testing
+  if [ $loenv == "pm_mac" ] ; then # testing
     echo "/cm/shared/local/openmpi-ifort/bin/mpirun -np $np_num -machinefile $hf oceanM $Rf/liveocean.in > $log_file &"
-  elif [ $loenv == "gaggle" ] ; then
+  elif [ $loenv == "pm_gaggle" ] ; then
     /cm/shared/local/openmpi-ifort/bin/mpirun -np $np_num -machinefile $hf oceanM $Rf/liveocean.in > $log_file &
     # Check that ROMS has finished successfully.
     PID1=$!
@@ -168,11 +169,9 @@ do
       echo "- Something else happened."
       keep_going=0
     fi
-  elif [ $loenv == "mox" ] ; then
+  elif [ $loenv == "pm_mox" ] ; then
     python make_back_batch.py $Rf
     sbatch -p macc -A macc lo_back_batch.sh &
-    # JOB=`sbatch -p macc -A macc lo_back_batch.sh | egrep -o -e "\b[0-9]+$"`
-    # sbatch -p macc -A macc --dependency=afterok:${JOB} ../shared/sbatch_job.sh
     # check the log_file to see if we should continue
     keep_checking_log=1
     while [ $keep_checking_log -eq 1 ]
@@ -202,33 +201,6 @@ do
     done
     echo "run completed for" $f_string
   fi
-
-  # # check the log_file to see if we should continue
-  # keep_checking_log=1
-  # while [ $keep_checking_log -eq 1 ] ; then
-  # if grep -q "Blowing-up" $log_file ; then
-  #   echo "- Run blew up!"
-  #   blow_ups=$(( $blow_ups + 1 )) #increment the blow ups
-  #   if [ $blow_ups -le 1 ] ; then
-  #     keep_going=1
-  #   else
-  #     keep_going=0
-  #   fi
-  # elif grep -q "ERROR" $log_file ; then
-  #   echo "- Run had an error."
-  #   keep_going=0
-  # elif grep -q "ROMS/TOMS: DONE" $log_file ; then
-  #   echo "- Run completed successfully."
-  #   keep_going=1
-  #   blow_ups=0
-  # else
-  #   echo "- Something else happened."
-  #   keep_going=0
-  # fi
-
-  # # workaround for mox
-  # keep_going=1
-  # blow_ups=0
   
   echo $(date)
 

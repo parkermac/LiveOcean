@@ -27,7 +27,7 @@ Lfun.make_dir(out_dir, clean=False)
 
 if Ldir['env'] == 'pm_mac': # mac version
     testing = True
-elif Ldir['env'] == 'fjord': # fjord version
+elif Ldir['env'] == 'pm_fjord': # fjord version
     testing = False
 
 if testing:

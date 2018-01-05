@@ -17,7 +17,7 @@ import pandas as pd
 
 if Ldir['env'] == 'pm_mac':
     f_dir0 = Ldir['parent'] + 'LiveOcean_data/wrf/'
-elif Ldir['env'] == 'fjord': 
+elif Ldir['env'] == 'pm_fjord': 
     f_dir0 = '/pmraid3/darr/tstwrf/tmpwrf/'
 
 # directory names are like 2012100700
