@@ -18,8 +18,9 @@ def Lstart(gridname='BLANK', tag='BLANK'):
 
     # Build information on the directory structure.
     import os
+    import socket
     which_home = os.environ.get("HOME") # This works even when called by cron.
-    which_host = os.environ.get('HOSTNAME')
+    which_host = socket.gethostname()
     
     if 'Parkers-MacBook-Pro' in which_host: # mac version
         Ldir['env'] = 'pm_mac'
