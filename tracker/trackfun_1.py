@@ -15,6 +15,7 @@ import zfun
 import zrfun
 import netCDF4 as nc4
 from datetime import datetime, timedelta
+import random
 
 def get_tracks(fn_list, plon0, plat0, pcs0, dir_tag,
                surface, turb, ndiv, windage, trim_loc=False):
@@ -56,7 +57,11 @@ def get_tracks(fn_list, plon0, plat0, pcs0, dir_tag,
     R['rlatv'] = G['lat_v'][:,0].squeeze()
     R['rcsr'] = S['Cs_r'][:]
     R['rcsw'] = S['Cs_w'][:]
-
+    
+    # minimum grid sizes used when particles approach land boundaries
+    dxm = np.diff(R['rlonr']).min()
+    dym = np.diff(R['rlatr']).min()
+    
     # these lists are used internally to get other variables as needed
     vn_list_vel = ['u','v','w']
     vn_list_wind = ['Uwind','Vwind']
@@ -154,12 +159,23 @@ def get_tracks(fn_list, plon0, plat0, pcs0, dir_tag,
                                               S, delt,
                                               plon, plat, pcs, surface)
                                               
-            # if particles are going out of bounds, do not move them
+            # If particles are going onto land, move them back
+            #
+            # first find those that ended up on land
+            pmask = zfun.interp_scattered_on_plaid(plon, plat, R['rlonr'], R['rlatr'],
+                maskr, exnan=True)
+            pcond = pmask < 1 # a Boolean mask
+            # move those on land back to their staring point, with a random
+            # perturbation of a grid cell to keep them from getting trapped
+            if len(pcond) > 0:
+                pci = np.where(pcond)[0] # indices of particles on land
+                for pc in pci:
+                    plon[pc] = plonC[pc] + random.randint(-1,1)*dxm
+                    plat[pc] = platC[pc] + random.randint(-1,1)*dym
+            # and check again for any stragglers that are still on land
             pmask = zfun.interp_scattered_on_plaid(plon, plat, R['rlonr'], R['rlatr'],
                 maskr, exnan=True)
             pcond = pmask < 1
-            dxm = np.diff(R['rlonr']).min()
-            dym = np.diff(R['rlatr']).min()
             plon[pcond] = plonC[pcond]
             plat[pcond] = platC[pcond]
                                               
