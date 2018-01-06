@@ -40,6 +40,12 @@ def Lstart(gridname='BLANK', tag='BLANK'):
         Ldir['roms'] = '/pmr1/parker/LiveOcean_roms/'
         Ldir['which_matlab'] = '/usr/local/bin/matlab'
         
+    elif (which_home == '/home/parker') and ('gaggle' in which_host):
+        Ldir['env'] = 'pm_gaggle'
+        Ldir['parent'] = '/fjdata1/parker/'
+        Ldir['roms'] = '/pmr1/parker/LiveOcean_roms/'
+        Ldir['which_matlab'] = '/usr/local/bin/matlab'
+        
     elif which_home == '/usr/lusers/darrd':
         Ldir['env'] = 'dd_mox'
         Ldir['parent'] = '/gscratch/macc/darrd/LOcean2/'
