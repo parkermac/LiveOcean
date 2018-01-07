@@ -31,7 +31,7 @@ elif Ldir['env'] == 'pm_fjord': # fjord version
     testing = False
 
 if testing:
-    exnum_list = ['90.9']
+    exnum_list = ['91.2']
 else:
     #exnum_list = ['90.9', '91.0', '91.1', '91.2']
     exnum_list = ['91.2']
@@ -41,7 +41,10 @@ dt_list_new = []
 for exnum in exnum_list:
     # open the Dataset for this exnum
     print('\nWorking on exnum ' + exnum)
-    fn = 'http://beta.hycom.org/thredds/dodsC/GLBu0.08/expt_' + exnum  
+    
+    # PM Edit 2018.01.02 to be consistent with forcing/ocn1/Ofun.py
+    #fn = 'http://beta.hycom.org/thredds/dodsC/GLBu0.08/expt_' + exnum  
+    fn = 'http://tds.hycom.org/thredds/dodsC/GLBu0.08/expt_' + exnum  
     
     # get time and space coordinates for this exnum
     ds = nc.Dataset(fn)
@@ -57,7 +60,7 @@ for exnum in exnum_list:
     else:
         maxcount = len(dt_list)
     
-    for nt in range(len(dt_list)):        
+    for nt in range(len(dt_list)):
     
         # name the file based on date
         dt = dt_list[nt]
@@ -72,21 +75,21 @@ for exnum in exnum_list:
         if os.path.exists(out_fn)== True:
             print('  file exists for this day')
             sys.stdout.flush()
-            # and in this case we don't replace it           
+            # and in this case we don't replace it
         else:
             if counter < maxcount:
                 # get the data
-                ds = nc.Dataset(fn)              
-                out_dict = hfun.get_hycom_day(ds, nt, coords)                        
+                ds = nc.Dataset(fn)
+                out_dict = hfun.get_hycom_day(ds, nt, coords)
                 ds.close()
                 # and if it is valid, write it to a file
                 if out_dict['result'] == 'success':
-                    out_dict['dt'] = dt                
+                    out_dict['dt'] = dt
                     print('  writing ' + out_name)
                     sys.stdout.flush()
-                    pickle.dump(out_dict, open(out_fn, 'wb'))                    
+                    pickle.dump(out_dict, open(out_fn, 'wb'))
                     dt_list_new.append(dt)
-                    counter+=1                    
+                    counter+=1
             else:
                 print('  reached maximum file number')
                 sys.stdout.flush()
