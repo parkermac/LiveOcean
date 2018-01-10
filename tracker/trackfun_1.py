@@ -4,6 +4,10 @@ Functions for particle tracking.
 8/28/2016 Added code to speed things up (by a factor of 12 in testing!) when
 surface == True.
 
+Performance notes: in 3D it takes about:
+ - cascadia1:  20 sec/day
+ - cas3:      215 sec/day
+
 """
 # setup
 import numpy as np
@@ -16,10 +20,11 @@ import zrfun
 import netCDF4 as nc4
 from datetime import datetime, timedelta
 import random
+import time
 
 def get_tracks(fn_list, plon0, plat0, pcs0, dir_tag,
                surface, turb, ndiv, windage, trim_loc=False):
-
+    
     plonA = plon0.copy()
     platA = plat0.copy()
     pcsA = pcs0.copy()
@@ -69,12 +74,14 @@ def get_tracks(fn_list, plon0, plat0, pcs0, dir_tag,
     vn_list_other = ['salt', 'temp', 'zeta', 'h', 'u', 'v', 'w',
                      'Uwind', 'Vwind']
 
+    
     # Step through times.
     #
     counter = 0
     nrot = len(rot)
     for pot in rot[:-1]:
 
+        
         if np.mod(counter,24) == 0:
             pass
             #print(' - time %d out of %d' % (counter, nrot))
@@ -86,6 +93,7 @@ def get_tracks(fn_list, plon0, plat0, pcs0, dir_tag,
         # get the velocity zeta, and h at all points
         ds0 = nc4.Dataset(fn_list[it0[0]])
         ds1 = nc4.Dataset(fn_list[it1[0]])
+        
 
         if counter == 0:
 
@@ -93,7 +101,7 @@ def get_tracks(fn_list, plon0, plat0, pcs0, dir_tag,
                 # remove points on land
                 pmask = zfun.interp_scattered_on_plaid(plonA, platA, R['rlonr'], R['rlatr'],
                     maskr, exnan=True)
-                pcond = pmask == 1
+                pcond = pmask >= 0.7
                 plon = plonA[pcond]
                 plat = platA[pcond]
                 pcs = pcsA[pcond]
@@ -159,25 +167,31 @@ def get_tracks(fn_list, plon0, plat0, pcs0, dir_tag,
                                               S, delt,
                                               plon, plat, pcs, surface)
                                               
-            # If particles are going onto land, move them back
-            #
-            # first find those that ended up on land
+            # If particles have moved onto land, move them back.
+            # - first find those that ended up on land
             pmask = zfun.interp_scattered_on_plaid(plon, plat, R['rlonr'], R['rlatr'],
                 maskr, exnan=True)
-            pcond = pmask < 1 # a Boolean mask
+            pcond = pmask < .7 # a Boolean mask
             # move those on land back to their staring point, with a random
             # perturbation of a grid cell to keep them from getting trapped
             if len(pcond) > 0:
-                pci = np.where(pcond)[0] # indices of particles on land
-                for pc in pci:
-                    plon[pc] = plonC[pc] + random.randint(-1,1)*dxm
-                    plat[pc] = platC[pc] + random.randint(-1,1)*dym
-            # and check again for any stragglers that are still on land
-            pmask = zfun.interp_scattered_on_plaid(plon, plat, R['rlonr'], R['rlatr'],
-                maskr, exnan=True)
-            pcond = pmask < 1
-            plon[pcond] = plonC[pcond]
-            plat[pcond] = platC[pcond]
+                rix = np.random.randint(-1,1,len(plon))
+                riy = np.random.randint(-1,1,len(plon))
+                plon[pcond] = plonC[pcond] + rix[pcond]*dxm
+                plat[pcond] = platC[pcond] + riy[pcond]*dym
+                #
+                # pci = np.where(pcond)[0] # indices of particles on land
+                # for pc in pci:
+                #     plon[pc] = plonC[pc] + random.randint(-1,1)*dxm
+                #     plat[pc] = platC[pc] + random.randint(-1,1)*dym
+                # and check again for any stragglers that are still on land
+                pmask = zfun.interp_scattered_on_plaid(plon, plat, R['rlonr'], R['rlatr'],
+                    maskr, exnan=True)
+                pcond = pmask < .7
+                plon[pcond] = plonC[pcond]
+                plat[pcond] = platC[pcond]
+            
+            
                                               
             # add turbulence in two distinct timesteps
             if turb == True:
@@ -236,9 +250,11 @@ def update_position(V, ZH, S, delta_t, plon, plat, pcs, surface):
         Pcs += pdz_s
         # enforce limits on cs
         mask = np.isnan(Pcs)
-        Pcs[mask] = Pcs_orig[mask]
-        Pcs[Pcs < S['Cs_r'][0]] = S['Cs_r'][0]
-        Pcs[Pcs > S['Cs_r'][-1]] = S['Cs_r'][-1]
+        if len(mask) > 0:
+            Pcs[mask] = Pcs_orig[mask]
+            pad = 1e-5
+            Pcs[Pcs < S['Cs_r'][0]+pad] = S['Cs_r'][0]+pad
+            Pcs[Pcs > S['Cs_r'][-1]-pad] = S['Cs_r'][-1]-pad
     else:
         Pcs[:] = S['Cs_r'][-1]
 
@@ -249,15 +265,18 @@ def get_vel(vn_list_vel, vn_list_zh, ds0, ds1, plon, plat, pcs, R, frac, surface
     # time between two saves
     # "frac" is the fraction of the way between the times of ds0 and ds1
     # 0 <= frac <= 1
+        
     V0 = get_V(vn_list_vel, ds0, plon, plat, pcs, R, surface)
     V1 = get_V(vn_list_vel, ds1, plon, plat, pcs, R, surface)
+        
     V0[np.isnan(V0)] = 0.0
     V1[np.isnan(V1)] = 0.0
+        
     ZH0 = get_V(vn_list_zh, ds0, plon, plat, pcs, R, surface)
     ZH1 = get_V(vn_list_zh, ds1, plon, plat, pcs, R, surface)
     V = (1 - frac)*V0 + frac*V1
     ZH = (1 - frac)*ZH0 + frac*ZH1
-
+    
     return V, ZH
 
 def get_wind(vn_list_wind, ds0, ds1, plon, plat, pcs, R, frac, surface):
@@ -368,6 +387,7 @@ def get_V(vn_list, ds, plon, plat, pcs, R, surface):
     i0lat_d = dict()
     i1lat_d = dict()
     frlat_d = dict()
+    
     for gg in ['r', 'u', 'v']:
         exn = True # nan-out particles that leave domain
         i0lon_d[gg], i1lon_d[gg], frlon_d[gg] = zfun.get_interpolant(
@@ -376,8 +396,10 @@ def get_V(vn_list, ds, plon, plat, pcs, R, surface):
                 plat, R['rlat'+gg], extrap_nan=exn)
     i0csr, i1csr, frcsr = zfun.get_interpolant(pcs, R['rcsr'], extrap_nan=exn)
     i0csw, i1csw, frcsw = zfun.get_interpolant(pcs, R['rcsw'], extrap_nan=exn)
+    
     NV = len(vn_list)
     NP = len(plon)
+    
     # get interpolated values
     V = np.nan * np.ones((NP,NV))
     vcount = 0
@@ -413,9 +435,21 @@ def get_V(vn_list, ds, plon, plat, pcs, R, surface):
         except AttributeError:
             # it is not a masked array
             vv = v0
+            
         if vn in ['salt','temp','AKs','u','v','w'] and surface==False:
             # Get just the values around our particle positions.
             # each row in VV corresponds to a "box" around a point
+            #
+            # I thought this would be faster but it is not.
+            # The code is here for reference - the results are identical
+            # to those from the "fancy indexing" method below.
+            # xcs = np.concatenate((i0cs,i0cs,i0cs,i0cs,i1cs,i1cs,i1cs,i1cs))
+            # xlat = np.concatenate((i0lat,i0lat,i1lat,i1lat,i0lat,i0lat,i1lat,i1lat))
+            # xlon = np.concatenate((i0lon,i1lon,i0lon,i1lon,i0lon,i1lon,i0lon,i1lon))
+            # iflat = np.ravel_multi_index((xcs, xlat, xlon), vv.shape)
+            # VVflat = vv.ravel()[iflat]
+            # VV = VVflat.reshape((NP,8), order='F')
+            #
             VV = np.nan* np.ones((NP, 8))
             VV[:,0] = vv[i0cs, i0lat, i0lon]
             VV[:,1] = vv[i0cs, i0lat, i1lon]
@@ -479,10 +513,10 @@ def get_V(vn_list, ds, plon, plat, pcs, R, surface):
                 + frlat*((1-frlon)*VV[:,2] + frlon*VV[:,3]) )
         V[:,vcount] = v
         vcount += 1
-
+            
     return V
 
-def get_fn_list_1day(idt, Ldir):
+def get_fn_list(idt, Ldir):
     # LiveOcean version, for 1 day only
     fn_list = []
     dd = idt.strftime('%Y.%m.%d')

@@ -1,11 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Sep 29 14:22:55 2016
-
-@author: PM5
-
-Plot results of tracker_1, using NetCDF output.
+Plot results of a particle tracking experiment.
 """
 
 # setup
@@ -26,18 +22,16 @@ import netCDF4 as nc4
 import numpy as np
 
 Ldir = Lfun.Lstart()
-indir0 = Ldir['LOo'] + 'tracks/'
 
-# choose the file to plot
+# Choose an experiment to plot from.
+indir0 = Ldir['LOo'] + 'tracks/'
 indir_list_raw = os.listdir(indir0)
 indir_list = []
 for d in indir_list_raw:
     if os.path.isdir(indir0 + d):
         indir_list.append(d)
 indir_list.sort()
-
-Npt = len(indir_list)
-#
+Npt = len(indir_list)#
 print('\n%s\n' % '** Choose Experiment to plot **')
 for npt in range(Npt):
     print(str(npt) + ': ' + indir_list[npt])
@@ -45,7 +39,7 @@ my_npt = input('-- Experiment number (return = 0) --')
 if len(my_npt)==0:
     my_npt = 0
 indir = indir_list[int(my_npt)] + '/'
-#
+# Choose a release from this experiment.
 rel_list = [rel for rel in os.listdir(indir0 + indir) if 'release' in rel]
 rel_list.sort()
 Nrl = len(rel_list)
@@ -69,28 +63,53 @@ latp = dsg['lat_psi'][:]
 
 # PLOTTING
 
-#aa = [lonp.min(), lonp.max(), latp.min(), latp.max()]
-pad = .02
-aa = [dsr['lon'][:].min()-pad, dsr['lon'][:].max()+pad,
-    dsr['lat'][:].min()-pad, dsr['lat'][:].max()+pad]
+if False:
+    # plot full domain
+    aa = [lonp.min(), lonp.max(), latp.min(), latp.max()]
+else:
+    # automatically plot region of particles, with padding
+    pad = .02
+    aa = [dsr['lon'][:].min() - pad, dsr['lon'][:].max() + pad,
+    dsr['lat'][:].min() - pad, dsr['lat'][:].max() + pad]
 
-plt.close('all')
+# plt.close('all')
 fig = plt.figure(figsize=(8,8))
 
-ax = fig.add_subplot(111)
+ax = fig.add_subplot(121)
 h = dsg['h'][:]
 mask = dsg['mask_rho'][:]
 zm = -np.ma.masked_where(mask==0, h)
-plt.pcolormesh(lonp, latp, zm[1:-1, 1:-1], vmin=-100, vmax=0, cmap='rainbow')
+plt.pcolormesh(lonp, latp, zm[1:-1, 1:-1], vmin=-100, vmax=0,
+    cmap='rainbow', alpha=.3)
 pfun.add_coast(ax)
 ax.axis(aa)
 pfun.dar(ax)
 ax.set_xlabel('Longitude')
 ax.set_ylabel('Latitude')
-
 # add the tracks (packed [time, particle])
-ax.plot(dsr['lon'][:], dsr['lat'][:], '-*k')
-ax.plot(dsr['lon'][0,:], dsr['lat'][0,:], 'og')
-ax.plot(dsr['lon'][-1,:], dsr['lat'][-1,:], 'or')
+ax.plot(dsr['lon'][:], dsr['lat'][:], '-k', linewidth=.2)
+ax.plot(dsr['lon'][0,:], dsr['lat'][0,:], 'og', alpha=.3)
+ax.plot(dsr['lon'][-1,:], dsr['lat'][-1,:], 'or', alpha=.3)
+ax.set_title(indir.strip('/'))
+# looking for bad values
+salt = dsr['salt'][:]
+nmask = np.isnan(salt)
+ax.plot(dsr['lon'][:][nmask], dsr['lat'][:][nmask], 'm*')
+
+# time series
+td = (dsr['ot'][:] - dsr['ot'][0])/86400
+tv_list = ['z', 'salt', 'temp']
+ntv = len(tv_list)
+for ii in range(ntv):
+    tv = tv_list[ii]
+    NC = 2
+    ax = fig.add_subplot(ntv,NC, (ii+1)*NC)
+    ax.plot(td, dsr[tv][:])
+    ax.set_title(tv)
+    if ii == ntv-1:
+        ax.set_xlabel('Time (days)')
 
 plt.show()
+
+dsr.close()
+dsg.close()

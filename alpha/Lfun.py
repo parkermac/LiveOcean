@@ -22,7 +22,7 @@ def Lstart(gridname='BLANK', tag='BLANK'):
     which_home = os.environ.get("HOME") # This works even when called by cron.
     which_host = socket.gethostname()
     
-    if 'Parkers-MacBook-Pro' in which_host: # mac version
+    if which_home == '/Users/pm7': # mac version
         Ldir['env'] = 'pm_mac'
         Ldir['parent'] = which_home + '/Documents/'
         Ldir['roms'] = Ldir['parent'] + 'LiveOcean_roms/'
@@ -57,7 +57,10 @@ def Lstart(gridname='BLANK', tag='BLANK'):
         Ldir['roms'] = '/gscratch/macc/parker/LiveOcean_roms/'
         
     else:
-        print('Trouble filling out environment variables in Ldir')
+        print('Caution: filling Ldir with default values')
+        Ldir['env'] = 'other'
+        Ldir['parent'] = which_home + '/'
+        Ldir['roms'] = Ldir['parent'] + 'LiveOcean_roms/'
 
     # and add a few more things
     Ldir['gtag'] = Ldir['gridname'] + '_' + Ldir['tag']
