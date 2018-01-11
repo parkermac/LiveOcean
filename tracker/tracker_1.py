@@ -22,17 +22,17 @@ import Lfun
 Ldir = Lfun.Lstart()
 
 from importlib import reload
-import zrfun
 import trackfun_1 as tf1
 reload(tf1)
 import trackfun_nc as tfnc
 reload(tfnc)
 
-#%% ************ USER INPUT **************************************
+# ************ USER INPUT **************************************
 
 # (1) specify the experiment
 #
 exp_name = 'hc5'
+#
 if exp_name == 'jdf5':
     gtagex = 'cascadia1_base_lobio5'
     ic_name = 'jdf0'
@@ -46,12 +46,44 @@ elif exp_name == 'hc6':
     gtagex = 'cas3_v0_lo6m'
     ic_name = 'hc0'
 #
-# specify additional experiment info
-dir_tag = 'forward' # 'forward' or 'reverse'
-surface = False # Boolean, True for trap to surface
-turb = False # Vertical turbulent dispersion
-windage = 0 # a small number >= 0
+# set particle initial locations, all numpy arrays
 #
+# first create three vectors of initial locations
+# plat00 and plon00 should be the same length,
+# and the length of pcs00 is however many vertical positions you have at
+# each lat, lon (expressed as fraction of depth -1 < pcs < 1)
+#
+if ic_name == 'hc0': # Hood Canal
+    lonvec = np.linspace(-122.65, -122.45, 30)
+    latvec = np.linspace(47.2, 47.35, 30)
+    lonmat, latmat = np.meshgrid(lonvec, latvec)
+    plon_vec = lonmat.flatten()
+    plat_vec = latmat.flatten()
+    pcs_vec = np.array([-.05])
+elif ic_name == 'jdf0': # Mid-Juan de Fuca
+    lonvec = np.linspace(-123.85, -123.6, 20)
+    latvec = np.linspace(48.2, 48.4, 20)
+    lonmat, latmat = np.meshgrid(lonvec, latvec)
+    plon_vec = lonmat.flatten()
+    plat_vec = latmat.flatten()
+    pcs_vec = np.array([-.05])
+#
+# specify other experiment choices
+#
+dir_tag = 'forward' # 'forward' or 'reverse'
+surface = False # Boolean, True to trap to surface
+turb = False # Vertical turbulent dispersion
+windage = 0 # a small number 0 <= windage << 1 (e.g. 0.03)
+# fraction of windspeed added to advection, only for surface=True
+if surface == False:
+    windage = 0 # override
+#
+# additional choices, less likely to change
+ndiv = 1 # number of divisions to make between saves for the integration
+        # e.g. if ndiv = 3 and we have hourly saves, we use a 20 minute step
+        # for the integration, but still only report fields hourly
+#
+# modify the experiment name, based on other choices
 if dir_tag == 'reverse':
     exp_name = exp_name + '_reverse'
 if surface:
@@ -62,46 +94,16 @@ if windage > 0:
     exp_name = exp_name + '_wind'
     
 # (2) set release information
-# - can make multiple releases using:
-#   number_of_start_days and days_between_starts
+# 
+# You can make multiple releases using:
+# number_of_start_days > 1 & days_between_starts
 #
-# always start on a day (no hours)
 if Ldir['env'] == 'pm_mac':
     dt_first_day = datetime(2013,1,29)
-    number_of_start_days = 3
+    # always start on a day (no hours)
+    number_of_start_days = 1
     days_between_starts = 1
     days_to_track = 1
-#
-# set particle initial locations, all numpy arrays
-#
-# first create three vectors of initial locations
-# plat00 and plon00 should be the same length,
-# and the length of pcs00 is however many vertical positions you have at
-# each lat, lon
-#
-if ic_name == 'hc0': # Hood Canal
-    lonvec = np.linspace(-122.65, -122.45, 30)
-    latvec = np.linspace(47.2, 47.35, 30)
-    lonmat, latmat = np.meshgrid(lonvec, latvec)
-    plon00 = lonmat.flatten()
-    plat00 = latmat.flatten()
-    pcs00 = np.array([-.05])
-elif ic_name == 'jdf0': # Mid-Juan de Fuca
-    lonvec = np.linspace(-123.85, -123.6, 20)
-    latvec = np.linspace(48.2, 48.4, 20)
-    lonmat, latmat = np.meshgrid(lonvec, latvec)
-    plon00 = lonmat.flatten()
-    plat00 = latmat.flatten()
-    pcs00 = np.array([-.05])
-#
-if len(plon00) != len(plat00):
-    print('Problem with length of initial lat, lon vectors')
-    sys.exit()
-    
-# other choices, less likely to change
-ndiv = 1 # number of divisions to make between saves for the integration
-        # e.g. if ndiv = 3 and we have hourly saves, we use a 20 minute step
-        # for the integration, but still only report fields hourly
 
 # ********* END USER INPUT *************************************
 
@@ -118,14 +120,17 @@ Ldir['days_to_track'] = days_to_track
 
 # make the full IC vectors, which will have equal length
 # (one value for each particle)
-NSP = len(pcs00)
-NXYP = len(plon00)
-plon0 = plon00.reshape(NXYP,1) * np.ones((NXYP,NSP))
-plat0 = plat00.reshape(NXYP,1) * np.ones((NXYP,NSP))
-pcs0 = np.ones((NXYP,NSP)) * pcs00.reshape(1,NSP)
-plon00 = plon0.flatten()
-plat00 = plat0.flatten()
-pcs00 = pcs0.flatten()
+if len(plon_vec) != len(plat_vec):
+    print('Problem with length of initial lat, lon vectors')
+    sys.exit()
+NSP = len(pcs_vec)
+NXYP = len(plon_vec)
+plon_arr = plon_vec.reshape(NXYP,1) * np.ones((NXYP,NSP))
+plat_arr = plat_vec.reshape(NXYP,1) * np.ones((NXYP,NSP))
+pcs_arr = np.ones((NXYP,NSP)) * pcs_vec.reshape(1,NSP)
+plon00 = plon_arr.flatten()
+plat00 = plat_arr.flatten()
+pcs00 = pcs_arr.flatten()
 
 # make the list of start days (datetimes)
 idt_list = []
@@ -134,11 +139,13 @@ for nic in range(number_of_start_days):
     idt_list.append(dt)
     dt = dt + timedelta(days_between_starts)
 
-# make sure the output directory exists
+# make sure the output parent directory exists
+outdir00 = Ldir['LOo']
+Lfun.make_dir(outdir00)
 outdir0 = Ldir['LOo'] + 'tracks/'
 Lfun.make_dir(outdir0)
 
-# make the output directory
+# make the output directory (empty)
 outdir1 = Ldir['exp_name'] + '/'
 outdir = outdir0 + outdir1
 Lfun.make_dir(outdir, clean=True)
@@ -153,9 +160,12 @@ for item in exp_list:
     exp_dict[item] = str(Ldir[item])
 Lfun.dict_to_csv(exp_dict, outdir + 'exp_info.csv')
 
-# step through the releases (one for each start day)
+# step through the releases, one for each start day
 for idt0 in idt_list:
     
+    tt0 = time.time() # monitor integration time
+    
+    # name the release file by start day
     idt0_str = datetime.strftime(idt0,'%Y.%m.%d')
     outname = ('release_' + idt0_str + '.nc')
     print(' - ' + outname)
@@ -170,9 +180,9 @@ for idt0 in idt_list:
         # if this is not the first day in the release, we use
         # fn_list_prev to get the first file (hour 0) for this day
         if nd > 0:
-            fn_list = fn_list_prev[-1] + fn_list
+            fn_list = [fn_list_prev[-1]] + fn_list
         
-        # write the grid file (once per experiment)
+        # write the grid file (once per experiment) for plotting
         if idt0 == idt_list[0]:
             g_infile = fn_list[0]
             g_outfile = outdir + 'grid.nc'
@@ -185,19 +195,16 @@ for idt0 in idt_list:
             plat0 = plat00.copy()
             pcs0 = pcs00.copy()
             # do the tracking
-            tt0 = time.time()
-            P, G, S = tf1.get_tracks(fn_list, plon0, plat0, pcs0,
-                                dir_tag, surface, turb,
-                                ndiv, windage, trim_loc=True)
+            P = tf1.get_tracks(fn_list, plon0, plat0, pcs0,
+                dir_tag, surface, turb, ndiv, windage, trim_loc=True)
             # save the results to NetCDF
             tfnc.start_outfile(out_fn, P)
         else: # subsequent days
             plon0 = P['lon'][-1,:]
             plat0 = P['lat'][-1,:]
             pcs0 = P['cs'][-1,:]
-            P, G, S = tf1.get_tracks(fn_list, plon0, plat0, pcs0,
-                                dir_tag, surface, turb,
-                                ndiv, windage)
+            P = tf1.get_tracks(fn_list, plon0, plat0, pcs0,
+                dir_tag, surface, turb, ndiv, windage)
             tfnc.append_to_outfile(out_fn, P)
         fn_list_prev = fn_list
             

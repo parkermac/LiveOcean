@@ -56,6 +56,8 @@ def append_to_outfile(out_fn, P):
     NTx, NPx = ds['lon'][:].shape
     for vn in P.keys():
         varin = P[vn]
+        # note that we drop the first record, so that this does not repeat
+        # the last entry of the previous day
         if vn == 'ot':
             ds[vn][NTx:] = P[vn][1:]
         else:

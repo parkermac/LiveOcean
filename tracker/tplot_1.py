@@ -39,6 +39,7 @@ my_npt = input('-- Experiment number (return = 0) --')
 if len(my_npt)==0:
     my_npt = 0
 indir = indir_list[int(my_npt)] + '/'
+
 # Choose a release from this experiment.
 rel_list = [rel for rel in os.listdir(indir0 + indir) if 'release' in rel]
 rel_list.sort()
@@ -51,34 +52,51 @@ if len(my_nrl)==0:
     my_nrl = 0
 rel = rel_list[int(my_nrl)]
 
+# get Datasets
 dsr = nc4.Dataset(indir0 + indir + rel)
 dsg = nc4.Dataset(indir0 + indir + 'grid.nc')
     
 NT, NP = dsr['lon'].shape
 
-dt_list = [Lfun.modtime_to_datetime(ot) for ot in dsr['ot'][:]]
+# get a list of datetimes
+ot_vec = dsr['ot'][:]
+dt_list = [Lfun.modtime_to_datetime(ot) for ot in ot_vec]
 
+# gather some fields, for convenience
 lonp = dsg['lon_psi'][:]
 latp = dsg['lat_psi'][:]
+hh = dsg['h'][:]
+maskr = dsg['mask_rho'][:]
+#
+u = dsr['u'][:]
+v = dsr['v'][:]
+w = dsr['w'][:]
+salt = dsr['salt'][:]
+temp = dsr['temp'][:]
+lon = dsr['lon'][:]
+lat = dsr['lat'][:]
+z = dsr['z'][:]
+zeta = dsr['zeta'][:]
+h = dsr['h'][:]
 
 # PLOTTING
 
+# plt.close('all')
+fig = plt.figure(figsize=(12,8))
+
+# map
+#
+# set domain limits
 if False:
     # plot full domain
     aa = [lonp.min(), lonp.max(), latp.min(), latp.max()]
 else:
     # automatically plot region of particles, with padding
     pad = .02
-    aa = [dsr['lon'][:].min() - pad, dsr['lon'][:].max() + pad,
-    dsr['lat'][:].min() - pad, dsr['lat'][:].max() + pad]
-
-# plt.close('all')
-fig = plt.figure(figsize=(8,8))
-
+    aa = [lon.min() - pad, lon.max() + pad,
+    lat.min() - pad, lat.max() + pad]
 ax = fig.add_subplot(121)
-h = dsg['h'][:]
-mask = dsg['mask_rho'][:]
-zm = -np.ma.masked_where(mask==0, h)
+zm = -np.ma.masked_where(maskr==0, hh)
 plt.pcolormesh(lonp, latp, zm[1:-1, 1:-1], vmin=-100, vmax=0,
     cmap='rainbow', alpha=.3)
 pfun.add_coast(ax)
@@ -87,17 +105,19 @@ pfun.dar(ax)
 ax.set_xlabel('Longitude')
 ax.set_ylabel('Latitude')
 # add the tracks (packed [time, particle])
-ax.plot(dsr['lon'][:], dsr['lat'][:], '-k', linewidth=.2)
-ax.plot(dsr['lon'][0,:], dsr['lat'][0,:], 'og', alpha=.3)
-ax.plot(dsr['lon'][-1,:], dsr['lat'][-1,:], 'or', alpha=.3)
+ax.plot(lon, lat, '-k', linewidth=.2)
+ax.plot(lon[0,:], lat[0,:], 'og', alpha=.3)
+ax.plot(lon[-1,:], lat[-1,:], 'or', alpha=.3)
 ax.set_title(indir.strip('/'))
 # looking for bad values
-salt = dsr['salt'][:]
+zmask = (u==0) & (v==0)
+ax.plot(lon[zmask], lat[zmask], '*r', markersize=12)
+
 nmask = np.isnan(salt)
-ax.plot(dsr['lon'][:][nmask], dsr['lat'][:][nmask], 'm*')
+print('Number of nan salt values = ' + str(nmask.sum()))
 
 # time series
-td = (dsr['ot'][:] - dsr['ot'][0])/86400
+td = (ot_vec - ot_vec[0])/86400
 tv_list = ['z', 'salt', 'temp']
 ntv = len(tv_list)
 for ii in range(ntv):
@@ -105,7 +125,7 @@ for ii in range(ntv):
     NC = 2
     ax = fig.add_subplot(ntv,NC, (ii+1)*NC)
     ax.plot(td, dsr[tv][:])
-    ax.set_title(tv)
+    ax.text(.05, .05, tv, fontweight='bold', transform=ax.transAxes)
     if ii == ntv-1:
         ax.set_xlabel('Time (days)')
 
@@ -113,3 +133,4 @@ plt.show()
 
 dsr.close()
 dsg.close()
+

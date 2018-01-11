@@ -1,9 +1,6 @@
 """
 Functions for particle tracking.
 
-8/28/2016 Added code to speed things up (by a factor of 12 in testing!) when
-surface == True.
-
 Performance notes: in 3D it takes about:
  - cascadia1:  20 sec/day
  - cas3:      215 sec/day
@@ -25,14 +22,10 @@ import time
 def get_tracks(fn_list, plon0, plat0, pcs0, dir_tag,
                surface, turb, ndiv, windage, trim_loc=False):
     
-    plonA = plon0.copy()
-    platA = plat0.copy()
-    pcsA = pcs0.copy()
-
     # get basic info
     G = zrfun.get_basic_info(fn_list[0], only_G=True)
-    maskr = np.ones_like(G['mask_rho'])
-    maskr[G['mask_rho']==False] = 0
+    maskr = np.ones_like(G['mask_rho']) # G['mask_rho'] = True in water
+    maskr[G['mask_rho']==False] = 0 # maskr = 1 in water
     S = zrfun.get_basic_info(fn_list[0], only_S=True)
 
     # get time vector of history files
@@ -44,7 +37,6 @@ def get_tracks(fn_list, plon0, plat0, pcs0, dir_tag,
         rot[counter] = ds.variables['ocean_time'][:].squeeze()
         counter += 1
         ds.close
-
     delta_t = rot[1] - rot[0] # second between saves
 
     # this is how we track backwards in time
@@ -64,58 +56,57 @@ def get_tracks(fn_list, plon0, plat0, pcs0, dir_tag,
     R['rcsw'] = S['Cs_w'][:]
     
     # minimum grid sizes used when particles approach land boundaries
-    dxm = np.diff(R['rlonr']).min()
-    dym = np.diff(R['rlatr']).min()
+    dxg = np.diff(R['rlonr']).min()
+    dyg = np.diff(R['rlatr']).min()
+    
+    # critical value of the landmask to decide if we are too close to land
+    # closer to 1 excludes more particles
+    # closer to 0 excludes more but they get zero velocities often
+    maskr_crit = 0.8 # (maskr = 1 in water, 0 on land) [0.8 seems good]
     
     # these lists are used internally to get other variables as needed
+    # (they must all be present in the history files)
     vn_list_vel = ['u','v','w']
-    vn_list_wind = ['Uwind','Vwind']
     vn_list_zh = ['zeta','h']
-    vn_list_other = ['salt', 'temp', 'zeta', 'h', 'u', 'v', 'w',
-                     'Uwind', 'Vwind']
-
+    vn_list_wind = ['Uwind','Vwind']
+    vn_list_other = ['salt', 'temp'] + vn_list_zh + vn_list_vel
+    if windage == True:
+        vn_list_other = vn_list_other + vn_list_wind
+    # plist main is what ends up written to output
+    plist_main = ['lon', 'lat', 'cs', 'ot', 'z'] + vn_list_other
     
     # Step through times.
     #
     counter = 0
     nrot = len(rot)
+    # rot is a list of all the ocean times (sec) in the current file list(e.g. 25)
+    # and pot is a single one of these
     for pot in rot[:-1]:
 
-        
-        if np.mod(counter,24) == 0:
-            pass
-            #print(' - time %d out of %d' % (counter, nrot))
-
-        # get time indices
+        # get time indices of surrounding (in time) history files
         it0, it1, frt = zfun.get_interpolant(
                 np.array(pot), rot, extrap_nan=False)
-
-        # get the velocity zeta, and h at all points
+        # get Datasets
         ds0 = nc4.Dataset(fn_list[it0[0]])
         ds1 = nc4.Dataset(fn_list[it1[0]])
-        
 
         if counter == 0:
-
             if trim_loc == True:
                 # remove points on land
-                pmask = zfun.interp_scattered_on_plaid(plonA, platA, R['rlonr'], R['rlatr'],
-                    maskr, exnan=True)
-                pcond = pmask >= 0.7
-                plon = plonA[pcond]
-                plat = platA[pcond]
-                pcs = pcsA[pcond]
+                pmask = zfun.interp_scattered_on_plaid(plon0, plat0,
+                    R['rlonr'], R['rlatr'], maskr, exnan=True)
+                # keep only points with pmask >= maskr_crit
+                pcond = pmask >= maskr_crit
+                plon = plon0[pcond]
+                plat = plat0[pcond]
+                pcs = pcs0[pcond]
             else:
-                plon = plonA.copy()
-                plat = platA.copy()
-                pcs = pcsA.copy()
-
+                plon = plon0.copy()
+                plat = plat0.copy()
+                pcs = pcs0.copy()
             # create result arrays
             NP = len(plon)
             P = dict()
-            # plist main is what ends up written to output
-            plist_main = ['lon', 'lat', 'cs', 'ot', 'z', 'zeta', 'zbot',
-                          'salt', 'temp', 'u', 'v', 'w', 'Uwind', 'Vwind', 'h']
             for vn in plist_main:
                 P[vn] = np.nan * np.ones((NT,NP))
 
@@ -125,14 +116,12 @@ def get_tracks(fn_list, plon0, plat0, pcs0, dir_tag,
             if surface == True:
                 pcs[:] = S['Cs_r'][-1]
             P['cs'][it0,:] = pcs
-
             P = get_properties(vn_list_other, ds0, it0, P, plon, plat, pcs, R, surface)
-
+            
         delt = delta_t/ndiv
-
         for nd in range(ndiv):
             
-            # save the IC to use for out of bounds backup
+            # save the IC to use for out-of-bounds backup
             plonC = plon.copy()
             platC = plat.copy()
             pcsC = pcs.copy()
@@ -171,28 +160,21 @@ def get_tracks(fn_list, plon0, plat0, pcs0, dir_tag,
             # - first find those that ended up on land
             pmask = zfun.interp_scattered_on_plaid(plon, plat, R['rlonr'], R['rlatr'],
                 maskr, exnan=True)
-            pcond = pmask < .7 # a Boolean mask
+            pcond = pmask < maskr_crit # a Boolean mask
             # move those on land back to their staring point, with a random
             # perturbation of a grid cell to keep them from getting trapped
             if len(pcond) > 0:
                 rix = np.random.randint(-1,1,len(plon))
                 riy = np.random.randint(-1,1,len(plon))
-                plon[pcond] = plonC[pcond] + rix[pcond]*dxm
-                plat[pcond] = platC[pcond] + riy[pcond]*dym
-                #
-                # pci = np.where(pcond)[0] # indices of particles on land
-                # for pc in pci:
-                #     plon[pc] = plonC[pc] + random.randint(-1,1)*dxm
-                #     plat[pc] = platC[pc] + random.randint(-1,1)*dym
+                plon[pcond] = plonC[pcond] + rix[pcond]*dxg
+                plat[pcond] = platC[pcond] + riy[pcond]*dyg
                 # and check again for any stragglers that are still on land
                 pmask = zfun.interp_scattered_on_plaid(plon, plat, R['rlonr'], R['rlatr'],
                     maskr, exnan=True)
-                pcond = pmask < .7
+                pcond = pmask < maskr_crit
                 plon[pcond] = plonC[pcond]
                 plat[pcond] = platC[pcond]
             
-            
-                                              
             # add turbulence in two distinct timesteps
             if turb == True:
                 # pull values of VdAKs and add up to 3-dimensions
@@ -206,7 +188,6 @@ def get_tracks(fn_list, plon0, plat0, pcs0, dir_tag,
                 Vturb3 = np.concatenate((np.zeros((NP,2)), Vturb[:,np.newaxis]), axis=1)
                 plon, plat, pcs = update_position(Vturb3, (ZH0 + 2*ZH1 + 2*ZH2 + ZH3)/6,
                                               S, delt, plon, plat, pcs, surface)
-
 
         # write positions to the results arrays
         P['lon'][it1,:] = plon
@@ -229,7 +210,7 @@ def get_tracks(fn_list, plon0, plat0, pcs0, dir_tag,
     # and save the time vector (seconds in whatever the model reports)
     P['ot'] = rot
 
-    return P, G, S
+    return P
 
 def update_position(V, ZH, S, delta_t, plon, plat, pcs, surface):
     # find the new position
@@ -249,12 +230,12 @@ def update_position(V, ZH, S, delta_t, plon, plat, pcs, surface):
         Pcs_orig = Pcs.copy()
         Pcs += pdz_s
         # enforce limits on cs
-        mask = np.isnan(Pcs)
+        mask = np.isnan(Pcs) # does this happen?
         if len(mask) > 0:
             Pcs[mask] = Pcs_orig[mask]
-            pad = 1e-5
-            Pcs[Pcs < S['Cs_r'][0]+pad] = S['Cs_r'][0]+pad
-            Pcs[Pcs > S['Cs_r'][-1]-pad] = S['Cs_r'][-1]-pad
+        pad = 1e-5 # stay a bit away from extreme values
+        Pcs[Pcs < S['Cs_r'][0]+pad] = S['Cs_r'][0]+pad
+        Pcs[Pcs > S['Cs_r'][-1]-pad] = S['Cs_r'][-1]-pad
     else:
         Pcs[:] = S['Cs_r'][-1]
 
@@ -265,13 +246,10 @@ def get_vel(vn_list_vel, vn_list_zh, ds0, ds1, plon, plat, pcs, R, frac, surface
     # time between two saves
     # "frac" is the fraction of the way between the times of ds0 and ds1
     # 0 <= frac <= 1
-        
     V0 = get_V(vn_list_vel, ds0, plon, plat, pcs, R, surface)
     V1 = get_V(vn_list_vel, ds1, plon, plat, pcs, R, surface)
-        
     V0[np.isnan(V0)] = 0.0
     V1[np.isnan(V1)] = 0.0
-        
     ZH0 = get_V(vn_list_zh, ds0, plon, plat, pcs, R, surface)
     ZH1 = get_V(vn_list_zh, ds1, plon, plat, pcs, R, surface)
     V = (1 - frac)*V0 + frac*V1
@@ -360,7 +338,6 @@ def get_turb(ds0, ds1, dAKs, delta_t, plon, plat, pcs, R, frac, surface):
     V = rand*np.sqrt(2*Vave/delta_t) + dAKs/2
     
     return V
-# Bartos - end edit to add functions
 
 def get_properties(vn_list_other, ds, it, P, plon, plat, pcs, R, surface):
     # find properties at a position
@@ -371,7 +348,6 @@ def get_properties(vn_list_other, ds, it, P, plon, plat, pcs, R, surface):
     this_h = OTH[:, vn_list_other.index('h')]
     full_depth = this_zeta + this_h
     P['z'][it,:] = pcs * full_depth
-    P['zbot'][it,:] = -this_h
 
     return P
 
@@ -412,12 +388,12 @@ def get_V(vn_list, ds, plon, plat, pcs, R, surface):
             i0cs = i0csr
             i1cs = i1csr
             frcs = frcsr
-        if vn in ['salt','temp','zeta','h','Uwind','Vwind','w','AKs','dAKs_dz']:
-            gg = 'r'
-        elif vn in ['u']:
+        if vn == 'u':
             gg = 'u'
-        elif vn in ['v']:
+        elif vn == 'v':
             gg = 'v'
+        else:
+            gg = 'r'
         i0lat = i0lat_d[gg]
         i1lat = i1lat_d[gg]
         frlat = frlat_d[gg]
@@ -425,6 +401,7 @@ def get_V(vn_list, ds, plon, plat, pcs, R, surface):
         i1lon = i1lon_d[gg]
         frlon = frlon_d[gg]
         # get the data field and put nan's in masked points
+        # (later we do more massaging)
         if vn in ['salt','temp','u','v','w'] and surface==True:
             v0 = ds[vn][0, -1, :, :].squeeze()
         else:
@@ -440,17 +417,10 @@ def get_V(vn_list, ds, plon, plat, pcs, R, surface):
             # Get just the values around our particle positions.
             # each row in VV corresponds to a "box" around a point
             #
-            # I thought this would be faster but it is not.
-            # The code is here for reference - the results are identical
-            # to those from the "fancy indexing" method below.
-            # xcs = np.concatenate((i0cs,i0cs,i0cs,i0cs,i1cs,i1cs,i1cs,i1cs))
-            # xlat = np.concatenate((i0lat,i0lat,i1lat,i1lat,i0lat,i0lat,i1lat,i1lat))
-            # xlon = np.concatenate((i0lon,i1lon,i0lon,i1lon,i0lon,i1lon,i0lon,i1lon))
-            # iflat = np.ravel_multi_index((xcs, xlat, xlon), vv.shape)
-            # VVflat = vv.ravel()[iflat]
-            # VV = VVflat.reshape((NP,8), order='F')
-            #
             VV = np.nan* np.ones((NP, 8))
+            # using "fancy indexing" in which the three indexing arrays
+            # are the same length and the resulting vector has the same length
+            # (works for numpy arrays, not for NetCDF)
             VV[:,0] = vv[i0cs, i0lat, i0lon]
             VV[:,1] = vv[i0cs, i0lat, i1lon]
             VV[:,2] = vv[i0cs, i1lat, i0lon]
@@ -460,10 +430,9 @@ def get_V(vn_list, ds, plon, plat, pcs, R, surface):
             VV[:,6] = vv[i1cs, i1lat, i0lon]
             VV[:,7] = vv[i1cs, i1lat, i1lon]
             # Work on edge values.  If all in a box are masked
-            # then that row will be nan's, and also:
+            # then that row will be 8 nan's, and also:
             if vn in ['u', 'v', 'w', 'AKs']:
-                # set all velocities to zero if any in the box are masked
-                #VV[np.isnan(VV).any(axis=1), :] = 0
+                # set all velocities and AKs to zero if any in the box are nan
                 mask = np.isnan(VV)
                 VV[mask] = 0
             elif vn in ['salt','temp']:
@@ -487,7 +456,6 @@ def get_V(vn_list, ds, plon, plat, pcs, R, surface):
             # then that row will be nan's, and also:
             if vn in ['u', 'v', 'w']:
                 # set all velocities to zero if any in the box are masked
-                #VV[np.isnan(VV).any(axis=1), :] = 0
                 mask = np.isnan(VV)
                 VV[mask] = 0
             elif vn in ['salt','temp']:
@@ -495,9 +463,6 @@ def get_V(vn_list, ds, plon, plat, pcs, R, surface):
                 newval = np.nanmean(VV, axis=1).reshape(NP, 1) * np.ones((1,4))
                 mask = np.isnan(VV)
                 VV[mask] = newval[mask]
-            newval = np.nanmean(VV, axis=1).reshape(NP, 1) * np.ones((1,4))
-            mask = np.isnan(VV)
-            VV[mask] = newval[mask]
             v = ( (1-frlat)*((1-frlon)*VV[:,0] + frlon*VV[:,1])
                 + frlat*((1-frlon)*VV[:,2] + frlon*VV[:,3]) )
         elif vn in ['zeta','Uwind','Vwind', 'h']:
