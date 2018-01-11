@@ -110,8 +110,8 @@ ax.plot(lon[0,:], lat[0,:], 'og', alpha=.3)
 ax.plot(lon[-1,:], lat[-1,:], 'or', alpha=.3)
 ax.set_title(indir.strip('/'))
 # looking for bad values
-zmask = (u==0) & (v==0)
-ax.plot(lon[zmask], lat[zmask], '*r', markersize=12)
+# zmask = (u==0) & (v==0)
+# ax.plot(lon[zmask], lat[zmask], '*r', markersize=12)
 
 nmask = np.isnan(salt)
 print('Number of nan salt values = ' + str(nmask.sum()))

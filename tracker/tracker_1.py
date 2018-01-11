@@ -31,7 +31,7 @@ reload(tfnc)
 
 # (1) specify the experiment
 #
-exp_name = 'hc5'
+exp_name = 'jdf5'
 #
 if exp_name == 'jdf5':
     gtagex = 'cascadia1_base_lobio5'
@@ -101,9 +101,9 @@ if windage > 0:
 if Ldir['env'] == 'pm_mac':
     dt_first_day = datetime(2013,1,29)
     # always start on a day (no hours)
-    number_of_start_days = 1
+    number_of_start_days = 2
     days_between_starts = 1
-    days_to_track = 1
+    days_to_track = 2
 
 # ********* END USER INPUT *************************************
 
