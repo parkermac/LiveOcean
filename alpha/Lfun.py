@@ -71,7 +71,7 @@ def Lstart(gridname='BLANK', tag='BLANK'):
     Ldir['forecast_days'] = 3
     
     # temporary hack to allow boiler to access data from fjord
-    if Ldir['env'] == 'boiler':
+    if Ldir['env'] == 'pm_boiler':
         Ldir['data'] = '/fjdata1/parker/LiveOcean_data/'
 
     return Ldir
