@@ -4,7 +4,13 @@ plaid lat, lon grids.
 
 This program is a driver where you specify:
 - an experiment (ROMS run + release locations + other choices)
-- a release within that experiment (start day)
+- a release or set of releases within that experiment (start day, etc.)
+
+It can be run on its own, or with command line arguments to facilitate
+large, automated jobs, for example from the terminal:
+python tracker_1.py -dtt 2 -ds 2013.01.30
+or in ipython:
+run tracker_1.py -dtt 2 -ds 2013.01.30
 """
 
 #%% setup
@@ -12,6 +18,8 @@ import numpy as np
 from datetime import datetime, timedelta
 import time
 import netCDF4 as nc4
+import argparse
+import collections
 
 import os
 import sys
@@ -27,7 +35,26 @@ reload(tf1)
 import trackfun_nc as tfnc
 reload(tfnc)
 
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# optional command line arguments, can be input in any order
+parser = argparse.ArgumentParser()
+parser.add_argument('-gx', '--gtagex', nargs='?', type=str)
+parser.add_argument('-ic', '--ic_name', nargs='?', type=str)
+parser.add_argument('-dir', '--dir_tag', nargs='?', type=str)
+parser.add_argument('-sfc', '--surface', nargs='?', type=bool)
+parser.add_argument('-trb', '--turb', nargs='?', type=bool)
+parser.add_argument('-wnd', '--windage', nargs='?', type=float)
+parser.add_argument('-ds', '--ds_first_day', nargs='?', type=str)
+parser.add_argument('-nsd', '--number_of_start_days', nargs='?', type=int)
+parser.add_argument('-dbs', '--days_between_starts', nargs='?', type=int)
+parser.add_argument('-dtt', '--days_to_track', nargs='?', type=int)
+args = parser.parse_args()
+a_dict = args.__dict__ 
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 # ************ USER INPUT **************************************
+# The values set in this section are effectively defaults, and
+# they will be overridden by the command line arguments.
 
 # (1) specify the experiment
 #
@@ -46,38 +73,14 @@ elif exp_name == 'hc6':
     gtagex = 'cas3_v0_lo6m'
     ic_name = 'hc0'
 #
-# set particle initial locations, all numpy arrays
-#
-# first create three vectors of initial locations
-# plat00 and plon00 should be the same length,
-# and the length of pcs00 is however many vertical positions you have at
-# each lat, lon (expressed as fraction of depth -1 < pcs < 1)
-#
-if ic_name == 'hc0': # Hood Canal
-    lonvec = np.linspace(-122.65, -122.45, 30)
-    latvec = np.linspace(47.2, 47.35, 30)
-    lonmat, latmat = np.meshgrid(lonvec, latvec)
-    plon_vec = lonmat.flatten()
-    plat_vec = latmat.flatten()
-    pcs_vec = np.array([-.05])
-elif ic_name == 'jdf0': # Mid-Juan de Fuca
-    lonvec = np.linspace(-123.85, -123.6, 20)
-    latvec = np.linspace(48.2, 48.4, 20)
-    lonmat, latmat = np.meshgrid(lonvec, latvec)
-    plon_vec = lonmat.flatten()
-    plat_vec = latmat.flatten()
-    pcs_vec = np.array([-.05])
-#
-# specify other experiment choices
-#
+# other experiment choices
 dir_tag = 'forward' # 'forward' or 'reverse'
-surface = False # Boolean, True to trap to surface
+surface = True # Boolean, True to trap to surface
 turb = False # Vertical turbulent dispersion
 windage = 0 # a small number 0 <= windage << 1 (e.g. 0.03)
 # fraction of windspeed added to advection, only for surface=True
 if surface == False:
     windage = 0 # override
-#
 # additional choices, less likely to change
 ndiv = 1 # number of divisions to make between saves for the integration
         # e.g. if ndiv = 3 and we have hourly saves, we use a 20 minute step
@@ -99,24 +102,59 @@ if windage > 0:
 # number_of_start_days > 1 & days_between_starts
 #
 if Ldir['env'] == 'pm_mac':
-    dt_first_day = datetime(2013,1,29)
-    # always start on a day (no hours)
-    number_of_start_days = 2
+    ds_first_day = '2013.01.29'
+    number_of_start_days = 1
     days_between_starts = 1
-    days_to_track = 2
-
+    days_to_track = 1
+    
+# routines to set particle initial locations, all numpy arrays
+#
+# first create three vectors of initial locations
+# plat00 and plon00 should be the same length,
+# and the length of pcs00 is however many vertical positions you have at
+# each lat, lon (expressed as fraction of depth -1 < pcs < 1)
+#
+if ic_name == 'hc0': # Hood Canal
+    lonvec = np.linspace(-122.65, -122.45, 30)
+    latvec = np.linspace(47.2, 47.35, 30)
+    lonmat, latmat = np.meshgrid(lonvec, latvec)
+    plon_vec = lonmat.flatten()
+    plat_vec = latmat.flatten()
+    pcs_vec = np.array([-.05])
+elif ic_name == 'jdf0': # Mid-Juan de Fuca
+    lonvec = np.linspace(-123.85, -123.6, 20)
+    latvec = np.linspace(48.2, 48.4, 20)
+    lonmat, latmat = np.meshgrid(lonvec, latvec)
+    plon_vec = lonmat.flatten()
+    plat_vec = latmat.flatten()
+    pcs_vec = np.array([-.05])
+    
 # ********* END USER INPUT *************************************
 
-# save some things in Ldir
-Ldir['exp_name'] = exp_name
-Ldir['gtagex'] = gtagex
-Ldir['ic_name'] = ic_name
-Ldir['dir_tag'] = dir_tag
-Ldir['surface'] = surface
-Ldir['turb'] = turb
-Ldir['windage'] = windage
-Ldir['ndiv'] = ndiv
-Ldir['days_to_track'] = days_to_track
+if args.gtagex != None:
+    Ldir['gtagex'] = args.gtagex
+else:
+    Ldir['gtagex'] = gtagex
+
+# save some things in tr_dict
+tr_dict = collections.OrderedDict()
+tr_dict['exp_name'] = exp_name
+tr_dict['gtagex'] = gtagex
+tr_dict['ic_name'] = ic_name
+tr_dict['dir_tag'] = dir_tag
+tr_dict['surface'] = surface
+tr_dict['turb'] = turb
+tr_dict['windage'] = windage
+tr_dict['ndiv'] = ndiv
+tr_dict['ds_first_day'] = ds_first_day
+tr_dict['number_of_start_days'] = number_of_start_days
+tr_dict['days_between_starts'] = days_between_starts
+tr_dict['days_to_track'] = days_to_track
+
+# override using command line arguments
+for k in a_dict.keys():
+    if a_dict[k] != None:
+        tr_dict[k] = a_dict[k]
 
 # make the full IC vectors, which will have equal length
 # (one value for each particle)
@@ -134,7 +172,7 @@ pcs00 = pcs_arr.flatten()
 
 # make the list of start days (datetimes)
 idt_list = []
-dt = dt_first_day
+dt = datetime.strptime(tr_dict['ds_first_day'], '%Y.%m.%d')
 for nic in range(number_of_start_days):
     idt_list.append(dt)
     dt = dt + timedelta(days_between_starts)
@@ -146,19 +184,13 @@ outdir0 = Ldir['LOo'] + 'tracks/'
 Lfun.make_dir(outdir0)
 
 # make the output directory (empty)
-outdir1 = Ldir['exp_name'] + '/'
+outdir1 = tr_dict['exp_name'] + '/'
 outdir = outdir0 + outdir1
 Lfun.make_dir(outdir, clean=True)
 print(50*'*' + '\nWriting to ' + outdir)
 
 # write a csv file of experiment information
-import collections
-exp_dict = collections.OrderedDict()
-exp_list = ['exp_name', 'gtagex', 'ic_name', 'ndiv',
-        'dir_tag', 'surface', 'turb', 'windage']
-for item in exp_list:
-    exp_dict[item] = str(Ldir[item])
-Lfun.dict_to_csv(exp_dict, outdir + 'exp_info.csv')
+Lfun.dict_to_csv(tr_dict, outdir + 'exp_info.csv')
 
 # step through the releases, one for each start day
 for idt0 in idt_list:
@@ -172,7 +204,7 @@ for idt0 in idt_list:
     out_fn = outdir + outname
     
     # we do the calculation in one-day segments
-    for nd in range(Ldir['days_to_track']):
+    for nd in range(tr_dict['days_to_track']):
         
         # get or replace the history file list for this day
         idt = idt0 + timedelta(days=nd)
@@ -195,19 +227,17 @@ for idt0 in idt_list:
             plat0 = plat00.copy()
             pcs0 = pcs00.copy()
             # do the tracking
-            P = tf1.get_tracks(fn_list, plon0, plat0, pcs0,
-                dir_tag, surface, turb, ndiv, windage, trim_loc=True)
+            P = tf1.get_tracks(fn_list, plon0, plat0, pcs0, tr_dict, trim_loc=True)
             # save the results to NetCDF
             tfnc.start_outfile(out_fn, P)
         else: # subsequent days
             plon0 = P['lon'][-1,:]
             plat0 = P['lat'][-1,:]
             pcs0 = P['cs'][-1,:]
-            P = tf1.get_tracks(fn_list, plon0, plat0, pcs0,
-                dir_tag, surface, turb, ndiv, windage)
+            P = tf1.get_tracks(fn_list, plon0, plat0, pcs0, tr_dict)
             tfnc.append_to_outfile(out_fn, P)
         fn_list_prev = fn_list
             
     print(' - Took %0.1f sec for %s day(s)' %
-            (time.time() - tt0, str(Ldir['days_to_track'])))
+            (time.time() - tt0, str(tr_dict['days_to_track'])))
     print(50*'=')

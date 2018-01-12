@@ -19,8 +19,14 @@ from datetime import datetime, timedelta
 import random
 import time
 
-def get_tracks(fn_list, plon0, plat0, pcs0, dir_tag,
-               surface, turb, ndiv, windage, trim_loc=False):
+def get_tracks(fn_list, plon0, plat0, pcs0, tr_dict, trim_loc=False):
+    
+    # unpack items needed from tr_dict
+    dir_tag = tr_dict['dir_tag']
+    surface = tr_dict['surface']
+    turb = tr_dict['turb']
+    ndiv = tr_dict['ndiv']
+    windage = tr_dict['windage']
     
     # get basic info
     G = zrfun.get_basic_info(fn_list[0], only_G=True)
