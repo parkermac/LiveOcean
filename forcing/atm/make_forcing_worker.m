@@ -57,13 +57,11 @@ vartime = (dt_out - datenum(1970,1,1))*86400; % seconds since 1/1/1970
 % NOTE: for now let's just use the d2 (12 km) grid
 
 % and get the parent
-switch Ldir.env
+switch Ldir.lo_env
     case 'pm_mac'
         Info.wrf_dir = [Ldir.parent,'LiveOcean_data/wrf/'];
-    case 'fjord'
-        Info.wrf_dir = '/pmr2/darr/wrf_crons/wrfout/';
     otherwise
-        disp('Show me the way to get home')
+        Info.wrf_dir = '/pmr2/darr/wrf_crons/wrfout/';
 end
 
 indir00 = [Info.wrf_dir,yrs,mos,dys,'00/'];
