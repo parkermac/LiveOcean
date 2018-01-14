@@ -1,38 +1,30 @@
 #!/bin/bash
 
 # This runs the code to create forcing for one or more days,
-# for any of the types of forcing,
-# allowing for either a forecast or backfill.
-#
-# CHANGES:
-# 8/21/2016 Various edits to handle jobs more gracefully.
-# 7/20/2017 By using the optional flag -nc (for do not clobber)
-# it will not remake a forcing file that was already successfully created.
-# The default is to clobber.
+# for any of the types of forcing, allowing for either a
+# forecast or backfill over a range.
 
+# run the code to put the environment into a csv
+../alpha/get_lo_info.sh
+# and read the csv into active variables
+while IFS=, read col1 col2
+do
+  eval $col1="$col2"
+done < ../alpha/lo_info.csv
 
-
-# set a path and connect to a library of functions
-if [ $HOME = "/Users/pm7" ] ; then
-  LO_parent=$HOME"/Documents/LiveOcean"
-elif [ $HOME = "/home/parker" ] ; then
-  LO_parent="/data1/parker/LiveOcean"
-fi
-
-
-. $LO_parent"/driver/common.lib"
+. $LO"driver/common.lib"
 
 # USE COMMAND LINE OPTIONS
 #
-# -g name of the grid [cascadia1, ...]
-# -t name of the forcing tag [base, ...]
-# -x name of the ROMS executable to use (only needed if forcing is "azu" or "low_pass") [lo1, ...]
-# -f forcing type [atm, ocn, riv, tide, azu, low_pass]
+# -g name of the grid [cascadia1]
+# -t name of the forcing tag [base]
+# -x name of the ROMS executable to use; only needed for post processing [lobio5]
+# -f forcing type [atm, ocn, riv, tide, azu, low_pass, etc.]
 # -r run type [forecast, backfill]
 #  if backfill, then you must provide two more arguments
 # -0 start date: yyyymmdd
 # -1 end date: yyyymmdd
-# -c force it to remake the forcing, even if it already exists
+# -nc do not remake forcing if it already exists [no argument]
 #
 # example call to do backfill:
 # ./driver_forcing1.sh -g cascadia1 -t base -f atm -r backfill -0 20140201 -1 20140203
@@ -41,9 +33,7 @@ fi
 # ./driver_forcing1.sh -g cascadia1 -t base -f atm -r forecast
 #
 # example call push to azure:
-# ./driver_forcing1.sh -g cascadia1 -t base -x lo1 -f azu -r backfill -0 20140201 -1 20140203
-#
-# you can also use long names like --ex_name instead of -x
+# ./driver_forcing1.sh -g cascadia1 -t base -x lobio5 -f azu -r backfill -0 20140201 -1 20140203
 
 ex_name="placeholder"
 clobber_flag=1 # the default (1) is to clobber, unless the -nc argument is used
@@ -104,19 +94,18 @@ do
   DD=${D:0:4}.${D:4:2}.${D:6:2}
   
   f_string="f"$DD
-  LOo=$LO_parent"_output"
-  LOog=$LOo"/"$gtag
-  LOogf=$LOog"/"$f_string
-  LOogf_f=$LOogf"/"$frc
+  LOog=$LOo$gtag"/"
+  LOogf=$LOog$f_string"/"
+  LOogf_f=$LOogf$frc"/"
   echo $LOogf_f
   echo $(date)
-  LOogf_fi=$LOogf_f"/Info"
-  LOogf_fd=$LOogf_f"/Data"
+  LOogf_fi=$LOogf_f"Info/"
+  LOogf_fd=$LOogf_f"Data/"
   
   # this makes all parent directories if needed
   mkdir -p $LOogf
   
-  checkfile=$LOogf_fi"/process_status.csv"
+  checkfile=$LOogf_fi"process_status.csv"
   
   already_done_flag=0
   # check to see if the job has already completed successfully
@@ -140,7 +129,7 @@ do
     mkdir $LOogf_fd
     
     # Make the forcing.
-    cd $LO_parent"/forcing/"$frc
+    cd $LO"forcing/"$frc
     if [ -e $HOME"/.bashrc" ] ; then
       source $HOME"/.bashrc"
     fi
@@ -150,7 +139,9 @@ do
     if [ -e $HOME"/.profile" ] ; then
       source $HOME"/.profile"
     fi
-    python ./make_forcing_main.py -g $gridname -t $tag -f $frc -r $run_type -d $DD -x $ex_name > $LOogf_fi"/screen_out.txt" &
+    
+    
+    python ./make_forcing_main.py -g $gridname -t $tag -f $frc -r $run_type -d $DD -x $ex_name > $LOogf_fi"screen_out.txt" &
 
     # Check that the job has finished successfully.
     PID1=$!

@@ -8,37 +8,31 @@ function [Ldir] = Lstart(gridname, tag)
 % Typical usage (depending on directory location in LiveOcean/):
 %
 % addpath('../alpha'); Ldir = Lstart(gridname, tag);
-%
-% it relies on the existence of a text file RUN_INFO.csv
-% in which each line has two strings: an item name and its value
-% separated by a comma
+
+% find the path to alpha (assumes path has been added)
+alp0 = which('Lstart');
+alp = alp0(1:end-8);
+% read lo_info into a struct
+fid = fopen([alp,'lo_info.csv']);
+while ~feof(fid)
+    line = fgetl(fid);
+    ic = find(line == ',');
+    name = line(1:ic-1);
+    value = line(ic+1:end);
+    Ldir.(name) = value;
+end
+fclose(fid);
 
 Ldir.gridname = gridname;
 Ldir.tag = tag;
 Ldir.gtag = [Ldir.gridname,'_',Ldir.tag];
 
-% and get the parent
-which_home = getenv('HOME');
-switch which_home
-    case '/Users/pm7';
-        Ldir.env = 'pm_mac'
-        Ldir.parent = [which_home,'/Documents/'];
-    case '/home/parker'
-        Ldir.env = 'fjord';
-        Ldir.parent = '/data1/parker/';
-    otherwise
-        disp('Trouble filling out environment variables in Ldir')
-end
-
 %% set locations of things
-Ldir.home = [Ldir.parent,'LiveOcean/'];
-Ldir.out = [Ldir.parent,'LiveOcean_output/'];
-Ldir.data = [Ldir.parent,'LiveOcean_data/'];
 
 % Paths to shared code assumed to be available by many programs
-addpath([Ldir.home,'shared/mexcdf/mexnc']);
-addpath([Ldir.home,'shared/mexcdf/snctools']);
-addpath([Ldir.home,'shared/seawater']);
-addpath([Ldir.home,'shared/Z_functions']);
+addpath([Ldir.LO,'shared/mexcdf/mexnc']);
+addpath([Ldir.LO,'shared/mexcdf/snctools']);
+addpath([Ldir.LO,'shared/seawater']);
+addpath([Ldir.LO,'shared/Z_functions']);
 
 

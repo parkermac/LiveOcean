@@ -3,24 +3,29 @@
 # This runs ROMS for one or more days, allowing for either
 # a forecast or backfill.
 #
-# CHANGES:
-# 8/2/2016 This version is designed to handle ROMS jobs more gracefully,
-# using advice from here:
-# http://unix.stackexchange.com/questions/76717/bash-launch-background-process-and-check-when-it-ends
+# Designed to be run from GAGGLE or MOX
+# and depends on other drivers having been run first
 
-# NOTE: must be run from gaggle, and depends on other drivers having been run first
+# run the code to put the environment into a csv
+../alpha/get_lo_info.sh
+# and read the csv into active variables
+while IFS=, read col1 col2
+do
+  eval $col1="$col2"
+done < ../alpha/lo_info.csv
 
-# set paths and connect to a library of functions
-testing=0
-if [ $HOME = "/Users/pm7" ] ; then
-  LO_parent=$HOME"/Documents/LiveOcean"
-  R_parent=$HOME"/Documents/LiveOcean_roms"
-  testing=1
-elif [ $HOME = "/home/parker" ] ; then
-  LO_parent="/fjdata1/parker/LiveOcean"
-  R_parent="/pmr1/parker/LiveOcean_roms"
+. $LO"/driver/common.lib"
+
+# set compute choices
+if [ $lo_env == "pm_mac" ] ; then
+  hf="../shared/hf144"
+  np_num=144
+elif [ $lo_env == "pm_gaggle" ] ; then
+  hf="../shared/hf144"
+  np_num=144
+elif [ $lo_env == "pm_mox" ] ; then
+  np_num=196
 fi
-. $LO_parent"/driver/common.lib"
 
 # USE COMMAND LINE OPTIONS
 #
@@ -34,12 +39,10 @@ fi
 # -1 end date: yyyymmdd
 #
 # example call to do backfill, with a cold start:
-# ./driver_roms1.sh -g cascadia1 -t base -x lobio1 -s new -r backfill -0 20140201 -1 20140203
+# ./driver_roms2.sh -g cascadia1 -t base -x lobio5 -s new -r backfill -0 20140201 -1 20140203
 #
 # example call to do forecast:
-# ./driver_roms1.sh -g cascadia1 -t base -x lobio1 -s continuation -r forecast
-#
-# you can also use long names like --ex_name instead of -x
+# ./driver_roms2.sh -g cascadia1 -t base -x lobio5 -s continuation -r forecast
 
 while [ "$1" != "" ]; do
   case $1 in
@@ -95,7 +98,7 @@ blow_ups=0
 # start the main loop over days
 while [ $D -le $D1 ] && [ $keep_going -eq 1 ]
 do
-  echo "********** driver_roms1.sh *******************"
+  echo "********** driver_roms1m.sh *******************"
   echo "  blow ups = " $blow_ups
   
   # manipulate the string D to insert dots, using the syntax:
@@ -103,57 +106,47 @@ do
   DD=${D:0:4}.${D:4:2}.${D:6:2}
 
   f_string="f"$DD
-  Rf=$R_parent"/output/"$gtagex"/"$f_string
-  log_file=$Rf"/log"
-
-  # choose which cores to run on (must be consistent in dot_in)
-  if [ $run_type = "forecast" ] ; then
-    hf="../shared/hf1"
-    np_num=4
-  elif [ $run_type = "backfill" ] ; then
-    hf="../shared/hf1"
-    np_num=4
-  fi
+  Rf=$roms"output/"$gtagex"/"$f_string"/"
+  log_file=$Rf"log.txt"
 
   # Run make_dot_in.py, which creates an empty f_string directory,
   # and then cd to where the ROMS executable lives.
-  cd $LO_parent"/forcing/dot_in/"$gtagex
+
+  cd $LO"forcing/dot_in/"$gtagex
+  
   if [ -e $HOME"/.bashrc" ] ; then
     source $HOME"/.bashrc"
-  fi
-  if [ -e $HOME"/.bash_profile" ] ; then
+  elif [ -e $HOME"/.bash_profile" ] ; then
     source $HOME"/.bash_profile"
-  fi
-  if [ -e $HOME"/.profile" ] ; then
+  elif [ -e $HOME"/.profile" ] ; then
     source $HOME"/.profile"
   fi
-  if [ $D = $D0 ] && [ $start_type = "new" ] ; then
+
+  if [ $D == $D0 ] && [ $start_type == "new" ] ; then
     python ./make_dot_in.py -g $gridname -t $tag -s $start_type -r $run_type -d $DD -x $ex_name -np $np_num -bu $blow_ups
     sleep 30
-    cd $R_parent"/makefiles/"$ex_name"_tideramp"
+    cd $roms"makefiles/"$ex_name"_tideramp"
   else
     python ./make_dot_in.py -g $gridname -t $tag -s continuation -r $run_type -d $DD -x $ex_name -np $np_num -bu $blow_ups
     sleep 30
-    cd $R_parent"/makefiles/"$ex_name
+    cd $roms"makefiles/"$ex_name
   fi
 
-  # the actual ROMS run command
-  if [ $testing -eq 1 ] ; then # testing
+  # run ROMS
+  if [ $lo_env == "pm_mac" ] ; then # testing
     echo "/cm/shared/local/openmpi-ifort/bin/mpirun -np $np_num -machinefile $hf oceanM $Rf/liveocean.in > $log_file &"
-  elif [ $testing -eq 0 ] ; then # the real thing
+    keep_going=0
+  elif [ $lo_env == "pm_gaggle" ] ; then
     /cm/shared/local/openmpi-ifort/bin/mpirun -np $np_num -machinefile $hf oceanM $Rf/liveocean.in > $log_file &
     # Check that ROMS has finished successfully.
     PID1=$!
     wait $PID1
     echo "run completed for" $f_string
-  fi
-
-  # check the log_file to see if we should continue
-  if [ -e $log_file ] ; then
+    # check the log_file to see if we should continue
     if grep -q "Blowing-up" $log_file ; then
       echo "- Run blew up!"
       blow_ups=$(( $blow_ups + 1 )) #increment the blow ups
-      if [ $blow_ups -le 1 ] ; then
+      if [ $blow_ups -le 3 ] ; then
         keep_going=1
       else
         keep_going=0
@@ -169,8 +162,39 @@ do
       echo "- Something else happened."
       keep_going=0
     fi
+  elif [ $lo_env == "pm_mox" ] ; then
+    python make_back_batch.py $Rf
+    sbatch -p macc -A macc lo_back_batch.sh &
+    # check the log_file to see if we should continue
+    keep_checking_log=1
+    while [ $keep_checking_log -eq 1 ]
+    do
+      sleep 30
+      if [ -e $log_file ] ; then
+        if grep -q "Blowing-up" $log_file ; then
+          echo "- Run blew up!"
+          blow_ups=$(( $blow_ups + 1 )) #increment the blow ups
+          keep_checking_log=0
+          if [ $blow_ups -le 3 ] ; then
+            keep_going=1
+          else
+            keep_going=0
+          fi
+        elif grep -q "ERROR" $log_file ; then
+          echo "- Run had an error."
+          keep_going=0
+          keep_checking_log=0
+        elif grep -q "ROMS/TOMS: DONE" $log_file ; then
+          echo "- Run completed successfully."
+          keep_going=1
+          blow_ups=0
+          keep_checking_log=0
+        fi
+      fi
+    done
+    echo "run completed for" $f_string
   fi
-
+  
   echo $(date)
 
   if [ $blow_ups -eq 0 ] ; then
@@ -181,4 +205,3 @@ do
   fi
 
 done # end of while loop
-

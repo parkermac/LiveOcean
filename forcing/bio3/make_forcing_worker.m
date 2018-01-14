@@ -27,10 +27,10 @@ grdname = [gdir,'grid.nc'];
 
 % define locations of existing ocn and riv files
 ocn_dir = 'ocn';
-clmname = [Ldir.out,Ldir.gtag,'/f',date_string,'/',ocn_dir,'/ocean_clm_bio.nc'];
-bryname = [Ldir.out,Ldir.gtag,'/f',date_string,'/',ocn_dir,'/ocean_bry_bio.nc'];
-ininame = [Ldir.out,Ldir.gtag,'/f',date_string,'/',ocn_dir,'/ocean_ini_bio.nc'];
-rivname = [Ldir.out,Ldir.gtag,'/f',date_string,'/riv/rivers_bio.nc'];
+clmname = [Ldir.LOo,Ldir.gtag,'/f',date_string,'/',ocn_dir,'/ocean_clm_bio.nc'];
+bryname = [Ldir.LOo,Ldir.gtag,'/f',date_string,'/',ocn_dir,'/ocean_bry_bio.nc'];
+ininame = [Ldir.LOo,Ldir.gtag,'/f',date_string,'/',ocn_dir,'/ocean_ini_bio.nc'];
+rivname = [Ldir.LOo,Ldir.gtag,'/f',date_string,'/riv/rivers_bio.nc'];
 
 %%
 NO3_method='PL_Salt';
