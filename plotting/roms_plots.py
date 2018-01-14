@@ -11,9 +11,9 @@ import netCDF4 as nc
 
 import Lfun
 Ldir = Lfun.Lstart()
-if Ldir['env'] == 'pm_mac': # mac version
+if Ldir['lo_env'] == 'pm_mac': # mac version
     pass
-elif Ldir['env'] == 'pm_fjord': # fjord version
+else: # fjord version
     import matplotlib as mpl
     mpl.use('Agg')
 import matplotlib.pyplot as plt

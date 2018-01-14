@@ -64,7 +64,6 @@ elif [ $HOME == "/usr/lusers/pmacc" ] ; then
   
 fi
 
-
 # write info to a temporary file for use by other programs
 outfile=$LO"alpha/lo_info.csv"
 echo "lo_env",$lo_env > $outfile

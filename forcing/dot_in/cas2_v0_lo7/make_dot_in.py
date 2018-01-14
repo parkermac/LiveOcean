@@ -123,7 +123,7 @@ f_string_yesterday = 'f'+ date_string_yesterday
 
 # where forcing files live (fjord, as seen from gaggle)
 # NOTE: eventually this should not be hard-wired.
-if Ldir['env'] == 'pm_mac':
+if Ldir['lo_env'] == 'pm_mac':
     # testing
     lo_dir = Ldir['LO']
     loo_dir = Ldir['LOo']

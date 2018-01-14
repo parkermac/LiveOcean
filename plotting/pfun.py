@@ -22,9 +22,9 @@ import zfun
 
 import numpy as np
 
-if Ldir['env'] == 'pm_mac': # mac version
+if Ldir['lo_env'] == 'pm_mac': # mac version
     pass
-elif Ldir['env'] == 'pm_fjord': # fjord version
+else: # regular (remote, linux) version
     import matplotlib as mpl
     mpl.use('Agg')
 

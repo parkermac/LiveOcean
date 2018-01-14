@@ -2,7 +2,6 @@
 This code automatically populates a pandas dataframe with information about
 the WRF files in our archive.
 
-Designed to be run only on fjord.
 """
 
 # setup
@@ -15,9 +14,9 @@ Ldir = Lfun.Lstart()
 
 import pandas as pd
 
-if Ldir['env'] == 'pm_mac':
+if Ldir['lo_env'] == 'pm_mac':
     f_dir0 = Ldir['parent'] + 'LiveOcean_data/wrf/'
-elif Ldir['env'] == 'pm_fjord': 
+else: 
     f_dir0 = '/pmraid3/darr/tstwrf/tmpwrf/'
 
 # directory names are like 2012100700

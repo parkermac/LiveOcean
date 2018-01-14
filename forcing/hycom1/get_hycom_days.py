@@ -25,9 +25,9 @@ import pickle
 out_dir = Ldir['data'] + 'hycom1/'
 Lfun.make_dir(out_dir, clean=False)
 
-if Ldir['env'] == 'pm_mac': # mac version
+if Ldir['lo_env'] == 'pm_mac': # mac version
     testing = True
-elif Ldir['env'] == 'pm_fjord': # fjord version
+else: # regular version
     testing = False
 
 if testing:

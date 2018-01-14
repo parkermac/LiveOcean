@@ -101,12 +101,11 @@ if windage > 0:
 # You can make multiple releases using:
 # number_of_start_days > 1 & days_between_starts
 #
-if Ldir['env'] == 'pm_mac':
-    ds_first_day = '2013.01.29'
-    number_of_start_days = 1
-    days_between_starts = 1
-    days_to_track = 1
-    
+ds_first_day = '2013.01.29'
+number_of_start_days = 1
+days_between_starts = 1
+days_to_track = 1
+
 # routines to set particle initial locations, all numpy arrays
 #
 # first create three vectors of initial locations
