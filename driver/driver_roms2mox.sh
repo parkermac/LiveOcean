@@ -3,35 +3,21 @@
 # This runs ROMS for one or more days, allowing for either
 # a forecast or backfill.
 #
-# Designed to be run from GAGGLE or MOX
-# and depends on other drivers having been run first
+# Designed to be run from MOX
+# and depends on other drivers having been run first on BOILER
 
-# set paths and connect to a library of functions
-if [ $HOME = "/Users/pm7" ] ; then
-  LO_top=$HOME"/Documents/LiveOcean"
-  R_top=$HOME"/Documents/LiveOcean_roms"
-  hf="../shared/hf144"
-  np_num=144
-  loenv="pm_mac"
-elif [ $HOME = "/home/parker" ] ; then
-  # NOTE: should use HOSTNAME
-  LO_top="/fjdata1/parker/LiveOcean"
-  R_top="/pmr1/parker/LiveOcean_roms"
-  hf="../shared/hf144"
-  np_num=144
-  loenv="pm_gaggle"
-elif [ $HOME = "/usr/lusers/darrd" ] ; then
-  LO_top="/gscratch/macc/darrd/LOcean2/LiveOcean"
-  R_top="/gscratch/macc/darrd/LOcean2/LiveOcean_roms"
-  np_num=196
-  loenv="dd_mox"
-elif [ $HOME = "/usr/lusers/pmacc" ] ; then
-  LO_top="/gscratch/macc/parker/LiveOcean"
-  R_top="/gscratch/macc/parker/LiveOcean_roms"
-  np_num=196
-  loenv="pm_mox"
-fi
-. $LO_top"/driver/common.lib"
+# run the code to put the environment into a csv
+../alpha/get_lo_info.sh
+# and read the csv into active variables
+while IFS=, read col1 col2
+do
+  eval $col1="$col2"
+done < ../alpha/lo_info.csv
+
+. $LO"/driver/common.lib"
+
+# set compute choices
+np_num=196
 
 # USE COMMAND LINE OPTIONS
 #
@@ -45,12 +31,10 @@ fi
 # -1 end date: yyyymmdd
 #
 # example call to do backfill, with a cold start:
-# ./driver_roms1.sh -g cascadia1 -t base -x lobio1 -s new -r backfill -0 20140201 -1 20140203
+# ./driver_roms2mox.sh -g cas3 -t v0 -x lo6m -s new -r backfill -0 20140201 -1 20140203
 #
 # example call to do forecast:
-# ./driver_roms1.sh -g cascadia1 -t base -x lobio1 -s continuation -r forecast
-#
-# you can also use long names like --ex_name instead of -x
+# ./driver_roms2mox.sh -g cas3 -t v0 -x lo6m -s continuation -r forecast
 
 while [ "$1" != "" ]; do
   case $1 in
@@ -114,13 +98,13 @@ do
   DD=${D:0:4}.${D:4:2}.${D:6:2}
 
   f_string="f"$DD
-  Rf=$R_top"/output/"$gtagex"/"$f_string
-  log_file=$Rf"/log.txt"
+  Rf=$roms"output/"$gtagex"/"$f_string"/"
+  log_file=$Rf"log.txt"
 
   # Run make_dot_in.py, which creates an empty f_string directory,
   # and then cd to where the ROMS executable lives.
 
-  cd $LO_top"/forcing/dot_in/"$gtagex
+  cd $LO"forcing/dot_in/"$gtagex
   
   if [ -e $HOME"/.bashrc" ] ; then
     source $HOME"/.bashrc"
@@ -130,46 +114,35 @@ do
     source $HOME"/.profile"
   fi
 
-  if [ $D = $D0 ] && [ $start_type = "new" ] ; then
+  if [ $D == $D0 ] && [ $start_type == "new" ] ; then
     python ./make_dot_in.py -g $gridname -t $tag -s $start_type -r $run_type -d $DD -x $ex_name -np $np_num -bu $blow_ups
     sleep 30
-    cd $R_top"/makefiles/"$ex_name"_tideramp"
+    cd $roms"makefiles/"$ex_name"_tideramp"
   else
     python ./make_dot_in.py -g $gridname -t $tag -s continuation -r $run_type -d $DD -x $ex_name -np $np_num -bu $blow_ups
     sleep 30
-    cd $R_top"/makefiles/"$ex_name
+    cd $roms"makefiles/"$ex_name
   fi
 
   # run ROMS
-  if [ $loenv == "pm_mac" ] ; then # testing
-    echo "/cm/shared/local/openmpi-ifort/bin/mpirun -np $np_num -machinefile $hf oceanM $Rf/liveocean.in > $log_file &"
-  elif [ $loenv == "pm_gaggle" ] ; then
-    /cm/shared/local/openmpi-ifort/bin/mpirun -np $np_num -machinefile $hf oceanM $Rf/liveocean.in > $log_file &
-    # Check that ROMS has finished successfully.
-    PID1=$!
-    wait $PID1
-    echo "run completed for" $f_string
-    # check the log_file to see if we should continue
-    if grep -q "Blowing-up" $log_file ; then
-      echo "- Run blew up!"
-      blow_ups=$(( $blow_ups + 1 )) #increment the blow ups
-      if [ $blow_ups -le 3 ] ; then
-        keep_going=1
-      else
-        keep_going=0
-      fi
-    elif grep -q "ERROR" $log_file ; then
-      echo "- Run had an error."
-      keep_going=0
-    elif grep -q "ROMS/TOMS: DONE" $log_file ; then
-      echo "- Run completed successfully."
-      keep_going=1
-      blow_ups=0
-    else
-      echo "- Something else happened."
-      keep_going=0
+  if [ $lo_env == "pm_mac" ] ; then # testing
+    echo "placeholder for something useful"
+    keep_going=0
+    
+  elif [ $lo_env == "pm_mox" ] ; then
+    
+    remote_dir="parker@boiler.ocean.washington.edu:/data1/parker/"
+    local_dir="/gscratch/macc/parker/"
+    
+    # 1. Get today's forcing files from boiler (just once per day):
+    if [ $blow_ups -eq 0 ] ; then
+      scp -r $remote_dir"LiveOcean_output/"$gtag/$f_string $local_dir"LiveOcean_output/"$gtag
+      PID1=$!
+      wait $PID1
+      echo "Forcing files transferred for " $f_string
     fi
-  elif [ $loenv == "pm_mox" ] ; then
+    
+    # 2. Run ROMS
     python make_back_batch.py $Rf
     sbatch -p macc -A macc lo_back_batch.sh &
     # check the log_file to see if we should continue
@@ -196,6 +169,16 @@ do
           keep_going=1
           blow_ups=0
           keep_checking_log=0
+          
+          # 3. Copy ROMS files to boiler:
+          scp -r $local_dir"LiveOcean_roms/output/"$gtagex/$f_string $remote_dir"LiveOcean_roms/output/"$gtagex 
+          PID1=$!
+          wait $PID1
+          echo "ROMS output files transferred for " $f_string
+          
+          # 4. Delete forcing files from mox and somehow delete ROMS files from mox while preserving
+          # the end of the previous day as a start for the next one.
+          
         fi
       fi
     done

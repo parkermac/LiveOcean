@@ -3,7 +3,7 @@
 # This runs ROMS for one or more days, allowing for either
 # a forecast or backfill.
 #
-# Designed to be run from GAGGLE or MOX
+# Designed to be run from GAGGLE
 # and depends on other drivers having been run first
 
 # run the code to put the environment into a csv
@@ -17,15 +17,8 @@ done < ../alpha/lo_info.csv
 . $LO"/driver/common.lib"
 
 # set compute choices
-if [ $lo_env == "pm_mac" ] ; then
-  hf="../shared/hf144"
-  np_num=144
-elif [ $lo_env == "pm_gaggle" ] ; then
-  hf="../shared/hf144"
-  np_num=144
-elif [ $lo_env == "pm_mox" ] ; then
-  np_num=196
-fi
+hf="../shared/hf144"
+np_num=144
 
 # USE COMMAND LINE OPTIONS
 #
@@ -162,37 +155,6 @@ do
       echo "- Something else happened."
       keep_going=0
     fi
-  elif [ $lo_env == "pm_mox" ] ; then
-    python make_back_batch.py $Rf
-    sbatch -p macc -A macc lo_back_batch.sh &
-    # check the log_file to see if we should continue
-    keep_checking_log=1
-    while [ $keep_checking_log -eq 1 ]
-    do
-      sleep 30
-      if [ -e $log_file ] ; then
-        if grep -q "Blowing-up" $log_file ; then
-          echo "- Run blew up!"
-          blow_ups=$(( $blow_ups + 1 )) #increment the blow ups
-          keep_checking_log=0
-          if [ $blow_ups -le 3 ] ; then
-            keep_going=1
-          else
-            keep_going=0
-          fi
-        elif grep -q "ERROR" $log_file ; then
-          echo "- Run had an error."
-          keep_going=0
-          keep_checking_log=0
-        elif grep -q "ROMS/TOMS: DONE" $log_file ; then
-          echo "- Run completed successfully."
-          keep_going=1
-          blow_ups=0
-          keep_checking_log=0
-        fi
-      fi
-    done
-    echo "run completed for" $f_string
   fi
   
   echo $(date)
