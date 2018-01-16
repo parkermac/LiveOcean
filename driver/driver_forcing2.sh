@@ -5,7 +5,12 @@
 # forecast or backfill over a range.
 
 # run the code to put the environment into a csv
-../alpha/get_lo_info.sh
+if [ -e ../alpha/user_get_lo_info.sh ] ; then
+  ../alpha/user_get_lo_info.sh
+else
+  ../alpha/get_lo_info.sh
+fi
+
 # and read the csv into active variables
 while IFS=, read col1 col2
 do

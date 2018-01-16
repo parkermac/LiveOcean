@@ -7,7 +7,12 @@
 # and depends on other drivers having been run first on BOILER
 
 # run the code to put the environment into a csv
-../alpha/get_lo_info.sh
+if [ -e ../alpha/user_get_lo_info.sh ] ; then
+  ../alpha/user_get_lo_info.sh
+else
+  ../alpha/get_lo_info.sh
+fi
+
 # and read the csv into active variables
 while IFS=, read col1 col2
 do
@@ -86,6 +91,7 @@ gtagex=$gtag"_"$ex_name
 # initialize control flags
 keep_going=1 # 1 => keep going, 0 => stop the driver
 blow_ups=0
+delete_previous_day=0
 
 # start the main loop over days
 while [ $D -le $D1 ] && [ $keep_going -eq 1 ]
@@ -176,13 +182,22 @@ do
           wait $PID1
           echo "ROMS output files transferred for " $f_string
           
-          # 4. Delete forcing files from mox and somehow delete ROMS files from mox while preserving
-          # the end of the previous day as a start for the next one.
+          # 4. Delete forcing and ROMS files from mox from the previous day.
+          # This only executes after we have run one day sucessfully.
+          if [ $delete_previous_day -eq 1 ] ; then
+            rm -rf $local_dir"LiveOcean_output/"$gtag/$f_string_previous
+            rm -rf $local_dir"LiveOcean_roms/output/"$gtagex/$f_string_previous
+          fi
           
         fi
       fi
     done
     echo "run completed for" $f_string
+    
+    # keep track of the day before
+    f_string_previous=$f_string
+    delete_previous_day=1
+    
   fi
   
   echo $(date)

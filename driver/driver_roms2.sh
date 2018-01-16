@@ -7,7 +7,12 @@
 # and depends on other drivers having been run first
 
 # run the code to put the environment into a csv
-../alpha/get_lo_info.sh
+if [ -e ../alpha/user_get_lo_info.sh ] ; then
+  ../alpha/user_get_lo_info.sh
+else
+  ../alpha/get_lo_info.sh
+fi
+
 # and read the csv into active variables
 while IFS=, read col1 col2
 do
@@ -127,10 +132,10 @@ do
 
   # run ROMS
   if [ $lo_env == "pm_mac" ] ; then # testing
-    echo "/cm/shared/local/openmpi-ifort/bin/mpirun -np $np_num -machinefile $hf oceanM $Rf/liveocean.in > $log_file &"
+    echo "/cm/shared/local/openmpi-ifort/bin/mpirun -np "$np_num" -machinefile "$hf" oceanM "$Rf"liveocean.in > "$log_file" &"
     keep_going=0
   elif [ $lo_env == "pm_gaggle" ] ; then
-    /cm/shared/local/openmpi-ifort/bin/mpirun -np $np_num -machinefile $hf oceanM $Rf/liveocean.in > $log_file &
+    /cm/shared/local/openmpi-ifort/bin/mpirun -np $np_num -machinefile $hf oceanM $Rfliveocean.in > $log_file &
     # Check that ROMS has finished successfully.
     PID1=$!
     wait $PID1

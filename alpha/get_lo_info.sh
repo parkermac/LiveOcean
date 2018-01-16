@@ -12,8 +12,8 @@
 # should copy this code to that name and make any edits there by hand.
 # Then their user_get_lo_info.sh will not be overwritten when using git pull
 
-# This script is intended to be called by Lfun.Lstart() and Lstart.m, as
-# well as the driver shellscripts.  The goal is te centralize the specification
+# This script is intended to be called by Lfun.Lstart() as
+# well as the driver shellscripts.  The goal is to centralize the specification
 # of LiveOcean directory locations and other info that had crept into those four
 # places.
 
@@ -41,7 +41,7 @@ elif [ $HOME == "/home/parker" ] && [[ $HOSTNAME == *"boiler"* ]] ; then
   LO=$parent"LiveOcean/"
   data="/fjdata1/parker/LiveOcean_data/"
   LOo=$parent"LiveOcean_output/"
-  roms="/pmr1/parker/LiveOcean_roms/"
+  roms=$parent"LiveOcean_roms/"
   which_matlab="/usr/local/bin/matlab"
 
 elif [ $HOME == "/home/parker" ] && [[ $HOSTNAME == *"gaggle"* ]] ; then
