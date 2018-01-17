@@ -185,8 +185,13 @@ do
           # 4. Delete forcing and ROMS files from mox from the previous day.
           # This only executes after we have run one day sucessfully.
           if [ $delete_previous_day -eq 1 ] ; then
+            echo "Deleting history and forcing files for "$f_string_previous
             rm -rf $local_dir"LiveOcean_output/"$gtag/$f_string_previous
             rm -rf $local_dir"LiveOcean_roms/output/"$gtagex/$f_string_previous
+            # update the identy of the day before
+            echo "- changing f_string_previous from "$f_string_previous
+            f_string_previous=$f_string
+            echo "-- to "$f_string_previous
           fi
           
         fi
@@ -194,8 +199,7 @@ do
     done
     echo "run completed for" $f_string
     
-    # keep track of the day before
-    f_string_previous=$f_string
+    # this will be 1 for all except the first day in a series
     delete_previous_day=1
     
   fi
