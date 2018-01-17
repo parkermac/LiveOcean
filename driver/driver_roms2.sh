@@ -135,7 +135,7 @@ do
     echo "/cm/shared/local/openmpi-ifort/bin/mpirun -np "$np_num" -machinefile "$hf" oceanM "$Rf"liveocean.in > "$log_file" &"
     keep_going=0
   elif [ $lo_env == "pm_gaggle" ] ; then
-    /cm/shared/local/openmpi-ifort/bin/mpirun -np $np_num -machinefile $hf oceanM $Rfliveocean.in > $log_file &
+    /cm/shared/local/openmpi-ifort/bin/mpirun -np $np_num -machinefile $hf oceanM $Rf"liveocean.in" > $log_file &
     # Check that ROMS has finished successfully.
     PID1=$!
     wait $PID1
