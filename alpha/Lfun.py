@@ -16,7 +16,7 @@ def Lstart(gridname='BLANK', tag='BLANK'):
     We use input parameters to allow for different gridnames and tags to
     coexist.
     """
-    print(alp)
+    #print(alp)
     
     # put top level information from input into a dict
     Ldir = dict()
