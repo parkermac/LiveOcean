@@ -188,19 +188,19 @@ do
             echo "Deleting history and forcing files for "$f_string_previous
             rm -rf $local_dir"LiveOcean_output/"$gtag/$f_string_previous
             rm -rf $local_dir"LiveOcean_roms/output/"$gtagex/$f_string_previous
-            # update the identy of the day before
-            echo "- changing f_string_previous from "$f_string_previous
-            f_string_previous=$f_string
-            echo "-- to "$f_string_previous
           fi
+          
+          # update the identy of the day before
+          f_string_previous=$f_string
+          echo "-- set f_string_previous to "$f_string_previous
+          
+          # this will be 1 for all except the first day in a series
+          delete_previous_day=1
           
         fi
       fi
     done
     echo "run completed for" $f_string
-    
-    # this will be 1 for all except the first day in a series
-    delete_previous_day=1
     
   fi
   
