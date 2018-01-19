@@ -8,13 +8,7 @@ This is designed for NESTING.
 
 To run from the command line in LiveOcean/driver/:
     
-./driver_forcing1.sh -g cas1 -t base -f ocnN -r backfill -0 20130101 -1 20130101
-
-To test in python on mac:
-
-cd ~/Documents/LiveOcean/forcing/ocnN
-
-run make_forcing_main.py -g sal0 -t f1 -r backfill -d 2013.01.31
+./driver_forcing2.sh -g hc0 -t v0 -f ocnN -r backfill -0 20170210 -1 20170212
 
 """
 
@@ -49,7 +43,7 @@ reload(Ofun_nc)
 reload(Ofun)
 
 start_time = datetime.now()
-in_dir = Ldir['roms'] + 'output/cas1_f1_r820/f' + Ldir['date_string']
+in_dir = Ldir['roms'] + 'output/cas3_v0_lo6m/f' + Ldir['date_string']
 nc_dir = Ldir['LOogf_f']
 
 # get grid and S info
