@@ -36,6 +36,7 @@ def get_tracks(fn_list, plon0, plat0, pcs0, dir_tag,
     for fn in fn_list:
         ds = nc4.Dataset(fn)
         rot[counter] = ds.variables['ocean_time'][:].squeeze()
+        print(str(rot[counter]))
         counter += 1
         ds.close
 
