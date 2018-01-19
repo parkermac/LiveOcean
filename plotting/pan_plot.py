@@ -12,7 +12,7 @@ python pan_plot.py -g aestus1 -t A1 -x ae1 -d 2013.02.07 -lt backfill -pt P_sect
 python pan_plot.py -g aestus1 -t A1 -x ae1 -d 2013.02.01 -lt backfill -pt P_sectA -mov True -nd 13
 
 Running from the ipython command line:
-(but for some reason the movei code does not work when run from spyder)
+(but for some reason the movie code does not work when run from spyder)
 
 cd ~/Documents/LiveOcean/plotting
 run pan_plot.py

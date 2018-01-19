@@ -19,6 +19,8 @@ from datetime import datetime, timedelta
 def get_tracks(fn_list, plon0, plat0, pcs0, dir_tag,
                method, surface, ndiv, windage):
 
+    fn_list.sort()
+    
     plonA = plon0.copy()
     platA = plat0.copy()
     pcsA = pcs0.copy()
