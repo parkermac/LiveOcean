@@ -92,7 +92,9 @@ lon = nc_varget(fng,'lon_rho');
 lat = nc_varget(fng,'lat_rho');
 
 % the WRF grids (2 for d2, and 3 for d3, 4 for d4)
+disp(infile_list_d4{1})
 if exist(infile_list_d4{1},'file')
+    disp("file exists")
     lon4 = double(squeeze(nc_varget(infile_list_d4{1},'XLONG')));
     lat4 = double(squeeze(nc_varget(infile_list_d4{1},'XLAT')));
 else
