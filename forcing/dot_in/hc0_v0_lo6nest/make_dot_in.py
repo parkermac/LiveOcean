@@ -59,7 +59,7 @@ his_interval = 3600 # seconds to define and write to history files
 rst_interval = 1 # days between writing to the restart file (e.g. 5)
 
 # which forcings to look for
-atm_dir = 'atm_d4/' # which atm forcing files to use
+atm_dir = 'atm/' # which atm forcing files to use
 ocn_dir = 'ocnN/' # which ocn forcing files to use
 riv_dir = 'riv1/' # which riv forcing files to use
 #tide_dir = 'tide1/' # which tide forcing files to use
