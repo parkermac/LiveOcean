@@ -62,6 +62,7 @@ switch Ldir.lo_env
         Info.wrf_dir = [Ldir.parent,'LiveOcean_data/wrf/'];
     otherwise
         Info.wrf_dir = '/pmr2/darr/wrf_crons/wrfout/';
+		disp(Info.wrf_dir)
 end
 
 indir00 = [Info.wrf_dir,yrs,mos,dys,'00/'];
@@ -112,7 +113,6 @@ nmat2 = NaN * ones(NT,NR2,NC2); % sized for input
 
 for tt = 1:NT
     fn2 = infile_list_d4{tt};
-	disp(fn2)
     for vv = 1:length(invar_list)
         VR = invar_list{vv};
         if tt == 1; eval([VR,'2 = nmat2;']); end;
