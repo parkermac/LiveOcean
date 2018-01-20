@@ -112,6 +112,7 @@ nmat2 = NaN * ones(NT,NR2,NC2); % sized for input
 
 for tt = 1:NT
     fn2 = infile_list_d4{tt};
+	disp(fn2)
     for vv = 1:length(invar_list)
         VR = invar_list{vv};
         if tt == 1; eval([VR,'2 = nmat2;']); end;
