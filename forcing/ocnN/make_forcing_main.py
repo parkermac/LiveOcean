@@ -53,6 +53,7 @@ S = zrfun.get_S(S_info_dict)
 # get list of files to work on
 h_list_full = os.listdir(in_dir)
 h_list = [item for item in h_list_full if 'ocean_his' in item]
+h_list.sort()
 
 # debugging
 testing = False
