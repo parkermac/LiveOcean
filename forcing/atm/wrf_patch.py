@@ -27,7 +27,7 @@ outdir = dir0 + missing_day + '/'
 in_list = os.listdir(indir)
 
 for in_fn in in_list:
-    if in_fn[:5] == 'wrfout':
+    if in_fn[:6] == 'wrfout':
         
         out_fn = in_fn.replace(substitute_day, missing_day)
         
