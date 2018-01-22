@@ -14,9 +14,9 @@ import shutil
 
 dir0="/pmr2/darr/wrf_crons/wrfout/"
 
-substitute_day = "20170325"
+substitute_day = "2017032500"
 
-missing_day =    "20170326"
+missing_day =    "2017032600"
 
 indir = dir0 + substitute_day + '/'
 outdir = dir0 + missing_day + '/'
