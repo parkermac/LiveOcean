@@ -31,7 +31,7 @@ for in_fn in in_list:
         
         out_fn = in_fn.replace(substitute_day, missing_day)
         
-        if True: # Testing
+        if False: # Testing
             print('Copying ' + indir+in_fn)
             print('-- to - ' + outdir+out_fn)
             
