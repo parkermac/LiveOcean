@@ -54,7 +54,7 @@ def get_in_dict(plot_type):
     in_dict['vlims'] = vlims
         
     # OTHER
-    in_dict['z_level'] = -250 # z level to plot
+    in_dict['z_level'] = -10 # z level to plot
         
     return in_dict
 
@@ -71,7 +71,8 @@ cmap_dict = {'salt': 'rainbow', #cmo.cm.haline, 'gist_ncar'
              'alkalinity': 'rainbow', #cmo.cm.solar,
              'PH': 'jet',
              'ARAG': 'rainbow',
-             'Ldetritus': 'rainbow'}
+             'Ldetritus': 'rainbow',
+             'w': 'rainbow'}
 
 # units (after multiplying by fac)
 units_dict = {'salt': '',
@@ -84,7 +85,8 @@ units_dict = {'salt': '',
              'alkalinity': ' $(\mu\ equivalents\ L^{-1})$',
              'PH': '',
              'ARAG': '',
-             'Ldetritus': ''}
+             'Ldetritus': '',
+             'w': 'm/s'}
 
 # scaling factors
 fac_dict =  {'salt': 1,
@@ -97,7 +99,8 @@ fac_dict =  {'salt': 1,
              'alkalinity': 1,
              'PH': 1,
              'ARAG': 1,
-             'Ldetritus': 1}
+             'Ldetritus': 1,
+             'w': 1}
              
 tstr_dict = {'salt': 'Salinity',
              'temp': 'Temperature',
@@ -109,7 +112,8 @@ tstr_dict = {'salt': 'Salinity',
              'alkalinity': 'Alkalinity',
              'PH': 'pH',
              'ARAG': '$\Omega_{arag}$',
-             'Ldetritus': 'Ldetritus'}
+             'Ldetritus': 'Ldetritus',
+             'w': 'W'}
 
 figsize = (13,8) # laptop
 # figsize = (18,10) # big screen
@@ -249,6 +253,61 @@ def P_salish(in_dict):
     ax.set_xlabel('Longitude')
     ax.set_title(tstr + units_dict[vn])
     #pfun.add_velocity_vectors(ax, ds, in_dict['fn'])
+    
+    # FINISH
+    ds.close()
+    if len(in_dict['fn_out']) > 0:
+        plt.savefig(in_dict['fn_out'])
+        plt.close()
+    else:
+        plt.show()
+        pfun.topfig()
+    return out_dict
+
+def P_isolayer(in_dict):
+    # plot the depth of an isolayer
+
+    # START
+    fig = plt.figure(figsize=figsize)
+    ds = nc.Dataset(in_dict['fn'])
+    vlims = in_dict['vlims'].copy()
+    out_dict['vlims'] = vlims
+    
+    # create isolayer
+    G, S, T = zrfun.get_basic_info(in_dict['fn'])
+    h = ds['h'][:]
+    zw = zrfun.get_z(h, 0*h, S, only_w=True)
+    DZ = np.diff(zw, axis=0)
+    mask = ds['mask_rho'][:]
+    s = ds['salt'][:].squeeze()
+    ss = 30
+    dz = DZ.copy()
+    mm = s > ss # true for s < the target salinity
+    nmm = mm.sum(axis=0)
+    dz[mm] = 0
+    zz = -dz.sum(axis=0)
+    zz[mask==0] = np.nan
+    zz[nmm==0] = np.nan
+    zz[nmm==S['N']] = np.nan
+    zzm = np.ma.masked_where(np.isnan(zz), zz)
+
+    # PLOT CODE
+    
+    #aa = [-123, -122.55, 47.5, 47.9]
+    aa = [-124, -122, 47, 49]
+
+    # PLOT CODE
+    ax = fig.add_subplot(111)
+    cs = ax.pcolormesh(ds['lon_psi'][:], ds['lat_psi'][:], zzm[1:-1,1:-1],
+                       vmin=-40, vmax=0, cmap='rainbow')
+    fig.colorbar(cs)
+    pfun.add_coast(ax)
+    ax.axis(aa)
+    pfun.dar(ax)
+    ax.set_xlabel('Longitude')
+    ax.set_ylabel('Latitude')
+    pfun.add_info(ax, in_dict['fn'])
+        
     
     # FINISH
     ds.close()
@@ -417,9 +476,10 @@ def P_dive_vort(in_dict):
     dyp = zfun.interp2(x, y, G['lon_rho'], G['lat_rho'], G['DY'])
     vort = np.diff(v, axis=1)/dxp - np.diff(u, axis=0)/dyp
     
-    aa = pfun.get_aa(ds)
-    #aa = [-122.95, -122.55, 47.6, 48]
-    scl = 1e-4
+    #aa = pfun.get_aa(ds)
+    aa = [-123, -122.55, 47.5, 47.9]
+    
+    scl = 10e-4
     # panel 1
     ax = fig.add_subplot(121)
     cs = plt.pcolormesh(G['lon_psi'], G['lat_psi'], dive, cmap='bwr',
@@ -631,14 +691,17 @@ def P_layer(in_dict):
     
     # set variables to plt
     #vn_list = ['Ldetritus','TIC']
-    vn_list = ['salt', 'temp']
-    #vn_list = ['NO3', 'temp']
+    #vn_list = ['salt', 'temp']
+    vn_list = ['salt', 'w']
     for vn in vn_list: # use auto scaling
         vlims[vn] = ()
     # and override
     vlims['Ldetritus'] = (0, 0.01)
     vlims['TIC'] = (2350, 2450)
     out_dict['vlims'] = vlims
+    
+    aa = [-123, -122.55, 47.5, 47.9]
+    
     
     # PLOT CODE
     zfull = pfun.get_zfull(ds, in_dict['fn'], 'rho')
@@ -660,13 +723,14 @@ def P_layer(in_dict):
     cb.update_ticks()
     pfun.add_bathy_contours(ax, ds)
     pfun.add_coast(ax)
-    ax.axis(pfun.get_aa(ds))
+    #ax.axis(pfun.get_aa(ds))
+    ax.axis(aa)
     pfun.dar(ax)
     ax.set_xlabel('Longitude')
     ax.set_ylabel('Latitude')
     ax.set_title(tstr + units_dict[vn] + ' on Z = ' + str(in_dict['z_level']) + ' m')
     pfun.add_info(ax, in_dict['fn'])
-    pfun.add_windstress_flower(ax, ds)
+    # pfun.add_windstress_flower(ax, ds)
     
     # panel 2
     ax = fig.add_subplot(122)
@@ -686,10 +750,11 @@ def P_layer(in_dict):
     pfun.add_bathy_contours(ax, ds)
     pfun.add_coast(ax)
     # ****
-    pfun.add_velocity_vectors(ax, ds, in_dict['fn'], v_scl=.5, v_leglen=0.1,
-                              nngrid=120, zlev=in_dict['z_level'])
+    # pfun.add_velocity_vectors(ax, ds, in_dict['fn'], v_scl=.5, v_leglen=0.1,
+    #                           nngrid=120, zlev=in_dict['z_level'])
     # ****
-    ax.axis(pfun.get_aa(ds))
+    #ax.axis(pfun.get_aa(ds))
+    ax.axis(aa)
     pfun.dar(ax)
     ax.set_xlabel('Longitude')
     ax.set_title(tstr + units_dict[vn])
@@ -875,7 +940,7 @@ def P_sect(in_dict):
     ax.set_xlim(dist.min(), dist.max())
     ax.set_ylim(zdeep, 5)
     #vlims = pfun.auto_lims(v3['sectvarf'])
-    vlims=(29,31)
+    vlims=(26,31)
     cs = ax.pcolormesh(v3['distf'], v3['zrf'], v3['sectvarf'],
                        vmin=vlims[0], vmax=vlims[1], cmap=cmap_dict[vn])
     fig.colorbar(cs)
