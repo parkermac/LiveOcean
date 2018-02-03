@@ -147,7 +147,7 @@ do
     
     
     python ./make_forcing_main.py -g $gridname -t $tag -f $frc -r $run_type -d $DD -x $ex_name > $LOogf_fi"screen_out.txt" &
-
+    sleep 5
     # Check that the job has finished successfully.
     PID1=$!
     wait $PID1
