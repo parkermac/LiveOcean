@@ -39,7 +39,7 @@ Lfun.make_dir(out_dir, clean=True)
 
 # look for all forecast days
 
-if False:
+if True:
     dt0 = datetime(2013,1,2)
     dt1 = datetime.now()
 else:
