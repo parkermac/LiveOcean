@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
@@ -118,7 +119,7 @@ print('Number of nan salt values = ' + str(nmask.sum()))
 
 # time series
 td = (ot_vec - ot_vec[0])/86400
-tv_list = ['z', 'salt', 'temp']
+tv_list = ['z', 'salt', 'lon']
 ntv = len(tv_list)
 for ii in range(ntv):
     tv = tv_list[ii]

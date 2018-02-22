@@ -34,32 +34,29 @@ def write_grid(g_infile, g_outfile):
     dsh.close()
     dsg.close()
     
-def start_outfile(out_fn, P):
+def start_outfile(out_fn, P, NT_full, it0, it1):
     NT, NP = P['lon'].shape
     ds = nc4.Dataset(out_fn, 'w')
-    ds.createDimension('Time', None)
+    ds.createDimension('Time', NT_full)
     ds.createDimension('Particle', NP)
     # Copy variables
     for vn in P.keys():
-        varin = P[vn]
         if vn == 'ot':
             vv = ds.createVariable(vn, float, ('Time'))
+            vv[it0:it1] = P[vn][:]
         else:
             vv = ds.createVariable(vn, float, ('Time', 'Particle'))
+            vv[it0:it1, :] = P[vn][:]
         vv.long_name = name_unit_dict[vn][0]
         vv.units = name_unit_dict[vn][1]
-        vv[:] = P[vn][:]
     ds.close()
     
-def append_to_outfile(out_fn, P):
+def append_to_outfile(out_fn, P, it0, it1):
     ds = nc4.Dataset(out_fn, 'a')
     NTx, NPx = ds['lon'][:].shape
     for vn in P.keys():
-        varin = P[vn]
-        # note that we drop the first record, so that this does not repeat
-        # the last entry of the previous day
         if vn == 'ot':
-            ds[vn][NTx:] = P[vn][1:]
+            ds[vn][it0:it1] = P[vn][:]
         else:
-            ds[vn][NTx:,:] = P[vn][1:,:]
+            ds[vn][it0:it1, :] = P[vn][:]
     ds.close()

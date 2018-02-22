@@ -15,18 +15,23 @@ if alp not in sys.path:sys.path.append(alp)
 import zfun
 import zrfun
 import netCDF4 as nc4
-from datetime import datetime, timedelta
-import random
-import time
 
-def get_tracks(fn_list, plon0, plat0, pcs0, tr_dict, trim_loc=False):
+
+def get_tracks(fn_list, plon0, plat0, pcs0, TR, trim_loc=False):
     
-    # unpack items needed from tr_dict
-    dir_tag = tr_dict['dir_tag']
-    surface = tr_dict['surface']
-    turb = tr_dict['turb']
-    ndiv = tr_dict['ndiv']
-    windage = tr_dict['windage']
+    # unpack items needed from TR
+    
+    if TR['rev']:
+        dir_tag = 'reverse'
+    else:
+        dir_tag = 'forward'
+    
+    surface = not TR['3d']
+    
+    turb = TR['turb']
+    ndiv = TR['ndiv']
+    
+    windage = TR['windage']
     
     # get basic info
     G = zrfun.get_basic_info(fn_list[0], only_G=True)
@@ -84,7 +89,6 @@ def get_tracks(fn_list, plon0, plat0, pcs0, tr_dict, trim_loc=False):
     # Step through times.
     #
     counter = 0
-    nrot = len(rot)
     # rot is a list of all the ocean times (sec) in the current file list(e.g. 25)
     # and pot is a single one of these
     for pot in rot[:-1]:
@@ -130,7 +134,7 @@ def get_tracks(fn_list, plon0, plat0, pcs0, tr_dict, trim_loc=False):
             # save the IC to use for out-of-bounds backup
             plonC = plon.copy()
             platC = plat.copy()
-            pcsC = pcs.copy()
+            #pcsC = pcs.copy()
 
             fr0 = nd/ndiv
             fr1 = (nd + 1)/ndiv
@@ -488,12 +492,13 @@ def get_V(vn_list, ds, plon, plat, pcs, R, surface):
     return V
 
 def get_fn_list(idt, Ldir):
-    # LiveOcean version, for 1 day only
+    # LiveOcean version, for 1 day only.
+    # Assumes we have history files 1-25, corresponding to hours 0-24.
     fn_list = []
     dd = idt.strftime('%Y.%m.%d')
     indir = (Ldir['roms'] + 'output/' + Ldir['gtagex'] +
             '/f' + dd + '/')
-    for hh in range(2,26):
+    for hh in range(1,26):
         hhhh = ('0000' + str(hh))[-4:]
         fn_list.append(indir + 'ocean_his_' + hhhh + '.nc')
     return fn_list
