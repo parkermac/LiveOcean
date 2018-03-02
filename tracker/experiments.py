@@ -4,6 +4,10 @@
 Created on Sun Feb 18 14:08:29 2018
 
 @author: pm7
+
+This is where you set the run "gtagex" and the initial condition
+based on an experiment name passed by the calling code.
+
 """
 
 import numpy as np
@@ -28,6 +32,9 @@ def make_ic(exp_name):
     elif exp_name == 'ae1':
         gtagex = 'aestus1_A1_ae1'
         ic_name = 'est1'
+    elif exp_name == 'ae2':
+        gtagex = 'aestus1_A1_ae1'
+        ic_name = 'est2'
         
     # routines to set particle initial locations, all numpy arrays
     #
@@ -60,7 +67,7 @@ def make_ic(exp_name):
         plat_vec = latmat.flatten()
         pcs_vec = np.array([-.05])
         
-    elif ic_name == 'est1': # for the idealized estuary, all depths
+    elif ic_name == 'est1': # for the idealized estuary
         lonvec = np.linspace(-.8, 0, 20)
         latvec = np.linspace(44.8, 45.8, 40)
         lonmat, latmat = np.meshgrid(lonvec, latvec)
@@ -68,4 +75,28 @@ def make_ic(exp_name):
         plat_vec = latmat.flatten()
         pcs_vec = np.arange(-.95, -.5, 10)
         
-    return (gtagex, ic_name, plon_vec, plat_vec, pcs_vec)
+    elif ic_name == 'est2': # for the idealized estuary
+        lonvec = np.linspace(0, .5, 20)
+        latvec = np.linspace(44.9, 45.1, 20)
+        lonmat, latmat = np.meshgrid(lonvec, latvec)
+        plon_vec = lonmat.flatten()
+        plat_vec = latmat.flatten()
+        pcs_vec = np.arange(-.95, -.5, 10)
+    
+    # Create full output vectors (each has one value per point).  This
+    # code takes each lat, lon location and then assigns it to NSP points
+    # corresponding to the vector of pcs values.  However you could write a
+    # different version that only released points below a certain depth,
+    # or other criterion.
+    if len(plon_vec) != len(plat_vec):
+        print('WARNING: Problem with length of initial lat, lon vectors')
+    NSP = len(pcs_vec)
+    NXYP = len(plon_vec)
+    plon_arr = plon_vec.reshape(NXYP,1) * np.ones((NXYP,NSP))
+    plat_arr = plat_vec.reshape(NXYP,1) * np.ones((NXYP,NSP))
+    pcs_arr = np.ones((NXYP,NSP)) * pcs_vec.reshape(1,NSP)
+    plon00 = plon_arr.flatten()
+    plat00 = plat_arr.flatten()
+    pcs00 = pcs_arr.flatten()
+        
+    return (gtagex, ic_name, plon00, plat00, pcs00)

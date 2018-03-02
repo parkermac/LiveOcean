@@ -6,15 +6,30 @@ This program is a driver where you specify:
 - an experiment (ROMS run + release locations + other choices)
 - a release or set of releases within that experiment (start day, etc.)
 
+The main argument you provide is -exp, which is the experiment name, and
+is used by experiments.make_ic() to get the gtagex and initial particle
+locations.  Other possible commmand line arguments and their defaults
+are explained in the argparse section below.
+
+NOTE: To improve usefulness for people other than me, this driver will
+first look for user_experiments.py and user_trackfun.py before loading
+my versions.  This allows you to create yout own experiments, and modifications
+to the tracking (e.g. for diurnal depth behavior) while still being able
+to use git pull to update the main code.
+
 It can be run on its own, or with command line arguments to facilitate
-large, automated jobs, for example from the terminal:
-python tracker_1.py -dtt 2 -ds 2013.01.30
-or in ipython:
+large, automated jobs, for example im python:
+    
 run tracker_1.py -dtt 2 -ds 2013.01.30
+run tracker_1.py -3d -rev -dtt 5
+run tracker_1.py -exp ae1 -3d -rev -dtt 5 -nsd 4 -dbs 4 -ds 2013.03.01
+run tracker_1.py -exp ae2 -3d -rev -dtt 7 -nsd 3 -dbs 4 -ds 2013.03.01
+
+From the terminal or a script you would use "python" instead of "run".
+
 """
 
 #%% setup
-import numpy as np
 from datetime import datetime, timedelta
 import time
 import argparse
@@ -29,7 +44,10 @@ Ldir = Lfun.Lstart()
 
 from importlib import reload
 #
-import trackfun_1 as tf1
+if os.path.isfile('user_trackfun.py'):
+    import user_trackfun as tf1
+else:
+    import trackfun_1 as tf1
 reload(tf1)
 #
 import trackfun_nc as tfnc
@@ -49,8 +67,9 @@ parser = argparse.ArgumentParser()
 # (details set in experiments.py, or, if it exists, user_experiments.py)
 parser.add_argument('-exp', '--exp_name', default='ae0', type=str)
 
-# These are False unless the flags are used (no argument after flag)
-# so if you use of these flags the run will be:
+# These are False unless the flags are used
+# (no argument needed after flag)
+# so if you do NOT use these flags the run will be:
 # - forward in time
 # - trapped to the surface
 # - no vertical turbulent diffusion
@@ -89,30 +108,23 @@ if TR['rev']:
     TR['turb'] = False
 
 # get experiment info, including initial condition   
-TR['gtagex'], ic_name, plon_vec, plat_vec, pcs_vec = exp.make_ic(TR['exp_name'])
+TR['gtagex'], ic_name, plon00, plat00, pcs00 = exp.make_ic(TR['exp_name'])
 
 out_name = TR['exp_name']
 # modify the output folder name, based on other choices
 if TR['rev']:
     out_name += '_reverse'
-if not TR['3d']:
+#
+if TR['3d']:
+    out_name += '_3d'
+elif not TR['3d']:
     out_name += '_surf'
+#
 if TR['turb']:
     out_name += '_turb'
+#
 if TR['windage'] > 0:
     out_name += '_wind'
-   
-if len(plon_vec) != len(plat_vec):
-    print('Problem with length of initial lat, lon vectors')
-    sys.exit()
-NSP = len(pcs_vec)
-NXYP = len(plon_vec)
-plon_arr = plon_vec.reshape(NXYP,1) * np.ones((NXYP,NSP))
-plat_arr = plat_vec.reshape(NXYP,1) * np.ones((NXYP,NSP))
-pcs_arr = np.ones((NXYP,NSP)) * pcs_vec.reshape(1,NSP)
-plon00 = plon_arr.flatten()
-plat00 = plat_arr.flatten()
-pcs00 = pcs_arr.flatten()
 
 # make the list of start days (datetimes)
 idt_list = []

@@ -82,7 +82,7 @@ h = dsr['h'][:]
 
 # PLOTTING
 
-# plt.close('all')
+plt.close('all')
 fig = plt.figure(figsize=(12,8))
 
 # map
