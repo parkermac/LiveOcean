@@ -14,7 +14,7 @@ reload(cfun)
 
 # set defaults
 gridname = 'cas3'
-tag = 'v0'
+tag = 'v1'
 ex_name = 'lo6m'
 
 testing = False
@@ -51,7 +51,8 @@ sta_df.pop('Long_NAD83 (deg / dec_min)')
 # read in the data (all stations, all casts)
 all_casts = pd.read_excel(fn, sheet_name='2017Provisional_CTDResults',
                           parse_dates = ['Date'])
-# trim the station list uf desired
+
+# trim the station list as desired
 if testing:
     sta_list = [sta for sta in sta_df.index if 'HCB' in sta]
 else:
