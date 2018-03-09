@@ -22,7 +22,7 @@ Ldir, Lfun = ffun.intro()
 
 # ****************** CASE-SPECIFIC CODE *****************
 
-testing = True
+testing = False
 
 from datetime import datetime
 start_time = datetime.now()
@@ -86,7 +86,7 @@ fnh_list = []
 if testing:
     fn_list = fn_list[:2]
     
-for fn in fn_list[:2]:
+for fn in fn_list:
     # get derived fields
     ds1 = nc.Dataset(fn)
     zeta = ds1['zeta'][0, j0:j1, i0:i1].squeeze()
@@ -221,7 +221,7 @@ if testing:
         ax.text(.05, .95, vn, fontweight='bold', transform=ax.transAxes)
         ii += 1 
     
-    #ds.close()
+    ds.close()
     
     plt.show()
   
