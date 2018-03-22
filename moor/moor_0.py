@@ -33,15 +33,15 @@ import zrfun
 import netCDF4 as nc
 
 # set defaults
-gridname = 'cascadia1'
-tag = 'base'
-ex_name = 'lobio1'
-date_string0 = datetime(2015,9,18).strftime(format='%Y.%m.%d')
-date_string1 = datetime(2015,9,20).strftime(format='%Y.%m.%d')
-list_type = 'daily' # backfill, daily, low_passed
-sta_name = 'RN'
-lon_str = '-124.5'
-lat_str = '47'
+gridname = 'cas3'
+tag = 'v1'
+ex_name = 'lo6m'
+date_string0 = datetime(2017,4,1).strftime(format='%Y.%m.%d')
+date_string1 = datetime(2017,6,1).strftime(format='%Y.%m.%d')
+list_type = 'backfill' # backfill, daily, low_passed
+sta_name = 'HCsill'
+lon_str = '-122.722'
+lat_str = '47.7943'
 
 # get command line arguments
 import argparse
