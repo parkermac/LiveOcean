@@ -82,7 +82,7 @@ Vu = dict()
 list_to_plot = v3_list_rho
 
 # hand edit variables not to look at
-for v in ['CaCO3', 'PH', 'ARAG', 'u', 'v', 'rho']:
+for v in ['CaCO3', 'PH', 'ARAG']:
     try:
         list_to_plot.remove(v)
     except ValueError:
@@ -102,6 +102,8 @@ ds.close()
 
 #%% plotting
 
+plt.close('all')
+
 NP = len(list_to_plot)
 
 NR = np.maximum(1, np.ceil(np.sqrt(NP)).astype(int))
@@ -109,7 +111,8 @@ NC = np.ceil(np.sqrt(NP)).astype(int)
 if NR*NC - NC >= NP:
     NR -= 1
 
-fig, axes = plt.subplots(nrows=NR, ncols=NC, figsize=(13,8), squeeze=False)
+fig, axes = plt.subplots(nrows=NR, ncols=NC, figsize=(13,8),
+                         squeeze=False, sharex=True)
 
 days = (V['ocean_time'] - V['ocean_time'][0])/86400.
 

@@ -104,7 +104,8 @@ def add_bathy_contours(ax, ds, depth_levs = [], txt=False):
             ax.text(.95, .92, '2000 m', color=c2,
                     horizontalalignment='right',transform=ax.transAxes)
     else:
-        ax.contour(lon, lat, h, depth_levs, colors='g')
+        cs = ax.contour(lon, lat, h, depth_levs, colors='k', linewidths=0.5)
+        #ax.clabel(cs)
 
 def add_map_field(ax, ds, varname, slev=-1, vlims=(), cmap='rainbow',
                   fac=1, alpha=1, do_mask_salish=False):
@@ -174,6 +175,43 @@ def add_velocity_vectors(ax, ds, fn, v_scl=3, v_leglen=0.5, nngrid=80, zlev=0, c
         transform=ax.transAxes)
     ax.text(xc+.05, yc, str(v_leglen) + ' $ms^{-1}$',
         horizontalalignment='left', transform=ax.transAxes)
+
+def add_velocity_streams(ax, ds, fn, nngrid=80, zlev=0):
+    # slower than adding quivers, but informative in a different way
+    # GET DATA
+    G = zrfun.get_basic_info(fn, only_G=True)
+    if zlev == 0:
+        u = ds['u'][0, -1, :, :].squeeze()
+        v = ds['v'][0, -1, :, :].squeeze()
+    else:
+        zfull_u = get_zfull(ds, fn, 'u')
+        zfull_v = get_zfull(ds, fn, 'v')
+        u = get_laym(ds, zfull_u, ds['mask_u'][:], 'u', zlev).squeeze()
+        v = get_laym(ds, zfull_v, ds['mask_v'][:], 'v', zlev).squeeze()
+    # ADD VELOCITY STREAMS
+    # set masked values to 0
+    ud = u.data; ud[u.mask]=0
+    vd = v.data; vd[v.mask]=0
+    # create interpolant
+    import scipy.interpolate as intp
+    ui = intp.interp2d(G['lon_u'][0, :], G['lat_u'][:, 0], ud)
+    vi = intp.interp2d(G['lon_v'][0, :], G['lat_v'][:, 0], vd)
+    # create regular grid
+    aaa = ax.axis()
+    daax = aaa[1] - aaa[0]
+    daay = aaa[3] - aaa[2]
+    axrat = np.cos(np.deg2rad(aaa[2])) * daax / daay
+    x = np.linspace(aaa[0], aaa[1], round(nngrid * axrat))
+    y = np.linspace(aaa[2], aaa[3], nngrid)
+    xx, yy = np.meshgrid(x, y)
+    # interpolate to regular grid
+    uu = ui(x, y)
+    vv = vi(x, y)
+    mask = uu != 0
+    # plot velocity streams
+    spd = np.sqrt(uu**2 + vv**2)
+    ax.streamplot(x, y, uu, vv, density = 6,
+    color='k', linewidth=spd*3, arrowstyle='-')
 
 def add_windstress_flower(ax, ds, t_scl=0.2, t_leglen=0.1, center=(.85,.25)):
     # ADD MEAN WINDSTRESS VECTOR
