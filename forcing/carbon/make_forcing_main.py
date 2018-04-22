@@ -44,44 +44,47 @@ def make_func(Ldir):
         Ldir['LOogf_f'] + "\')")
     return func
 
-# make a list of all history files in the directory
-his_list_raw = os.listdir(Ldir['indir'])
-his_list = [hh for hh in his_list_raw if 'ocean_his' in hh]
-his_list.sort()
-
-# and make a list of their numbers
-h_list = [int(his[-7:-3]) for his in his_list]
-
-# set number of history files to send to a single MATLAB job
-nf = 15
-
-testing = False
-if testing:
-    nh = 5
-    his_list = his_list[:nh]
-    h_list = h_list[:nh]
-    nf = 2
-
-#%% make a list of tuples of (start,end) history file numbers
-htup_list = []
-ii = 0
-h1 = -1 # this should always be less than h_list[-1]
-while h1 < h_list[-1]:   
-    if ii==0:
-        h0 = h_list[0]
-    else:
-        h0 = h1 + 1        
-    try:
-        h1 = h_list[(ii+1)*nf - 1]
-    except IndexError:
-        h1 = h_list[-1]       
-    htup_list.append((h0,h1))    
-    ii += 1
-
-# then reverse the order so that we do the first batch last
-# because this will always have the longest list of items
-# and so is best suited for the "waiting" branch below.
-htup_list.reverse()
+if Ldir['run_type'] == 'low_passed':
+    htup_list = [(1,2)]
+else:  
+    # make a list of all history files in the directory
+    his_list_raw = os.listdir(Ldir['indir'])
+    his_list = [hh for hh in his_list_raw if 'ocean_his' in hh]
+    his_list.sort()
+    
+    # and make a list of their numbers
+    h_list = [int(his[-7:-3]) for his in his_list]
+    
+    # set number of history files to send to a single MATLAB job
+    nf = 15
+    
+    testing = False
+    if testing:
+        nh = 5
+        his_list = his_list[:nh]
+        h_list = h_list[:nh]
+        nf = 2
+    
+    # make a list of tuples of (start,end) history file numbers
+    htup_list = []
+    ii = 0
+    h1 = -1 # this should always be less than h_list[-1]
+    while h1 < h_list[-1]:   
+        if ii==0:
+            h0 = h_list[0]
+        else:
+            h0 = h1 + 1        
+        try:
+            h1 = h_list[(ii+1)*nf - 1]
+        except IndexError:
+            h1 = h_list[-1]       
+        htup_list.append((h0,h1))    
+        ii += 1
+    
+    # then reverse the order so that we do the first batch last
+    # because this will always have the longest list of items
+    # and so is best suited for the "waiting" branch below.
+    htup_list.reverse()
 
 #%% run the subprocess
 print('\n-main: start of jumbled output from first simultaneous jobs-')
@@ -120,14 +123,23 @@ dt_sec = (end_time - start_time).seconds
 result_dict['total_seconds'] = str(dt_sec)
 
 import netCDF4 as nc
-ds0 = nc.Dataset(Ldir['indir'] + his_list[0])
-ds1 = nc.Dataset(Ldir['indir'] + his_list[-1])
-if ('PH' in ds0.variables) and ('PH' in ds1.variables):
-    result_dict['result'] = 'success'   
-else:
-    result_dict['result'] = 'fail' 
-ds0.close()
-ds1.close()
+
+if Ldir['run_type'] == 'low_passed':
+    ds0 = nc.Dataset(Ldir['indir'] + 'low_passed.nc')
+    if ('PH' in ds0.variables):
+        result_dict['result'] = 'success'   
+    else:
+        result_dict['result'] = 'fail' 
+    ds0.close()
+else:    
+    ds0 = nc.Dataset(Ldir['indir'] + his_list[0])
+    ds1 = nc.Dataset(Ldir['indir'] + his_list[-1])
+    if ('PH' in ds0.variables) and ('PH' in ds1.variables):
+        result_dict['result'] = 'success'   
+    else:
+        result_dict['result'] = 'fail'        
+    ds0.close()
+    ds1.close()
 
 #%% ************** END CASE-SPECIFIC CODE *****************
 

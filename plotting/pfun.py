@@ -141,6 +141,9 @@ def add_velocity_vectors(ax, ds, fn, v_scl=3, v_leglen=0.5, nngrid=80, zlev=0, c
     if zlev == 0:
         u = ds['u'][0, -1, :, :].squeeze()
         v = ds['v'][0, -1, :, :].squeeze()
+    elif zlev == 'bot':
+        u = ds['u'][0, 0, :, :].squeeze()
+        v = ds['v'][0, 0, :, :].squeeze()
     else:
         zfull_u = get_zfull(ds, fn, 'u')
         zfull_v = get_zfull(ds, fn, 'v')

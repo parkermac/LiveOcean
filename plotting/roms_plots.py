@@ -44,7 +44,7 @@ def get_in_dict(plot_type):
     vlims['TIC'] = (2000, 2400) # (2000,2400) for surface
     vlims['alkalinity'] = (2000,2400)
     vlims['PH'] = (7, 8.5)#(6, 9)
-    vlims['ARAG'] = (0, 3)#(0, 3)
+    vlims['ARAG'] = (.2, 2.2)#(0, 3)
     vlims['Ldetritus'] = ()
     # custom choices based on plot_type   
     if plot_type == 'P_layer':
@@ -246,15 +246,17 @@ def P_salish(in_dict):
     
     tstr = 'Surface ' + tstr_dict[vn]
     cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn,
-            vlims=vlims[vn], cmap=cmap_dict[vn], fac=fac_dict[vn])
-    #fig.colorbar(cs)
+            vlims=(25,27), cmap=cmap_dict[vn], fac=fac_dict[vn])
+    fig.colorbar(cs)
     #pfun.add_bathy_contours(ax, ds)
     pfun.add_coast(ax)
-    ax.axis([-123.2, -122.45, 47, 48])
+    ax.axis([-122.5, -122.3, 47.3, 47.6])
     pfun.dar(ax)
     ax.set_xlabel('Longitude')
     #ax.set_title(tstr + units_dict[vn])
-    pfun.add_velocity_streams(ax, ds, in_dict['fn'], nngrid=120)
+    pfun.add_velocity_vectors(ax, ds, in_dict['fn'],
+        v_scl=15, v_leglen=0.5, nngrid=80, zlev=0, center=(.7,.05))
+    #pfun.add_velocity_streams(ax, ds, in_dict['fn'], nngrid=120)
     
     # FINISH
     ds.close()
@@ -576,36 +578,40 @@ def P_pH_Arag(in_dict):
     out_dict['vlims'] = vlims
 
     # PLOT CODE
-    # panel 1
-    ax = fig.add_subplot(121)
-    vn = 'PH'
-    tstr = 'Surface ' + tstr_dict[vn]
+    # panel 2
+    ax = fig.add_subplot(122)
+    vn = 'ARAG'
+    tstr = 'Bottom ' + tstr_dict[vn]
     cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn,
-            vlims=vlims[vn], cmap=cmap_dict[vn], fac=fac_dict[vn],
-            do_mask_salish=True)
+            vlims=vlims[vn], cmap=cmap_dict[vn]+'_r', fac=fac_dict[vn],
+            do_mask_salish=True, slev=0)
     fig.colorbar(cs)
     pfun.add_bathy_contours(ax, ds, txt=True)
     pfun.add_coast(ax)
     ax.axis(pfun.get_aa(ds))
     pfun.dar(ax)
     ax.set_xlabel('Longitude')
-    ax.set_ylabel('Latitude')
     ax.set_title(tstr + units_dict[vn])
     pfun.add_info(ax, in_dict['fn'])
     pfun.add_windstress_flower(ax, ds)
-    # panel 2
-    ax = fig.add_subplot(122)
+#    pfun.add_velocity_vectors(ax, ds, in_dict['fn'],
+#                          v_scl=.5, v_leglen=0.1, zlev='bot', nngrid=100)
+
+    
+    # panel 1
+    ax = fig.add_subplot(121)
     vn = 'ARAG'
     tstr = 'Surface ' + tstr_dict[vn]
     cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn,
-            vlims=vlims[vn], cmap=cmap_dict[vn], fac=fac_dict[vn],
-            do_mask_salish=True)
+            vlims=vlims[vn], cmap=cmap_dict[vn]+'_r', fac=fac_dict[vn],
+            do_mask_salish=True, slev=-1)
     fig.colorbar(cs)
     pfun.add_bathy_contours(ax, ds)
     pfun.add_coast(ax)
     ax.axis(pfun.get_aa(ds))
     pfun.dar(ax)
     ax.set_xlabel('Longitude')
+    ax.set_ylabel('Latitude')
     ax.set_title(tstr + units_dict[vn])
     pfun.add_velocity_vectors(ax, ds, in_dict['fn'])
 
