@@ -28,6 +28,9 @@ run make_forcing_main.py -g cas1 -t base -r backfill -d 2012.12.01
 This will add the bio variables:
 run make_forcing_main.py -g cas1 -t base -x lobio3 -r backfill -d 2013.01.01
 
+Or:
+run make_forcing_main.py -g cas3 -t v1 -r backfill -d 2017.01.01
+
 Or try a forecast
 run make_forcing_main.py -g cascadia1 -t base -r forecast
 
@@ -67,7 +70,7 @@ elif testing == True:
     planB = True
 
 if (Ldir['run_type'] == 'forecast') and (planB == False):    
-    h_out_dir = out_dir = Ldir['LOogf_fd']      
+    h_out_dir = Ldir['LOogf_fd']      
     print('** START getting catalog')
     # create a list of url's of the preprocessed HYCOM files for this forecast
     
@@ -103,6 +106,7 @@ if (Ldir['run_type'] == 'forecast') and (planB == False):
                 pickle.dump(aa, open(out_fn, 'wb'))
         h_in_dir = h_out_dir
         h_list0 = os.listdir(h_in_dir)
+        h_list0.sort()
         h_list = [item for item in h_list0 if item[0] == 'h']
     except:
         print('*** using planB ***')
@@ -112,6 +116,7 @@ elif (Ldir['run_type'] == 'backfill') and (planB == False):
     # get a list of all available times
     h_in_dir = Ldir['data'] + 'hycom1/'        
     h_list0 = os.listdir(h_in_dir)
+    h_list0.sort()
     h_list1 = [item for item in h_list0 if item[0] == 'h']
     # then find the index of the start of the current day
     # but if it is missing search for the most recent past one that exists
@@ -147,7 +152,7 @@ if planB == False:
     # copy in the coordinates (assume those from hycom1 work)
     exnum1 = '91.2'
     c_in_dir = Ldir['data'] + 'hycom1/'
-    c_out_dir = out_dir = Ldir['LOogf_fd']
+    c_out_dir = Ldir['LOogf_fd']
     coords_dict = pickle.load(open(c_in_dir + 'coords_dict.p', 'rb'))
     coord_dict = dict()
     for vn in ['lon', 'lat', 'z']:
@@ -161,6 +166,7 @@ if planB == False:
     #%% extrapolate
     lon, lat, z, L, M, N, X, Y = Ofun.get_coords(fh_dir)
     a = os.listdir(fh_dir)
+    a.sort()
     aa = [item for item in a if item[:2]=='fh']
     for fn in aa:    
         print('-Extrapolating ' + fn)    
@@ -175,6 +181,7 @@ if planB == False:
     S = zrfun.get_S(S_info_dict)
     # get list if files to work on
     a = os.listdir(fh_dir)
+    a.sort()
     aa = [item for item in a if item[:3]=='xfh']
     # HyCOM grid info
     lon, lat, z, L, M, N, X, Y = Ofun.get_coords(fh_dir)

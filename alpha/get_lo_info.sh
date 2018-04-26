@@ -61,6 +61,17 @@ elif [ $HOME == "/usr/lusers/pmacc" ] ; then
   LOo=$parent"LiveOcean_output/"
   roms=$parent"LiveOcean_roms/"
   which_matlab="/usr/local/bin/matlab"
+
+# If none of the above apply ASSUME that we are on fjord.  This would
+# be the case if somone from the group was running check_all_results.py.
+else ; then
+  lo_env='pm_fjord'
+  parent="/data1/parker/"
+  LO=$parent"LiveOcean/"
+  data=$parent"LiveOcean_data/"
+  LOo=$parent"LiveOcean_output/"
+  roms="/pmr1/parker/LiveOcean_roms/"
+  which_matlab="/usr/local/bin/matlab"
   
 fi
 
