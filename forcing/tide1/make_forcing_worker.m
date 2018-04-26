@@ -113,10 +113,17 @@ for ii = 1:np
     end
     % and make final adjustments before writing to arrays
 	
+    % PM Edit: increase diurnals
+	if cons_nb(2) == '1'
+        disp([cons_nb, ': pf = ',num2str(pf)])
+        pf = pf*1.11;
+        disp([cons_nb, ': pf = ',num2str(pf)])        
+    end
+	
     % PM Edit: increase semidiurnals
 	if cons_nb(2) == '2'
         disp([cons_nb, ': pf = ',num2str(pf)])
-        pf = pf*1.3;
+        pf = pf*1.54;
         disp([cons_nb, ': pf = ',num2str(pf)])        
     end
 	
