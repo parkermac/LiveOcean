@@ -64,7 +64,7 @@ elif [ $HOME == "/usr/lusers/pmacc" ] ; then
 
 # If none of the above apply ASSUME that we are on fjord.  This would
 # be the case if somone from the group was running check_all_results.py.
-else ; then
+else
   lo_env='pm_fjord'
   parent="/data1/parker/"
   LO=$parent"LiveOcean/"
