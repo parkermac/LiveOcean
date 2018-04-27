@@ -136,9 +136,8 @@ def P_basic(in_dict):
 
     # PLOT CODE
     
-    # HACKS
-    auto_vlims = False
-    #
+    # Interventions
+    auto_vlims = False # overrides new_lims
     new_vlims = True
     if new_vlims==True:
         vlims['salt'] = (24,34)#(28, 34)
@@ -148,11 +147,8 @@ def P_basic(in_dict):
     vn = 'salt'
     tstr = 'Surface ' + tstr_dict[vn]
     ax = fig.add_subplot(121)
-    vn = 'salt'
-    
     if auto_vlims:
         vlims[vn] = ()
-    
     cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn,
             vlims=vlims[vn], cmap=cmap_dict[vn], fac=fac_dict[vn])
     fig.colorbar(cs)
@@ -168,10 +164,8 @@ def P_basic(in_dict):
     # panel 2
     ax = fig.add_subplot(122)
     vn = 'temp'
-    
     if auto_vlims:
         vlims[vn] = ()
-    
     tstr = 'Surface ' + tstr_dict[vn]
     cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn,
             vlims=vlims[vn], cmap=cmap_dict[vn], fac=fac_dict[vn])
@@ -183,6 +177,95 @@ def P_basic(in_dict):
     ax.set_xlabel('Longitude')
     ax.set_title(tstr + units_dict[vn])
     pfun.add_velocity_vectors(ax, ds, in_dict['fn'])
+    
+    # FINISH
+    ds.close()
+    if len(in_dict['fn_out']) > 0:
+        plt.savefig(in_dict['fn_out'])
+        plt.close()
+    else:
+        plt.show()
+        pfun.topfig()
+    return out_dict
+    
+def P_debug(in_dict):
+    # Focused on debugging
+
+    # START
+    fig = plt.figure(figsize=figsize)
+    ds = nc.Dataset(in_dict['fn'])
+    vlims = in_dict['vlims'].copy()
+    out_dict['vlims'] = vlims
+    
+    def maxmin(a):
+        # find the value and location of the max and min of a 2D
+        # masked array
+        jmax,imax = np.unravel_index(a.argmax(fill_value=0),a.shape)
+        amax = a[jmax,imax]
+        jmin,imin = np.unravel_index(a.argmin(fill_value=0),a.shape)
+        amin = a[jmin,imin]
+        return amax, jmax, imax, amin, jmin, imin
+        
+    # gathering info
+    u = ds['u'][0,-1,:,:].squeeze()
+    umax, ujmax, uimax, umin, ujmin, uimin = maxmin(u)
+    v = ds['v'][0,-1,:,:].squeeze()
+    vmax, vjmax, vimax, vmin, vjmin, vimin = maxmin(v)
+    eta = ds['zeta'][0,:,:].squeeze()
+    emax, ejmax, eimax, emin, ejmin, eimin = maxmin(eta)
+
+    # PLOT CODE
+    auto_vlims = True
+    # panel 1
+    vn = 'salt'
+    tstr = 'Surface ' + tstr_dict[vn]
+    ax = fig.add_subplot(121)
+    vn = 'salt'
+    if auto_vlims:
+        vlims[vn] = ()
+    cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn,
+            vlims=vlims[vn], cmap=cmap_dict[vn], fac=fac_dict[vn])
+    fig.colorbar(cs)
+    pfun.add_bathy_contours(ax, ds, txt=True)
+    pfun.add_coast(ax)
+    ax.axis(pfun.get_aa(ds))
+    pfun.dar(ax)
+    ax.set_xlabel('Longitude')
+    ax.set_ylabel('Latitude')
+    ax.set_title(tstr + units_dict[vn])
+    pfun.add_info(ax, in_dict['fn'])
+    pfun.add_windstress_flower(ax, ds)
+    # panel 2
+    ax = fig.add_subplot(122)
+    vn = 'temp'
+    if auto_vlims:
+        vlims[vn] = ()
+    tstr = 'Surface ' + tstr_dict[vn]
+    cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn,
+            vlims=vlims[vn], cmap=cmap_dict[vn], fac=fac_dict[vn])
+    fig.colorbar(cs)
+    pfun.add_bathy_contours(ax, ds)
+    pfun.add_coast(ax)
+    ax.axis(pfun.get_aa(ds))
+    pfun.dar(ax)
+    ax.set_xlabel('Longitude')
+    ax.set_title(tstr + units_dict[vn])
+    pfun.add_velocity_vectors(ax, ds, in_dict['fn'])
+    #
+    G = zrfun.get_basic_info(in_dict['fn'], only_G=True)
+    def add_info(G, ax, name, grd, vval, vj, vi, ypos, clr):
+        ax.text(.98, ypos,'%s = %5.1f' % (name, vval), fontweight='bold',
+            horizontalalignment='right', transform=ax.transAxes, color=clr)
+        ax.plot(G['lon_'+grd][vj,vi],G['lat_'+grd][vj,vi],'*', color=clr,
+            markeredgecolor='w',markersize=18,)
+    add_info(G, ax, 'umax', 'u', umax, ujmax, uimax, .36, 'r')
+    add_info(G, ax, 'umin', 'u', umin, ujmin, uimin, .33, 'orange')
+    add_info(G, ax, 'vmax', 'v', vmax, vjmax, vimax, .3, 'b')
+    add_info(G, ax, 'vmin', 'v', vmin, vjmin, vimin, .27, 'g')
+    add_info(G, ax, 'emax', 'rho', emax, ejmax, eimax, .25, 'k')
+    add_info(G, ax, 'emin', 'rho', emin, ejmin, eimin, .22, 'm')
+    
+    
     
     # FINISH
     ds.close()

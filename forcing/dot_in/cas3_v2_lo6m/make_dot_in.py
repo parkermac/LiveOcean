@@ -49,6 +49,10 @@ elif Ldir['blow_ups'] == 2:
     dtsec = 15
 elif Ldir['blow_ups'] == 3:
     dtsec = 10
+elif Ldir['blow_ups'] == 4:
+    dtsec = 8
+elif Ldir['blow_ups'] == 5:
+    dtsec = 6
 else:
     print('Unsupported number of blow ups: %d' % (Ldir['blow_ups']))
     
