@@ -196,23 +196,6 @@ def P_debug(in_dict):
     ds = nc.Dataset(in_dict['fn'])
     vlims = in_dict['vlims'].copy()
     out_dict['vlims'] = vlims
-    
-    def maxmin(a):
-        # find the value and location of the max and min of a 2D
-        # masked array
-        jmax,imax = np.unravel_index(a.argmax(fill_value=0),a.shape)
-        amax = a[jmax,imax]
-        jmin,imin = np.unravel_index(a.argmin(fill_value=0),a.shape)
-        amin = a[jmin,imin]
-        return amax, jmax, imax, amin, jmin, imin
-        
-    # gathering info
-    u = ds['u'][0,-1,:,:].squeeze()
-    umax, ujmax, uimax, umin, ujmin, uimin = maxmin(u)
-    v = ds['v'][0,-1,:,:].squeeze()
-    vmax, vjmax, vimax, vmin, vjmin, vimin = maxmin(v)
-    eta = ds['zeta'][0,:,:].squeeze()
-    emax, ejmax, eimax, emin, ejmin, eimin = maxmin(eta)
 
     # PLOT CODE
     auto_vlims = True
@@ -252,6 +235,23 @@ def P_debug(in_dict):
     ax.set_title(tstr + units_dict[vn])
     pfun.add_velocity_vectors(ax, ds, in_dict['fn'])
     #
+    # add debugging information to the plot
+    def maxmin(a):
+        # find the value and location of the max and min of a 2D
+        # masked array
+        jmax,imax = np.unravel_index(a.argmax(fill_value=0),a.shape)
+        amax = a[jmax,imax]
+        jmin,imin = np.unravel_index(a.argmin(fill_value=0),a.shape)
+        amin = a[jmin,imin]
+        return amax, jmax, imax, amin, jmin, imin
+    # gathering info
+    u = ds['u'][0,-1,:,:].squeeze()
+    umax, ujmax, uimax, umin, ujmin, uimin = maxmin(u)
+    v = ds['v'][0,-1,:,:].squeeze()
+    vmax, vjmax, vimax, vmin, vjmin, vimin = maxmin(v)
+    eta = ds['zeta'][0,:,:].squeeze()
+    emax, ejmax, eimax, emin, ejmin, eimin = maxmin(eta)
+    #
     G = zrfun.get_basic_info(in_dict['fn'], only_G=True)
     def add_info(G, ax, name, grd, vval, vj, vi, ypos, clr):
         ax.text(.98, ypos,'%s = %5.1f' % (name, vval), fontweight='bold',
@@ -262,8 +262,8 @@ def P_debug(in_dict):
     add_info(G, ax, 'umin', 'u', umin, ujmin, uimin, .33, 'orange')
     add_info(G, ax, 'vmax', 'v', vmax, vjmax, vimax, .3, 'b')
     add_info(G, ax, 'vmin', 'v', vmin, vjmin, vimin, .27, 'g')
-    add_info(G, ax, 'emax', 'rho', emax, ejmax, eimax, .25, 'k')
-    add_info(G, ax, 'emin', 'rho', emin, ejmin, eimin, .22, 'm')
+    add_info(G, ax, 'emax', 'rho', emax, ejmax, eimax, .24, 'k')
+    add_info(G, ax, 'emin', 'rho', emin, ejmin, eimin, .21, 'm')
     
     
     

@@ -30,14 +30,6 @@ if pth not in sys.path:
     sys.path.append(pth)
 import Ofun
 
-pth = os.path.abspath('../alpha')
-if pth not in sys.path:
-    sys.path.append(pth)
-import Lfun
-Ldir = Lfun.Lstart(gridname='cas3', tag='v1')
-import zfun
-import zrfun
-
 date_string = '2017.01.01'
 frc = 'ocn1'
 
