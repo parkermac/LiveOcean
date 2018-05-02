@@ -40,21 +40,38 @@ if Ldir['run_type'] == 'backfill':
 elif Ldir['run_type'] == 'forecast':
     days_to_run = float(Ldir['forecast_days'])
 
+
 # time step in seconds (should fit evenly into 3600 sec)
 if Ldir['blow_ups'] == 0:
-    dtsec = 25
+    dtsec = 50
 elif Ldir['blow_ups'] == 1:
-    dtsec = 20
+    dtsec = 40
 elif Ldir['blow_ups'] == 2:
-    dtsec = 15
+    dtsec = 30
 elif Ldir['blow_ups'] == 3:
-    dtsec = 10
+    dtsec = 25
 elif Ldir['blow_ups'] == 4:
-    dtsec = 8
+    dtsec = 20
 elif Ldir['blow_ups'] == 5:
-    dtsec = 6
+    dtsec = 15
 else:
     print('Unsupported number of blow ups: %d' % (Ldir['blow_ups']))
+
+# # time step in seconds (should fit evenly into 3600 sec)
+# if Ldir['blow_ups'] == 0:
+#     dtsec = 25
+# elif Ldir['blow_ups'] == 1:
+#     dtsec = 20
+# elif Ldir['blow_ups'] == 2:
+#     dtsec = 15
+# elif Ldir['blow_ups'] == 3:
+#     dtsec = 10
+# elif Ldir['blow_ups'] == 4:
+#     dtsec = 8
+# elif Ldir['blow_ups'] == 5:
+#     dtsec = 6
+# else:
+#     print('Unsupported number of blow ups: %d' % (Ldir['blow_ups']))
     
 ndtfast = 20
     
