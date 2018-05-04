@@ -43,35 +43,19 @@ elif Ldir['run_type'] == 'forecast':
 
 # time step in seconds (should fit evenly into 3600 sec)
 if Ldir['blow_ups'] == 0:
-    dtsec = 50
-elif Ldir['blow_ups'] == 1:
     dtsec = 40
-elif Ldir['blow_ups'] == 2:
+elif Ldir['blow_ups'] == 1:
     dtsec = 30
-elif Ldir['blow_ups'] == 3:
+elif Ldir['blow_ups'] == 2:
     dtsec = 25
-elif Ldir['blow_ups'] == 4:
+elif Ldir['blow_ups'] == 3:
     dtsec = 20
-elif Ldir['blow_ups'] == 5:
+elif Ldir['blow_ups'] == 4:
     dtsec = 15
+elif Ldir['blow_ups'] == 5:
+    dtsec = 10
 else:
     print('Unsupported number of blow ups: %d' % (Ldir['blow_ups']))
-
-# # time step in seconds (should fit evenly into 3600 sec)
-# if Ldir['blow_ups'] == 0:
-#     dtsec = 25
-# elif Ldir['blow_ups'] == 1:
-#     dtsec = 20
-# elif Ldir['blow_ups'] == 2:
-#     dtsec = 15
-# elif Ldir['blow_ups'] == 3:
-#     dtsec = 10
-# elif Ldir['blow_ups'] == 4:
-#     dtsec = 8
-# elif Ldir['blow_ups'] == 5:
-#     dtsec = 6
-# else:
-#     print('Unsupported number of blow ups: %d' % (Ldir['blow_ups']))
     
 ndtfast = 20
     
@@ -99,6 +83,9 @@ if multi_core:
     elif Ldir['np_num'] == 196:
         ntilei = '14' # number of tiles in I-direction
         ntilej = '14' # number of tiles in J-direction
+    elif Ldir['np_num'] == 392:
+        ntilei = '14' # number of tiles in I-direction
+        ntilej = '28' # number of tiles in J-direction
     else:
         print('Unsupported number of processors: %d' % (Ldir['np_num']))
 else:
