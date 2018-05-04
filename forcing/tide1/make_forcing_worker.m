@@ -134,6 +134,12 @@ for ii = 1:np
     tide_Cphase(ii,:,:) = Cphase - 180*ph/pi - 180*pu/pi; % deg
     tide_Cmax(ii,:,:) = pf*Cmax/100; % m s-1
     tide_Cmin(ii,:,:) = pf*Cmin/100; % m s-1
+	
+	% PM Edit: zero out tides on northern boundary 5/4/2018 for cas4
+	disp('Warning: zeroing out tides on north boundary')
+    tide_Eamp(ii,end-5:end,:) = 0*Eamp; % m
+    tide_Cmax(ii,end-5:end,:) = 0*Cmax/100; % m s-1
+    tide_Cmin(ii,end-5:end,:) = 0*Cmin/100; % m s-1
 end
 
 %make sure tide_period is a column vector
