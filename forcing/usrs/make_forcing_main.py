@@ -57,10 +57,14 @@ ds = nc.Dataset(fn)
 G, S, T = zrfun.get_basic_info(fn)
 ds.close()
 # get grid and indices (rho-grid) for extraction domain
-x0 = -122.85
-x1 = -122.6
-y0 = 47.6
-y1 = 47.9
+# x0 = -122.85
+# x1 = -122.6
+# y0 = 47.6
+# y1 = 47.9
+x0 = -122.5
+x1 = -122.3
+y0 = 47.4
+y1 = 47.55
 Lon = G['lon_rho']
 Lat = G['lat_rho']
 Lon_vec = Lon[0,:]
