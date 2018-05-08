@@ -40,7 +40,7 @@ def get_in_dict(plot_type):
     vlims['NO3'] = (0, 40)
     vlims['phytoplankton'] = (0,30)#(0, 40)
     vlims['zooplankton'] = (0, 4)
-    vlims['oxygen'] = (4, 8) # (0, 4) for bottom DO (ml L-1), (4, 8) for surface
+    vlims['oxygen'] = (0, 4) # (0, 4) for bottom DO (ml L-1), (4, 8) for surface
     vlims['TIC'] = (2000, 2400) # (2000,2400) for surface
     vlims['alkalinity'] = (2000,2400)
     vlims['PH'] = (7, 8.5)#(6, 9)
