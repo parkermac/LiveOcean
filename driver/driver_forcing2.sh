@@ -1,5 +1,7 @@
 #!/bin/bash
 
+newgrp locean
+
 # This runs the code to create forcing for one or more days,
 # for any of the types of forcing, allowing for either a
 # forecast or backfill over a range of day.
