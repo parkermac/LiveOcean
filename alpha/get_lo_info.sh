@@ -77,7 +77,8 @@ else
 fi
 
 # set the group so that others can write
-if [ $lo_env = 'pm_fjord' ] ; then
+if [ $lo_env == "pm_fjord" ] ; then
+  echo('changing group permissions')
   group=locean
   if [ $(id -gn) != $group ]; then
     exec sg $group "$0 $*"
