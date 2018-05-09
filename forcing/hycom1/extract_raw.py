@@ -39,6 +39,7 @@ k0 = zfun.find_nearest_ind(z, -1500)
 print('lon = %0.2f lat = %0.2f z = %0.2f' % (lon[i0], lat[j0], z[k0]))
 
 a = os.listdir(out_dir)
+a.sort()
 
 aa = [i for i in a if i[0]=='h']
 

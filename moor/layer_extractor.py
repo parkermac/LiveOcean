@@ -27,10 +27,10 @@ import zfun
 # Command line arguments
 
 # set defaults
-gridname = 'cas3'
-tag = 'v2'
-ex_name = 'lo6m'
-list_type = 'hourly' # hourly, daily, low_passed
+gridname = 'cascadia1'
+tag = 'base'
+ex_name = 'lobio5'
+list_type = 'low_pass' # hourly, daily, low_passed
 
 # Example of date_string is 2015.09.19
 dsf = '%Y.%m.%d'
@@ -42,7 +42,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-g', '--gridname', nargs='?', type=str, default=gridname)
 parser.add_argument('-t', '--tag', nargs='?', type=str, default=tag)
 parser.add_argument('-x', '--ex_name', nargs='?', type=str, default=ex_name)
-parser.add_argument('-l', '--list_type', nargs='?', const=list_type, type=str, default=list_type)
+parser.add_argument('-lt', '--list_type', nargs='?', const=list_type, type=str, default=list_type)
 parser.add_argument('-0', '--date_string0', nargs='?', type=str, default=date_string0)
 parser.add_argument('-1', '--date_string1', nargs='?', type=str, default=date_string1)
 args = parser.parse_args()
@@ -73,10 +73,10 @@ while dt <= dt1:
     Ldir['date_string'] = date_string
     f_string = 'f' + Ldir['date_string']
     in_dir = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/' + f_string + '/'
-    if (list_type == 'low_passed') and ('low_passed.nc' in os.listdir(in_dir)):
+    if (list_type == 'low_pass') and ('low_passed.nc' in os.listdir(in_dir)):
         fn_list.append(in_dir + 'low_passed.nc') 
     elif (list_type == 'daily'):
-        fn_list.append(in_dir + 'ocean_his_0013.nc') # get noon files
+        fn_list.append(in_dir + 'ocean_his_0013.nc') # get noon UTC files
     elif list_type == 'hourly':
         for hh in range(2,26):
             hhhh = ('0000' + str(hh))[-4:]
@@ -96,29 +96,32 @@ ds2 = nc.Dataset(out_fn, 'w')
 
 # lists of variables to process
 dlist = ['xi_rho', 'eta_rho', 'xi_psi', 'eta_psi', 'ocean_time']
-vn_list2 = [ 'lon_rho', 'lat_rho', 'lon_psi', 'lat_psi', 'mask_rho', 'h']
+vn_list_2d = [ 'lon_rho', 'lat_rho', 'lon_psi', 'lat_psi', 'mask_rho', 'h']
+vn_list_2dt = ['zeta']
 
 # Copy dimensions
 for dname, the_dim in ds1.dimensions.items():
     if dname in dlist:
         ds2.createDimension(dname, len(the_dim) if not the_dim.isunlimited() else None)
 # Copy variables
-for vn in vn_list2:
+for vn in vn_list_2d:
     varin = ds1[vn]
     vv = ds2.createVariable(vn, varin.dtype, varin.dimensions)
     vv.setncatts({k: varin.getncattr(k) for k in varin.ncattrs()})
     vv[:] = ds1[vn][:]
 #
-for vn in ['zeta', 'ocean_time']:
+vn = 'ocean_time'
+varin = ds1[vn]
+vv = ds2.createVariable(vn, varin.dtype, varin.dimensions)
+vv.long_name = varin.long_name
+vv.units = varin.units
+
+for vn in vn_list_2dt:
     varin = ds1[vn]
     vv = ds2.createVariable(vn, varin.dtype, varin.dimensions)
     vv.long_name = varin.long_name
     vv.units = varin.units
-    try:
-        vv.time = varin.time
-    except AttributeError:
-        # ocean_time has no time
-        pass
+    vv.time = varin.time
 
 # copy data
 NT = len(fn_list)

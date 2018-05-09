@@ -36,7 +36,9 @@ print(60*'*')
 # which forecast days exist in the forcing directory
 f_dir0 = Ldir['LOo'] + Ldir['gtag'] + '/'
 f_list = []
-for item in os.listdir(f_dir0):
+LL = os.listdir(f_dir0)
+LL.sort()
+for item in LL:
     if item[0] == 'f' and len(item) == 11:
         f_list.append(item)
 f_list.sort()
@@ -44,7 +46,8 @@ f_list.sort()
 f_list = f_list[-args.num_days:]
 
 # list of properties to inspect
-clist = ['tide', 'riv', 'atm', 'ocn1', 'dot_in', 'his', 'tracks_m', 'carbon', 'low_pass', 'ubc', 'surface', 'azu1']
+clist = ['tide', 'riv', 'atm', 'ocn1', 'dot_in', 'his',
+    'tracks_m', 'carbon', 'low_pass', 'ubc', 'surface', 'azu1']
 
 # initialize the DataFrame
 f_df = pd.DataFrame(index=f_list, columns=clist)

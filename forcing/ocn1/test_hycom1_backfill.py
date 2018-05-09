@@ -32,6 +32,7 @@ in_dir = Ldir['data'] + 'hycom1/'
 # get a list of all available times
 h_list0 = os.listdir(in_dir)
 h_list = [item for item in h_list0 if item[0] == 'h']
+h_list.sort()
 # then find the index of the start of the current day
 # but if it is missing search for the most recent past one that exists
 keep_looking = True

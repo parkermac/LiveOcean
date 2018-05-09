@@ -2,7 +2,7 @@
 
 # This runs the code to create forcing for one or more days,
 # for any of the types of forcing, allowing for either a
-# forecast or backfill over a range.
+# forecast or backfill over a range of day.
 
 # run the code to put the environment into a csv
 if [ -e ../alpha/user_get_lo_info.sh ] ; then
@@ -23,22 +23,22 @@ done < ../alpha/lo_info.csv
 #
 # -g name of the grid [cascadia1]
 # -t name of the forcing tag [base]
-# -x name of the ROMS executable to use; only needed for post processing [lobio5]
+# -x name of the ROMS executable to use; only needed for post-processing [lobio5]
 # -f forcing type [atm, ocn, riv, tide, azu, low_pass, etc.]
 # -r run type [forecast, backfill]
 #  if backfill, then you must provide two more arguments
 # -0 start date: yyyymmdd
 # -1 end date: yyyymmdd
-# -nc do not remake forcing if it already exists [no argument]
+# -nc do not remake forcing if it already exists [no argument] OPTIONAL
 #
 # example call to do backfill:
-# ./driver_forcing1.sh -g cascadia1 -t base -f atm -r backfill -0 20140201 -1 20140203
+# ./driver_forcing2.sh -g cascadia1 -t base -f atm -r backfill -0 20140201 -1 20140203
 #
 # example call to do forecast:
-# ./driver_forcing1.sh -g cascadia1 -t base -f atm -r forecast
+# ./driver_forcing2.sh -g cascadia1 -t base -f atm -r forecast
 #
 # example call push to azure:
-# ./driver_forcing1.sh -g cascadia1 -t base -x lobio5 -f azu -r backfill -0 20140201 -1 20140203
+# ./driver_forcing2.sh -g cascadia1 -t base -x lobio5 -f azu -r backfill -0 20140201 -1 20140203
 
 ex_name="placeholder"
 clobber_flag=1 # the default (1) is to clobber, unless the -nc argument is used
@@ -71,6 +71,12 @@ while [ "$1" != "" ] ; do
   esac
   shift
 done
+
+# test for a missing argument, and exit if it is missing
+if [ -z "$frc" ] ; then
+  echo "Missing forcing type (-f)"
+  exit
+fi
 
 if [ $run_type = "forecast" ] ; then
   # do forecast

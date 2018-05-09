@@ -25,6 +25,7 @@ outdir = dir0 + missing_day + '/'
 # and that I have write permission there
 
 in_list = os.listdir(indir)
+in_list.sort()
 
 for in_fn in in_list:
     if in_fn[:6] == 'wrfout':

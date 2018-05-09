@@ -27,6 +27,7 @@ indir = Ldir['LOo'] + 'moor/'
 # choose the type of plot to make
 print('\n%s\n' % '** Choose mooring file to plot **')
 m_list_raw = os.listdir(indir)
+m_list_raw.sort()
 m_list = []
 for m in m_list_raw:
     if '.nc' in m:

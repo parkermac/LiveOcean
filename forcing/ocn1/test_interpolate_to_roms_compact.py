@@ -51,7 +51,7 @@ S = zrfun.get_S(S_info_dict)
 
 a = os.listdir(in_dir)
 aa = [item for item in a if item[:3]=='xfh']
-
+aa.sort()
 
 #%% do the extrapolated using function calls
 

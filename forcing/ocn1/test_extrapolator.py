@@ -32,6 +32,7 @@ fh_dir = Ldir['LOogf_fd']
 
 a = os.listdir(fh_dir)
 aa = [item for item in a if item[:2]=='fh']
+aa.sort()
 # but for this test we just work on one
 fn = aa[1]
 print(fn)

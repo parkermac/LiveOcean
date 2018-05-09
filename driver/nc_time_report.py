@@ -43,6 +43,7 @@ for frc in frc_list:
     odir = Ldir['LOo'] + Ldir['gtag'] +'/' + f_string +'/' + frc + '/'
     try:
         odl = os.listdir(odir)
+        odl.sort()
         for nn in odl:
             if '.nc' in nn:
                 print('\n%s %10s %s' % (20*'=', nn, 20*'='))

@@ -26,6 +26,7 @@ Info['f_string'] = 'f' + Info['date_string']
 
 odir = Ldir['LOo'] + Ldir['gtag'] +'/' + Info['f_string'] +'/' + frc + '/'
 odl = os.listdir(odir)
+odl.sort()
 import netCDF4 as nc    
 for nn in odl:
     if '.nc' in nn:

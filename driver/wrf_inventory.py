@@ -35,7 +35,9 @@ f_df = pd.DataFrame(index = fe_list, columns = clist)
 
 # what forecasts exist in the forcing directory
 f_list = []
-for item in os.listdir(f_dir0):
+LL = os.listdir(f_dir0)
+LL.sort()
+for item in LL:
     if item[-2:] == '00' and len(item) == 10:
         f_list.append(item)
         
@@ -50,6 +52,7 @@ df_no = f_df[f_df['dir_exists']=='no']
 
 for item in df_yes.index:
     fl = os.listdir(f_dir0 + item)
+    fl.sort()
     # how many CONTINUOUS forecasts have been saved successfully
     # file names are like wrfout.ocean_d2.2012100700.f00.0000
     flag = 1
