@@ -1,5 +1,6 @@
 #!/bin/bash
 
+
 # This code identifies who the user is, what machine they are working on,
 # and saves important paths to a csv file.  It is meant to be called by
 # any of the LiveOcean code (python, matlab, or shellscripts).
@@ -73,6 +74,14 @@ else
   roms="/pmr1/parker/LiveOcean_roms/"
   which_matlab="/usr/local/bin/matlab"
   
+fi
+
+# set the group so that others can write
+if [ $lo_env = 'pm_fjord' ] ; then
+  group=locean
+  if [ $(id -gn) != $group ]; then
+    exec sg $group "$0 $*"
+  fi
 fi
 
 # write info to a temporary file for use by other programs

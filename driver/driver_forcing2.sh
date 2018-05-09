@@ -1,8 +1,4 @@
 #!/bin/bash
-group=locean
-if [ $(id -gn) != $group ]; then
-  exec sg $group "$0 $*"
-fi
 
 # This runs the code to create forcing for one or more days,
 # for any of the types of forcing, allowing for either a
