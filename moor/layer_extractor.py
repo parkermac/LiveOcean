@@ -137,7 +137,10 @@ for vn in vn_list_3d_t:
     varin = ds1[vn]
     vv = ds2.createVariable(vn, varin.dtype, ('ocean_time', 'eta_rho', 'xi_rho'))
     vv.long_name = varin.long_name
-    vv.units = varin.units
+    try:
+        vv.units = varin.units
+    except AttributeError:
+        pass # salt has no units
     vv.time = varin.time
 # - then time-dependent 2d fields interpolated from uv grids
 for vn in vn_list_2d_uv_t:
