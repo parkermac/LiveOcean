@@ -47,7 +47,7 @@ parser.add_argument('-t', '--tag', nargs='?', type=str,
 parser.add_argument('-x', '--ex_name', nargs='?', type=str,
                     default='lobio5')
 parser.add_argument('-d', '--date_string', nargs='?', type=str,
-                    default='2017.01.15')
+                    default='2013.01.31')
 parser.add_argument('-hs', '--hour_string', nargs='?', type=str,
                     default='01')
 parser.add_argument('-nd', '--num_days', nargs='?', type=int,
