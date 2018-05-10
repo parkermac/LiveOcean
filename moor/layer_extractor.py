@@ -102,10 +102,9 @@ ds2 = nc.Dataset(out_fn, 'w')
 dlist = ['xi_rho', 'eta_rho', 'xi_psi', 'eta_psi', 'ocean_time']
 vn_list_2d = [ 'lon_rho', 'lat_rho', 'lon_psi', 'lat_psi', 'mask_rho', 'h']
 vn_list_2d_t = ['zeta']
-vn_list_3d_t = ['salt', 'temp']
-
+vn_list_3d_t = []#['salt', 'temp']
 vn_list_2d_uv_t = ['sustr', 'svstr']
-vn_list_3d_uv_t = ['u', 'v']
+vn_list_3d_uv_t = []#['u', 'v']
 
 # Create dimensions
 for dname, the_dim in ds1.dimensions.items():
