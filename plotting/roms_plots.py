@@ -289,7 +289,7 @@ def P_salish(in_dict):
     # PLOT CODE
     
     # HACKS
-    auto_vlims = False
+    auto_vlims = True
     #
     new_vlims = True
     if new_vlims==True:
@@ -297,10 +297,9 @@ def P_salish(in_dict):
         vlims['temp'] = (5,11)
         
     # panel 1
-    vn = 'salt'
+    vn = 'temp'
     tstr = 'Surface ' + tstr_dict[vn]
     ax = fig.add_subplot(121)
-    vn = 'salt'
     
     if auto_vlims:
         vlims[vn] = ()
@@ -311,14 +310,13 @@ def P_salish(in_dict):
     #pfun.add_bathy_contours(ax, ds, depth_levs=[50, 100, 150])
     pfun.add_coast(ax)
     ax.axis(pfun.get_aa(ds))
-    ax.axis([-124, -122, 47, 49.5])
+    #ax.axis([-124, -122, 47, 49.5])
     pfun.dar(ax)
     ax.set_xlabel('Longitude')
     ax.set_ylabel('Latitude')
     ax.set_title(tstr + units_dict[vn])
     pfun.add_info(ax, in_dict['fn'])
-    pfun.add_windstress_flower(ax, ds, t_scl=0.5,
-                               t_leglen=0.1, center=(0.25, 0.25))
+    pfun.add_windstress_flower(ax, ds)
     
     # panel 2
     ax = fig.add_subplot(122)
@@ -329,16 +327,16 @@ def P_salish(in_dict):
     
     tstr = 'Surface ' + tstr_dict[vn]
     cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn,
-            vlims=(25,27), cmap=cmap_dict[vn], fac=fac_dict[vn])
+            vlims=vlims[vn], cmap=cmap_dict[vn], fac=fac_dict[vn])
     fig.colorbar(cs)
     #pfun.add_bathy_contours(ax, ds)
     pfun.add_coast(ax)
-    ax.axis([-122.5, -122.3, 47.3, 47.6])
+    ax.axis([-125.5, -122.5, 47, 50.3])
     pfun.dar(ax)
     ax.set_xlabel('Longitude')
-    #ax.set_title(tstr + units_dict[vn])
+    ax.set_title(tstr + units_dict[vn])
     pfun.add_velocity_vectors(ax, ds, in_dict['fn'],
-        v_scl=15, v_leglen=0.5, nngrid=80, zlev=0, center=(.7,.05))
+        v_scl=10, v_leglen=1, center=(.55,.05))
     #pfun.add_velocity_streams(ax, ds, in_dict['fn'], nngrid=120)
     
     # FINISH

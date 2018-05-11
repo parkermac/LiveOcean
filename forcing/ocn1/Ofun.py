@@ -308,7 +308,7 @@ def extrap_nearest_to_masked(X, Y, fld, fld0=0):
     OUTPUT: a numpy array of the same size with no mask
     and no missing values.        
     If input is a masked array:        
-        * If is is ALL masked then return an array filled with fld0.         
+        * If it is ALL masked then return an array filled with fld0.         
         * If it is PARTLY masked use nearest neighbor interpolation to
         fill missing values, and then return data.        
         * If it is all unmasked then retun the data.    

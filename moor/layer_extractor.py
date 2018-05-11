@@ -102,9 +102,9 @@ ds2 = nc.Dataset(out_fn, 'w')
 dlist = ['xi_rho', 'eta_rho', 'xi_psi', 'eta_psi', 'ocean_time']
 vn_list_2d = [ 'lon_rho', 'lat_rho', 'lon_psi', 'lat_psi', 'mask_rho', 'h']
 vn_list_2d_t = ['zeta']
-vn_list_3d_t = ['salt', 'temp', 'NO3']
+vn_list_3d_t = []#['salt', 'temp', 'NO3']
 vn_list_2d_uv_t = ['sustr', 'svstr']
-vn_list_3d_uv_t = ['u', 'v']
+vn_list_3d_uv_t = []#['u', 'v']
 
 # Create dimensions
 for dname, the_dim in ds1.dimensions.items():
@@ -157,6 +157,9 @@ for vn in vn_list_3d_uv_t:
     vv.time = varin.time
     
 # Copy data
+omat = np.nan * np.ones(h.shape)
+omat = np.ma.masked_where(G['mask_rho']==0, omat)
+
 tt = 0
 for fn in fn_list:
     print(fn)
@@ -171,23 +174,27 @@ for fn in fn_list:
     for vn in vn_list_3d_t:
         ds2[vn][tt,:,:] = ds[vn][0, nlay, :, :].squeeze()
         
-    if ('sustr' in vn_list_3d_uv_t) and ('svstr' in vn_list_2d_uv_t):
+    if ('sustr' in vn_list_2d_uv_t) and ('svstr' in vn_list_2d_uv_t):
         sustr0 = ds1['sustr'][0, :, :].squeeze()
         svstr0 = ds1['svstr'][0, :, :].squeeze()
-        sustr = np.nan * h
-        svstr = np.nan * h
+        sustr = omat.copy()
+        svstr = omat.copy()
         sustr[:, 1:-1] = (sustr0[:, 1:] + sustr0[:, :-1])/2
         svstr[1:-1, :] = (svstr0[1:, :] + svstr0[:-1, :])/2
+        sustr = np.ma.masked_where(np.isnan(sustr), sustr)
+        svstr = np.ma.masked_where(np.isnan(svstr), svstr)
         ds2['sustr'][tt,:,:] = sustr
         ds2['svstr'][tt,:,:] = svstr
         
     if ('u' in vn_list_3d_uv_t) and ('v' in vn_list_3d_uv_t):
         u0 = ds1['u'][0, nlay, :, :].squeeze()
         v0 = ds1['v'][0, nlay, :, :].squeeze()
-        u = np.nan * h
-        v = np.nan * h
+        u = omat.copy()
+        v = omat.copy()
         u[:, 1:-1] = (u0[:, 1:] + u0[:, :-1])/2
         v[1:-1, :] = (v0[1:, :] + v0[:-1, :])/2
+        u = np.ma.masked_where(np.isnan(u), u)
+        v = np.ma.masked_where(np.isnan(v), v)
         ds2['u'][tt,:,:] = u
         ds2['v'][tt,:,:] = v
         

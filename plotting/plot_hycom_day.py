@@ -43,7 +43,7 @@ Ldir['LOogf_fd'] = (Ldir['LOogf_f'] + 'Data/')
 #========================================================================
 
 this_mo = 1
-this_zlev = -11 # index of HyCOM depth level to use
+this_zlev = -1 # index of HyCOM depth level to use
 
 #========================================================================
 
@@ -107,8 +107,12 @@ tt = t.copy()
 
 
 # ***************************************************************
+sta_list = [s for s in sta_list if ('WPA' not in s) and ('GYS' not in s)]
+
+sta_df = sta_df.loc[sta_list,:]
+
 for station in sta_list:
-    print(' - reading: ' + station)           
+    #print(' - reading: ' + station)           
     casts = all_casts[all_casts['Station'] == station]   
     casts = casts.set_index('Date')    
     casts['Z'] = -casts['Depth'] # and make a Z column
@@ -119,31 +123,37 @@ for station in sta_list:
     cast_info = station + ': ' + sta_df.loc[station,'Descrip']
     Max_z = -float(sta_df.loc[station, 'Max_Depth'])
 
-    # get the CTD cast data for this station
-    for cdate in castdates:
-        imo = cdate.month
-        if imo == this_mo:
-            cast = casts[casts.index==cdate]
-            # drop repeat values (aiming for the first of a depth pair)
-            zdf = np.diff(cast['Z'])
-            zdf = np.concatenate((np.array([1.,]),zdf))
-            mask = zdf != 0
-            cast = cast[mask]
-            cast = cast[:-5] # drop bottom values (sometimes bad)
-            
-            Cast = cast.set_index('Z')
+    # get the CTD cast data for this station, in the nearest month
+    cdv = castdates.month.values
+    imo = zfun.find_nearest_ind(cdv, this_mo)
+    new_mo = cdv[imo]
+    
+    cast = casts[casts.index.month==new_mo]
+    print(station + ' month = ' + str(new_mo))
+    
+    # drop repeat values (aiming for the first of a depth pair)
+    zdf = np.diff(cast['Z'])
+    zdf = np.concatenate((np.array([1.,]),zdf))
+    mask = zdf != 0
+    cast = cast[mask]
+    cast = cast[:-5] # drop bottom values (sometimes bad)
 
-            sta_x = sta_df.loc[station,'Longitude']
-            sta_y = sta_df.loc[station,'Latitude']
+    Cast = cast.set_index('Z')
+    Cast = Cast.dropna()
 
-            cz = Cast.index.values
-            izc = zfun.find_nearest_ind(cz, z[this_zlev])
-            sta_temp = Cast.iloc[izc]['Temp']
+    sta_x = sta_df.loc[station,'Longitude']
+    sta_y = sta_df.loc[station,'Latitude']
 
-            # try adding a point and then extrapolating
-            i0, i1, ifr = zfun.get_interpolant(np.array([sta_x]), x)
-            j0, j1, jfr = zfun.get_interpolant(np.array([sta_y]), x)
-            tt[j0,i0] = sta_temp # doing this sets the mask to False automatically
+    cz = Cast.index.values
+    izc = zfun.find_nearest_ind(cz, z[this_zlev])
+    sta_temp = Cast.iloc[izc]['Temp']
+    # store result
+    sta_df.loc[station,'itemp'] = sta_temp
+
+    # try adding a point and then extrapolating
+    i0, i1, ifr = zfun.get_interpolant(np.array([sta_x]), x)
+    j0, j1, jfr = zfun.get_interpolant(np.array([sta_y]), x)
+    tt[j0,i0] = sta_temp # doing this sets the mask to False automatically
 
 # ***************************************************************
 
@@ -157,8 +167,8 @@ TT = Ofun.extrap_nearest_to_masked(XX, YY, tt)
 plt.close('all')
 fig, axes = plt.subplots(1,3, squeeze=False, figsize=(12,7))
 
-v0 = 6
-v1 = 12
+v0 = 4
+v1 = 9
 
 ax = axes[0,0]
 cs = ax.pcolormesh(x,y,t, cmap='rainbow', vmin=v0, vmax=v1)
@@ -186,6 +196,14 @@ pfun.add_coast(ax)
 ax.set_xlim(x[0],x[-1])
 ax.set_ylim(y[0],y[-1])
 ax.set_title('extrap. with CTD')
+# add station locations
+for station in sta_list:
+    sta_x = sta_df.loc[station,'Longitude']
+    sta_y = sta_df.loc[station,'Latitude']
+    itemp = sta_df.loc[station,'itemp']
+    ax.text(sta_x, sta_y, '%0.1f' % (itemp),
+    horizontalalignment='center',
+    verticalalignment='center')
 
 # ax = axes[0,3]
 # cs = ax.pcolormesh(xr,yr,tr, cmap='rainbow', vmin=v0, vmax=v1)

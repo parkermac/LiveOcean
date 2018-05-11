@@ -131,14 +131,14 @@ def add_map_field(ax, ds, varname, slev=-1, vlims=(), cmap='rainbow',
     cs = ax.pcolormesh(x, y, v*fac, vmin=vlims[0], vmax=vlims[1], cmap=cmap, alpha=alpha)
     return cs, vlims
 
-def add_velocity_vectors(ax, ds, fn, v_scl=3, v_leglen=0.5, nngrid=80, zlev=0, center=(.7,.05)):
+def add_velocity_vectors(ax, ds, fn, v_scl=3, v_leglen=0.5, nngrid=80, zlev='top', center=(.7,.05)):
     # v_scl: scale velocity vector (smaller to get longer arrows)
     # v_leglen: m/s for velocity vector legend
     xc = center[0]
     yc = center[1]
     # GET DATA
     G = zrfun.get_basic_info(fn, only_G=True)
-    if zlev == 0:
+    if zlev == 'top':
         u = ds['u'][0, -1, :, :].squeeze()
         v = ds['v'][0, -1, :, :].squeeze()
     elif zlev == 'bot':
