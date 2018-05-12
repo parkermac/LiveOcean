@@ -15,9 +15,7 @@ alp = os.path.abspath('../alpha')
 if alp not in sys.path:
     sys.path.append(alp)
 import Lfun
-#from importlib import reload
-#reload(Lfun)
-#import zfun
+import zfun
 
 # set limits
 lim_dict = {'temp': (0, 20),
@@ -32,16 +30,13 @@ lim_dict = {'temp': (0, 20),
         'alkalinity': (1900, 2600)}
 
 Ldir = Lfun.Lstart()
-indir = Ldir['LOo'] + 'moor/'
+indir = Ldir['LOo'] + 'extract/'
 
 # choose the mooring extraction to plot
 print('\n%s\n' % '** Choose mooring file to plot **')
 m_list_raw = os.listdir(indir)
 m_list_raw.sort()
-m_list = []
-for m in m_list_raw:
-    if '.nc' in m:
-        m_list.append(m)
+m_list = [m for m in m_list_raw if (('.nc' in m) and ('moor_' in m))]
 Npt = len(m_list)
 m_dict = dict(zip(range(Npt), m_list))
 for npt in range(Npt):
@@ -79,8 +74,8 @@ V = dict()
 Vu = dict()
 
 #choose what to plot
-#list_to_plot = v3_list_rho + v3_list_w + v2_list
-list_to_plot = v3_list_rho
+list_to_plot = v3_list_rho + v3_list_w + v2_list
+#list_to_plot = v3_list_rho
 
 # hand edit variables not to look at
 for v in ['CaCO3', 'PH', 'ARAG']:
@@ -106,12 +101,7 @@ ds.close()
 plt.close('all')
 
 NP = len(list_to_plot)
-
-NR = np.maximum(1, np.ceil(np.sqrt(NP)).astype(int))
-NC = np.ceil(np.sqrt(NP)).astype(int)
-if NR*NC - NC >= NP:
-    NR -= 1
-
+NR, NC = zfun.get_rc(NP)
 fig, axes = plt.subplots(nrows=NR, ncols=NC, figsize=(13,8),
                          squeeze=False, sharex=True)
 
@@ -151,9 +141,10 @@ N = V['salt'].shape[0]
 nbot = 0
 nmid = nmid
 ntop = N-1
+
 for vn in list_to_plot:
-    ir = int(np.floor(cc/NC))
-    ic = int(cc - NC*ir)
+    
+    ir, ic = zfun.get_irc(cc, NC)
     ax = axes[ir, ic]
     if V[vn].ndim == 2:
         ax.plot(mdt, V[vn][ntop,:], '-r')

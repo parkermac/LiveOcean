@@ -5,10 +5,6 @@
 This creates and a single NetCDF file containing fields from one or more
 model layers, for some time range.
 
-Need to accomodate a list of variables, and layer choices.
-
-
-
 """
 
 from datetime import datetime, timedelta
@@ -32,10 +28,11 @@ import zfun
 gridname = 'cascadia1'
 tag = 'base'
 ex_name = 'lobio5'
-list_type = 'low_passed' # hourly, daily, low_passed
+list_type = 'hourly' # hourly, daily, low_passed
 dsf = '%Y.%m.%d' # Example of date_string is 2015.09.19
-date_string0 = datetime(2017,1,1).strftime(format=dsf)
-date_string1 = datetime(2017,1,31).strftime(format=dsf)
+date_string0 = datetime(2013,1,29).strftime(format=dsf)
+date_string1 = datetime(2013,1,31).strftime(format=dsf)
+#
 nlay_str = '-1' # layer number, -1 for top, 0 for bottom
 
 # optional command line arguments, can be input in any order, or omitted
@@ -46,22 +43,22 @@ parser.add_argument('-x', '--ex_name', nargs='?', type=str, default=ex_name)
 parser.add_argument('-lt', '--list_type', nargs='?', const=list_type, type=str, default=list_type)
 parser.add_argument('-0', '--date_string0', nargs='?', type=str, default=date_string0)
 parser.add_argument('-1', '--date_string1', nargs='?', type=str, default=date_string1)
+#
 parser.add_argument('-nlay', '--layer_number', nargs='?', type=str, default=nlay_str)
 args = parser.parse_args()
 
-# get the layer number
+# process the arguments
+list_type = args.list_type
 nlay_str = args.layer_number
 nlay = int(nlay_str)
-#
 Ldir = Lfun.Lstart(args.gridname, args.tag)
 Ldir['ex_name'] = args.ex_name
 Ldir['gtagex'] = Ldir['gtag'] + '_' + Ldir['ex_name']
-
 dt0 = datetime.strptime(args.date_string0, dsf)
 dt1 = datetime.strptime(args.date_string1, dsf)
 
 # make sure the output directory exists
-outdir = Ldir['LOo'] + 'moor/'
+outdir = Ldir['LOo'] + 'extract/'
 Lfun.make_dir(outdir)
 # output file
 out_name = 'layer_' + Ldir['gtagex'] + '_' + list_type + '.nc'
@@ -164,9 +161,11 @@ omat = np.nan * np.ones(h.shape)
 omat = np.ma.masked_where(G['mask_rho']==0, omat)
 
 tt = 0
+NF = len(fn_list)
 for fn in fn_list:
-    print(fn)
-    sys.stdout.flush()
+    if np.mod(tt,24)==0:
+        print(' working on %d of %d' % (tt, NF))
+        sys.stdout.flush()
     ds = nc.Dataset(fn)
     
     ds2['ocean_time'][tt] = ds['ocean_time'][0].squeeze()
@@ -207,7 +206,7 @@ for fn in fn_list:
 ds1.close()
 ds2.close()
 
-#%% prepare for finale
+# finale
 import collections
 result_dict = collections.OrderedDict()
 result_dict['out_fn'] = out_fn
@@ -226,9 +225,4 @@ else:
 print('')
 for k in result_dict.keys():
     print('%s: %s' % (k, result_dict[k]))
-        
-
-
-
-
 

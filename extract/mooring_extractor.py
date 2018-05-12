@@ -1,21 +1,13 @@
 """
 Extract a mooring-like record.
-
-For 24 hour days on my mac this is fast, like 1-2 sec per day, but on
-fjord it takes more like 22 sec per day, or 2 hours per year.
-
-On fjord for daily values it takes 20 minutes per year, with no apparent
-decrease of performance if there are multiple jobs going.
+The input is structured to conform with layer_extractor.py.
+It avoides the use of MFDataset.
 
 This can be run from the linux command line:
 
 e.g. with the default gridname, tag, and ex_name:
 
-python moor_0.py -sn netarts -l daily -lon -124 -lat 45.4025 -d0 2015.01.01 -d1 2015.12.31
-
-NOTE: Using the flag -l daily it will get one value per day, choosing
-low_passed.nc if it exists, or ocean_his_0002.nc if not.
-The flag -l backfill gets 24 hours per day
+python moor_1.py -lt hourly -0 2013.01.29 -1 2013.01.29
 
 """
 
@@ -37,10 +29,11 @@ import netCDF4 as nc
 gridname = 'cascadia1'
 tag = 'base'
 ex_name = 'lobio5'
-date_string0 = datetime(2013,1,29).strftime(format='%Y.%m.%d')
-date_string1 = datetime(2013,1,31).strftime(format='%Y.%m.%d')
-list_type = 'backfill' # backfill, daily, low_passed
-
+list_type = 'hourly' # hourly, daily, low_passed
+dsf = '%Y.%m.%d' # Example of date_string is 2015.09.19
+date_string0 = datetime(2013,1,29).strftime(format=dsf)
+date_string1 = datetime(2013,1,31).strftime(format=dsf)
+#
 sta_name = 'TEST'
 lon_str = '-124.5'
 lat_str = '47'
@@ -49,40 +42,70 @@ lat_str = '47'
 import argparse
 parser = argparse.ArgumentParser()
 # optional input arguments
-parser.add_argument('-g', '--gridname', nargs='?', const=gridname, type=str, default=gridname)
-parser.add_argument('-t', '--tag', nargs='?', const=tag, type=str, default=tag)
-parser.add_argument('-x', '--ex_name', nargs='?', const=ex_name, type=str, default=ex_name)
-parser.add_argument('-l', '--list_type', nargs='?', const=list_type, type=str, default=list_type)
-parser.add_argument('-d0', '--date_string0', nargs='?', const=date_string0, type=str, default=date_string0)
-parser.add_argument('-d1', '--date_string1', nargs='?', const=date_string1, type=str, default=date_string1)
+parser.add_argument('-g', '--gridname', nargs='?', type=str, default=gridname)
+parser.add_argument('-t', '--tag', nargs='?', type=str, default=tag)
+parser.add_argument('-x', '--ex_name', nargs='?', type=str, default=ex_name)
+parser.add_argument('-lt', '--list_type', nargs='?', const=list_type, type=str, default=list_type)
+parser.add_argument('-0', '--date_string0', nargs='?', type=str, default=date_string0)
+parser.add_argument('-1', '--date_string1', nargs='?', type=str, default=date_string1)
+#
 parser.add_argument('-sn', '--sta_name', nargs='?', const=sta_name, type=str, default=sta_name)
 parser.add_argument('-lon', '--lon_str', nargs='?', const=lon_str, type=str, default=lon_str)
 parser.add_argument('-lat', '--lat_str', nargs='?', const=lat_str, type=str, default=lat_str)
 args = parser.parse_args()
 
-# get the dict Ldir
+# process the arguments
+list_type = args.list_type
+dt0 = datetime.strptime(args.date_string0, dsf)
+dt1 = datetime.strptime(args.date_string1, dsf)
 Ldir = Lfun.Lstart(args.gridname, args.tag)
 Ldir['gtagex'] = Ldir['gtag'] + '_' + args.ex_name
 Ldir['list_type'] = args.list_type
 Ldir['date_string0'] = args.date_string0
 Ldir['date_string1'] = args.date_string1
+#
 Ldir['sta_name'] = args.sta_name
 Ldir['lon_str'] = args.lon_str
 Ldir['lat_str'] = args.lat_str
 
 # make sure the output directory exists
-outdir = Ldir['LOo'] + 'moor/'
+outdir = Ldir['LOo'] + 'extract/'
 Lfun.make_dir(outdir)
-
-#%% function definitions
-def make_date_list(dt0,dt1,Ldir): # a helpful function
-    del_dt = timedelta(1)
-    date_list = []
-    dt = dt0
-    while dt <= dt1:
-        date_list.append(dt.strftime('%Y.%m.%d'))
-        dt = dt + del_dt
-    return date_list
+# name output file
+out_fn = (outdir + 'moor_' +
+    Ldir['gtagex'] + '_' +
+    Ldir['sta_name'] + '_' +
+    Ldir['list_type'] + '_' +
+    Ldir['date_string0'] + '_' +
+    Ldir['date_string1'] +
+    '.nc')
+# get rid of the old version, if it exists
+try:
+    os.remove(out_fn)
+except OSError:
+    pass
+    
+# make a list of input files
+fn_list = []
+dt = dt0
+while dt <= dt1:
+    date_string = dt.strftime(format='%Y.%m.%d')
+    Ldir['date_string'] = date_string
+    f_string = 'f' + Ldir['date_string']
+    in_dir = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/' + f_string + '/'
+    if (list_type == 'low_passed'):
+        fn_list.append(in_dir + 'low_passed.nc') 
+    elif (list_type == 'daily'):
+        fn_list.append(in_dir + 'ocean_his_0001.nc')
+    elif list_type == 'hourly':
+        if dt == dt0:
+            h0 = 1
+        else:
+            h0 = 2
+        for hh in range(h0,26):
+            hhhh = ('0000' + str(hh))[-4:]
+            fn_list.append(in_dir + 'ocean_his_' + hhhh + '.nc')
+    dt = dt + timedelta(days=1)
 
 def get_its(ds, vv, Xi0, Yi0, Xi1, Yi1, Aix, Aiy):
     dims = ds.variables[vv].dimensions
@@ -102,19 +125,12 @@ def get_its(ds, vv, Xi0, Yi0, Xi1, Yi1, Aix, Aiy):
     yi01 = np.array([yi0, yi1]).flatten()
     return xi01, yi01, aix, aiy
 
-#%% set up for the extraction
-
-dt0 = datetime.strptime(Ldir['date_string0'],'%Y.%m.%d') # first day
-dt1 = datetime.strptime(Ldir['date_string1'],'%Y.%m.%d') # last day
-date_list = make_date_list(dt0,dt1,Ldir)
-
 # target position
 Lon = np.array(float(Ldir['lon_str']))
 Lat = np.array(float(Ldir['lat_str']))
 
 # get grid info
-indir = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/f' + date_list[0] + '/'
-fn = indir + 'ocean_his_0002.nc'
+fn = fn_list[0]
 G = zrfun.get_basic_info(fn, only_G=True)
 S = zrfun.get_basic_info(fn, only_S=True)
 
@@ -177,82 +193,42 @@ for vv in v0_list:
 
 ds.close()
 
-#%% extract time-dependent fields
-
-if Ldir['list_type'] == 'backfill':
-    # gets 24 hours at a time using MFDataset
-    count = 0
-    for dd in date_list:
-        print('Working on date_list item: ' + dd)
+# extract time-dependent fields
+count = 0
+NF = len(fn_list)
+for fn in fn_list:
+    if np.mod(count,24)==0:
+        print(' working on %d of %d' % (count, NF))
         sys.stdout.flush()
-        indir = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/f' + dd + '/'
-        fn_list = []
-        for hh in range(2,26):
-            hhhh = ('0000' + str(hh))[-4:]
-            fn_list.append(indir + 'ocean_his_' + hhhh + '.nc')
-        ds = nc.MFDataset(fn_list)
-        for vv in v1_list:
-            vtemp = ds.variables[vv][:].squeeze()
-            V[vv] = np.append(V[vv], vtemp)
-        for vv in v2_list:
-            xi01, yi01, aix, aiy = get_its(ds, vv, Xi0, Yi0, Xi1, Yi1, Aix, Aiy)
-            vvtemp = ds.variables[vv][:, yi01, xi01].squeeze()
-            vtemp = ( aiy*((aix*vvtemp).sum(-1)) ).sum(-1)
-            V[vv] = np.append(V[vv], vtemp)
-        for vv in v3_list_rho + v3_list_w:
-            xi01, yi01, aix, aiy = get_its(ds, vv, Xi0, Yi0, Xi1, Yi1, Aix, Aiy)
-            vvtemp = ds.variables[vv][:, :, yi01, xi01].squeeze()
-            vtemp = ( aiy*((aix*vvtemp).sum(-1)) ).sum(-1)
-            if count == 0:
-                V[vv] = vtemp.T
-            else:
-                V[vv] = np.concatenate((V[vv], vtemp.T), axis=1)
-        # listing of contents, if desired
-        if count == 0 and False:
-            zfun.ncd(ds)
-        count += 1
-elif (Ldir['list_type'] == 'daily') or (Ldir['list_type'] == 'low_passed'):
-    # gets one at a time
-    count = 0
-    for dd in date_list:
-        print('Working on date_list item: ' + dd)
-        sys.stdout.flush()
-        indir = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/f' + dd + '/'
-        fnlp = indir + 'low_passed.nc'
-        fnhis = indir + 'ocean_his_0002.nc'
-        if Ldir['list_type'] == 'daily':
-            fn = indir + 'ocean_his_0002.nc'
-        elif Ldir['list_type'] == 'low_passed':
-            fn = indir + 'low_passed.nc'
-        ds = nc.Dataset(fn)
-        for vv in v1_list:
-            vtemp = ds.variables[vv][:].squeeze()
-            V[vv] = np.append(V[vv], vtemp)
-        for vv in v2_list:
-            xi01, yi01, aix, aiy = get_its(ds, vv, Xi0, Yi0, Xi1, Yi1, Aix, Aiy)
-            vvtemp = ds.variables[vv][:, yi01, xi01].squeeze()
-            vtemp = ( aiy*((aix*vvtemp).sum(-1)) ).sum(-1)
-            V[vv] = np.append(V[vv], vtemp)
-        for vv in v3_list_rho:
-            xi01, yi01, aix, aiy = get_its(ds, vv, Xi0, Yi0, Xi1, Yi1, Aix, Aiy)
-            vvtemp = ds.variables[vv][:, :, yi01, xi01].squeeze()
-            vtemp = ( aiy*((aix*vvtemp).sum(-1)) ).sum(-1)
-            if count == 0:
-                V[vv] = vtemp.reshape((S['N'],1))
-            else:
-                V[vv] = np.concatenate((V[vv], vtemp.reshape((S['N'],1))), axis=1)
-        for vv in v3_list_w:
-            xi01, yi01, aix, aiy = get_its(ds, vv, Xi0, Yi0, Xi1, Yi1, Aix, Aiy)
-            vvtemp = ds.variables[vv][:, :, yi01, xi01].squeeze()
-            vtemp = ( aiy*((aix*vvtemp).sum(-1)) ).sum(-1)
-            if count == 0:
-                V[vv] = vtemp.reshape((S['N']+1,1))
-            else:
-                V[vv] = np.concatenate((V[vv], vtemp.reshape((S['N']+1,1))), axis=1)
-        # listing of contents, if desired
-        if count == 0 and False:
-            zfun.ncd(ds)
-        count += 1
+    ds = nc.Dataset(fn)
+    for vv in v1_list:
+        vtemp = ds.variables[vv][:].squeeze()
+        V[vv] = np.append(V[vv], vtemp)
+    for vv in v2_list:
+        xi01, yi01, aix, aiy = get_its(ds, vv, Xi0, Yi0, Xi1, Yi1, Aix, Aiy)
+        vvtemp = ds.variables[vv][:, yi01, xi01].squeeze()
+        vtemp = ( aiy*((aix*vvtemp).sum(-1)) ).sum(-1)
+        V[vv] = np.append(V[vv], vtemp)
+    for vv in v3_list_rho:
+        xi01, yi01, aix, aiy = get_its(ds, vv, Xi0, Yi0, Xi1, Yi1, Aix, Aiy)
+        vvtemp = ds.variables[vv][:, :, yi01, xi01].squeeze()
+        vtemp = ( aiy*((aix*vvtemp).sum(-1)) ).sum(-1)
+        if count == 0:
+            V[vv] = vtemp.reshape((S['N'],1))
+        else:
+            V[vv] = np.concatenate((V[vv], vtemp.reshape((S['N'],1))), axis=1)
+    for vv in v3_list_w:
+        xi01, yi01, aix, aiy = get_its(ds, vv, Xi0, Yi0, Xi1, Yi1, Aix, Aiy)
+        vvtemp = ds.variables[vv][:, :, yi01, xi01].squeeze()
+        vtemp = ( aiy*((aix*vvtemp).sum(-1)) ).sum(-1)
+        if count == 0:
+            V[vv] = vtemp.reshape((S['N']+1,1))
+        else:
+            V[vv] = np.concatenate((V[vv], vtemp.reshape((S['N']+1,1))), axis=1)
+    # listing of contents, if desired
+    if count == 0 and False:
+        zfun.ncd(ds)
+    count += 1
 
 ds.close()
 
@@ -272,19 +248,6 @@ v2_list.append('hh')
 v3_list_rho.append('z_rho')
 v3_list_w.append('z_w')
 
-#%% save the output to NetCDF
-out_fn = (outdir +
-    Ldir['gtagex'] + '_' +
-    Ldir['sta_name'] + '_' +
-    Ldir['list_type'] + '_' +
-    Ldir['date_string0'] + '_' +
-    Ldir['date_string1'] +
-    '.nc')
-# get rid of the old version, if it exists
-try:
-    os.remove(out_fn)
-except OSError:
-    pass # assume error was because the file did not exist
 foo = nc.Dataset(out_fn, 'w')
 
 N = S['N']
@@ -342,4 +305,5 @@ else:
 print('')
 for k in result_dict.keys():
     print('%s: %s' % (k, result_dict[k]))
+
 
