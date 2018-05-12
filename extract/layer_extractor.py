@@ -32,12 +32,11 @@ import zfun
 gridname = 'cascadia1'
 tag = 'base'
 ex_name = 'lobio5'
-list_type = 'low_pass' # hourly, daily, low_passed
-# Example of date_string is 2015.09.19
-dsf = '%Y.%m.%d'
+list_type = 'low_passed' # hourly, daily, low_passed
+dsf = '%Y.%m.%d' # Example of date_string is 2015.09.19
 date_string0 = datetime(2017,1,1).strftime(format=dsf)
 date_string1 = datetime(2017,1,31).strftime(format=dsf)
-nlay_str = '-1'
+nlay_str = '-1' # layer number, -1 for top, 0 for bottom
 
 # optional command line arguments, can be input in any order, or omitted
 parser = argparse.ArgumentParser()
@@ -65,7 +64,7 @@ dt1 = datetime.strptime(args.date_string1, dsf)
 outdir = Ldir['LOo'] + 'moor/'
 Lfun.make_dir(outdir)
 # output file
-out_name = 'layer_' + Ldir['gtagex'] + '.nc'
+out_name = 'layer_' + Ldir['gtagex'] + '_' + list_type + '.nc'
 out_fn = outdir + out_name
 # get rid of the old version, if it exists
 try:
@@ -80,12 +79,16 @@ while dt <= dt1:
     Ldir['date_string'] = date_string
     f_string = 'f' + Ldir['date_string']
     in_dir = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/' + f_string + '/'
-    if (list_type == 'low_pass') and ('low_passed.nc' in os.listdir(in_dir)):
+    if (list_type == 'low_passed'):
         fn_list.append(in_dir + 'low_passed.nc') 
     elif (list_type == 'daily'):
-        fn_list.append(in_dir + 'ocean_his_0013.nc') # get noon UTC files
+        fn_list.append(in_dir + 'ocean_his_0001.nc')
     elif list_type == 'hourly':
-        for hh in range(2,26):
+        if dt == dt0:
+            h0 = 1
+        else:
+            h0 = 2
+        for hh in range(h0,26):
             hhhh = ('0000' + str(hh))[-4:]
             fn_list.append(in_dir + 'ocean_his_' + hhhh + '.nc')
     dt = dt + timedelta(days=1)
@@ -102,9 +105,9 @@ ds2 = nc.Dataset(out_fn, 'w')
 dlist = ['xi_rho', 'eta_rho', 'xi_psi', 'eta_psi', 'ocean_time']
 vn_list_2d = [ 'lon_rho', 'lat_rho', 'lon_psi', 'lat_psi', 'mask_rho', 'h']
 vn_list_2d_t = ['zeta']
-vn_list_3d_t = []#['salt', 'temp', 'NO3']
+vn_list_3d_t = ['salt', 'temp', 'NO3']
 vn_list_2d_uv_t = ['sustr', 'svstr']
-vn_list_3d_uv_t = []#['u', 'v']
+vn_list_3d_uv_t = ['u', 'v']
 
 # Create dimensions
 for dname, the_dim in ds1.dimensions.items():
