@@ -50,68 +50,57 @@ this_iz = -1 # index of HyCOM depth level to use (-1 = top)
 # +++ load ecology CTD cast data +++
 
 dir0 = Ldir['parent'] + 'ptools_data/ecology/'
-
-# load Ecology station location and depth info
-sta_info_fn = dir0 + 'ParkerMacCreadyCoreStationInfoFeb2018.xlsx'
-sta_df = pd.read_excel(sta_info_fn)
-sta_df = sta_df.set_index('Station')
-# get locations in decimal degrees
-for sta in sta_df.index:
-    lat_str = sta_df.loc[sta, 'Lat_NAD83 (deg / dec_min)']
-    lat_deg = float(lat_str.split()[0]) + float(lat_str.split()[1])/60
-    sta_df.loc[sta,'Latitude'] = lat_deg
-    #
-    lon_str = sta_df.loc[sta, 'Long_NAD83 (deg / dec_min)']
-    lon_deg = float(lon_str.split()[0]) + float(lon_str.split()[1])/60
-    sta_df.loc[sta,'Longitude'] = -lon_deg    
+# load processed station info and data
+year = 2017
+sta_df = pd.read_pickle(dir0 + 'sta_df.p')
 
 # limit the stations used, if desired
-sta_list = [s for s in sta_df.index if ('WPA' not in s) and ('GYS' not in s)]
+sta_list = [s for s in sta_df.index]# if ('WPA' not in s) and ('GYS' not in s)]
 sta_df = sta_df.loc[sta_list,['Max_Depth', 'Latitude', 'Longitude']]
-
 
 #========================================================================
 
 # get the Ecology cast data
-fn = dir0 + 'ParkerMacCready2017CTDDataFeb2018.xlsx'
-# read in the data (all stations, all casts)
-all_casts = pd.read_excel(fn, sheet_name='2017Provisional_CTDResults',
-                          parse_dates = ['Date'])
+
+Casts = pd.read_pickle(dir0 + 'Casts_' + str(year) + '.p')
 
 Cast_dict = dict()
 
 for station in sta_list:
     #print(' - reading: ' + station)           
-    casts = all_casts[all_casts['Station'] == station]   
+    
+    casts = Casts[Casts['Station'] == station]   
+    
     casts = casts.set_index('Date')    
-    casts['Z'] = -casts['Depth'] # and make a Z column
-    casts = casts.loc[:,['Salinity', 'Temp','Z']] # keep only selected columns
+    # casts['Z'] = -casts['Depth'] # and make a Z column
+    casts = casts.loc[:,['Salinity', 'Temperature','Z']] # keep only selected columns
     # identify a single cast by its DATE
     alldates = casts.index
     castdates = alldates.unique() # a short list of unique dates (1 per cast)
 
     # get the CTD cast data for this station, in the nearest month
     cdv = castdates.month.values
-    imo = zfun.find_nearest_ind(cdv, this_mo)
-    new_mo = cdv[imo]
-    cast = casts[casts.index.month==new_mo]
+    if len(cdv) > 0:
+        imo = zfun.find_nearest_ind(cdv, this_mo)
+        new_mo = cdv[imo]
+        cast = casts[casts.index.month==new_mo]
     
-    # drop repeat values (aiming for the first of a depth pair)
-    zdf = np.diff(cast['Z'])
-    zdf = np.concatenate((np.array([1.,]),zdf))
-    mask = zdf != 0
-    cast = cast[mask]
-    Cast = cast.set_index('Z') # reorganize so that the index is Z
-    Cast = Cast.sort_index() # now packed bottom to top (like hycom and roms)
-    Cast = Cast.iloc[5:,:] # drop deepest values (sometimes bad)
-    Cast = Cast.dropna() # clean up
+        Cast = cast.set_index('Z') # reorganize so that the index is Z
+        Cast = Cast.dropna() # clean up
     
-    # store cast in a dict
-    Cast_dict[station] = Cast
+        # store cast in a dict
+        Cast_dict[station] = Cast
     
-    # save the month
-    sta_df.loc[station,'Month'] = new_mo
+        # save the month
+        sta_df.loc[station,'Month'] = new_mo
+
+    else:
+        print(station + ': no data')
+        # mask = sta_df.index != station
+        # sta_df = sta_df.loc[mask,:]
     
+sta_df = sta_df.dropna()
+sta_list = list(sta_df.index)
 #========================================================================
 
 # +++ get the processed HYCOM data for the chosen day +++
@@ -162,10 +151,11 @@ xyorig = np.concatenate((xyorig, xy_sta))
 temp_list = []
 salt_list = []
 for station in Cast_dict.keys():
+    
     Cast = Cast_dict[station]
     cz = Cast.index.values
     izc = zfun.find_nearest_ind(cz, z[this_iz])
-    this_temp = Cast.iloc[izc]['Temp']
+    this_temp = Cast.iloc[izc]['Temperature']
     this_salt = Cast.iloc[izc]['Salinity']
     temp_list.append(this_temp)
     salt_list.append(this_salt)
