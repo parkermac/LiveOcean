@@ -46,7 +46,7 @@ f_list.sort()
 f_list = f_list[-args.num_days:]
 
 # list of properties to inspect
-clist = ['tide', 'riv', 'atm', 'ocn1', 'dot_in', 'his',
+clist = ['tide', 'riv', 'atm', 'ocn1', 'bio', 'dot_in', 'his',
     'tracks_m', 'carbon', 'low_pass', 'ubc', 'surface', 'azu1']
 
 # initialize the DataFrame
@@ -58,15 +58,15 @@ force_dict = {'atm': ['lwrad_down.nc', 'Pair.nc', 'Qair.nc', 'rain.nc',
               'ocn1': ['ocean_bry.nc', 'ocean_clm.nc', 'ocean_ini.nc'],
               'riv': ['rivers.nc'],
               'tide': ['tides.nc']}
-if 'bio' in args.ex_name:
-    force_dict['ocn1'] = ['ocean_bry_bio.nc', 'ocean_clm_bio.nc', 'ocean_ini_bio.nc']
-    force_dict['riv'] = ['rivers_bio.nc']
+# if 'bio' in args.ex_name:
+#     force_dict['ocn1'] = ['ocean_bry_bio.nc', 'ocean_clm_bio.nc', 'ocean_ini_bio.nc']
+#     force_dict['riv'] = ['rivers_bio.nc']
     
 # populate the DataFrame with forcing results
 for f_string in f_list:
     for which_force in force_dict.keys():
         force_dir = f_dir0 + f_string + '/' + which_force + '/'        
-        if which_force in ['atm', 'ocn', 'ocn1']:
+        if which_force in ['atm', 'ocn1']:
             #  in these cases looks for specific time info
             try:
                 time_format = '%Y.%m.%d %H:%M:%S'
@@ -90,7 +90,7 @@ for f_string in f_list:
                 
 # for other things look in the Info
 for f_string in f_list:
-    for which_force in ['tracks_m', 'carbon', 'low_pass', 'ubc', 'surface']:
+    for which_force in ['bio', 'tracks_m', 'carbon', 'low_pass', 'ubc', 'surface']:
         force_dir = f_dir0 + f_string + '/' + which_force + '/'
         try:
             ps = Lfun.csv_to_dict(force_dir + 'Info/process_status.csv')

@@ -241,7 +241,7 @@ def time_filter(in_dir, h_list, out_dir, Ldir):
                     if n == 0:
                         aa[v] = a[v]/fac_list[n]
                     else:
-                        aa[v] = aa[v] + a[v]/fac_list[n]                        
+                        aa[v] = aa[v] + a[v]/fac_list[n]
             out_name = 'f' + h_list[n_center]
             dts = out_name.strip('fh').strip('.p')
             dt = datetime.strptime(dts, '%Y.%m.%d')
