@@ -17,8 +17,9 @@ import sys
 alp = os.path.abspath('../alpha')
 if alp not in sys.path:
     sys.path.append(alp)
-from importlib import reload
-import zfun; reload(zfun)
+import Lfun
+Ldir = Lfun.Lstart(gridname='cascadia1', tag='base')
+import zfun
 
 import netCDF4 as nc
 import matplotlib.pyplot as plt
@@ -26,26 +27,17 @@ import numpy as np
 
 #%% where to look
 
-dir0 = '~/Documents/LiveOcean_output/'
-case = 1
-if case == 1:
-    gtag = 'cascadia2_frc2'
-    f_string = 'f2013.01.01'
-elif case == 2:
-    gtag = 'cascadia1_base'
-    f_string = 'f2015.09.19'
+f_string = 'f2017.01.01'
 
 #%% look at the output files
 
-in_fn = (dir0 + gtag + '/' + f_string + '/ocn/ocean_clm.nc')
+in_fn = (Ldir['LOo'] + Ldir['gtag'] +'/' + f_string + '/ocn1/ocean_clm.nc')
 
 ds = nc.Dataset(in_fn)
 
-#zfun.ncd(ds)
-
 #%% plotting
 
-plt.close()
+#plt.close()
 
 vn_list =['salt', 'temp', 'u', 'v']
 

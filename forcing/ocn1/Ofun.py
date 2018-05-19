@@ -12,6 +12,8 @@ import pickle
 from scipy.spatial import cKDTree
 import seawater
 
+import Ofun_CTD
+
 hpth = os.path.abspath('../hycom1/')
 if hpth not in sys.path:
     sys.path.append(hpth)
@@ -287,15 +289,10 @@ def get_coords(in_dir):
     L = len(lon)
     M = len(lat)
     N = len(z)
-    lonr = np.pi * lon / 180.0
-    latr = np.pi * lat / 180.0
-    # Create arrays of distance from the center (km) so that the
+    # Create arrays of distance from the center (m) so that the
     # nearest neighbor extrapolation is based on physical distance
-    RE = zfun.earth_rad(np.mean(lat))/1000 # radius of the Earth (km)
-    mlatr = np.mean(latr)
-    mlonr = np.mean(lonr)
-    clat = np.cos(mlatr)
-    X, Y = np.meshgrid(RE*clat*(lonr - mlonr), RE*(latr - mlatr))    
+    Lon, Lat = np.meshgrid(lon,lat)
+    X, Y = zfun.ll2xy(Lon, Lat, lon.mean(), lat.mean())
     return (lon, lat, z, L, M, N, X, Y)
 
 def checknan(fld):
@@ -337,7 +334,7 @@ def extrap_nearest_to_masked(X, Y, fld, fld0=0):
         checknan(fld)
         return fld
             
-def get_extrapolated(in_fn, L, M, N, X, Y, z):
+def get_extrapolated(in_fn, L, M, N, X, Y, lon, lat, z, Ldir, add_CTD=False):
     b = pickle.load(open(in_fn, 'rb'))
     vn_list = list(b.keys())    
     # check that things are the expected shape
@@ -370,11 +367,22 @@ def get_extrapolated(in_fn, L, M, N, X, Y, z):
             v0 = v.min()
         elif vn == 's3d':
             v0 = v.max()   
-        if vn in ['t3d', 's3d']:   
-            for k in range(N):
-                fld = v[k, :, :]
-                fldf = extrap_nearest_to_masked(X, Y, fld, fld0=v0)
-                V[vn][k, :, :] = fldf
+        if vn in ['t3d', 's3d']:
+            if add_CTD==False:
+                for k in range(N):
+                    fld = v[k, :, :]
+                    fldf = extrap_nearest_to_masked(X, Y, fld, fld0=v0)
+                    V[vn][k, :, :] = fldf
+            elif add_CTD==True:
+                print('Adding CTD data before extrapolating')
+                Cast_dict, sta_df = Ofun_CTD.get_casts(Ldir)
+                for k in range(N):
+                    fld = v[k, :, :]
+                    zz = z[k]
+                    xyorig, fldorig = Ofun_CTD.get_orig(Cast_dict, sta_df, X, Y, fld, lon, lat, zz, vn)
+                    fldf = Ofun_CTD.extrap_nearest_to_masked_CTD(X,Y,fld,
+                        xyorig=xyorig,fldorig=fldorig,fld0=v0)
+                    V[vn][k, :, :] = fldf
         elif vn in ['u3d', 'v3d']:
             vv = v.copy()
             vv[v.mask] = 0

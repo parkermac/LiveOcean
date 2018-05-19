@@ -233,6 +233,10 @@ def update_position(V, ZH, S, delta_t, plon, plat, pcs, surface):
     pdx_deg = (180./np.pi)*dX_m[:,0]/(per_m*clat)
     pdy_deg = (180./np.pi)*dX_m[:,1]/per_m
     H = ZH.sum(axis=1)
+    # NOTE 2018.05.18 I believe that the first column of ZH is the
+    # zeta of all particles, and the second is h, so the H we calculate
+    # above is the total water column thickness.  The particle z-positions
+    # should then be ...
     pdz_s = dX_m[:,2]/H
     Plon += pdx_deg
     Plat += pdy_deg
@@ -357,7 +361,7 @@ def get_properties(vn_list_other, ds, it, P, plon, plat, pcs, R, surface):
     this_zeta = OTH[:, vn_list_other.index('zeta')]
     this_h = OTH[:, vn_list_other.index('h')]
     full_depth = this_zeta + this_h
-    P['z'][it,:] = pcs * full_depth
+    P['z'][it,:] = pcs * full_depth # is this correct??
 
     return P
 

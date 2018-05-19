@@ -12,9 +12,8 @@ import numpy as np
 import pandas as pd
 from scipy.spatial import cKDTree
 
-import pfun
 
-pth = os.path.abspath('../alpha')
+pth = os.path.abspath('../../alpha')
 if pth not in sys.path:
     sys.path.append(pth)
 import Lfun
@@ -22,10 +21,12 @@ Ldir = Lfun.Lstart(gridname='cas3', tag='v1')
 import zfun
 import zrfun
 
-pth = os.path.abspath('../forcing/ocn1')
+import Ofun
+
+pth = os.path.abspath('../../plotting')
 if pth not in sys.path:
     sys.path.append(pth)
-import Ofun
+import pfun
 
 date_string = '2017.01.01'
 frc = 'ocn1'
@@ -38,12 +39,26 @@ Ldir['LOogf_fd'] = (Ldir['LOogf_f'] + 'Data/')
 
 #========================================================================
 
+# +++ notes toward a function to use in ocn1/make_forcing_main.py +++
+
+"""
+original call to provide an alternate for (line 174)
+
+V = Ofun.get_extrapolated(in_fn, L, M, N, X, Y, z)
+
+where in_fn should be the same as what I load into "fh" below
+
+
+"""
+
+#========================================================================
+
 # User input: eventually any of these might be values in a list
 # that is looped over
 
 year = 2017 # target year
 this_mo = 1 # target month to get data from
-this_iz = 0 # index of HyCOM depth level to use (0=bottom to 39=top, or -1=top)
+this_iz = 30 # index of HyCOM depth level to use (0=bottom to 39=top, or -1=top)
 
 #========================================================================
 
@@ -105,19 +120,13 @@ for station in sta_list:
 # +++ get the processed HYCOM data for the chosen day +++
 
 in_dir = Ldir['LOogf_fd']
+
 # coordinates
-xyz = pickle.load(open(in_dir + 'coord_dict.p', 'rb'))
-x = xyz['lon']
-y = xyz['lat']
-z = xyz['z'] # packed bottom to top
+lon, lat, z, L, M, N, X, Y = Ofun.get_coords(in_dir)
 zz = z[this_iz] # HYCOM target depth
 
 # fields
 fh = pickle.load(open(in_dir + 'fh' + date_string +'.p', 'rb'))
-
-# make arrays of distance from the grid center
-X, Y = np.meshgrid(x,y)
-XX, YY = zfun.ll2xy(X, Y, x.mean(), y.mean())
 
 # pull out fields for a single z level
 t = fh['t3d'][this_iz,:,:]
@@ -127,7 +136,7 @@ s = fh['s3d'][this_iz,:,:]
 t0 = fh['t3d'].min()
 s0 = fh['s3d'].max()
 
-# and print infor about their locations
+# and print info about the fill values their locations
 for vn in ['t3d', 's3d']:
     [k,m,l] = np.unravel_index(fh[vn].argmin(), fh[vn].shape)
     print('%s min at [%d, %d, %d]' % (vn, k, l, m))
@@ -138,14 +147,14 @@ for vn in ['t3d', 's3d']:
 if not (t.mask == s.mask).all():
     print('mask error!')
 
-# vectors or 1- or 2-column arrays of the good points to feed to cKDTree
-xyorig = np.array((XX[~t.mask],YY[~t.mask])).T
+#  make vectors or 1- or 2-column arrays (*) of the good points to feed to cKDTree
+xyorig = np.array((X[~t.mask],Y[~t.mask])).T
 torig = t[~t.mask]
 sorig = s[~t.mask]
 
 #========================================================================
 
-# +++ append good points from CTD data to our arrays +++
+# +++ append good points from CTD data to our arrays (*) +++
 
 goodcount = 0
 
@@ -184,7 +193,7 @@ if goodcount >= 1:
     # append CTD values to the good points from HYCOM
     x_sta = sta_df['Longitude'].values
     y_sta = sta_df['Latitude'].values
-    xx_sta, yy_sta = zfun.ll2xy(x_sta, y_sta, x.mean(), y.mean())
+    xx_sta, yy_sta = zfun.ll2xy(x_sta, y_sta, lon.mean(), lat.mean())
     xy_sta = np.stack((xx_sta,yy_sta), axis=1)
     xyorig = np.concatenate((xyorig, xy_sta))
     
@@ -200,7 +209,7 @@ else:
 
 # +++ do the extrapolation +++
 
-def extrap_nearest_to_nan_CTD(XX,YY,fld,xyorig=[],fldorig=[],fld0=0):
+def extrap_nearest_to_masked_CTD(X,Y,fld,xyorig=[],fldorig=[],fld0=0):
     if np.ma.is_masked(fld):
         if fld.all() is np.ma.masked:
             print('  filling with ' + str(fld0))
@@ -211,7 +220,7 @@ def extrap_nearest_to_nan_CTD(XX,YY,fld,xyorig=[],fldorig=[],fld0=0):
         else:
             fldf = fld.copy()
             # array of the missing points that we want to fill
-            xynew = np.array((XX[fld.mask],YY[fld.mask])).T
+            xynew = np.array((X[fld.mask],Y[fld.mask])).T
             # array of indices for points nearest to the missing points
             a = cKDTree(xyorig).query(xynew)
             aa = a[1]
@@ -226,20 +235,8 @@ def extrap_nearest_to_nan_CTD(XX,YY,fld,xyorig=[],fldorig=[],fld0=0):
         checknan(fld)
         return fld
         
-tnew = extrap_nearest_to_nan_CTD(XX,YY,t,xyorig=xyorig,fldorig=torig,fld0=t0)
-snew = extrap_nearest_to_nan_CTD(XX,YY,s,xyorig=xyorig,fldorig=sorig,fld0=s0)
-
-# # initialize the fields to be filled
-# tnew = t.copy()
-# snew = s.copy()
-# # array of the missing points that we want to fill
-# xynew = np.array((XX[t.mask],YY[t.mask])).T
-# # array of indices for points nearest to the missing points
-# a = cKDTree(xyorig).query(xynew)
-# aa = a[1]
-# # use those indices to fill in using the good data
-# tnew[t.mask] = torig[aa]
-# snew[t.mask] = sorig[aa]
+tnew = extrap_nearest_to_masked_CTD(X,Y,t,xyorig=xyorig,fldorig=torig,fld0=t0)
+snew = extrap_nearest_to_masked_CTD(X,Y,s,xyorig=xyorig,fldorig=sorig,fld0=s0)
 
 #========================================================================
 
@@ -252,22 +249,13 @@ fig, axes = plt.subplots(1,2, squeeze=False, figsize=(14,7))
 v0 = 4
 v1 = 9
 
-# ax = axes[0,0]
-# cs = ax.pcolormesh(x,y,t, cmap='rainbow', vmin=v0, vmax=v1)
-# #fig.colorbar(cs, ax=ax)
-# pfun.dar(ax)
-# pfun.add_coast(ax)
-# ax.set_xlim(x[0],x[-1])
-# ax.set_ylim(y[0],y[-1])
-# ax.set_title('HYCOM temp: n=' + str(this_iz) + ', z=' + str(zz))
-
 ax = axes[0,0]
-cs = ax.pcolormesh(x,y,tnew, cmap='rainbow', vmin=v0, vmax=v1)
+cs = ax.pcolormesh(lon,lat,tnew, cmap='rainbow', vmin=v0, vmax=v1)
 fig.colorbar(cs, ax=ax)
 pfun.dar(ax)
 pfun.add_coast(ax)
-ax.set_xlim(x[0],x[-1])
-ax.set_ylim(y[0],y[-1])
+ax.set_xlim(lon[0],lon[-1])
+ax.set_ylim(lat[0],lat[-1])
 ax.set_title('temp w/CTD: n=' + str(this_iz) + ', z=' + str(zz))
 # add station locations
 if goodcount >= 1:
@@ -284,12 +272,12 @@ v0 = 20
 v1 = 33
 
 ax = axes[0,1]
-cs = ax.pcolormesh(x,y,snew, cmap='rainbow', vmin=v0, vmax=v1)
+cs = ax.pcolormesh(lon,lat,snew, cmap='rainbow', vmin=v0, vmax=v1)
 fig.colorbar(cs, ax=ax)
 pfun.dar(ax)
 pfun.add_coast(ax)
-ax.set_xlim(x[0],x[-1])
-ax.set_ylim(y[0],y[-1])
+ax.set_xlim(lon[0],lon[-1])
+ax.set_ylim(lat[0],lat[-1])
 ax.set_title('salt w/CTD')
 # add station locations
 if goodcount >= 1:

@@ -54,20 +54,26 @@ import netCDF4 as nc
 import zrfun
 import Ofun
 import Ofun_nc
+import Ofun_CTD
 from importlib import reload
 reload(Ofun)
 reload(Ofun_nc)
+reload(Ofun_CTD)
 
 start_time = datetime.now()
 
 vnl_full = ['ssh','s3d','t3d','u3d','v3d']
 exnum = '91.2'
-testing = False
+add_CTD = False
+
+testing = True
 
 if testing == False:
     planB = False
+    
 elif testing == True:
-    planB = True
+    planB = False
+    add_CTD = True
 
 if (Ldir['run_type'] == 'forecast') and (planB == False):    
     h_out_dir = Ldir['LOogf_fd']      
@@ -171,7 +177,7 @@ if planB == False:
     for fn in aa:    
         print('-Extrapolating ' + fn)    
         in_fn = fh_dir + fn
-        V = Ofun.get_extrapolated(in_fn, L, M, N, X, Y, z)
+        V = Ofun.get_extrapolated(in_fn, L, M, N, X, Y, lon, lat, z, Ldir, add_CTD=add_CTD)
         pickle.dump(V, open(fh_dir + 'x' + fn, 'wb'))
 
     # and interpolate to ROMS format
