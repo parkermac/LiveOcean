@@ -9,6 +9,9 @@ as well as regular forecasts.
 which copies the clm file from the previous day and
 makes the final time a day later.
 
+2018.05.19 I added the add_CTD flag (and the Ofun_CTD module) to add CTD data
+on a specified day only.
+
 *******************************
 
 To run from the command line in LiveOcean/driver/:
@@ -29,7 +32,9 @@ This will add the bio variables:
 run make_forcing_main.py -g cas1 -t base -x lobio3 -r backfill -d 2013.01.01
 
 Or:
+(good for testing the new Ofun_CTD code)
 run make_forcing_main.py -g cas3 -t v1 -r backfill -d 2017.01.01
+run make_forcing_main.py -g cascadia1 -t base -r backfill -d 2017.01.01
 
 Or try a forecast
 run make_forcing_main.py -g cascadia1 -t base -r forecast
@@ -64,22 +69,23 @@ start_time = datetime.now()
 
 vnl_full = ['ssh','s3d','t3d','u3d','v3d']
 exnum = '91.2'
+
+# defaults
+planB = False
 add_CTD = False
 
-testing = True
-
-if testing == False:
-    planB = False
-    
-elif testing == True:
-    planB = False
+# *** automate when to set add_CTD to True ***
+this_dt = datetime.strptime(Ldir['date_string'], '%Y.%m.%d')
+if this_dt == datetime(2017,1,1):
+    print('WARNING: adding CTD data to extrapolation!!')
     add_CTD = True
 
-if (Ldir['run_type'] == 'forecast') and (planB == False):    
+if (Ldir['run_type'] == 'forecast') and (planB == False):
+    # this either gets new hycom files, or sets planB to True
+    
     h_out_dir = Ldir['LOogf_fd']      
     print('** START getting catalog')
     # create a list of url's of the preprocessed HYCOM files for this forecast
-    
     try:
         fn_list = Ofun.get_hycom_file_list(exnum)
         print('** END getting catalog')
@@ -119,6 +125,8 @@ if (Ldir['run_type'] == 'forecast') and (planB == False):
         planB = True
        
 elif (Ldir['run_type'] == 'backfill') and (planB == False):
+    # make a list of files to use from the hocom1 archive
+    
     # get a list of all available times
     h_in_dir = Ldir['data'] + 'hycom1/'        
     h_list0 = os.listdir(h_in_dir)
@@ -150,11 +158,12 @@ elif (Ldir['run_type'] == 'backfill') and (planB == False):
         for it in it_list:
             fn = h_list1[it]
             h_list.append(fn)
-            #print(fn) # debugging
     # note that we don't actually write any of the files, because
     # they already exist in LiveOcean_data/hycom1/
 
 if planB == False:
+    # process the hycom files
+    
     # copy in the coordinates (assume those from hycom1 work)
     exnum1 = '91.2'
     c_in_dir = Ldir['data'] + 'hycom1/'

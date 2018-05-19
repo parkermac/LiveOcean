@@ -10,58 +10,105 @@ Only set up to work on mac.
 
 """
 
-#%% setup
+gridname='cas4'
+tag='v0'
+date_string = '2017.01.01'
+
+# setup
 
 import os
 import sys
-alp = os.path.abspath('../alpha')
+alp = os.path.abspath('../../alpha')
 if alp not in sys.path:
     sys.path.append(alp)
 import Lfun
-Ldir = Lfun.Lstart(gridname='cascadia1', tag='base')
+Ldir = Lfun.Lstart(gridname=gridname, tag=tag)
 import zfun
+import zrfun
+
+pth = os.path.abspath('../../plotting')
+if pth not in sys.path:
+    sys.path.append(pth)
+import pfun
 
 import netCDF4 as nc
 import matplotlib.pyplot as plt
 import numpy as np
+import pickle
 
-#%% where to look
+# get files
 
-f_string = 'f2017.01.01'
+grid_fn = Ldir['grid'] + 'grid.nc'
+dsg = nc.Dataset(grid_fn)
+lonp = dsg['lon_psi'][:]
+latp = dsg['lat_psi'][:]
+maskr = dsg['mask_rho'][:]
+dsg.close()
 
-#%% look at the output files
-
-in_fn = (Ldir['LOo'] + Ldir['gtag'] +'/' + f_string + '/ocn1/ocean_clm.nc')
-
+indir = Ldir['LOo'] + Ldir['gtag'] +'/f' + date_string + '/ocn1/'
+in_fn = (indir + 'ocean_clm.nc')
 ds = nc.Dataset(in_fn)
+
+in_fn_coords = (indir + 'Data/coord_dict.p')
+in_fn_fh = (indir + 'Data/fh' + date_string + '.p')
+in_fn_xfh = (indir + 'Data/xfh' + date_string + '.p')
+#
+coord_dict = pickle.load(open(in_fn_coords, 'rb'))
+lon = coord_dict['lon']
+lat = coord_dict['lat']
+#
+fh = pickle.load(open(in_fn_fh, 'rb'))
+xfh = pickle.load(open(in_fn_xfh, 'rb'))
 
 #%% plotting
 
-#plt.close()
-
-vn_list =['salt', 'temp', 'u', 'v']
-
-NP = len(vn_list)
-NR = np.maximum(1, np.ceil(np.sqrt(NP)).astype(int))
-NC = np.ceil(np.sqrt(NP)).astype(int)
-fig, axes = plt.subplots(nrows=NR, ncols=NC, figsize=(17,10), squeeze=False)
-cc = 0
-for vn in vn_list:
-    ir = int(np.floor(cc/NC))
-    ic = int(cc - NC*ir)
-    ax = axes[ir, ic]
-    # **********************
-    v = ds[vn][0, -1, :, :]
-    print(vn + ' ' + str(np.isnan(v).sum()) + ' nans')
-    cs = ax.pcolormesh(v)
-    ax.axis('tight')
-    fig.colorbar(cs, ax=ax)
-    ax.set_title(vn)
-    # **********************
-    cc += 1
-plt.show()
+plt.close()
 
 
+def set_box(ax):
+    ax.set_xlim(-127.5, -122)
+    ax.set_ylim(43,50.5)
+
+fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(17,10), squeeze=False)
+
+if True:
+    hvn = 's3d'
+    vn = 'salt'
+    vmin = 15
+    vmax = 34
+else:
+    hvn = 't3d'
+    vn = 'temp'
+    vmin = 5
+    vmax = 12
+
+ax = axes[0,0]
+v = fh[hvn][-1,:,:]
+cs = ax.pcolormesh(lon, lat, v, cmap='rainbow', vmin=vmin, vmax=vmax)
+pfun.dar(ax)
+pfun.add_coast(ax)
+set_box(ax)
+ax.set_title('HYCOM original: ' + hvn)
+
+ax = axes[0,1]
+v = xfh[hvn][-1,:,:]
+cs = ax.pcolormesh(lon, lat, v, cmap='rainbow', vmin=vmin, vmax=vmax)
+pfun.dar(ax)
+pfun.add_coast(ax)
+set_box(ax)
+ax.set_title('HYCOM extrapolated: ' + hvn)
+
+ax = axes[0,2]
+v = ds[vn][0, -1, :, :]
+v[maskr==0] = np.nan
+cs = ax.pcolormesh(lonp, latp, v[1:-1,1:-1], cmap='rainbow', vmin=vmin, vmax=vmax)
+pfun.dar(ax)
+pfun.add_coast(ax)
+ax.text(.95, .05, date_string,
+    horizontalalignment='right', transform=ax.transAxes,
+    fontweight='bold')
+set_box(ax)
+ax.set_title('ROMS ' + Ldir['gtag'] + ': ' + vn)
 
 plt.show()
 

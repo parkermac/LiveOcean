@@ -374,12 +374,13 @@ def get_extrapolated(in_fn, L, M, N, X, Y, lon, lat, z, Ldir, add_CTD=False):
                     fldf = extrap_nearest_to_masked(X, Y, fld, fld0=v0)
                     V[vn][k, :, :] = fldf
             elif add_CTD==True:
-                print('Adding CTD data before extrapolating')
+                print(vn + ' Adding CTD data before extrapolating')
                 Cast_dict, sta_df = Ofun_CTD.get_casts(Ldir)
                 for k in range(N):
                     fld = v[k, :, :]
                     zz = z[k]
-                    xyorig, fldorig = Ofun_CTD.get_orig(Cast_dict, sta_df, X, Y, fld, lon, lat, zz, vn)
+                    xyorig, fldorig = Ofun_CTD.get_orig(Cast_dict, sta_df,
+                        X, Y, fld, lon, lat, zz, vn)
                     fldf = Ofun_CTD.extrap_nearest_to_masked_CTD(X,Y,fld,
                         xyorig=xyorig,fldorig=fldorig,fld0=v0)
                     V[vn][k, :, :] = fldf

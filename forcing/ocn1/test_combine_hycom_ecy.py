@@ -58,7 +58,7 @@ where in_fn should be the same as what I load into "fh" below
 
 year = 2017 # target year
 this_mo = 1 # target month to get data from
-this_iz = 30 # index of HyCOM depth level to use (0=bottom to 39=top, or -1=top)
+this_iz = 1 # index of HyCOM depth level to use (0=bottom to 39=top, or -1=top)
 
 #========================================================================
 

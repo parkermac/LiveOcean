@@ -9,6 +9,7 @@ import netCDF4 as nc
 import numpy as np
 import pandas as pd
 from scipy.spatial import cKDTree
+from datetime import datetime
 
 import Ofun
 
@@ -17,9 +18,13 @@ if pth not in sys.path:
     sys.path.append(pth)
 import zfun
 
-def get_casts(Ldir, year=2017, this_mo=1):
-    # +++ load ecology CTD cast data +++
-
+def get_casts(Ldir):
+    
+    this_dt = datetime.strptime(Ldir['date_string'], '%Y.%m.%d')
+    year = this_dt.year
+    month = this_dt.month
+    
+    # +++ load ecology CTD cast information +++
     dir0 = Ldir['parent'] + 'ptools_data/ecology/'
     # load processed station info and data
     sta_df = pd.read_pickle(dir0 + 'sta_df.p')
@@ -30,7 +35,6 @@ def get_casts(Ldir, year=2017, this_mo=1):
     sta_df = sta_df.loc[sta_list,['Max_Depth', 'Latitude', 'Longitude']]
 
     # +++ load the Ecology cast data +++
-
     Casts = pd.read_pickle(dir0 + 'Casts_' + str(year) + '.p')
 
     # start a dict to store one cast per station (it is has data in the year)
@@ -48,7 +52,7 @@ def get_casts(Ldir, year=2017, this_mo=1):
         cdv = castdates.month.values # all the months with casts
         if len(cdv) > 0:
             # get the cast closest to the selected month
-            imo = zfun.find_nearest_ind(cdv, this_mo)
+            imo = zfun.find_nearest_ind(cdv, month)
             new_mo = cdv[imo]
             cast = casts[casts.index==castdates[imo]]
             Cast = cast.set_index('Z') # reorganize so that the index is Z
@@ -58,11 +62,8 @@ def get_casts(Ldir, year=2017, this_mo=1):
             # save the month, just so we know
             sta_df.loc[station,'Month'] = new_mo
         else:
-            print(station + ': no data')
-        
-    # at this point Cast_dict.keys() is the "official" list of stations
-    # to loop over
-    
+            print('  - Ofun_CTD.get_casts:' +station + ': no data')
+    # Cast_dict.keys() is the "official" list of stations to loop over
     return Cast_dict, sta_df
     
 def get_orig(Cast_dict, sta_df, X, Y, fld, lon, lat, zz, vn):
@@ -107,8 +108,7 @@ def get_orig(Cast_dict, sta_df, X, Y, fld, lon, lat, zz, vn):
         sta_list = list(sta_df.index)
     
         # if we got any good points then append them
-        print('goodcount = ' + str(goodcount) + ' =?')
-        print('len(sta_df) = ' + str(len(sta_df)))
+        print('  - Ofun_CTD.get_orig: goodcount = %d, len(sta_df) = %d' % (goodcount, len(sta_df)))
     
         # append CTD values to the good points from HYCOM
         x_sta = sta_df['Longitude'].values
@@ -121,14 +121,14 @@ def get_orig(Cast_dict, sta_df, X, Y, fld, lon, lat, zz, vn):
         fldorig = np.concatenate((fldorig, np.array(fld_arr,ndmin=1)))
     
     else:
-        print('No points added')
+        print('  - Ofun_CTD.get_orig: No points added')
     
     return xyorig, fldorig
     
 def extrap_nearest_to_masked_CTD(X,Y,fld,xyorig=[],fldorig=[],fld0=0):
     if np.ma.is_masked(fld):
         if fld.all() is np.ma.masked:
-            print('  filling with ' + str(fld0))
+            print('  - Ofun_CTD.extrap_nearest_to_masked_CTD: filling with ' + str(fld0))
             fldf = fld0 * np.ones(fld.data.shape)
             fldd = fldf.data
             Ofun.checknan(fldd)
