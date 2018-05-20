@@ -46,7 +46,7 @@ maskr = dsg['mask_rho'][:]
 dsg.close()
 
 indir = Ldir['LOo'] + Ldir['gtag'] +'/f' + date_string + '/ocn1/'
-in_fn = (indir + 'ocean_clm.nc')
+in_fn = (indir + 'ocean_ini.nc')
 ds = nc.Dataset(in_fn)
 
 in_fn_coords = (indir + 'Data/coord_dict.p')
