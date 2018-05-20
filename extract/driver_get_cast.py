@@ -13,8 +13,8 @@ from importlib import reload
 reload(cfun)
 
 # set defaults
-gridname = 'cas3'
-tag = 'v1'
+gridname = 'cas4'
+tag = 'v0'
 ex_name = 'lo6m'
 
 testing = False
@@ -28,29 +28,14 @@ import Lfun
 Ldir = Lfun.Lstart(gridname, tag)
 Ldir['gtagex'] = Ldir['gtag'] + '_' + ex_name
 
-# where the data is
+# +++ load ecology CTD cast data +++
+
 dir0 = Ldir['parent'] + 'ptools_data/ecology/'
-fn = dir0 + 'ParkerMacCready2017CTDDataFeb2018.xlsx'
+# load processed station info and data
+sta_df = pd.read_pickle(dir0 + 'sta_df.p')
 
-# load station location and depth info
-sta_info_fn = dir0 + 'ParkerMacCreadyCoreStationInfoFeb2018.xlsx'
-sta_df = pd.read_excel(sta_info_fn)
-sta_df = sta_df.set_index('Station')
-# get locations in decimal degrees
-for sta in sta_df.index:
-    lat_str = sta_df.loc[sta, 'Lat_NAD83 (deg / dec_min)']
-    lat_deg = float(lat_str.split()[0]) + float(lat_str.split()[1])/60
-    sta_df.loc[sta,'Latitude'] = lat_deg
-    #
-    lon_str = sta_df.loc[sta, 'Long_NAD83 (deg / dec_min)']
-    lon_deg = float(lon_str.split()[0]) + float(lon_str.split()[1])/60
-    sta_df.loc[sta,'Longitude'] = -lon_deg    
-sta_df.pop('Lat_NAD83 (deg / dec_min)')
-sta_df.pop('Long_NAD83 (deg / dec_min)')
-
-# read in the data (all stations, all casts)
-all_casts = pd.read_excel(fn, sheet_name='2017Provisional_CTDResults',
-                          parse_dates = ['Date'])
+year = 2017
+Casts = pd.read_pickle(dir0 + 'Casts_' + str(year) + '.p')
 
 # trim the station list as desired
 if testing:
@@ -59,16 +44,13 @@ else:
     sta_list = [sta for sta in sta_df.index]
 
 for station in sta_list:
-    print('Extracting: ' + station)           
-    casts = all_casts[all_casts['Station'] == station]   
-    casts = casts.set_index('Date')    
     
-    # identify a single cast by its DATE
+    casts = Casts[Casts['Station'] == station]
+    casts = casts.set_index('Date')
+    casts = casts.loc[:,['Salinity', 'Temperature','Z']] # keep only selected columns
+    # identify a single cast by its date
     alldates = casts.index
     castdates = alldates.unique() # a short list of unique dates (1 per cast)
-    
-    title = station + ': ' + sta_df.loc[station,'Descrip']
-    Max_z = -float(sta_df.loc[station, 'Max_Depth'])
     
     lon_str = str(sta_df.loc[station,'Longitude'])
     lat_str = str(sta_df.loc[station,'Latitude'])
