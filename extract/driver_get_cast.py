@@ -34,14 +34,23 @@ dir0 = Ldir['parent'] + 'ptools_data/ecology/'
 # load processed station info and data
 sta_df = pd.read_pickle(dir0 + 'sta_df.p')
 
+# add Canadian data
+
+dir1 = Ldir['parent'] + 'ptools_data/canada/'
+# load processed station info and data
+sta_df_ca = pd.read_pickle(dir1 + 'sta_df.p')
+
+sta_df = pd.concat((sta_df, sta_df_ca))
+
 year = 2017
 Casts = pd.read_pickle(dir0 + 'Casts_' + str(year) + '.p')
+Casts_ca = pd.read_pickle(dir1 + 'Casts_' + str(year) + '.p')
+
+Casts = pd.concat((Casts, Casts_ca))
+
 
 # trim the station list as desired
-if testing:
-    sta_list = [sta for sta in sta_df.index if 'HCB' in sta]
-else:
-    sta_list = [sta for sta in sta_df.index]
+sta_list = [sta for sta in sta_df.index]
 
 for station in sta_list:
     
@@ -58,9 +67,9 @@ for station in sta_list:
     ds_list = []
     for cdate in castdates:
         ds_list.append(cdate.strftime('%Y.%m.%d'))
+        if testing:
+            print(station + ' ' + cdate.strftime('%Y.%m.%d') + ' ' + lon_str + ' ' + lat_str)
         
-    if testing:
-        ds_list = ['2017.03.30']
-
-    for date_string in ds_list:   
-        cfun.get_cast(gridname, tag, ex_name, date_string, station, lon_str, lat_str)
+    if not testing:
+        for date_string in ds_list:   
+            cfun.get_cast(gridname, tag, ex_name, date_string, station, lon_str, lat_str)
