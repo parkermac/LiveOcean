@@ -263,7 +263,7 @@ def make_bry_file(nc_dir):
                 elif bname in ['west', 'east']:
                     outdims = tuple([item for item in varin.dimensions if item[:2] != 'xi'])
                 outVar = ds2.createVariable(outname, varin.datatype, outdims)    
-                outVar.setncatts({k: varin.getncattr(k).replace('climatology','').strip() for k in varin.ncattrs()})            
+                outVar.setncatts({k: varin.getncattr(k).replace('climatology','').strip() for k in varin.ncattrs()})
                 if varin.ndim == 4:
                     if bname == 'north':
                         outVar[:] = varin[:,:,-1,:]
