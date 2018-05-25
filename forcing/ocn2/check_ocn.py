@@ -10,9 +10,9 @@ Only set up to work on mac.
 
 """
 
-gridname='cas4'
-tag='v0'
-date_string = '2017.01.01'
+gridname='cascadia1'
+tag='v1'
+date_string = '2017.01.02'
 
 # setup
 
@@ -45,7 +45,7 @@ latp = dsg['lat_psi'][:]
 maskr = dsg['mask_rho'][:]
 dsg.close()
 
-indir = Ldir['LOo'] + Ldir['gtag'] +'/f' + date_string + '/ocn1/'
+indir = Ldir['LOo'] + Ldir['gtag'] +'/f' + date_string + '/ocn2/'
 in_fn = (indir + 'ocean_ini.nc')
 ds = nc.Dataset(in_fn)
 
@@ -69,7 +69,7 @@ def set_box(ax):
     ax.set_xlim(-127.5, -122)
     ax.set_ylim(43,50.5)
 
-fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(17,10), squeeze=False)
+fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(13,7), squeeze=False)
 
 if True:
     hvn = 's3d'

@@ -24,18 +24,32 @@ def get_casts(Ldir):
     year = this_dt.year
     month = this_dt.month
     
-    # +++ load ecology CTD cast information +++
+    # # +++ load ecology CTD cast information +++
+    # dir0 = Ldir['parent'] + 'ptools_data/ecology/'
+    # # load processed station info and data
+    # sta_df = pd.read_pickle(dir0 + 'sta_df.p')
+    
+    # +++ load ecology CTD cast data +++
     dir0 = Ldir['parent'] + 'ptools_data/ecology/'
     # load processed station info and data
     sta_df = pd.read_pickle(dir0 + 'sta_df.p')
+    # add Canadian data
+    dir1 = Ldir['parent'] + 'ptools_data/canada/'
+    # load processed station info and data
+    sta_df_ca = pd.read_pickle(dir1 + 'sta_df.p')
+    sta_df = pd.concat((sta_df, sta_df_ca))
+    year = 2017
+    Casts = pd.read_pickle(dir0 + 'Casts_' + str(year) + '.p')
+    Casts_ca = pd.read_pickle(dir1 + 'Casts_' + str(year) + '.p')
+    Casts = pd.concat((Casts, Casts_ca))
 
     # limit the stations used, if desired
     sta_list = [s for s in sta_df.index]# if ('WPA' not in s) and ('GYS' not in s)]
     # keep only certain columns
     sta_df = sta_df.loc[sta_list,['Max_Depth', 'Latitude', 'Longitude']]
-
-    # +++ load the Ecology cast data +++
-    Casts = pd.read_pickle(dir0 + 'Casts_' + str(year) + '.p')
+    #
+    # # +++ load the Ecology cast data +++
+    # Casts = pd.read_pickle(dir0 + 'Casts_' + str(year) + '.p')
 
     # start a dict to store one cast per station (it is has data in the year)
     Cast_dict = dict()
@@ -61,12 +75,16 @@ def get_casts(Ldir):
             Cast_dict[station] = Cast
             # save the month, just so we know
             sta_df.loc[station,'Month'] = new_mo
+            print('  - Ofun_CTD.get_casts: including : '
+                + station + ' month=' + str(new_mo))
         else:
             print('  - Ofun_CTD.get_casts:' +station + ': no data')
     # Cast_dict.keys() is the "official" list of stations to loop over
     return Cast_dict, sta_df
     
 def get_orig(Cast_dict, sta_df, X, Y, fld, lon, lat, zz, vn):
+    
+    verbose = False
     
     #  make vectors or 1- or 2-column arrays (*) of the good points to feed to cKDTree
     xyorig = np.array((X[~fld.mask],Y[~fld.mask])).T
@@ -108,7 +126,9 @@ def get_orig(Cast_dict, sta_df, X, Y, fld, lon, lat, zz, vn):
         sta_list = list(sta_df.index)
     
         # if we got any good points then append them
-        print('  - Ofun_CTD.get_orig: goodcount = %d, len(sta_df) = %d' % (goodcount, len(sta_df)))
+        if verbose:
+            print('  - Ofun_CTD.get_orig: goodcount = %d, len(sta_df) = %d'
+                % (goodcount, len(sta_df)))
     
         # append CTD values to the good points from HYCOM
         x_sta = sta_df['Longitude'].values
@@ -121,7 +141,8 @@ def get_orig(Cast_dict, sta_df, X, Y, fld, lon, lat, zz, vn):
         fldorig = np.concatenate((fldorig, np.array(fld_arr,ndmin=1)))
     
     else:
-        print('  - Ofun_CTD.get_orig: No points added')
+        if verbose:
+            print('  - Ofun_CTD.get_orig: No points added')
     
     return xyorig, fldorig
     

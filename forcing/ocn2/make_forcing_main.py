@@ -16,28 +16,17 @@ on a specified day only.
 
 To run from the command line in LiveOcean/driver/:
     
-./driver_forcing1.sh -g cas1 -t base -f ocn1 -r backfill -0 20130101 -1 20130101
+./driver_forcing1.sh -g cas4 -t v1 -f ocn2 -r backfill -0 20130101 -1 20130101
 
 To test in python on mac:
 
-cd ~/Documents/LiveOcean/forcing/ocn1
+cd ~/Documents/LiveOcean/forcing/ocn2
 
-This is a normal case (no gaps)
-run make_forcing_main.py -g cas1 -t base -r backfill -d 2013.01.01
-
-This has a huge gap, but still works:
-run make_forcing_main.py -g cas1 -t base -r backfill -d 2012.12.01
-
-This will add the bio variables:
-run make_forcing_main.py -g cas1 -t base -x lobio3 -r backfill -d 2013.01.01
-
-Or:
 (good for testing the new Ofun_CTD code)
-run make_forcing_main.py -g cas3 -t v1 -r backfill -d 2017.01.01
-run make_forcing_main.py -g cascadia1 -t base -r backfill -d 2017.01.01
 
-Or try a forecast
-run make_forcing_main.py -g cascadia1 -t base -r forecast
+run make_forcing_main.py -g cas4 -t v1 -r backfill -d 2017.01.01
+
+run make_forcing_main.py -g cascadia1 -t v1 -r backfill -d 2017.01.02
 
 """
 
@@ -60,10 +49,12 @@ import zrfun
 import Ofun
 import Ofun_nc
 import Ofun_CTD
+import Ofun_bio
 from importlib import reload
 reload(Ofun)
 reload(Ofun_nc)
 reload(Ofun_CTD)
+reload(Ofun_bio)
 
 start_time = datetime.now()
 
@@ -74,6 +65,8 @@ exnum = '91.2'
 planB = False
 add_CTD = False
 testing = False
+
+do_bio = True
 
 # *** automate when to set add_CTD to True ***
 this_dt = datetime.strptime(Ldir['date_string'], '%Y.%m.%d')
@@ -245,9 +238,8 @@ elif planB == True:
     ds.close()
 
     
-# add bio variable if needed
-# if 'bio' in Ldir['ex_name']:
-#     Ofun_nc.add_bio(nc_dir)
+if do_bio:
+    Ofun_bio.add_bio(nc_dir)
 
 nc_dir = Ldir['LOogf_f']
 Ofun_nc.make_ini_file(nc_dir)
