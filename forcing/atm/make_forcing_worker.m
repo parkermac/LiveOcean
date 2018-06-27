@@ -45,6 +45,7 @@ if strcmp(run_type,'backfill')
     hr_vec = 0:24;
 elseif strcmp(run_type,'forecast')
     hr_vec = 0:72;
+    disp('- creating forecast');
     % this gives 73 hourly values (three days, including endpoints)
 end
 
@@ -115,6 +116,7 @@ for tt = 1:NT
     for vv = 1:length(invar_list)
         VR = invar_list{vv};
         if tt == 1; eval([VR,'2 = nmat2;']); end;
+        disp(['- getting ',VR,' at ',str(tt)])
         eval([VR,'2(tt,:,:) = squeeze(nc_varget(fn2,VR));']);
     end
 end
