@@ -68,10 +68,14 @@ end
 indir00 = [Info.wrf_dir,yrs,mos,dys,'00/'];
 indir12 = [Info.wrf_dir,yrs,mos,dys,'12/'];
 
+disp(indir00)
+
 % just use the 00 forecast
 for tt = 1:length(hr_vec)
     hr = hr_vec(tt);
     hrs = ['00',num2str(hr)]; hrs = hrs(end-1:end);
+    disp([indir00,'wrfout.ocean_d2.',yrs,mos,dys, ...
+        '00.f',hrs,'.0000'])
     infile_list_d2{tt} = [indir00,'wrfout.ocean_d2.',yrs,mos,dys, ...
         '00.f',hrs,'.0000'];
     forecast_hour{tt} = hrs; % used for rain calculation
@@ -88,8 +92,11 @@ invar_list = {'PSFC','RAINC','RAINNC','SWDOWN','GLW', ...
 %gdir = [Ldir.res,Ldir.gridname,'/'];
 gdir = [Ldir.data,'grids/',Ldir.gridname,'/'];
 fng = [gdir,'grid.nc'];
+disp('- getting model grid')
 lon = nc_varget(fng,'lon_rho');
 lat = nc_varget(fng,'lat_rho');
+disp('- done getting model grid')
+
 
 % the WRF grids (2 for d2, and 3 for d3)
 if exist(infile_list_d2{1},'file')
