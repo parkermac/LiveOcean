@@ -96,12 +96,14 @@ disp('- getting model grid')
 lon = nc_varget(fng,'lon_rho');
 lat = nc_varget(fng,'lat_rho');
 disp('- done getting model grid')
+disp(str(lon(1,1)))
 
 
 % the WRF grids (2 for d2, and 3 for d3)
 if exist(infile_list_d2{1},'file')
     disp('- getting WRF grid')
     lon2 = double(squeeze(nc_varget(infile_list_d2{1},'XLONG')));
+    disp(str(lon2(1,1)))
     lat2 = double(squeeze(nc_varget(infile_list_d2{1},'XLAT')));
     disp('- getting WRF grid')
 else
