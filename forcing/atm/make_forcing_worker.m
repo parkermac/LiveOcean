@@ -74,8 +74,8 @@ disp(indir00)
 for tt = 1:length(hr_vec)
     hr = hr_vec(tt);
     hrs = ['00',num2str(hr)]; hrs = hrs(end-1:end);
-    disp([indir00,'wrfout.ocean_d2.',yrs,mos,dys, ...
-        '00.f',hrs,'.0000'])
+    %
+	disp([indir00,'wrfout.ocean_d2.',yrs,mos,dys,'00.f',hrs,'.0000'])
     infile_list_d2{tt} = [indir00,'wrfout.ocean_d2.',yrs,mos,dys, ...
         '00.f',hrs,'.0000'];
     forecast_hour{tt} = hrs; % used for rain calculation
@@ -97,14 +97,14 @@ disp(fng)
 lon = nc_varget(fng,'lon_rho');
 lat = nc_varget(fng,'lat_rho');
 disp('- done getting model grid')
-disp(str(lon(1,1)))
+disp(num2str(lon(1,1)))
 
 
 % the WRF grids (2 for d2, and 3 for d3)
 if exist(infile_list_d2{1},'file')
     disp('- getting WRF grid')
     lon2 = double(squeeze(nc_varget(infile_list_d2{1},'XLONG')));
-    disp(str(lon2(1,1)))
+    disp(num2str(lon2(1,1)))
     lat2 = double(squeeze(nc_varget(infile_list_d2{1},'XLAT')));
     disp('- getting WRF grid')
 else
@@ -115,11 +115,11 @@ end
 [NR,NC] = size(lon);
 [NR2,NC2] = size(lon2);
 NT = length(hr_vec);
-disp(str(NR))
-disp(str(NC))
-disp(str(NR2))
-disp(str(NC2))
-disp(str(NT))
+disp(num2str(NR))
+disp(num2str(NC))
+disp(num2str(NR2))
+disp(num2str(NC2))
+disp(num2str(NT))
 nmat = NaN * ones(NT,NR,NC); % sized for output
 nmat2 = NaN * ones(NT,NR2,NC2); % sized for input
 
@@ -134,7 +134,7 @@ for tt = 1:NT
     for vv = 1:length(invar_list)
         VR = invar_list{vv};
         if tt == 1; eval([VR,'2 = nmat2;']); end;
-        disp(['- getting ',VR,' at ',str(tt)])
+        disp(['- getting ',VR,' at ',num2str(tt)])
         eval([VR,'2(tt,:,:) = squeeze(nc_varget(fn2,VR));']);
     end
 end
