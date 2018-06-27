@@ -93,6 +93,7 @@ invar_list = {'PSFC','RAINC','RAINNC','SWDOWN','GLW', ...
 gdir = [Ldir.data,'grids/',Ldir.gridname,'/'];
 fng = [gdir,'grid.nc'];
 disp('- getting model grid')
+disp(fng)
 lon = nc_varget(fng,'lon_rho');
 lat = nc_varget(fng,'lat_rho');
 disp('- done getting model grid')
