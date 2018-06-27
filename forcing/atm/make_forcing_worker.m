@@ -100,8 +100,10 @@ disp('- done getting model grid')
 
 % the WRF grids (2 for d2, and 3 for d3)
 if exist(infile_list_d2{1},'file')
+    disp('- getting WRF grid')
     lon2 = double(squeeze(nc_varget(infile_list_d2{1},'XLONG')));
     lat2 = double(squeeze(nc_varget(infile_list_d2{1},'XLAT')));
+    disp('- getting WRF grid')
 else
     disp('Missing WRF input files!');
 end
@@ -110,6 +112,11 @@ end
 [NR,NC] = size(lon);
 [NR2,NC2] = size(lon2);
 NT = length(hr_vec);
+disp(str(NR))
+disp(str(NC))
+disp(str(NR2))
+disp(str(NC2))
+disp(str(NT))
 nmat = NaN * ones(NT,NR,NC); % sized for output
 nmat2 = NaN * ones(NT,NR2,NC2); % sized for input
 
@@ -120,6 +127,7 @@ nmat2 = NaN * ones(NT,NR2,NC2); % sized for input
 
 for tt = 1:NT
     fn2 = infile_list_d2{tt};
+    disp(fn2)
     for vv = 1:length(invar_list)
         VR = invar_list{vv};
         if tt == 1; eval([VR,'2 = nmat2;']); end;
