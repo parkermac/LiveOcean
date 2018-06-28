@@ -134,6 +134,14 @@ def make_bry_file(nc_dir):
     for v_name, varin in ds1.variables.items():
         if varin.ndim in [3,4]: 
             for bname in ['north', 'south', 'east', 'west']:
+                # hacks to get the right boundary names for a few BGD variables
+                # (really this should be regularized in the ROMS NZD code)
+                if v_name == 'phytoplankton':
+                    v_name = 'phyt'
+                if v_name == 'zooplankton':
+                    v_name = 'zoop'
+                if v_name == 'alkalinity':
+                    v_name = 'Talk'
                 outname = v_name + '_' + bname
                 if bname in ['north', 'south']:
                     outdims = tuple([item for item in varin.dimensions if item[:3] != 'eta'])
