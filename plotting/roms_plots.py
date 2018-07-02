@@ -1003,11 +1003,12 @@ def P_sect(in_dict):
     # GET DATA
     G, S, T = zrfun.get_basic_info(in_dict['fn'])
 
-    vn = 'salt'
-    try:
-        vlims[vn]
-    except KeyError:
-        vlims[vn] = ()
+    vn = 'oxygen'
+    vlims[vn] = ()
+    # try:
+    #     vlims[vn]
+    # except KeyError:
+    #     vlims[vn] = ()
 
     # CREATE THE SECTION
     # create track by hand
@@ -1027,9 +1028,9 @@ def P_sect(in_dict):
         import Lfun
         Ldir = Lfun.Lstart()
         tracks_path = Ldir['data'] + 'tracks_new/'
-        which_track = 'HC_north.p'
+        which_track = 'PS_jdf_ss_v0.p'
         track_fn = tracks_path + which_track
-        zdeep = -120
+        zdeep = -300
         # get the track to interpolate onto
         pdict = pickle.load(open(track_fn, 'rb'))
         xx = pdict['lon_poly']
@@ -1054,12 +1055,12 @@ def P_sect(in_dict):
     # panel 1
     ax = fig.add_subplot(1, 3, 1)
     cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn,
-            vlims=(24,32), cmap=cmap_dict[vn], fac=fac_dict[vn])
-    #fig.colorbar(cs)
+            vlims=vlims[vn], cmap=cmap_dict[vn], fac=fac_dict[vn])
+    fig.colorbar(cs, ax=ax)
     pfun.add_bathy_contours(ax, ds)
     pfun.add_coast(ax)
-    #ax.axis(pfun.get_aa(ds))
-    ax.axis([-123.25, -122.25, 47, 48.5])
+    ax.axis(pfun.get_aa(ds))
+    #ax.axis([-123.25, -122.25, 47, 48.5])
     pfun.dar(ax)
     ax.set_xlabel('Longitude')
     ax.set_ylabel('Latitude')
@@ -1076,8 +1077,8 @@ def P_sect(in_dict):
     ax.plot(dist, v2['zeta'], '-b', linewidth=1)
     ax.set_xlim(dist.min(), dist.max())
     ax.set_ylim(zdeep, 5)
-    #vlims = pfun.auto_lims(v3['sectvarf'])
-    vlims=(26,31)
+    vlims = pfun.auto_lims(v3['sectvarf'])
+    #vlims=(26,31)
     cs = ax.pcolormesh(v3['distf'], v3['zrf'], v3['sectvarf'],
                        vmin=vlims[0], vmax=vlims[1], cmap=cmap_dict[vn])
     fig.colorbar(cs)
