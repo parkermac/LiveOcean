@@ -137,7 +137,7 @@ def P_basic(in_dict):
     # PLOT CODE
     
     # Interventions
-    auto_vlims = False # overrides new_lims
+    auto_vlims = True # overrides new_lims
     new_vlims = True
     if new_vlims==True:
         vlims['salt'] = (24,34)#(28, 34)
@@ -993,7 +993,7 @@ def P_sect(in_dict):
     # plots a section (distance, z)
 
     # START
-    fig = plt.figure(figsize=figsize)
+    fig = plt.figure(figsize=(18,8))
     ds = nc.Dataset(in_dict['fn'])
     vlims = in_dict['vlims'].copy()
     out_dict['vlims'] = vlims
@@ -1003,8 +1003,10 @@ def P_sect(in_dict):
     # GET DATA
     G, S, T = zrfun.get_basic_info(in_dict['fn'])
 
+    #vn = 'NO3'
     vn = 'oxygen'
     vlims[vn] = ()
+    
     # try:
     #     vlims[vn]
     # except KeyError:
@@ -1025,16 +1027,17 @@ def P_sect(in_dict):
             x = -126 * np.ones(y.shape)
     # or read one in
     else:
-        import Lfun
-        Ldir = Lfun.Lstart()
         tracks_path = Ldir['data'] + 'tracks_new/'
-        which_track = 'PS_jdf_ss_v0.p'
-        track_fn = tracks_path + which_track
+        tracks = ['Line_jdf_v0.p', 'Line_ps_main_v0.p']
         zdeep = -300
-        # get the track to interpolate onto
-        pdict = pickle.load(open(track_fn, 'rb'))
-        xx = pdict['lon_poly']
-        yy = pdict['lat_poly']
+        xx = np.array([])
+        yy = np.array([])
+        for track in tracks:
+            track_fn = tracks_path + track
+            # get the track to interpolate onto
+            pdict = pickle.load(open(track_fn, 'rb'))
+            xx = np.concatenate((xx,pdict['lon_poly']))
+            yy = np.concatenate((yy,pdict['lat_poly']))
         for ii in range(len(xx)-1):
             x0 = xx[ii]
             x1 = xx[ii+1]
@@ -1077,17 +1080,20 @@ def P_sect(in_dict):
     ax.plot(dist, v2['zeta'], '-b', linewidth=1)
     ax.set_xlim(dist.min(), dist.max())
     ax.set_ylim(zdeep, 5)
-    vlims = pfun.auto_lims(v3['sectvarf'])
-    #vlims=(26,31)
-    cs = ax.pcolormesh(v3['distf'], v3['zrf'], v3['sectvarf'],
-                       vmin=vlims[0], vmax=vlims[1], cmap=cmap_dict[vn])
+    
+    fac=fac_dict[vn]
+    sf = fac * v3['sectvarf']
+    
+    svlims = pfun.auto_lims(sf)
+    cs = ax.pcolormesh(v3['distf'], v3['zrf'], sf,
+                       vmin=svlims[0], vmax=svlims[1], cmap=cmap_dict[vn])
     fig.colorbar(cs)
-    cs = ax.contour(v3['distf'], v3['zrf'], v3['sectvarf'],
-        np.linspace(np.floor(vlims[0]), np.ceil(vlims[1]), 20),
+    cs = ax.contour(v3['distf'], v3['zrf'], sf,
+        np.linspace(np.floor(svlims[0]), np.ceil(svlims[1]), 20),
         colors='k', linewidths=0.5)
     ax.set_xlabel('Distance (km)')
     ax.set_ylabel('Z (m)')
-    tstr = tstr_dict[vn]
+    tstr = tstr_dict[vn] + ' ' + units_dict[vn]
     ax.set_title(tstr)
     
     fig.tight_layout()

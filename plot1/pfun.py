@@ -107,32 +107,43 @@ def add_bathy_contours(ax, ds, depth_levs = [], txt=False):
         cs = ax.contour(lon, lat, h, depth_levs, colors='k', linewidths=0.5)
         #ax.clabel(cs)
 
-def add_map_field(ax, ds, varname, slev=-1, vlims=(), cmap='rainbow',
+def add_map_field(ax, ds, vn, vlims_dict, slev=-1, cmap='rainbow',
                   fac=1, alpha=1, do_mask_salish=False):
     cmap = plt.get_cmap(name=cmap)
-    if 'lon_rho' in ds[varname].coordinates:
+    if 'lon_rho' in ds[vn].coordinates:
         x = ds['lon_psi'][:]
         y = ds['lat_psi'][:]
-        v = ds[varname][0, slev, 1:-1, 1:-1].squeeze()
-    elif 'lon_v' in ds[varname].coordinates:
+        if vn == 'zeta':
+            v = ds[vn][0, 1:-1, 1:-1].squeeze()
+        else:
+            v = ds[vn][0, slev, 1:-1, 1:-1].squeeze()
+    elif 'lon_v' in ds[vn].coordinates:
         x = ds['lon_u'][:]
         y = ds['lat_u'][:]
-        v = ds[varname][0, slev, :, 1:-1].squeeze()
-    elif 'lon_u' in ds[varname].coordinates:
+        if vn == 'vbar':
+            v = ds[vn][0, :, 1:-1].squeeze()
+        else:
+            v = ds[vn][0, slev, :, 1:-1].squeeze()
+    elif 'lon_u' in ds[vn].coordinates:
         x = ds['lon_v'][:]
         y = ds['lat_v'][:]
-        v = ds[varname][0, slev, 1:-1, :].squeeze()
+        if vn == 'ubar':
+            v = ds[vn][0, 1:-1, :].squeeze()
+        else:
+            v = ds[vn][0, slev, 1:-1, :].squeeze()
         
-    vf = fac*v
+    v_scaled = fac*v
     
+    vlims = vlims_dict[vn]
     if len(vlims) == 0:
-        vlims = auto_lims(vf)
-    
+        vlims = auto_lims(v_scaled)
+        vlims_dict[vn] = vlims
+        
     if do_mask_salish:
-        vf = mask_salish(vf, ds['lon_rho'][1:-1, 1:-1], ds['lat_rho'][1:-1, 1:-1])  
+        v_scaled = mask_salish(v_scaled, ds['lon_rho'][1:-1, 1:-1], ds['lat_rho'][1:-1, 1:-1])  
     
-    cs = ax.pcolormesh(x, y, vf, vmin=vlims[0], vmax=vlims[1], cmap=cmap, alpha=alpha)
-    return cs, vlims
+    cs = ax.pcolormesh(x, y, v_scaled, vmin=vlims[0], vmax=vlims[1], cmap=cmap, alpha=alpha)
+    return cs
 
 def add_velocity_vectors(ax, ds, fn, v_scl=3, v_leglen=0.5, nngrid=80, zlev='top', center=(.7,.05)):
     # v_scl: scale velocity vector (smaller to get longer arrows)
@@ -536,6 +547,15 @@ def get_section(ds, vn, x, y, in_dict):
         #print(v3[k].shape)
     
     return v2, v3, dist, idist0
+    
+def maxmin(a):
+    # find the value and location of the max and min of a 2D
+    # masked array
+    jmax,imax = np.unravel_index(a.argmax(fill_value=0),a.shape)
+    amax = a[jmax,imax]
+    jmin,imin = np.unravel_index(a.argmin(fill_value=0),a.shape)
+    amin = a[jmin,imin]
+    return amax, jmax, imax, amin, jmin, imin
 
 
 

@@ -1,28 +1,18 @@
 """
 Plot fields in one or more history files.
 
-On fjord this can be run from the command line, no X window needed,
-but it is only for plotting to files, not the screen:
+Examples:
 
-python pan_plot.py -x lobio3 -d 2013.01.02 -fno test.png -lt low_pass -pt P_basic
-
-Running from the terminal on my mac, and making a movie:
-
-python pan_plot.py -g aestus1 -t A1 -x ae1 -d 2013.02.07 -lt backfill -pt P_sectA -mov True
-python pan_plot.py -g aestus1 -t A1 -x ae1 -d 2013.02.01 -lt backfill -pt P_sectA -mov True -nd 13
-
-Running from the ipython command line:
-(but for some reason the movie code does not work when run from spyder)
-
-cd ~/Documents/LiveOcean/plotting
+Plot a single figure to the screen:
 run pan_plot.py
-run pan_plot.py -g aestus1 -t A1 -x ae1 -d 2013.02.07
-run pan_plot.py -g cas1 -t f1 -x r820 -d 2013.01.01 -hs 25
-run pan_plot.py -x lobio3 -d 2013.01.02 -fno test.png -lt low_pass -pt P_basic
-run pan_plot.py -g aestus1 -t A1 -x ae1 -d 2013.02.07 -lt backfill -pt P_sectA -mov True
-run pan_plot.py -g cascadia1 -t base -x lobio1 -d 2017.05.18 -lt snapshot -pt P_tracks
-run pan_plot.py -d 2017.05.18 -lt merhab -pt P_tracks_MERHAB -mov True
-run pan_plot.py -g big1 -t v0 -x twodee -d 2013.01.08 -hs 07 -lt snapshot -pt P_basic2D
+
+Save multiple plots with color limits all set to match those set by
+auto_lims() from the first plot:
+run pan_plot.py -g cascadia1 -t base -x lobio5 -d 2013.01.31 -lt backfill
+
+Save multiple plots with color limits all set to match those set by
+pinfo.vlims_dict:
+run pan_plot.py -g cascadia1 -t base -x lobio5 -d 2013.01.31 -lt backfill -avl False
 
 """
 
@@ -37,6 +27,11 @@ if alp not in sys.path:
 from importlib import reload
 import Lfun
 import roms_plots; reload(roms_plots)
+
+def boolean_string(s):
+    if s not in ['False', 'True']:
+        raise ValueError('Not a valid boolean string')
+    return s == 'True' # note use of ==
 
 #%% get optional command line arguments, any order
 parser = argparse.ArgumentParser()
@@ -57,10 +52,8 @@ parser.add_argument('-lt', '--list_type', nargs='?', type=str,
                     default='')
 parser.add_argument('-pt', '--plot_type', nargs='?', type=str,
                     default='')
-parser.add_argument('-fno', '--fn_out', nargs='?', type=str,
-                    default='')
-parser.add_argument('-mov', '--make_movie', nargs='?', type=bool,
-                    default=False)
+parser.add_argument('-mov', '--make_movie', default=False, type=boolean_string)
+parser.add_argument('-avl', '--auto_vlims', default=True, type=boolean_string)
 
 args = parser.parse_args()
 
@@ -72,8 +65,7 @@ if len(args.list_type) == 0:
     print(30*'*' + ' pan_plot ' + 30*'*')
     print('\n%s\n' % '** Choose List type (return for snapshot) **')
     lt_list = ['snapshot', 'low_pass', 'backfill', 'forecast',
-               'merhab', 'old_style',
-               'atlantis', 'salish', 'salish_seq']
+               'merhab']
     Nlt = len(lt_list)
     lt_dict = dict(zip(range(Nlt), lt_list))
     for nlt in range(Nlt):
@@ -111,7 +103,7 @@ else:
     
 whichplot = getattr(roms_plots, plot_type)
 
-def make_fn_list(dt0, dt1, Ldir, hourmax=24):
+def make_fn_list(dt0, dt1, Ldir, hourmin=0, hourmax=24):
     # a helpful function for making file lists
     from datetime import timedelta
     date_list = []
@@ -122,8 +114,7 @@ def make_fn_list(dt0, dt1, Ldir, hourmax=24):
         dt = dt + timedelta(1)
     for dl in date_list:
         f_string = 'f' + dl
-        for nhis in range(2, hourmax+2):
-            # range(2, 26) for a typical forecast
+        for nhis in range(hourmin+1, hourmax+2):
             nhiss = ('0000' + str(nhis))[-4:]
             fn = (Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/' +
                   f_string + '/ocean_his_' + nhiss + '.nc')
@@ -151,6 +142,7 @@ elif plot_type == 'P_tracks_MERHAB':
     fn_list.pop(0) # remove the first hour
 elif list_type == 'backfill':
     fn_list = make_fn_list(dt0,dt1,Ldir)
+    fn_list = fn_list[:4] # testing
 elif list_type == 'forecast':
     dt0 = datetime.now()
     fn_list = make_fn_list(dt0, dt0, Ldir, hourmax=72)
@@ -166,69 +158,40 @@ elif list_type == 'low_pass':
         fn = (Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/'
             + f_string + '/low_passed.nc')
         fn_list.append(fn)
-elif list_type == 'old_style':
-    # make a pnwtox-style list of files
-    for nhis in range(1800, 1824): # have 1800 to 1929
-        nhiss = ('0000' + str(nhis))[-4:]
-        fn = (Ldir['parent'] + 'roms/output/D2005_his/ocean_his_' +
-              nhiss + '.nc')
-        fn_list.append(fn)
-elif list_type=='atlantis':
-    fn_list = []
-    fn = (Ldir['parent'] + 'roms/output/salish_2006_4_lp/f2006.07.30/' +
-        'low_passed.nc')
-    fn_list.append(fn)
-elif list_type=='salish':
-    fn_list = []
-    fn = (Ldir['parent'] + 'roms/output/salish_2006_4/ocean_his_5020.nc')
-    fn_list.append(fn)
-elif list_type=='salish_seq':
-    fn_list = []
-    for ii in range(4993, 5076): # have 4993 through 5075 on mac
-        nstr = ('0000' + str(ii))[-4:]
-        fn = (Ldir['parent'] + 'roms/output/salish_2006_4/ocean_his_' + nstr + '.nc')
-        fn_list.append(fn)
+        
+# plot
 
-#%% plot
-in_dict = roms_plots.get_in_dict(plot_type)
-vlims = in_dict['vlims']
+in_dict = dict()
+in_dict['auto_vlims'] = args.auto_vlims
 
-if len(args.fn_out) == 0:
-    if len(fn_list) == 1:
-        # plot a single image to screen
-        fn = fn_list[0]
-        in_dict['fn'] = fn
-        in_dict['fn_out'] = ''
-        out_dict = whichplot(in_dict)
-    elif len(fn_list) > 1:
-        # prepare a directory for results
-        outdir0 = Ldir['LOo'] + 'plots/'
-        Lfun.make_dir(outdir0, clean=False)
-        outdir = outdir0 + list_type + '_' + plot_type + '_' + Ldir['gtagex'] + '/'
-        Lfun.make_dir(outdir, clean=True)
-        # plot to a folder of files
-        jj = 0
-        for fn in fn_list:
-            nouts = ('0000' + str(jj))[-4:]
-            outname = 'plot_' + nouts + '.png'
-            outfile = outdir + outname
-            print('Plotting ' + fn)
-            in_dict['fn'] = fn
-            in_dict['fn_out'] = outfile
-            in_dict['vlims'] = vlims
-            out_dict = whichplot(in_dict)
-            vlims = out_dict['vlims']
-            jj += 1
-        # and make a movie
-        if args.make_movie:
-            ff_str = ("ffmpeg -r 8 -i " + 
-            outdir+"plot_%04d.png -vcodec libx264 -pix_fmt yuv420p -crf 25 "
-            +outdir+"movie.mp4")
-            os.system(ff_str)        
-else:
-    # plot a single image to a file
+if len(fn_list) == 1:
+    # plot a single image to screen
     fn = fn_list[0]
     in_dict['fn'] = fn
-    in_dict['fn_out'] = args.fn_out
-    out_dict = whichplot(in_dict)
- 
+    in_dict['fn_out'] = ''
+    whichplot(in_dict)
+elif len(fn_list) > 1:
+    # prepare a directory for results
+    outdir0 = Ldir['LOo'] + 'plots/'
+    Lfun.make_dir(outdir0, clean=False)
+    outdir = outdir0 + list_type + '_' + plot_type + '_' + Ldir['gtagex'] + '/'
+    Lfun.make_dir(outdir, clean=True)
+    # plot to a folder of files
+    jj = 0
+    for fn in fn_list:
+        nouts = ('0000' + str(jj))[-4:]
+        outname = 'plot_' + nouts + '.png'
+        outfile = outdir + outname
+        print('Plotting ' + fn)
+        in_dict['fn'] = fn
+        in_dict['fn_out'] = outfile
+        whichplot(in_dict)
+        # after the first plot we no longer change vlims
+        in_dict['auto_vlims'] = False
+        jj += 1
+    # and make a movie
+    if args.make_movie:
+        ff_str = ("ffmpeg -r 8 -i " + 
+        outdir+"plot_%04d.png -vcodec libx264 -pix_fmt yuv420p -crf 25 "
+        +outdir+"movie.mp4")
+        os.system(ff_str)
