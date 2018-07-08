@@ -38,10 +38,10 @@ elif [ $HOME == "/home/parker" ] && [[ $HOSTNAME == *"fjord"* ]] ; then
   
 elif [ $HOME == "/home/parker" ] && [[ $HOSTNAME == *"boiler"* ]] ; then
   lo_env='pm_boiler'
-  parent="/fjdata1/parker/"
+  parent="/data1/parker/"
   LO=$parent"LiveOcean/"
-  data=$parent"LiveOcean_data/"
-  LOo=$parent"LiveOcean_output/"
+  data="/fjdata1/parker/LiveOcean_data/"
+  LOo="/fjdata1/parker/LiveOcean_output/"
   roms="/pmr1/parker/LiveOcean_roms/"
   which_matlab="/usr/local/bin/matlab"
   
