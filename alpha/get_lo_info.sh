@@ -36,24 +36,25 @@ elif [ $HOME == "/home/parker" ] && [[ $HOSTNAME == *"fjord"* ]] ; then
   roms="/pmr1/parker/LiveOcean_roms/"
   which_matlab="/usr/local/bin/matlab"
   
-elif [ $HOME == "/home/parker" ] && [[ $HOSTNAME == *"boiler"* ]] ; then
-  lo_env='pm_boiler'
-  parent="/data1/parker/"
-  LO=$parent"LiveOcean/"
-  data="/fjdata1/parker/LiveOcean_data/"
-  LOo="/fjdata1/parker/LiveOcean_output/"
-  roms="/pmr1/parker/LiveOcean_roms/"
-  which_matlab="/usr/local/bin/matlab"
-  
-# ORIGINAL (and correct) boiler entry
+# this boiler entry allows it to work on the fjord files 2018.07.08
 # elif [ $HOME == "/home/parker" ] && [[ $HOSTNAME == *"boiler"* ]] ; then
 #   lo_env='pm_boiler'
 #   parent="/data1/parker/"
 #   LO=$parent"LiveOcean/"
 #   data="/fjdata1/parker/LiveOcean_data/"
-#   LOo=$parent"LiveOcean_output/"
-#   roms=$parent"LiveOcean_roms/"
+#   LOo="/fjdata1/parker/LiveOcean_output/"
+#   roms="/pmr1/parker/LiveOcean_roms/"
 #   which_matlab="/usr/local/bin/matlab"
+  
+# ORIGINAL (and correct) boiler entry
+elif [ $HOME == "/home/parker" ] && [[ $HOSTNAME == *"boiler"* ]] ; then
+  lo_env='pm_boiler'
+  parent="/data1/parker/"
+  LO=$parent"LiveOcean/"
+  data="/fjdata1/parker/LiveOcean_data/"
+  LOo=$parent"LiveOcean_output/"
+  roms=$parent"LiveOcean_roms/"
+  which_matlab="/usr/local/bin/matlab"
 
 elif [ $HOME == "/home/parker" ] && [[ $HOSTNAME == *"gaggle"* ]] ; then
   lo_env='pm_gaggle'
