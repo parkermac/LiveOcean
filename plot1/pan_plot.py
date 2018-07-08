@@ -42,7 +42,7 @@ parser.add_argument('-t', '--tag', nargs='?', type=str,
 parser.add_argument('-x', '--ex_name', nargs='?', type=str,
                     default='lo6biom')
 parser.add_argument('-d', '--date_string', nargs='?', type=str,
-                    default='2017.02.14')
+                    default='2017.05.08')
 parser.add_argument('-hs', '--hour_string', nargs='?', type=str,
                     default='01')
 parser.add_argument('-nd', '--num_days', nargs='?', type=int,
