@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 
-This creates and a single NetCDF file containing fields from one or more
+This creates a single NetCDF file containing fields from one or more
 model layers, for some time range.
 
 """

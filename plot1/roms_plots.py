@@ -399,7 +399,7 @@ def P_layer(in_dict):
         plt.show()
 
 def P_sect(in_dict):
-    # plots a section (distance, z)
+    # plots a map and a section (distance, z)
     
     # START
     fig = plt.figure(figsize=(24,8))
@@ -409,8 +409,8 @@ def P_sect(in_dict):
     #vn = 'NO3'
     vn = 'oxygen'
     # we allow for the possibility of using different color scales
-    # for the same varible on the map and section, and these follow
-    # then general scheme that the default is for them to be chosen
+    # on the map and section for the same varible, and these follow
+    # the general scheme that the default is for them to be chosen
     # automatically based on the first plot in a series.
     if in_dict['auto_vlims']:
         pinfo.vlims_dict[vn] = ()
@@ -514,34 +514,28 @@ def P_sect(in_dict):
 def P_sectA(in_dict):
     # plots a map and several sections
     # designed for analytical runs, like aestus1
+    # used for MacCready et al. (2018 JPO) variance paper
 
     # START
-    fig = plt.figure(figsize=figsize)
+    fig = plt.figure(figsize=pinfo.figsize)
     ds = nc.Dataset(in_dict['fn'])
-    vlims = in_dict['vlims'].copy()
-    out_dict['vlims'] = vlims
     
-    vn = 'salt'
-    try:
-        vlims[vn]
-    except KeyError:
-        vlims[vn] = ()
-        
     # PLOTTING
-
+    vn = 'salt'
+    if in_dict['auto_vlims']:
+        pinfo.vlims_dict[vn] = ()
     # map and section lines
     ax1 = fig.add_subplot(3,1,1)
-    cs, out_dict['vlims'][vn] = pfun.add_map_field(ax1, ds, vn,
-            vlims=vlims[vn], cmap=cmap_dict[vn], fac=fac_dict[vn])
+    cs = pfun.add_map_field(ax1, ds, vn, pinfo.vlims_dict,
+            cmap=pinfo.cmap_dict[vn])
+    vlims = pinfo.vlims_dict[vn]
     fig.colorbar(cs)
-    pfun.add_bathy_contours(ax1, ds)
-    pfun.add_coast(ax1)
     ax1.axis([-.5, 1, 44.8, 45.2])
     pfun.dar(ax1)
     ax1.set_xlabel('Longitude')
     ax1.set_ylabel('Latitude')
     pfun.add_info(ax1, in_dict['fn'], fs=9)
-    
+    #
     # thalweg section
     x = np.linspace(-0.5, 1, 500)
     y = 45 * np.ones(x.shape)
@@ -551,11 +545,8 @@ def P_sectA(in_dict):
     ax.plot(dist, v2['zeta'], '-b', linewidth=1)
     ax.set_xlim(dist.min(), dist.max())
     ax.set_ylim(-25, 2)
-    #vlims = pfun.auto_lims(v3['sectvarf'])
-    vlims = vlims[vn]
     cs = ax.pcolormesh(v3['distf'], v3['zrf'], v3['sectvarf'],
-                       vmin=vlims[0], vmax=vlims[1], cmap=cmap_dict[vn])
-    #fig.colorbar(cs)
+                       vmin=vlims[0], vmax=vlims[1], cmap=pinfo.cmap_dict[vn])
     cs = ax.contour(v3['distf'], v3['zrf'], v3['sectvarf'],
         np.linspace(1, 35, 35), colors='k', linewidths=.5,)
     ax.set_xlabel('Distance (km)')
@@ -565,23 +556,18 @@ def P_sectA(in_dict):
     ax1.plot(x, y, '-k', linewidth=2)
     ax1.plot(x[idist0], y[idist0], 'ok', markersize=10, markerfacecolor='w',
         markeredgecolor='k', markeredgewidth=2)
-
+    # channel cross-sections
     for ii in range(3):
-        # cross-sections
         y = np.linspace(44.9, 45.1, 200)
         x = 0.3*ii * np.ones(y.shape)
         v2, v3, dist, idist0 = pfun.get_section(ds, vn, x, y, in_dict)
-        # section
         ax = fig.add_subplot(3,3,ii+7)
         ax.plot(dist, v2['zbot'], '-k', linewidth=2)
         ax.plot(dist, v2['zeta'], '-b', linewidth=1)
         ax.set_xlim(0, 22.5)
-        #ax.set_xlim(dist.min(), dist.max())
         ax.set_ylim(-25, 2)
-        #vlims = pfun.auto_lims(v3['sectvarf'])
         cs = ax.pcolormesh(v3['distf'], v3['zrf'], v3['sectvarf'],
-                           vmin=vlims[0], vmax=vlims[1], cmap=cmap_dict[vn])
-        #fig.colorbar(cs)
+                           vmin=vlims[0], vmax=vlims[1], cmap=pinfo.cmap_dict[vn])
         cs = ax.contour(v3['distf'], v3['zrf'], v3['sectvarf'],
             np.linspace(1, 35, 35), colors='k', linewidths=.5,)
         ax.set_xlabel('Distance (km)')
@@ -591,10 +577,9 @@ def P_sectA(in_dict):
         ax1.plot(x, y, '-k', linewidth=2)
         ax1.plot(x[idist0], y[idist0], 'ok', markersize=10, markerfacecolor='w',
             markeredgecolor='k', markeredgewidth=2)
-            
+    #
     fig.tight_layout()
     
-
     # FINISH
     ds.close()
     if len(in_dict['fn_out']) > 0:
@@ -602,18 +587,15 @@ def P_sectA(in_dict):
         plt.close()
     else:
         plt.show()
-        pfun.topfig()
-    return out_dict
 
 def P_tracks_MERHAB(in_dict):
-    # Use tracker to create surface drifter tracks for MERHAB 
+    # Use trackfun_1 to create surface drifter tracks for MERHAB.
     # It automatically makes tracks for as long as there are
-    # hours in the folder, as a folder of movie frames.
-
+    # hours in the folder.
+    
     # START
     fig = plt.figure(figsize=(12, 8))
-    vlims = in_dict['vlims'].copy()
-    out_dict['vlims'] = vlims
+    ds = nc.Dataset(in_dict['fn'])
 
     # TRACKS
     import os
@@ -621,16 +603,17 @@ def P_tracks_MERHAB(in_dict):
     pth = os.path.abspath('../tracker')
     if pth not in sys.path:
         sys.path.append(pth)
-    import trackfun
+    import trackfun_1 as tf1
     import pickle
 
-    # need to get Ldir, which means unpacking gtagex
+    # need to get Ldir so that we can get a full list
+    # of the history files for this day,
+    # which means unpacking gtagex
     fn = in_dict['fn']
     gtagex = fn.split('/')[-3]
     gtx_list = gtagex.split('_')
     import Lfun
     Ldir = Lfun.Lstart(gtx_list[0], gtx_list[1])
-    
     # make a list of history files in this folder,
     in_dir = fn[:fn.rindex('/')+1]
     fn_list_raw = os.listdir(in_dir)
@@ -640,11 +623,12 @@ def P_tracks_MERHAB(in_dict):
             fn_list.append(in_dir + item)
     fn_list.sort()
     
-    # trim fn_list to end at the selected hour
-    fn_list_full = fn_list.copy() # but save the full list
-    fn_list = fn_list[:fn_list.index(fn)+1]
+    # save the full list to use with the tracking code 
+    fn_list_full = fn_list.copy()
     # and estimate the number of days,
-    ndays = round(len(fn_list)/24)
+    ndays = round(len(fn_list_full)/24)
+    # then trim fn_list to end at the selected hour for this plot
+    fn_list = fn_list[:fn_list.index(fn)+1]
     # and use the CURRENT file for the map field overlay
     ds = nc.Dataset(in_dict['fn'])
 
@@ -653,78 +637,33 @@ def P_tracks_MERHAB(in_dict):
 
     if len(fn_list) == 2:
         # only do the tracking at the start
-        
-        # some run specifications
-        ic_name = 'test' # 'jdf' or 'cr' or etc.
-        dir_tag = 'forward' # 'forward' or 'reverse'
-        method = 'rk4' # 'rk2' or 'rk4'
-        surface = True # Boolean, True for trap to surface
-        windage = 0.0 # a small number >= 0 [0.02]
-        ndiv = 1 # number of divisions to make between saves for the integration
-
     
-        # # Evenly spread over whole domain
-        # x0 = G['lon_rho'][0, 1]
-        # x1 = G['lon_rho'][0, -2]
-        # y0 = G['lat_rho'][1, 0]
-        # y1 = G['lat_rho'][-2, 0]
-        # nyp = 30
-        # mlr = np.pi*(np.mean([y0, y1]))/180
-        # xyRatio = np.cos(mlr) * (x1 - x0) / (y1 - y0)
-        # lonvec = np.linspace(x0, x1, (nyp * xyRatio).astype(int))
-        # latvec = np.linspace(y0, y1, nyp)
-        # lonmat, latmat = np.meshgrid(lonvec, latvec)
-    
-        if True:
-            # standard MERHAB version
-            nyp = 7
-            x0 = -126
-            x1 = -125
-            y0 = 48
-            y1 = 49
-            mlr = np.pi*(np.mean([y0, y1]))/180
-            xyRatio = np.cos(mlr) * (x1 - x0) / (y1 - y0)
-            lonvec = np.linspace(x0, x1, (nyp * xyRatio).astype(int))
-            latvec = np.linspace(y0, y1, nyp)
-            lonmat_1, latmat_1 = np.meshgrid(lonvec, latvec)
-            x0 = -125
-            x1 = -124
-            y0 = 44
-            y1 = 45
-            mlr = np.pi*(np.mean([y0, y1]))/180
-            xyRatio = np.cos(mlr) * (x1 - x0) / (y1 - y0)
-            lonvec = np.linspace(x0, x1, (nyp * xyRatio).astype(int))
-            latvec = np.linspace(y0, y1, nyp)
-            lonmat_2, latmat_2 = np.meshgrid(lonvec, latvec)
-            lonmat = np.concatenate((lonmat_1.flatten(), lonmat_2.flatten()))
-            latmat = np.concatenate((latmat_1.flatten(), latmat_2.flatten()))
-        else:
-            # new version with more release points
-            nyp = 35
-            x0 = -126
-            x1 = -124
-            y0 = 44
-            y1 = 49
-            mlr = np.pi*(np.mean([y0, y1]))/180
-            xyRatio = np.cos(mlr) * (x1 - x0) / (y1 - y0)
-            lonvec = np.linspace(x0, x1, (nyp * xyRatio).astype(int))
-            latvec = np.linspace(y0, y1, nyp)
-            lonmat, latmat = np.meshgrid(lonvec, latvec)
-
-            
+        # standard MERHAB version
+        nyp = 7
+        x0 = -126
+        x1 = -125
+        y0 = 48
+        y1 = 49
+        mlr = np.pi*(np.mean([y0, y1]))/180
+        xyRatio = np.cos(mlr) * (x1 - x0) / (y1 - y0)
+        lonvec = np.linspace(x0, x1, (nyp * xyRatio).astype(int))
+        latvec = np.linspace(y0, y1, nyp)
+        lonmat_1, latmat_1 = np.meshgrid(lonvec, latvec)
+        x0 = -125
+        x1 = -124
+        y0 = 44
+        y1 = 45
+        mlr = np.pi*(np.mean([y0, y1]))/180
+        xyRatio = np.cos(mlr) * (x1 - x0) / (y1 - y0)
+        lonvec = np.linspace(x0, x1, (nyp * xyRatio).astype(int))
+        latvec = np.linspace(y0, y1, nyp)
+        lonmat_2, latmat_2 = np.meshgrid(lonvec, latvec)
+        lonmat = np.concatenate((lonmat_1.flatten(), lonmat_2.flatten()))
+        latmat = np.concatenate((latmat_1.flatten(), latmat_2.flatten()))
+        #
         plon00 = lonmat.flatten()
         plat00 = latmat.flatten()
         pcs00 = np.array([-.05]) # unimportant when surface=True
-
-        # save some things in Ldir
-        Ldir['gtagex'] = gtagex
-        Ldir['ic_name'] = ic_name
-        Ldir['dir_tag'] = dir_tag
-        Ldir['method'] = method
-        Ldir['surface'] = surface
-        Ldir['windage'] = windage
-        Ldir['ndiv'] = ndiv
-
         # make the full IC vectors, which will have equal length
         # (one value for each particle)
         NSP = len(pcs00)
@@ -735,20 +674,21 @@ def P_tracks_MERHAB(in_dict):
         plon0 = plon0.flatten()
         plat0 = plat0.flatten()
         pcs0 = pcs0.flatten()
-
         # DO THE TRACKING
         import time
         tt0 = time.time()
-    
-        P, Gtr, Str = trackfun.get_tracks(fn_list_full, plon0, plat0, pcs0,
-                                      dir_tag, method, surface, ndiv, windage)
+        TR = {'3d': False, 'rev': False, 'turb': False,
+            'ndiv': 1, 'windage': 0}
+        P = tf1.get_tracks(fn_list_full, plon0, plat0, pcs0, TR,
+                           trim_loc=True)
         print('  took %0.1f seconds' % (time.time() - tt0))
-        
+        # and store the output
         fo = in_dict['fn_out']
         out_dir = fo[:fo.rindex('/')+1]
         out_fn = out_dir + 'tracks.p'
         pickle.dump(P, open(out_fn, 'wb'))
     else:
+        # load the output on all subsequent days
         fo = in_dict['fn_out']
         out_dir = fo[:fo.rindex('/')+1]
         out_fn = out_dir + 'tracks.p'
@@ -759,20 +699,22 @@ def P_tracks_MERHAB(in_dict):
     # panel 1
     ax = fig.add_subplot(121)
     vn = 'salt'
-    tstr = 'Surface ' + tstr_dict[vn] +' and ' + str(ndays) + ' day Tracks'
-    cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn,
-            vlims=vlims[vn], cmap=cmap_dict[vn], fac=fac_dict[vn], alpha = .5,
-            do_mask_salish=False)
+    if in_dict['auto_vlims']:
+        pinfo.vlims_dict[vn] = ()
+    cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict,
+            cmap=pinfo.cmap_dict[vn], fac=pinfo.fac_dict[vn],
+            alpha=0.5)
     fig.colorbar(cs)
     pfun.add_bathy_contours(ax, ds, txt=True)
     pfun.add_coast(ax)
     ax.axis(pfun.get_aa(ds))
     pfun.dar(ax)
-    fs1 = 16
+    fs1 = 14
     ax.set_xlabel('Longitude', fontsize=fs1)
     ax.set_ylabel('Latitude', fontsize=fs1)
+    tstr = 'Surface ' + pinfo.tstr_dict[vn] +' and ' + str(ndays) + ' day Tracks'
     ax.set_title(tstr, fontsize=fs1)
-    
+    # add info
     fs = fs1 - 6
     ax.text(.98, .10, T0['tm'].strftime('%Y-%m-%d %H:%M'),
         horizontalalignment='right' , verticalalignment='bottom',
@@ -786,7 +728,6 @@ def P_tracks_MERHAB(in_dict):
     ax.text(.06, .04, fn.split('/')[-3],
         verticalalignment='bottom', transform=ax.transAxes,
         rotation='vertical', fontsize=fs)
-
     # add the tracks
     c_start = 'w'; s_start = 4
     c_end = 'r'; s_end = 6
@@ -796,8 +737,7 @@ def P_tracks_MERHAB(in_dict):
             markersize=s_start, alpha = 1, markeredgecolor='k')
     ax.plot(P['lon'][ntt,:],P['lat'][ntt,:],'o'+c_end,
             markersize=s_end, alpha = 1, markeredgecolor='k')
-    
-    # add info about the tracks    
+    # add info about the tracks
     x0 = .8; x1 = .9
     y0 = .25; y1 = .3
     ax.plot([x0, x1], [y0, y1], '-k', linewidth=2, transform=ax.transAxes)
@@ -810,23 +750,25 @@ def P_tracks_MERHAB(in_dict):
             verticalalignment='center', fontstyle='italic', transform=ax.transAxes)
     ax.text(x1-.02, y1, 'end', horizontalalignment='right',
             verticalalignment='center', fontstyle='italic', transform=ax.transAxes)
-   
+    #
     ax = fig.add_subplot(122)
     vn = 'phytoplankton'
-    tstr = 'Surface ' + tstr_dict[vn]
-    cs, out_dict['vlims'][vn] = pfun.add_map_field(ax, ds, vn,
-           vlims=vlims[vn], cmap=cmap_dict[vn], fac=fac_dict[vn],
-           do_mask_salish=True)
+    if in_dict['auto_vlims']:
+        pinfo.vlims_dict[vn] = ()
+    tstr = 'Surface ' + pinfo.tstr_dict[vn]
+    cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict,
+            cmap=pinfo.cmap_dict[vn], fac=pinfo.fac_dict[vn],
+            do_mask_salish=True)
     fig.colorbar(cs)
     pfun.add_bathy_contours(ax, ds, txt=False)
     pfun.add_coast(ax)
+    pfun.add_windstress_flower(ax, ds)
     ax.axis(pfun.get_aa(ds))
     pfun.dar(ax)
-    fs1 = 16
     ax.set_xlabel('Longitude', fontsize=fs1)
-    #ax.set_ylabel('Latitude', fontsize=fs1)
-    ax.set_title(tstr, fontsize=fs1)
-   
+    ax.set_title('Surface %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]),
+        fontsize=fs1)
+    #
     fig.tight_layout()
 
     # FINISH
@@ -836,5 +778,3 @@ def P_tracks_MERHAB(in_dict):
         plt.close()
     else:
         plt.show()
-        pfun.topfig()
-    return out_dict

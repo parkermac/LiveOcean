@@ -3,8 +3,7 @@ Plot fields in one or more history files.
 
 Examples:
 
-Plot a single figure to the screen:
-run pan_plot.py
+Plot a single figure to the screen with the default argumentsrun pan_plot.py
 
 Save multiple plots with color limits all set to match those set by
 auto_lims() from the first plot:
@@ -13,6 +12,12 @@ run pan_plot.py -g cascadia1 -t base -x lobio5 -d 2013.01.31 -lt backfill
 Save multiple plots with color limits all set to match those set by
 pinfo.vlims_dict:
 run pan_plot.py -g cascadia1 -t base -x lobio5 -d 2013.01.31 -lt backfill -avl False
+
+Example of an analytical run:
+run pan_plot.py -g aestus1 -t A1 -x ae1 -d 2013.03.01
+
+And a test of the MERHAB tracks:
+run pan_plot.py -g cascadia1 -t base -x lobio5 -d 2013.01.31 -lt merhab -pt P_tracks_MERHAB -mov True
 
 """
 
@@ -121,7 +126,7 @@ def make_fn_list(dt0, dt1, Ldir, hourmin=0, hourmax=24):
             fn_list.append(fn)
     return fn_list
 
-#%% choose which file(s) to plot
+# choose which file(s) to plot
 if list_type == 'snapshot':
     # return a single default file name in the list
     fn_list = [Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/' +
@@ -130,19 +135,20 @@ if list_type == 'snapshot':
 elif plot_type == 'P_tracks_MERHAB':
     # enforce list_type
     if list_type != 'merhab':
-        print('Need to use list_type=merhab for plot_type=P_tracks_MERHAB')
+        list_type = 'merhab'
+        print('NOTE: Overriding chosen list_type and using merhab instead.')
     # get a list of all but the first input file
     in_dir = (Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/' +
            'f' + args.date_string + '/')
     fn_list_raw = os.listdir(in_dir)
     fn_list = [(in_dir + ff) for ff in fn_list_raw if 'ocean_his' in ff]
     fn_list.sort()
-    # testing - make a shorter list
-    #fn_list = fn_list[:10]
     fn_list.pop(0) # remove the first hour
 elif list_type == 'backfill':
     fn_list = make_fn_list(dt0,dt1,Ldir)
-    fn_list = fn_list[:4] # testing
+    if True:
+        print('NOTE: Limiting length of backfill list for testing')
+        fn_list = fn_list[:4]
 elif list_type == 'forecast':
     dt0 = datetime.now()
     fn_list = make_fn_list(dt0, dt0, Ldir, hourmax=72)

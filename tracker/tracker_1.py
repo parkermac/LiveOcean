@@ -18,12 +18,12 @@ to the tracking (e.g. for diurnal depth behavior) while still being able
 to use git pull to update the main code.
 
 It can be run on its own, or with command line arguments to facilitate
-large, automated jobs, for example im python:
+large, automated jobs, for example in python:
     
 run tracker_1.py -dtt 2 -ds 2013.01.30
-run tracker_1.py -3d -rev -dtt 5
-run tracker_1.py -exp ae1 -3d -rev -dtt 5 -nsd 4 -dbs 4 -ds 2013.03.01
-run tracker_1.py -exp ae2 -3d -rev -dtt 7 -nsd 3 -dbs 4 -ds 2013.03.01
+run tracker_1.py -3d True -rev True -dtt 5
+run tracker_1.py -exp ae1 -3d True -rev True -dtt 5 -nsd 4 -dbs 4 -ds 2013.03.01
+run tracker_1.py -exp ae2 -3d True -rev True -dtt 7 -nsd 3 -dbs 4 -ds 2013.03.01
 
 From the terminal or a script you would use "python" instead of "run".
 
@@ -60,6 +60,11 @@ else:
 reload(exp)
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+def boolean_string(s):
+    if s not in ['False', 'True']:
+        raise ValueError('Not a valid boolean string')
+    return s == 'True' # note use of ==
+    
 # optional command line arguments, can be input in any order
 parser = argparse.ArgumentParser()
 
@@ -67,15 +72,14 @@ parser = argparse.ArgumentParser()
 # (details set in experiments.py, or, if it exists, user_experiments.py)
 parser.add_argument('-exp', '--exp_name', default='ae0', type=str)
 
-# These are False unless the flags are used
-# (no argument needed after flag)
+# These are False unless the flags are used with the argument True
 # so if you do NOT use these flags the run will be:
 # - forward in time
 # - trapped to the surface
 # - no vertical turbulent diffusion
-parser.add_argument('-rev', action='store_true') # reverse time
-parser.add_argument('-3d', action='store_true') # do 3d tracking
-parser.add_argument('-turb', action='store_true') # include turbulence
+parser.add_argument('-rev', default=False, type=boolean_string) # reverse time
+parser.add_argument('-3d', default=False, type=boolean_string) # do 3d tracking
+parser.add_argument('-turb', default=False, type=boolean_string) # include turbulence
 
 # windage = a small number: 0 <= windage << 1 (e.g. 0.03)
 # fraction of windspeed added to advection, only for 3d=False
