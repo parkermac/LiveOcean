@@ -14,11 +14,6 @@ OUTPUT: either a screen image or a graphics file
 
 # imports
 
-import numpy as np
-import netCDF4 as nc
-import matplotlib.pyplot as plt
-import pickle
-
 # The calling function, pan_plot.py, has already put alpha on the
 # path so it is on the path here too.
 import Lfun
@@ -28,6 +23,11 @@ if Ldir['lo_env'] == 'pm_mac': # mac version
 else: # fjord version
     import matplotlib as mpl
     mpl.use('Agg')
+    
+import numpy as np
+import netCDF4 as nc
+import matplotlib.pyplot as plt
+import pickle
     
 import zfun
 import zrfun
