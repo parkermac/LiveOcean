@@ -30,10 +30,10 @@ tag = 'base'
 ex_name = 'lobio5'
 list_type = 'hourly' # hourly, daily, low_passed
 dsf = '%Y.%m.%d' # Example of date_string is 2015.09.19
-date_string0 = datetime(2013,1,29).strftime(format=dsf)
+date_string0 = datetime(2013,1,31).strftime(format=dsf)
 date_string1 = datetime(2013,1,31).strftime(format=dsf)
 #
-nlay_str = '-1' # layer number, -1 for top, 0 for bottom
+nlay_str = '0' # layer number, -1 for top, 0 for bottom
 
 # optional command line arguments, can be input in any order, or omitted
 parser = argparse.ArgumentParser()
@@ -94,6 +94,9 @@ while dt <= dt1:
 fn = fn_list[0]
 G = zrfun.get_basic_info(fn, only_G=True)
 h = G['h']
+S = zrfun.get_basic_info(fn, only_S=True)
+zr = zrfun.get_z(h, 0*h, S, only_rho=True)
+zlay = zr[nlay, :, :].squeeze()
 
 ds1 = nc.Dataset(fn)
 ds2 = nc.Dataset(out_fn, 'w')
@@ -101,10 +104,11 @@ ds2 = nc.Dataset(out_fn, 'w')
 # lists of variables to process
 dlist = ['xi_rho', 'eta_rho', 'xi_psi', 'eta_psi', 'ocean_time']
 vn_list_2d = [ 'lon_rho', 'lat_rho', 'lon_psi', 'lat_psi', 'mask_rho', 'h']
-vn_list_2d_t = ['zeta']
-vn_list_3d_t = ['salt', 'temp']#, 'NO3']
-vn_list_2d_uv_t = []#'sustr', 'svstr']
+vn_list_2d_t = []#['zeta']
+vn_list_3d_t = []#['salt', 'temp']#, 'NO3']
+vn_list_2d_uv_t = ['bustr', 'bvstr']
 vn_list_3d_uv_t = ['u', 'v']
+vn_list_2d_custom = ['zlay']
 
 # Create dimensions
 for dname, the_dim in ds1.dimensions.items():
@@ -124,6 +128,15 @@ for vn in vn_list_2d:
     vv = ds2.createVariable(vn, varin.dtype, varin.dimensions)
     vv.setncatts({k: varin.getncattr(k) for k in varin.ncattrs()})
     vv[:] = ds1[vn][:]
+# - then static custom fields
+for vn in vn_list_2d_custom:
+    if vn == 'zlay':
+        vv = ds2.createVariable(vn, float, ('eta_rho', 'xi_rho'))
+        vv.long_name = 'Layer Z position'
+        vv.units = 'm'
+        vv[:] = zlay
+#
+# for time-dependent fields we create variables here and write them later
 # - then time-dependent 2d fields
 for vn in vn_list_2d_t:
     varin = ds1[vn]
@@ -156,7 +169,7 @@ for vn in vn_list_3d_uv_t:
     vv.units = varin.units
     vv.time = varin.time
     
-# Copy data
+# Copy time dependent data
 omat = np.nan * np.ones(h.shape)
 omat = np.ma.masked_where(G['mask_rho']==0, omat)
 
@@ -187,6 +200,18 @@ for fn in fn_list:
         svstr = np.ma.masked_where(np.isnan(svstr), svstr)
         ds2['sustr'][tt,:,:] = sustr
         ds2['svstr'][tt,:,:] = svstr
+        
+    if ('bustr' in vn_list_2d_uv_t) and ('bvstr' in vn_list_2d_uv_t):
+        bustr0 = ds['bustr'][0, :, :].squeeze()
+        bvstr0 = ds['bvstr'][0, :, :].squeeze()
+        bustr = omat.copy()
+        bvstr = omat.copy()
+        bustr[:, 1:-1] = (bustr0[:, 1:] + bustr0[:, :-1])/2
+        bvstr[1:-1, :] = (bvstr0[1:, :] + bvstr0[:-1, :])/2
+        bustr = np.ma.masked_where(np.isnan(bustr), bustr)
+        bvstr = np.ma.masked_where(np.isnan(bvstr), bvstr)
+        ds2['bustr'][tt,:,:] = bustr
+        ds2['bvstr'][tt,:,:] = bvstr
         
     if ('u' in vn_list_3d_uv_t) and ('v' in vn_list_3d_uv_t):
         u0 = ds['u'][0, nlay, :, :].squeeze()

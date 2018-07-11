@@ -51,7 +51,7 @@ parser.add_argument('-d', '--date_string', nargs='?', type=str,
 parser.add_argument('-hs', '--hour_string', nargs='?', type=str,
                     default='01')
 parser.add_argument('-nd', '--num_days', nargs='?', type=int,
-                    default=0) # number of additional days
+                    default=0) # number of ADDITIONAL days
 # more arguments that allow you to bypass the interactive choices
 parser.add_argument('-lt', '--list_type', nargs='?', type=str,
                     default='')
@@ -108,7 +108,7 @@ else:
     
 whichplot = getattr(roms_plots, plot_type)
 
-def make_fn_list(dt0, dt1, Ldir, hourmin=0, hourmax=24):
+def make_fn_list(dt0, dt1, Ldir, hourmax=24):
     # a helpful function for making file lists
     from datetime import timedelta
     date_list = []
@@ -119,6 +119,10 @@ def make_fn_list(dt0, dt1, Ldir, hourmin=0, hourmax=24):
         dt = dt + timedelta(1)
     for dl in date_list:
         f_string = 'f' + dl
+        if dl == date_list[0]:
+            hourmin = 0
+        else:
+            hourmin = 1
         for nhis in range(hourmin+1, hourmax+2):
             nhiss = ('0000' + str(nhis))[-4:]
             fn = (Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/' +
@@ -146,7 +150,7 @@ elif plot_type == 'P_tracks_MERHAB':
     fn_list.pop(0) # remove the first hour
 elif list_type == 'backfill':
     fn_list = make_fn_list(dt0,dt1,Ldir)
-    if True:
+    if False:
         print('NOTE: Limiting length of backfill list for testing')
         fn_list = fn_list[:4]
 elif list_type == 'forecast':
