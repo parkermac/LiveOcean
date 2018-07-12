@@ -69,7 +69,7 @@ Ldir['gtagex'] = Ldir['gtag'] + '_' + args.ex_name
 if len(args.list_type) == 0:
     print(30*'*' + ' pan_plot ' + 30*'*')
     print('\n%s\n' % '** Choose List type (return for snapshot) **')
-    lt_list = ['snapshot', 'low_pass', 'backfill', 'forecast',
+    lt_list = ['snapshot', 'low_pass', 'daily', 'backfill', 'forecast',
                'merhab']
     Nlt = len(lt_list)
     lt_dict = dict(zip(range(Nlt), lt_list))
@@ -168,7 +168,18 @@ elif list_type == 'low_pass':
         fn = (Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/'
             + f_string + '/low_passed.nc')
         fn_list.append(fn)
-        
+elif list_type == 'daily':
+    date_list = []
+    fn_list = []
+    dt = dt0
+    while dt <= dt1:
+        date_list.append(dt.strftime('%Y.%m.%d'))
+        dt = dt + timedelta(1)
+    for dl in date_list:
+        f_string = 'f' + dl
+        fn = (Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/'
+            + f_string + '/ocean_his_0001.nc')
+        fn_list.append(fn)        
 # plot
 
 in_dict = dict()
