@@ -9,6 +9,8 @@ e.g. with the default gridname, tag, and ex_name:
 
 python moor_1.py -lt hourly -0 2013.01.29 -1 2013.01.29
 
+WARNING: currently this does not accept arguments like -lon -124.6
+
 """
 
 # setup
@@ -34,9 +36,9 @@ dsf = '%Y.%m.%d' # Example of date_string is 2015.09.19
 date_string0 = datetime(2013,1,29).strftime(format=dsf)
 date_string1 = datetime(2013,1,31).strftime(format=dsf)
 #
-sta_name = 'TEST'
-lon_str = '-124.5'
-lat_str = '47'
+sta_name = 'JdFmouth'
+lon_str = '-124.6'
+lat_str = '48.46'
 
 # get command line arguments
 import argparse
