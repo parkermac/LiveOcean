@@ -302,23 +302,25 @@ def P_Carbon(in_dict):
     else:
         plt.show()
 
-def P_bio4(in_dict):
+def P_bio(in_dict):
     
     # START
-    fig = plt.figure(figsize=(24, 8))
+    fig = plt.figure(figsize=(16, 8))
     ds = nc.Dataset(in_dict['fn'])
 
     # PLOT CODE
-    vn_list = vn_list = ['NO3', 'phytoplankton', 'zooplankton', 'oxygen']
+    vn_list = vn_list = ['NO3', 'oxygen', 'phytoplankton']
     ii = 1
     for vn in vn_list:
         if in_dict['auto_vlims']:
             pinfo.vlims_dict[vn] = ()
         ax = fig.add_subplot(1, len(vn_list), ii)
-        if vn == 'oxygen':
+        if vn in ['NO3', 'oxygen']:
             slev = 0
+            ttag = 'Bottom'
         else:
             slev = -1
+            ttag = 'Surface'
         cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict, slev=slev,
                 cmap=pinfo.cmap_dict[vn], fac=pinfo.fac_dict[vn])
         fig.colorbar(cs)
@@ -326,17 +328,13 @@ def P_bio4(in_dict):
         pfun.add_coast(ax)
         ax.axis(pfun.get_aa(ds))
         pfun.dar(ax)
-        if vn == 'oxygen':
-            ttag = 'Bottom'
-        else:
-            ttag = 'Surface'
         ax.set_title('%s %s %s' % (ttag,pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
         ax.set_xlabel('Longitude')
         if ii == 1:
             ax.set_ylabel('Latitude')
             pfun.add_info(ax, in_dict['fn'])
             pfun.add_windstress_flower(ax, ds)
-        elif ii == 2:
+        elif ii == 3:
             pfun.add_velocity_vectors(ax, ds, in_dict['fn'])
         ii += 1
         

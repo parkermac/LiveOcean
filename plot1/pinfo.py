@@ -11,23 +11,23 @@ figsize = (13,8) # laptop
 # and then held constant at those levels thereafter.    
 vlims_dict = {'salt': (14, 35),
         'temp': (7, 18),
-        'NO3': (0, 40),
+        'NO3': (0, 44),
         'phytoplankton': (0,30),
         'zooplankton': (0, 4),
-        'oxygen': (0, 4),
+        'oxygen': (0, 8),
         'TIC': (2000, 2400),
         'alkalinity': (2000,2400),
         'PH': (7, 8.5),
         'ARAG': (.2, 2.2),
         'Ldetritus': ()}
 
-# Colormaps
+# Colormaps (use _r for reverse)
 cmap_dict = {'salt': 'rainbow',
              'temp': 'jet',
-             'NO3': 'jet',
+             'NO3': 'gist_stern_r',
              'phytoplankton': 'jet',
              'zooplankton': 'jet',
-             'oxygen': 'jet',
+             'oxygen': 'rainbow',
              'TIC': 'rainbow',
              'alkalinity': 'rainbow',
              'PH': 'jet',
