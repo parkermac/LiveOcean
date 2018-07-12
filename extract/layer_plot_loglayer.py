@@ -7,18 +7,14 @@ the bottom (assumes we are in the log layer).
 import netCDF4 as nc
 import matplotlib.pyplot as plt
 import numpy as np
-import matplotlib.dates as mdates
-from datetime import datetime
 
+# Rose - you will want to skip these lines and make your own indir
 import os
 import sys
 alp = os.path.abspath('../alpha')
 if alp not in sys.path:
     sys.path.append(alp)
 import Lfun
-import zfun
-
-
 Ldir = Lfun.Lstart()
 indir = Ldir['LOo'] + 'extract/'
 
@@ -49,29 +45,55 @@ xp = ds['lon_psi'][:]
 yp = ds['lat_psi'][:]
 ot = ds['ocean_time'][:]
 
-# log layer functions
+# log layer things
 rho = 1026 # kg m-3
-z0 = 0.0008 # m
+
+# this is the roughness length.  0.0008 is what I found to give
+# a good fit meaning that when I used my bottom stresses and a log
+# layer shape it gave values close to the original ones (see the scatter plot
+# comparing uz_orig to uz_oldz)
+z0 = 0.0007 # m (typical of mud/sand)
+# for reference the model used a quadratic drag law with CD = 3e-3
+
+# What I don't know is whether or not the model assumes a log layer profile
+# when the layers are thin enough to resolve the log layer - e.g. in
+# shallow water.
+
 u = ds['u'][:]
 v = ds['v'][:]
 bustr = ds['bustr'][:]
 bvstr = ds['bvstr'][:]
 bstr = np.ma.sqrt(bustr**2 + bvstr**2)
 u_star = np.ma.sqrt(bstr/rho)
-zlay = ds['zlay'][:]
-zbot = -ds['h'][:]
-zorig = zlay - zbot # m above the bottom
+
+zlay = ds['zlay'][:] # z position of velocities
+zbot = -ds['h'][:] # z position of the bottom
+
+zorig = zlay - zbot # m above the bottom of the velocities
 zorig = np.ma.masked_where(u_star[0,:,:].mask, zorig)
+
+# set the desired height above bottom at which you want to estimate velocities
 znew = 0.1 * np.ones(zorig.shape)
 
 def get_u_at_z(z, z0, u_star):
+    # the classical log layer function
     uz = (u_star/0.41)* np.log(z/z0)
     return uz
-    
+
+# calculate three speeds:
+
+# the original
 uz_orig = np.ma.sqrt(u**2 + v**2)
+
+# what our log layer predicts the speed should be at the
+# original (varying) height above the bottom
 uz_oldz = get_u_at_z(zorig, z0, u_star)
+
+# what our log layer predicts the speed should be at the
+# new (constant) height above the bottom
 uz_newz = get_u_at_z(znew, z0, u_star)
 
+# set up for plotting
 F = dict() # field
 S = dict() # series
 
@@ -92,7 +114,7 @@ NC = len(v_list)
 count = 1
 for vn in v_list:
     ax = fig.add_subplot(2,NC,count)
-    cs = ax.pcolormesh(xp, yp, F[vn][1:-1, 1:-1])
+    cs = ax.pcolormesh(xp, yp, F[vn][1:-1, 1:-1],vmin=0, vmax=.4, cmap='rainbow')
     fig.colorbar(cs, ax=ax)
     ax.set_title(vn)
     count += 1
