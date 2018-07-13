@@ -305,11 +305,11 @@ def P_Carbon(in_dict):
 def P_bio(in_dict):
     
     # START
-    fig = plt.figure(figsize=(16, 8))
+    fig = plt.figure(figsize=(14, 8))
     ds = nc.Dataset(in_dict['fn'])
 
     # PLOT CODE
-    vn_list = vn_list = ['NO3', 'oxygen', 'phytoplankton']
+    vn_list = vn_list = ['NO3', 'oxygen']
     ii = 1
     for vn in vn_list:
         if in_dict['auto_vlims']:
@@ -326,7 +326,11 @@ def P_bio(in_dict):
         fig.colorbar(cs)
         pfun.add_bathy_contours(ax, ds, txt=True)
         pfun.add_coast(ax)
-        ax.axis(pfun.get_aa(ds))
+        if False:
+            ax.axis(pfun.get_aa(ds))
+        else:
+            aa = [-127.2, -123.8, 45.5, 49.8]
+            ax.axis(aa)
         pfun.dar(ax)
         ax.set_title('%s %s %s' % (ttag,pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
         ax.set_xlabel('Longitude')

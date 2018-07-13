@@ -74,8 +74,8 @@ V = dict()
 Vu = dict()
 
 #choose what to plot
-list_to_plot = v3_list_rho + v3_list_w + v2_list
-#list_to_plot = v3_list_rho
+#list_to_plot = v3_list_rho + v3_list_w + v2_list
+list_to_plot = v3_list_rho
 
 # hand edit variables not to look at
 for v in ['CaCO3', 'PH', 'ARAG']:

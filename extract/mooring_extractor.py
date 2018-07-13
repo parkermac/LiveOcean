@@ -9,7 +9,9 @@ e.g. with the default gridname, tag, and ex_name:
 
 python moor_1.py -lt hourly -0 2013.01.29 -1 2013.01.29
 
-WARNING: currently this does not accept arguments like -lon -124.6
+WARNING: to pass an argument with a mimus sign, type it like this:
+-lon " -124.6"
+Note the space after the starting quotes.  This is required.
 
 """
 

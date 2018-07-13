@@ -1,6 +1,28 @@
 """
 Plots layer records with calculation of z at a specific height above
 the bottom (assumes we are in the log layer).
+
+Notes from the ROMS Forum from John Warner 7/13/2018:
+
+"the routine set_vbc.F computes the bottom stresses
+(in case you want to look at the code).
+
+For QDRAG, it essentially uses (for u-direction)
+bustr = rdrag2 * u(z=1) * |V|
+For this option, as u(z=1) changes elevation, the roughness (rdrag2) stays the same.
+
+Another option is to use UV_LOGDRAG
+bustr = kappa^2 / (Ln(z/z0))^2 * u(z=1) * |V|
+So when u(z=1) changes elevation, the model is assuming a log layer distribution
+from the middle of the bottom cell to the sea floor,
+this way the roughness scales with the elevation.
+
+With your results, you could assume a log layer from the middle height
+of the bottom cell to the sea floor. ROMS does not do anything fancy in
+very shallow water where it may actually be resolving the vertical log layer profile,
+unless you defined SPLINES. That can influence the shape of the velocity profile.
+We typically do not use SPLINES in shallow water."
+
 """
 
 # setup
