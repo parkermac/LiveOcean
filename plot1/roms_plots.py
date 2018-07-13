@@ -337,9 +337,8 @@ def P_bio(in_dict):
         if ii == 1:
             ax.set_ylabel('Latitude')
             pfun.add_info(ax, in_dict['fn'])
-            pfun.add_windstress_flower(ax, ds)
-        elif ii == 3:
-            pfun.add_velocity_vectors(ax, ds, in_dict['fn'])
+        elif ii == 2:
+            pfun.add_windstress_flower(ax, ds, center=(.2,.25))
         ii += 1
         
     # FINISH
