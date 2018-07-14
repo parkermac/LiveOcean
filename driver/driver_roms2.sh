@@ -144,7 +144,7 @@ do
     if grep -q "Blowing-up" $log_file ; then
       echo "- Run blew up!"
       blow_ups=$(( $blow_ups + 1 )) #increment the blow ups
-      if [ $blow_ups -le 3 ] ; then
+      if [ $blow_ups -le 4 ] ; then
         keep_going=1
       else
         keep_going=0
