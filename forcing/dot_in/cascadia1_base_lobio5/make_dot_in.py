@@ -46,7 +46,7 @@ elif Ldir['blow_ups'] == 3:
     dtsec = 15
 else:
     print('Unsupported number of blow ups: %d' % (Ldir['blow_ups']))
-print('--dtsec=' + int(dtsec))
+print('--dtsec=' + str(dtsec))
 restart_nrrec = '-1' # '-1' for a non-crash restart file, otherwise '1' or '2'
 his_interval = 3600 # seconds to define and write to history files
 rst_interval = 1 # days between writing to the restart file (e.g. 5)
