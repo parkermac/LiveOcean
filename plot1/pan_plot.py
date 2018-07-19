@@ -3,21 +3,22 @@ Plot fields in one or more history files.
 
 Examples:
 
-Plot a single figure to the screen with the default argumentsrun pan_plot.py
+Plot a single figure to the screen with the default arguments
+run pan_plot.py
 
 Save multiple plots with color limits all set to match those set by
 auto_lims() from the first plot:
-run pan_plot.py -g cascadia1 -t base -x lobio5 -d 2013.01.31 -lt backfill
+run pan_plot.py -g cascadia1 -t base -x lobio5 -0 2013.01.31 -lt backfill
 
 Save multiple plots with color limits all set to match those set by
 pinfo.vlims_dict:
-run pan_plot.py -g cascadia1 -t base -x lobio5 -d 2013.01.31 -lt backfill -avl False
+run pan_plot.py -g cascadia1 -t base -x lobio5 -0 2013.01.31 -lt backfill -avl False
 
 Example of an analytical run:
-run pan_plot.py -g aestus1 -t A1 -x ae1 -d 2013.03.01
+run pan_plot.py -g aestus1 -t A1 -x ae1 -0 2013.03.01
 
 And a test of the MERHAB tracks:
-run pan_plot.py -g cascadia1 -t base -x lobio5 -d 2013.01.31 -lt merhab -pt P_tracks_MERHAB -mov True
+run pan_plot.py -g cascadia1 -t base -x lobio5 -0 2013.01.31 -lt merhab -pt P_tracks_MERHAB -mov True
 
 """
 
@@ -38,7 +39,9 @@ def boolean_string(s):
         raise ValueError('Not a valid boolean string')
     return s == 'True' # note use of ==
 
-#%% get optional command line arguments, any order
+# get optional command line arguments, any order
+
+# standard arguments
 parser = argparse.ArgumentParser()
 parser.add_argument('-g', '--gridname', nargs='?', type=str,
                     default='cas4')
@@ -46,21 +49,23 @@ parser.add_argument('-t', '--tag', nargs='?', type=str,
                     default='v1')
 parser.add_argument('-x', '--ex_name', nargs='?', type=str,
                     default='lo6biom')
-parser.add_argument('-d', '--date_string', nargs='?', type=str,
-                    default='2017.05.08')
-parser.add_argument('-hs', '--hour_string', nargs='?', type=str,
-                    default='01')
-parser.add_argument('-nd', '--num_days', nargs='?', type=int,
-                    default=0) # number of ADDITIONAL days
-# more arguments that allow you to bypass the interactive choices
+parser.add_argument('-0', '--date_string0', nargs='?', type=str,
+                    default='2017.09.01')
+parser.add_argument('-1', '--date_string1', nargs='?', type=str,
+                    default='')
+# arguments that allow you to bypass the interactive choices
 parser.add_argument('-lt', '--list_type', nargs='?', type=str,
                     default='')
 parser.add_argument('-pt', '--plot_type', nargs='?', type=str,
                     default='')
+# arguments that influence other behavior
+# (make a movie, override auto color limits)
 parser.add_argument('-mov', '--make_movie', default=False, type=boolean_string)
 parser.add_argument('-avl', '--auto_vlims', default=True, type=boolean_string)
 
 args = parser.parse_args()
+if len(args.date_string1) == 0:
+    args.date_string1 = args.date_string0
 
 Ldir = Lfun.Lstart(args.gridname, args.tag)
 Ldir['gtagex'] = Ldir['gtag'] + '_' + args.ex_name
@@ -69,7 +74,7 @@ Ldir['gtagex'] = Ldir['gtag'] + '_' + args.ex_name
 if len(args.list_type) == 0:
     print(30*'*' + ' pan_plot ' + 30*'*')
     print('\n%s\n' % '** Choose List type (return for snapshot) **')
-    lt_list = ['snapshot', 'low_pass', 'daily', 'backfill', 'forecast',
+    lt_list = ['snapshot', 'low_passed', 'daily', 'backfill', 'forecast',
                'merhab']
     Nlt = len(lt_list)
     lt_dict = dict(zip(range(Nlt), lt_list))
@@ -83,10 +88,7 @@ if len(args.list_type) == 0:
 else:
     list_type = args.list_type
 
-dt0 = datetime.strptime(args.date_string, '%Y.%m.%d')
-dt1 = dt0 + timedelta(args.num_days)
-
-#%% choose the type of plot to make
+# choose the type of plot to make
 if len(args.plot_type) == 0:
     print('\n%s\n' % '** Choose Plot type (return for P_basic) **')
     pt_list_raw = dir(roms_plots)
@@ -105,83 +107,17 @@ if len(args.plot_type) == 0:
         plot_type = pt_dict[int(my_npt)]
 else:
     plot_type = args.plot_type
-    
 whichplot = getattr(roms_plots, plot_type)
-
-def make_fn_list(dt0, dt1, Ldir, hourmax=24):
-    # a helpful function for making file lists
-    from datetime import timedelta
-    date_list = []
-    fn_list = []
-    dt = dt0
-    while dt <= dt1:
-        date_list.append(dt.strftime('%Y.%m.%d'))
-        dt = dt + timedelta(1)
-    for dl in date_list:
-        f_string = 'f' + dl
-        if dl == date_list[0]:
-            hourmin = 0
-        else:
-            hourmin = 1
-        for nhis in range(hourmin+1, hourmax+2):
-            nhiss = ('0000' + str(nhis))[-4:]
-            fn = (Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/' +
-                  f_string + '/ocean_his_' + nhiss + '.nc')
-            fn_list.append(fn)
-    return fn_list
-
-# choose which file(s) to plot
-if list_type == 'snapshot':
-    # return a single default file name in the list
-    fn_list = [Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/' +
-               'f' + args.date_string +
-               '/ocean_his_00' + args.hour_string + '.nc']
-elif plot_type == 'P_tracks_MERHAB':
+if plot_type == 'P_tracks_MERHAB':
     # enforce list_type
     if list_type != 'merhab':
         list_type = 'merhab'
         print('NOTE: Overriding chosen list_type and using merhab instead.')
-    # get a list of all but the first input file
-    in_dir = (Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/' +
-           'f' + args.date_string + '/')
-    fn_list_raw = os.listdir(in_dir)
-    fn_list = [(in_dir + ff) for ff in fn_list_raw if 'ocean_his' in ff]
-    fn_list.sort()
-    fn_list.pop(0) # remove the first hour
-elif list_type == 'backfill':
-    fn_list = make_fn_list(dt0,dt1,Ldir)
-    if False:
-        print('NOTE: Limiting length of backfill list for testing')
-        fn_list = fn_list[:4]
-elif list_type == 'forecast':
-    dt0 = datetime.now()
-    fn_list = make_fn_list(dt0, dt0, Ldir, hourmax=72)
-elif list_type == 'low_pass':
-    date_list = []
-    fn_list = []
-    dt = dt0
-    while dt <= dt1:
-        date_list.append(dt.strftime('%Y.%m.%d'))
-        dt = dt + timedelta(1)
-    for dl in date_list:
-        f_string = 'f' + dl
-        fn = (Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/'
-            + f_string + '/low_passed.nc')
-        fn_list.append(fn)
-elif list_type == 'daily':
-    date_list = []
-    fn_list = []
-    dt = dt0
-    while dt <= dt1:
-        date_list.append(dt.strftime('%Y.%m.%d'))
-        dt = dt + timedelta(1)
-    for dl in date_list:
-        f_string = 'f' + dl
-        fn = (Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/'
-            + f_string + '/ocean_his_0001.nc')
-        fn_list.append(fn)        
-# plot
 
+# get list of history files to plot
+fn_list = Lfun.get_fn_list(list_type, Ldir, args.date_string0, args.date_string1)
+
+# PLOTTING
 in_dict = dict()
 in_dict['auto_vlims'] = args.auto_vlims
 

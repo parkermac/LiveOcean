@@ -34,7 +34,7 @@ cmd = ['python','pan_plot.py',
               '-t', Ldir['tag'],
               '-x', Ldir['ex_name'],
               '-lt', 'merhab',
-              '-d', Ldir['date_string'],
+              '-0', Ldir['date_string'],
               '-pt', 'P_tracks_MERHAB',
               '-avl', 'False',
               '-mov', 'True']
