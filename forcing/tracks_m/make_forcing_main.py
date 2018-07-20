@@ -27,7 +27,7 @@ import subprocess
 print(' - Creating MERAB movie for ' + Ldir['date_string'])
 f_string = 'f' + Ldir['date_string']
 
-os.chdir(Ldir['LO'] + 'plot1/')
+os.chdir(Ldir['LO'] + 'plotting/')
 
 cmd = ['python','pan_plot.py',
               '-g', Ldir['gridname'],
