@@ -7,7 +7,7 @@ This can be run from the linux command line:
 
 e.g. with the default gridname, tag, and ex_name:
 
-python moor_1.py -lt hourly -0 2013.01.29 -1 2013.01.29
+run mooring_extractor.py -1 2017.09.03
 
 WARNING: to pass an argument with a mimus sign, type it like this:
 -lon " -124.6"
@@ -29,15 +29,8 @@ import zfun
 import zrfun
 import netCDF4 as nc
 
-# set defaults
-gridname = 'cascadia1'
-tag = 'base'
-ex_name = 'lobio5'
-list_type = 'hourly' # hourly, daily, low_passed
-dsf = '%Y.%m.%d' # Example of date_string is 2015.09.19
-date_string0 = datetime(2013,1,29).strftime(format=dsf)
-date_string1 = datetime(2013,1,31).strftime(format=dsf)
-#
+# defaults
+list_type = 'hourly'
 sta_name = 'JdFmouth'
 lon_str = '-124.6'
 lat_str = '48.46'
@@ -45,29 +38,27 @@ lat_str = '48.46'
 # get command line arguments
 import argparse
 parser = argparse.ArgumentParser()
-# optional input arguments
-parser.add_argument('-g', '--gridname', nargs='?', type=str, default=gridname)
-parser.add_argument('-t', '--tag', nargs='?', type=str, default=tag)
-parser.add_argument('-x', '--ex_name', nargs='?', type=str, default=ex_name)
-parser.add_argument('-lt', '--list_type', nargs='?', const=list_type, type=str, default=list_type)
-parser.add_argument('-0', '--date_string0', nargs='?', type=str, default=date_string0)
-parser.add_argument('-1', '--date_string1', nargs='?', type=str, default=date_string1)
-#
-parser.add_argument('-sn', '--sta_name', nargs='?', const=sta_name, type=str, default=sta_name)
-parser.add_argument('-lon', '--lon_str', nargs='?', const=lon_str, type=str, default=lon_str)
-parser.add_argument('-lat', '--lat_str', nargs='?', const=lat_str, type=str, default=lat_str)
+# standard arguments
+parser.add_argument('-g', '--gridname', nargs='?', type=str, default='cas4')
+parser.add_argument('-t', '--tag', nargs='?', type=str, default='v1')
+parser.add_argument('-x', '--ex_name', nargs='?', type=str, default='lo6biom')
+parser.add_argument('-0', '--date_string0', nargs='?', type=str, default='2017.09.01')
+parser.add_argument('-1', '--date_string1', nargs='?', type=str, default='')
+parser.add_argument('-lt', '--list_type', nargs='?', type=str, default=list_type)
+# mooring specific arguments
+parser.add_argument('-sn', '--sta_name', nargs='?', type=str, default=sta_name)
+parser.add_argument('-lon', '--lon_str', nargs='?', type=str, default=lon_str)
+parser.add_argument('-lat', '--lat_str', nargs='?', type=str, default=lat_str)
 args = parser.parse_args()
+if len(args.date_string1) == 0:
+    args.date_string1 = args.date_string0
 
-# process the arguments
-list_type = args.list_type
-dt0 = datetime.strptime(args.date_string0, dsf)
-dt1 = datetime.strptime(args.date_string1, dsf)
+# save some arguments
 Ldir = Lfun.Lstart(args.gridname, args.tag)
 Ldir['gtagex'] = Ldir['gtag'] + '_' + args.ex_name
 Ldir['list_type'] = args.list_type
 Ldir['date_string0'] = args.date_string0
 Ldir['date_string1'] = args.date_string1
-#
 Ldir['sta_name'] = args.sta_name
 Ldir['lon_str'] = args.lon_str
 Ldir['lat_str'] = args.lat_str
@@ -89,27 +80,8 @@ try:
 except OSError:
     pass
     
-# make a list of input files
-fn_list = []
-dt = dt0
-while dt <= dt1:
-    date_string = dt.strftime(format='%Y.%m.%d')
-    Ldir['date_string'] = date_string
-    f_string = 'f' + Ldir['date_string']
-    in_dir = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/' + f_string + '/'
-    if (list_type == 'low_passed'):
-        fn_list.append(in_dir + 'low_passed.nc') 
-    elif (list_type == 'daily'):
-        fn_list.append(in_dir + 'ocean_his_0001.nc')
-    elif list_type == 'hourly':
-        if dt == dt0:
-            h0 = 1
-        else:
-            h0 = 2
-        for hh in range(h0,26):
-            hhhh = ('0000' + str(hh))[-4:]
-            fn_list.append(in_dir + 'ocean_his_' + hhhh + '.nc')
-    dt = dt + timedelta(days=1)
+# get list of history files to plot
+fn_list = Lfun.get_fn_list(args.list_type, Ldir, args.date_string0, args.date_string1)
 
 def get_its(ds, vv, Xi0, Yi0, Xi1, Yi1, Aix, Aiy):
     dims = ds.variables[vv].dimensions

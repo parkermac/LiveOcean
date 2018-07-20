@@ -154,7 +154,7 @@ def get_fn_list(list_type, Ldir, date_string0, date_string1, his_num=1):
         his_string = ('0000' + str(his_num))[-4:]
         fn_list = [dir0 + 'f' + date_string0 +
                    '/ocean_his_' + his_string + '.nc']
-    elif list_type == 'backfill':
+    elif list_type == 'hourly':
         # list of hourly files over a date range
         fn_list = fn_list_utility(dt0,dt1,Ldir)
     elif list_type == 'forecast':

@@ -8,11 +8,10 @@ run pan_plot.py
 
 Save multiple plots with color limits all set to match those set by
 auto_lims() from the first plot:
-run pan_plot.py -g cascadia1 -t base -x lobio5 -0 2013.01.31 -lt backfill
+run pan_plot.py -0 2017.09.01 -1 2017.09.03 -lt hourly -mov True
 
-Save multiple plots with color limits all set to match those set by
+Use -avl False to have color limits all set to match those set by
 pinfo.vlims_dict:
-run pan_plot.py -g cascadia1 -t base -x lobio5 -0 2013.01.31 -lt backfill -avl False
 
 Example of an analytical run:
 run pan_plot.py -g aestus1 -t A1 -x ae1 -0 2013.03.01
@@ -39,27 +38,18 @@ def boolean_string(s):
         raise ValueError('Not a valid boolean string')
     return s == 'True' # note use of ==
 
-# get optional command line arguments, any order
-
-# standard arguments
 parser = argparse.ArgumentParser()
-parser.add_argument('-g', '--gridname', nargs='?', type=str,
-                    default='cas4')
-parser.add_argument('-t', '--tag', nargs='?', type=str,
-                    default='v1')
-parser.add_argument('-x', '--ex_name', nargs='?', type=str,
-                    default='lo6biom')
-parser.add_argument('-0', '--date_string0', nargs='?', type=str,
-                    default='2017.09.01')
-parser.add_argument('-1', '--date_string1', nargs='?', type=str,
-                    default='')
+# standard arguments
+parser.add_argument('-g', '--gridname', nargs='?', type=str, default='cas4')
+parser.add_argument('-t', '--tag', nargs='?', type=str, default='v1')
+parser.add_argument('-x', '--ex_name', nargs='?', type=str, default='lo6biom')
+parser.add_argument('-0', '--date_string0', nargs='?', type=str, default='2017.09.01')
+parser.add_argument('-1', '--date_string1', nargs='?', type=str, default='')
 # arguments that allow you to bypass the interactive choices
-parser.add_argument('-lt', '--list_type', nargs='?', type=str,
-                    default='')
-parser.add_argument('-pt', '--plot_type', nargs='?', type=str,
-                    default='')
+parser.add_argument('-lt', '--list_type', nargs='?', type=str, default='')
+parser.add_argument('-pt', '--plot_type', nargs='?', type=str, default='')
 # arguments that influence other behavior
-# (make a movie, override auto color limits)
+#  e.g. make a movie, override auto color limits
 parser.add_argument('-mov', '--make_movie', default=False, type=boolean_string)
 parser.add_argument('-avl', '--auto_vlims', default=True, type=boolean_string)
 
@@ -74,7 +64,7 @@ Ldir['gtagex'] = Ldir['gtag'] + '_' + args.ex_name
 if len(args.list_type) == 0:
     print(30*'*' + ' pan_plot ' + 30*'*')
     print('\n%s\n' % '** Choose List type (return for snapshot) **')
-    lt_list = ['snapshot', 'low_passed', 'daily', 'backfill', 'forecast',
+    lt_list = ['snapshot', 'low_passed', 'daily', 'hourly ', 'forecast',
                'merhab']
     Nlt = len(lt_list)
     lt_dict = dict(zip(range(Nlt), lt_list))
