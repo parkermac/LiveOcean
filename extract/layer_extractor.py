@@ -7,6 +7,9 @@ model layers, for some time range.
 
 run layer_extractor.py -1 2017.09.03
 
+# for the surface layer you need to use quotes and a space before -1
+run layer_extractor.py -1 2017.09.03 -nlay " -1"
+
 """
 
 from datetime import datetime, timedelta
@@ -52,6 +55,7 @@ Ldir['gtagex'] = Ldir['gtag'] + '_' + args.ex_name
 Ldir['list_type'] = args.list_type
 Ldir['date_string0'] = args.date_string0
 Ldir['date_string1'] = args.date_string1
+Ldir['layer_number'] = args.layer_number
 
 # get list of history files to plot
 fn_list = Lfun.get_fn_list(args.list_type, Ldir, args.date_string0, args.date_string1)
@@ -59,9 +63,15 @@ fn_list = Lfun.get_fn_list(args.list_type, Ldir, args.date_string0, args.date_st
 # make sure the output directory exists
 outdir = Ldir['LOo'] + 'extract/'
 Lfun.make_dir(outdir)
-# output file
-out_name = 'layer_' + Ldir['gtagex'] + '_' + list_type + '.nc'
-out_fn = outdir + out_name
+
+# name output file
+out_fn = (outdir + 'layer_' +
+    Ldir['gtagex'] + '_' +
+    Ldir['layer_number'].strip() + '_' +
+    Ldir['list_type'] + '_' +
+    Ldir['date_string0'] + '_' +
+    Ldir['date_string1'] +
+    '.nc')
 # get rid of the old version, if it exists
 try:
     os.remove(out_fn)
