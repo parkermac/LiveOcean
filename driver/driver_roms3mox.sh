@@ -159,17 +159,7 @@ do
     do
       sleep 30
       if [ -e $log_file ] ; then
-        # note use of \| to check for several words
-        if [ grep -q "Blowing-up" $log_file ] ; then
-          echo "- Run blew up!"
-          blow_ups=$(( $blow_ups + 1 )) #increment the blow ups
-          keep_checking_log=0
-          if [ $blow_ups -le 5 ] ; then
-            keep_going=1
-          else
-            keep_going=0
-          fi
-        elif [ grep -q "BLOWUP" $log_file ] ; then
+        if grep -q "Blowing-up\|BLOWUP" $log_file ; then
           echo "- Run blew up!"
           blow_ups=$(( $blow_ups + 1 )) #increment the blow ups
           keep_checking_log=0
