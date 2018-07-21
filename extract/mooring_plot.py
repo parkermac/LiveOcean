@@ -146,18 +146,26 @@ for vn in list_to_plot:
     
     ir, ic = zfun.get_irc(cc, NC)
     ax = axes[ir, ic]
-    if V[vn].ndim == 2:
-        ax.plot(mdt, V[vn][ntop,:], '-r')
-        ax.plot(mdt, V[vn][nmid,:],'-g')
-        ax.plot(mdt, V[vn][nbot,:], '-b')
-    elif V[vn].ndim == 1:
-        ax.plot(mdt, V[vn])
+    if False: # raw
+        if V[vn].ndim == 2:
+            ax.plot(mdt, V[vn][ntop,:], '-r')
+            ax.plot(mdt, V[vn][nmid,:],'-g')
+            ax.plot(mdt, V[vn][nbot,:], '-b')
+        elif V[vn].ndim == 1:
+            ax.plot(mdt, V[vn])
+    else: # filtered (e.g. tidally_averaged)
+        if V[vn].ndim == 2:
+            ax.plot(mdt, zfun.filt_godin(V[vn][ntop,:]), '-r')
+            ax.plot(mdt, zfun.filt_godin(V[vn][nmid,:]),'-g')
+            ax.plot(mdt, zfun.filt_godin(V[vn][nbot,:]), '-b')
+        elif V[vn].ndim == 1:
+            ax.plot(mdt, zfun.filt_godin(V[vn]))
     
     try:    
         ax.set_ylim(lim_dict[vn][0], lim_dict[vn][1])
     except KeyError:
         pass
-
+    ax.grid(True)
     ax.set_xlim(mdt[0], mdt[-1])
     if do_ticks:
         ax.set_xticks(dt_ticks)
