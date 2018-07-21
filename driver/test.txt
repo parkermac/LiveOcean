@@ -1,1 +1,0 @@
-     40.000  dt                Timestep size (s) for 3-D equations.

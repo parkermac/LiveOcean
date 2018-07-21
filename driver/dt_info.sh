@@ -59,7 +59,7 @@ D1=$[10#$y1*10000 + 10#$m1*100 + 10#$d1]
 gtag=$gridname"_"$tag
 gtagex=$gtag"_"$ex_name
 
-echo "********** Listing of DT values for "$gtagex" *******************"
+echo "** DT values for "$gtagex" **"
 
 # start the main loop over days
 while [ $D -le $D1 ]
@@ -72,13 +72,13 @@ do
   f_string="f"$DD
   Rf=$roms"output/"$gtagex"/"$f_string"/"
   log_file=$Rf"log.txt"
-  echo $f_string
   
   # line looks like
   #      40.000  dt                Timestep size (s) for 3-D equations.
 
   if [ -e $log_file ] ; then
-    grep "Timestep size (s) for 3-D equations" $log_file > test.txt
+    dt="$(grep "Timestep size (s) for 3-D equations" $log_file)"
+    echo $f_string $dt | awk '{print $1" "$2}'
   fi
 
   next_date $y $m $d
