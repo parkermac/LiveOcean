@@ -78,7 +78,7 @@ do
 
   if [ -e $log_file ] ; then
     dt="$(grep "Timestep size (s) for 3-D equations" $log_file)"
-    echo $f_string $dt | awk '{print $1" "$2}'
+    echo $DD $dt | awk '{print $1" "$2}'
   fi
 
   next_date $y $m $d
