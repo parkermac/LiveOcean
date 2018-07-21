@@ -6,7 +6,6 @@ from datetime import datetime, timedelta
 import csv
 import subprocess
 import shutil
-import matplotlib.dates as mdates
 
 # this bit of magic lets us know where this program lives
 # and so allows us to find get_lo_info.sh and lo_info.csv
@@ -107,6 +106,7 @@ def modtime_to_mdate_vec(mt_vec):
     # mt stands for model time
     # OUTPUT: a vector of mdates
     # first make a list of datetimes
+    import matplotlib.dates as mdates
     dt_list = []
     for mt in mt_vec:
         dt_list.append(datetime(1970,1,1,0,0) + timedelta(seconds=mt))
