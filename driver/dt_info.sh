@@ -59,7 +59,9 @@ D1=$[10#$y1*10000 + 10#$m1*100 + 10#$d1]
 gtag=$gridname"_"$tag
 gtagex=$gtag"_"$ex_name
 
-echo "** DT values for "$gtagex" **"
+out_fn=$LOo"extract/dt_log_"$gtagex".txt"
+
+echo "Date,DT" > $out_fn
 
 # start the main loop over days
 while [ $D -le $D1 ]
@@ -78,7 +80,7 @@ do
 
   if [ -e $log_file ] ; then
     dt="$(grep "Timestep size (s) for 3-D equations" $log_file)"
-    echo $DD $dt | awk '{print $1" "$2}'
+    echo $DD $dt | awk '{print $1","$2}' >> $out_fn
   fi
 
   next_date $y $m $d
