@@ -12,7 +12,12 @@ name_unit_dict = {'lon':('Longitude','degrees'), 'lat':('Latitude','degrees'),
     'u':('EW Velocity','meters s-1'), 'v':('NS Velocity','meters s-1'),
     'w':('Vertical Velocity','meters s-1'),
     'Uwind':('EW Wind Velocity','meters s-1'), 'Vwind':('NS Velocity','meters s-1'),
-    'h':('Bottom Depth','m')}
+    'h':('Bottom Depth','m'),
+    'hit_sidewall':('Hit Sidewall','1=hit'),
+    'hit_bottom':('Hit Bottom','1=hit'),
+    'hit_top':('Hit Top','1=hit'),
+    'bad_pcs':('Bad Pcs','1=bad'),
+}
     
 def write_grid(g_infile, g_outfile):
     # write a file of grid info

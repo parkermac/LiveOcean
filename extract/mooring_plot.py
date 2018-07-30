@@ -26,8 +26,8 @@ lim_dict = {'temp': (0, 20),
         'detritus': (-.1, 2.5),
         'Ldetritus': (-.01, .15),
         'oxygen': (-10, 350),
-        'TIC': (1900, 2600),
-        'alkalinity': (1900, 2600)}
+        'TIC': (1800, 2600),
+        'alkalinity': (1800, 2600)}
 
 Ldir = Lfun.Lstart()
 indir = Ldir['LOo'] + 'extract/'
@@ -146,7 +146,7 @@ for vn in list_to_plot:
     
     ir, ic = zfun.get_irc(cc, NC)
     ax = axes[ir, ic]
-    if False: # raw
+    if True: # raw
         if V[vn].ndim == 2:
             ax.plot(mdt, V[vn][ntop,:], '-r')
             ax.plot(mdt, V[vn][nmid,:],'-g')

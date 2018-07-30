@@ -86,7 +86,7 @@ parser.add_argument('-turb', default=False, type=boolean_string) # include turbu
 parser.add_argument('-wnd', '--windage', default=0, type=float)
 
 # set the starting day (will be last day for rev=True)
-parser.add_argument('-ds', '--ds_first_day', default='2013.03.10', type=str)
+parser.add_argument('-ds', '--ds_first_day', default='2013.03.01', type=str)
 
 # You can make multiple releases using:
 # number_of_start_days > 1 & days_between_starts
@@ -118,15 +118,12 @@ out_name = TR['exp_name']
 # modify the output folder name, based on other choices
 if TR['rev']:
     out_name += '_reverse'
-#
 if TR['3d']:
     out_name += '_3d'
 elif not TR['3d']:
     out_name += '_surf'
-#
 if TR['turb']:
     out_name += '_turb'
-#
 if TR['windage'] > 0:
     out_name += '_wind'
 
@@ -186,7 +183,6 @@ for idt0 in idt_list:
         # debugging
         idt_str = datetime.strftime(idt,'%Y.%m.%d')
         print(' - working on ' + idt_str)
-
             
         fn_list = tf1.get_fn_list(idt, Ldir)
         

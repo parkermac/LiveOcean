@@ -83,8 +83,11 @@ def get_tracks(fn_list, plon0, plat0, pcs0, TR, trim_loc=False):
     vn_list_other = ['salt', 'temp'] + vn_list_zh + vn_list_vel
     if windage == True:
         vn_list_other = vn_list_other + vn_list_wind
-    # plist main is what ends up written to output
+    # plist_main is what ends up written to output
     plist_main = ['lon', 'lat', 'cs', 'ot', 'z'] + vn_list_other
+
+    # diagnostic info
+    vn_list_dia = ['hit_sidewall', 'hit_bottom', 'hit_top', 'bad_pcs']
     
     # Step through times.
     #
@@ -119,6 +122,8 @@ def get_tracks(fn_list, plon0, plat0, pcs0, TR, trim_loc=False):
             P = dict()
             for vn in plist_main:
                 P[vn] = np.nan * np.ones((NT,NP))
+            for vn in vn_list_dia:
+                P[vn] = np.zeros((NT,NP)) # zero value means all OK
 
             # write positions to the results arrays
             P['lon'][it0,:] = plon
@@ -127,6 +132,7 @@ def get_tracks(fn_list, plon0, plat0, pcs0, TR, trim_loc=False):
                 pcs[:] = S['Cs_r'][-1]
             P['cs'][it0,:] = pcs
             P = get_properties(vn_list_other, ds0, it0, P, plon, plat, pcs, R, surface)
+            
             
         delt = delta_t/ndiv
         for nd in range(ndiv):
@@ -143,15 +149,15 @@ def get_tracks(fn_list, plon0, plat0, pcs0, TR, trim_loc=False):
             # RK4 integration
             V0, ZH0 = get_vel(vn_list_vel, vn_list_zh,
                                        ds0, ds1, plon, plat, pcs, R, fr0, surface)
-            plon1, plat1, pcs1 = update_position(V0, ZH0, S, delt/2,
+            plon1, plat1, pcs1, dia_dict = update_position(V0, ZH0, S, delt/2,
                                                  plon, plat, pcs, surface)
             V1, ZH1 = get_vel(vn_list_vel, vn_list_zh,
                                        ds0, ds1, plon1, plat1, pcs1, R, frmid, surface)
-            plon2, plat2, pcs2 = update_position(V1, ZH1, S, delt/2,
+            plon2, plat2, pcs2, dia_dict = update_position(V1, ZH1, S, delt/2,
                                                  plon, plat, pcs, surface)
             V2, ZH2 = get_vel(vn_list_vel, vn_list_zh,
                                        ds0, ds1, plon2, plat2, pcs2, R, frmid, surface)
-            plon3, plat3, pcs3 = update_position(V2, ZH2, S, delt,
+            plon3, plat3, pcs3, dia_dict = update_position(V2, ZH2, S, delt,
                                                  plon, plat, pcs, surface)
             V3, ZH3 = get_vel(vn_list_vel, vn_list_zh,
                                        ds0, ds1, plon3, plat3, pcs3, R, fr1, surface)
@@ -161,7 +167,7 @@ def get_tracks(fn_list, plon0, plat0, pcs0, TR, trim_loc=False):
                 Vwind3 = np.concatenate((windage*Vwind,np.zeros((NP,1))),axis=1)
             else:
                 Vwind3 = np.zeros((NP,3))
-            plon, plat, pcs = update_position((V0 + 2*V1 + 2*V2 + V3)/6 + Vwind3,
+            plon, plat, pcs, dia_dict = update_position((V0 + 2*V1 + 2*V2 + V3)/6 + Vwind3,
                                               (ZH0 + 2*ZH1 + 2*ZH2 + ZH3)/6,
                                               S, delt,
                                               plon, plat, pcs, surface)
@@ -171,6 +177,11 @@ def get_tracks(fn_list, plon0, plat0, pcs0, TR, trim_loc=False):
             pmask = zfun.interp_scattered_on_plaid(plon, plat, R['rlonr'], R['rlatr'],
                 maskr, exnan=True)
             pcond = pmask < maskr_crit # a Boolean mask
+            
+            # diagnostic info
+            hit_sidewall = np.zeros(NP)
+            hit_sidewall[pcond] = 1
+            
             # move those on land back to their staring point, with a random
             # perturbation of a grid cell to keep them from getting trapped
             if len(pcond) > 0:
@@ -191,12 +202,12 @@ def get_tracks(fn_list, plon0, plat0, pcs0, TR, trim_loc=False):
                 VdAKs = get_dAKs(vn_list_zh, ds0, ds1, plon, plat, pcs, R, S, frmid, surface)
                 VdAKs3 = np.concatenate((np.zeros((NP,2)), VdAKs[:,np.newaxis]), axis=1)
                 # update position with 1/2 of AKs gradient
-                plon, plat, pcs = update_position(VdAKs3/2, (ZH0 + 2*ZH1 + 2*ZH2 + ZH3)/6,
+                plon, plat, pcs, dia_dict = update_position(VdAKs3/2, (ZH0 + 2*ZH1 + 2*ZH2 + ZH3)/6,
                                               S, delt, plon, plat, pcs, surface)
                 # update position with rest of turbulence
                 Vturb = get_turb(ds0, ds1, VdAKs, delta_t, plon, plat, pcs, R, frmid, surface)
                 Vturb3 = np.concatenate((np.zeros((NP,2)), Vturb[:,np.newaxis]), axis=1)
-                plon, plat, pcs = update_position(Vturb3, (ZH0 + 2*ZH1 + 2*ZH2 + ZH3)/6,
+                plon, plat, pcs, dia_dict = update_position(Vturb3, (ZH0 + 2*ZH1 + 2*ZH2 + ZH3)/6,
                                               S, delt, plon, plat, pcs, surface)
 
         # write positions to the results arrays
@@ -206,6 +217,9 @@ def get_tracks(fn_list, plon0, plat0, pcs0, TR, trim_loc=False):
             pcs[:] = S['Cs_r'][-1]
         P['cs'][it1,:] = pcs
         P = get_properties(vn_list_other, ds1, it1, P, plon, plat, pcs, R, surface)
+        
+        # diagnostic info
+        P['hit_sidewall'][it1,:] = hit_sidewall
 
         ds0.close()
         ds1.close()
@@ -223,6 +237,8 @@ def get_tracks(fn_list, plon0, plat0, pcs0, TR, trim_loc=False):
     return P
 
 def update_position(V, ZH, S, delta_t, plon, plat, pcs, surface):
+    # dict for diagnostic information
+    dia_dict = dict()
     # find the new position
     Plon = plon.copy()
     Plat = plat.copy()
@@ -242,10 +258,22 @@ def update_position(V, ZH, S, delta_t, plon, plat, pcs, surface):
     Plat += pdy_deg
     if surface == False:
         Pcs_orig = Pcs.copy()
-        Pcs += pdz_s
+        if False:
+            # ******************
+            # 2018.07.25 Hack to make the mixing more realistic in shallow
+            # water with strong mixing
+            #mmask = np.abs(pdz_s) > 1
+            mmask = H < 10
+            Pcs[mmask] = 0.5*np.random.rand(sum(mmask)) - 0.5
+            Pcs[~mmask] += pdz_s[~mmask]
+        else:
+            Pcs += pdz_s
+        # *****************
         # enforce limits on cs
         mask = np.isnan(Pcs) # does this happen?
-        if len(mask) > 0:
+        dia_dict['bad_pcs'] = sum(mask)
+        if sum(mask) > 0:
+            #print('it happens ' + str(sum(mask)))
             Pcs[mask] = Pcs_orig[mask]
         pad = 1e-5 # stay a bit away from extreme values
         Pcs[Pcs < S['Cs_r'][0]+pad] = S['Cs_r'][0]+pad
@@ -253,7 +281,7 @@ def update_position(V, ZH, S, delta_t, plon, plat, pcs, surface):
     else:
         Pcs[:] = S['Cs_r'][-1]
 
-    return Plon, Plat, Pcs
+    return Plon, Plat, Pcs, dia_dict
 
 def get_vel(vn_list_vel, vn_list_zh, ds0, ds1, plon, plat, pcs, R, frac, surface):
     # get the velocity, zeta, and h at all points, at an arbitrary

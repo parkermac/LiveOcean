@@ -3,6 +3,8 @@
 # -*- coding: utf-8 -*-
 """
 Plot results of a particle tracking experiment.
+
+Uses masking to look at only particular tracks.
 """
 
 # setup
@@ -12,6 +14,7 @@ alp = os.path.abspath('../alpha')
 if alp not in sys.path:
     sys.path.append(alp)
 import Lfun
+import zfun
 import matplotlib.pyplot as plt
 
 plp = os.path.abspath('../plotting')
@@ -63,22 +66,34 @@ NT, NP = dsr['lon'].shape
 ot_vec = dsr['ot'][:]
 dt_list = [Lfun.modtime_to_datetime(ot) for ot in ot_vec]
 
-# gather some fields, for convenience
+# gather map fields, for convenience
 lonp = dsg['lon_psi'][:]
 latp = dsg['lat_psi'][:]
 hh = dsg['h'][:]
 maskr = dsg['mask_rho'][:]
 #
-u = dsr['u'][:]
-v = dsr['v'][:]
-w = dsr['w'][:]
-salt = dsr['salt'][:]
-temp = dsr['temp'][:]
-lon = dsr['lon'][:]
-lat = dsr['lat'][:]
-z = dsr['z'][:]
-zeta = dsr['zeta'][:]
-h = dsr['h'][:]
+
+# gather particle fields
+# and apply a mask
+Lon = dsr['lon'][:]
+Salt = dsr['salt'][:]
+#mask = (Lon > .1).any(axis=0) & (Salt < 33).any(axis=0) 
+#mask = (Lon > -1).any(axis=0)
+#mask = (Lon[0,:] > .3)
+mask = Lon[0,:] == Lon[0,:]
+
+u = dsr['u'][:,mask]
+v = dsr['v'][:,mask]
+w = dsr['w'][:,mask]
+salt = dsr['salt'][:,mask]
+temp = dsr['temp'][:,mask]
+lon = dsr['lon'][:,mask]
+lat = dsr['lat'][:,mask]
+z = dsr['z'][:,mask]
+zeta = dsr['zeta'][:,mask]
+h = dsr['h'][:,mask]
+cs = dsr['cs'][:,mask]
+
 
 # PLOTTING
 
@@ -119,13 +134,16 @@ print('Number of nan salt values = ' + str(nmask.sum()))
 
 # time series
 td = (ot_vec - ot_vec[0])/86400
-tv_list = ['z', 'salt', 'lon']
+tv_list = ['hit_sidewall','salt', 'lon', 'cs']
 ntv = len(tv_list)
 for ii in range(ntv):
     tv = tv_list[ii]
     NC = 2
     ax = fig.add_subplot(ntv,NC, (ii+1)*NC)
-    ax.plot(td, dsr[tv][:])
+    if True:
+        ax.plot(td, dsr[tv][:,mask],linewidth=.5)
+    else:
+        ax.plot(td, zfun.filt_godin_mat(dsr[tv][:,mask]))
     ax.text(.05, .05, tv, fontweight='bold', transform=ax.transAxes)
     if ii == ntv-1:
         ax.set_xlabel('Time (days)')

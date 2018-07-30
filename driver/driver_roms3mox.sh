@@ -22,8 +22,9 @@ done < ../alpha/lo_info.csv
 . $LO"/driver/common.lib"
 
 # set compute choices
-np_num=196
+#np_num=196
 #np_num=392
+np_num=588
 
 # USE COMMAND LINE OPTIONS
 #
@@ -151,8 +152,8 @@ do
     
     # 2. Run ROMS
     python make_back_batch.py $Rf
-    sbatch -p macc -A macc lo_back_batch.sh &
-    #sbatch -p ckpt -A macc-ckpt lo_back_batch.sh &
+    #sbatch -p macc -A macc lo_back_batch.sh &
+    sbatch -p ckpt -A macc-ckpt lo_back_batch.sh &
     # check the log_file to see if we should continue
     keep_checking_log=1
     while [ $keep_checking_log -eq 1 ]

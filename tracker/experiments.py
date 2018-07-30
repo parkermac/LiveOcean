@@ -35,6 +35,9 @@ def make_ic(exp_name):
     elif exp_name == 'ae2':
         gtagex = 'aestus1_A1_ae1'
         ic_name = 'est2'
+    elif exp_name == 'ae3':
+        gtagex = 'aestus1_A1_ae1'
+        ic_name = 'est3'
         
     # routines to set particle initial locations, all numpy arrays
     #
@@ -73,15 +76,23 @@ def make_ic(exp_name):
         lonmat, latmat = np.meshgrid(lonvec, latvec)
         plon_vec = lonmat.flatten()
         plat_vec = latmat.flatten()
-        pcs_vec = np.arange(-.95, -.5, 10)
+        pcs_vec = np.linspace(-.95, -.5, 10)
         
     elif ic_name == 'est2': # for the idealized estuary
-        lonvec = np.linspace(0, .5, 20)
-        latvec = np.linspace(44.9, 45.1, 20)
+        lonvec = np.linspace(-0.5, 0.5, 20)
+        latvec = np.linspace(44.8, 45.2, 10)
         lonmat, latmat = np.meshgrid(lonvec, latvec)
         plon_vec = lonmat.flatten()
         plat_vec = latmat.flatten()
-        pcs_vec = np.arange(-.95, -.5, 10)
+        pcs_vec = np.linspace(-.95, -.5, 10)
+        
+    elif ic_name == 'est3': # for the idealized estuary
+        lonvec = np.linspace(0, .5, 10)
+        latvec = np.linspace(44.9, 45.1, 10)
+        lonmat, latmat = np.meshgrid(lonvec, latvec)
+        plon_vec = lonmat.flatten()
+        plat_vec = latmat.flatten()
+        pcs_vec = np.linspace(-.95, -.5, 5)
     
     # Create full output vectors (each has one value per point).  This
     # code takes each lat, lon location and then assigns it to NSP points

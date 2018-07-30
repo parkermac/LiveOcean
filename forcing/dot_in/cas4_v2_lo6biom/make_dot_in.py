@@ -86,6 +86,9 @@ if multi_core:
     elif Ldir['np_num'] == 392:
         ntilei = '14' # number of tiles in I-direction
         ntilej = '28' # number of tiles in J-direction
+    elif Ldir['np_num'] == 588:
+        ntilei = '21' # number of tiles in I-direction
+        ntilej = '28' # number of tiles in J-direction
     else:
         print('Unsupported number of processors: %d' % (Ldir['np_num']))
 else:
