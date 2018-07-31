@@ -21,10 +21,11 @@ done < ../alpha/lo_info.csv
 
 . $LO"/driver/common.lib"
 
-# set compute choices
+# Set number of cores to use.
+# NOTE: anything above 196 will be sent to the checkpoint queue.
 #np_num=196
-#np_num=392
-np_num=588
+np_num=392
+#np_num=588
 
 # USE COMMAND LINE OPTIONS
 #
@@ -151,9 +152,16 @@ do
     fi
     
     # 2. Run ROMS
-    python make_back_batch.py $Rf
-    #sbatch -p macc -A macc lo_back_batch.sh &
-    sbatch -p ckpt -A macc-ckpt lo_back_batch.sh &
+    
+    python make_back_batch.py -xp $Rf -npn $np_num
+    
+    # select which queue to use based on the number of cores requested
+    if [ $np_num -eq 196 ] ; then
+      sbatch -p macc -A macc lo_back_batch.sh &
+    else
+      sbatch -p ckpt -A macc-ckpt lo_back_batch.sh &
+    fi
+    
     # check the log_file to see if we should continue
     keep_checking_log=1
     while [ $keep_checking_log -eq 1 ]
