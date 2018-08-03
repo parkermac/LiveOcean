@@ -98,7 +98,9 @@ def get_interpolant(x, xvec, extrap_nan=False):
     fr = fraction [float]
 
     If the x is ON a point in xvec the default is to return
-    the index of that point and the one above.
+    the index of that point and the one above, with fr=0,
+    unless it is the last point in which case it is the index
+    of that point and the point below, with fr = 1.
     """
     
     from warnings import filterwarnings
@@ -162,6 +164,8 @@ def get_interpolant(x, xvec, extrap_nan=False):
     elif extrap_nan == True:
         fr[lomask] = np.nan
         fr[himask] = np.nan
+        # override for the case where x = the last point of xvec
+        fr[X[:,0]==XVEC[0,-1]] = 1.0
 
     return i0, i1, fr
 

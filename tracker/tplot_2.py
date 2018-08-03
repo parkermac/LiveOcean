@@ -76,11 +76,16 @@ maskr = dsg['mask_rho'][:]
 # gather particle fields
 # and apply a mask
 Lon = dsr['lon'][:]
+Lat = dsr['lat'][:]
 Salt = dsr['salt'][:]
 #mask = (Lon > .1).any(axis=0) & (Salt < 33).any(axis=0) 
 #mask = (Lon > -1).any(axis=0)
 #mask = (Lon[0,:] > .3)
-mask = Lon[0,:] == Lon[0,:]
+
+if True:
+    mask = Lon[0,:] == Lon[0,:] # all points
+else:
+    mask = (Lon[-1,:] > -.04) & (Lon[-1,:] < .04) & (Lat[-1,:] > 45.06) & (Lat[-1,:] < 45.1)
 
 u = dsr['u'][:,mask]
 v = dsr['v'][:,mask]
@@ -93,7 +98,6 @@ z = dsr['z'][:,mask]
 zeta = dsr['zeta'][:,mask]
 h = dsr['h'][:,mask]
 cs = dsr['cs'][:,mask]
-
 
 # PLOTTING
 
@@ -125,28 +129,49 @@ ax.plot(lon, lat, '-k', linewidth=.2)
 ax.plot(lon[0,:], lat[0,:], 'og', alpha=.3)
 ax.plot(lon[-1,:], lat[-1,:], 'or', alpha=.3)
 ax.set_title(indir.strip('/'))
-# looking for bad values
-# zmask = (u==0) & (v==0)
-# ax.plot(lon[zmask], lat[zmask], '*r', markersize=12)
 
+# # looking for bad values
+# zmask = (u==0) & (v==0)
+# ax.plot(lon[zmask], lat[zmask], '*k', markersize=12)
+#
 nmask = np.isnan(salt)
-print('Number of nan salt values = ' + str(nmask.sum()))
+if nmask.sum() > 0:
+    print('WARNING: Number of nan salt values = ' + str(nmask.sum()))
+# ax.plot(lon[nmask], lat[nmask], 'sk', markersize=12)
 
 # time series
 td = (ot_vec - ot_vec[0])/86400
-tv_list = ['hit_sidewall','salt', 'lon', 'cs']
+if False:
+    dia_list_orig = ['hit_sidewall','bad_pcs', 'hit_top', 'hit_bottom']
+    dia_list = []
+    for dia in dia_list_orig:
+        if dia in dsr.variables:
+            dia_list.append(dia)
+    tv_list = dia_list + ['salt', 'cs']
+else:
+    dia_list = []
+    tv_list = ['u', 'v', 'zeta', 'lon', 'salt', 'z', 'cs']
 ntv = len(tv_list)
 for ii in range(ntv):
     tv = tv_list[ii]
     NC = 2
     ax = fig.add_subplot(ntv,NC, (ii+1)*NC)
     if True:
-        ax.plot(td, dsr[tv][:,mask],linewidth=.5)
+        if tv in dia_list:
+            ax.plot(td, 100*dsr[tv][:,mask].sum(axis=1)/mask.sum())
+            ax.text(.05, .05, tv + ' %', fontweight='bold', transform=ax.transAxes)
+            ax.set_ylim(0,100)
+        else:
+            ax.plot(td, dsr[tv][:,mask],linewidth=.5)
+            ax.text(.05, .05, tv, fontweight='bold', transform=ax.transAxes)
     else:
         ax.plot(td, zfun.filt_godin_mat(dsr[tv][:,mask]))
+    ax.set_xlim(td[0], td[-1])
     ax.text(.05, .05, tv, fontweight='bold', transform=ax.transAxes)
     if ii == ntv-1:
         ax.set_xlabel('Time (days)')
+    else:
+        ax.set_xticklabels([''])
 
 plt.show()
 

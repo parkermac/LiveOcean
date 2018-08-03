@@ -87,12 +87,12 @@ def make_ic(exp_name):
         pcs_vec = np.linspace(-.95, -.5, 10)
         
     elif ic_name == 'est3': # for the idealized estuary
-        lonvec = np.linspace(0, .5, 10)
+        lonvec = np.linspace(-.2, .5, 5)
         latvec = np.linspace(44.9, 45.1, 10)
         lonmat, latmat = np.meshgrid(lonvec, latvec)
         plon_vec = lonmat.flatten()
         plat_vec = latmat.flatten()
-        pcs_vec = np.linspace(-.95, -.5, 5)
+        pcs_vec = np.linspace(-.95, -.1, 5)
     
     # Create full output vectors (each has one value per point).  This
     # code takes each lat, lon location and then assigns it to NSP points

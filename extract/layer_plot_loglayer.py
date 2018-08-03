@@ -58,10 +58,6 @@ fn = indir + moor_file
 
 ds = nc.Dataset(fn)
 
-# PLOTTING
-plt.close('all')
-
-fig = plt.figure(figsize=(16,8))
 
 xp = ds['lon_psi'][:]
 yp = ds['lat_psi'][:]
@@ -74,10 +70,10 @@ rho = 1026 # kg m-3
 # a good fit meaning that when I used my bottom stresses and a log
 # layer shape it gave values close to the original ones (see the scatter plot
 # comparing uz_orig to uz_oldz)
-z0 = 0.0007 # m (typical of mud/sand)
+z0 = 0.003 # m (0.0007 typical of mud/sand)
 # for reference the model used a quadratic drag law with CD = 3e-3
 
-# What I don't know is whether or not the model assumes a log layer profile
+# However the model does not necessicarily repoduce a log layer profile
 # when the layers are thin enough to resolve the log layer - e.g. in
 # shallow water.
 
@@ -93,9 +89,10 @@ zbot = -ds['h'][:] # z position of the bottom
 
 zorig = zlay - zbot # m above the bottom of the velocities
 zorig = np.ma.masked_where(u_star[0,:,:].mask, zorig)
+zorig = np.ma.masked_where(zorig<3, zorig)
 
 # set the desired height above bottom at which you want to estimate velocities
-znew = 0.1 * np.ones(zorig.shape)
+znew = 1 * np.ones(zorig.shape)
 
 def get_u_at_z(z, z0, u_star):
     # the classical log layer function
@@ -132,6 +129,12 @@ v_list = ['uz_orig', 'uz_oldz', 'uz_newz']
 
 days = (ot - ot[0])/86400.
 
+
+# PLOTTING
+plt.close('all')
+
+fig = plt.figure(figsize=(16,8))
+
 NC = len(v_list)
 count = 1
 for vn in v_list:
@@ -164,6 +167,13 @@ ax3.grid(True)
 ax3.set_xlabel('uz_orig')
 ax3.set_ylabel('uz_newz')
 
+fig4 = plt.figure(figsize=(8,8))
+ax4 = fig4.add_subplot(111)
+cs = ax4.pcolormesh(xp, yp, zorig[1:-1, 1:-1],vmin=0, vmax=100, cmap='terrain')
+fig.colorbar(cs, ax=ax4)
+ax4.set_title('Height above Bottom (m) of velocity bin')
+ax4.set_xlabel('Longitude')
+ax4.set_ylabel('Latitude')
 
 plt.show()
 

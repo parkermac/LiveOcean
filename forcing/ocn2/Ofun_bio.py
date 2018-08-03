@@ -34,6 +34,32 @@ def add_bio(nc_dir):
         #print(str(V.shape))
         vv[:] = V
         foo.close()
+        
+def salish_fields(fld, vn, grid_fn):
+    """
+    Modify biogeochemical fields in the Salish Sea, for initial conditions.
+    """
+    x = [-125.5, -123.5, -121.9, -121.9]
+    y = [50.4, 46.8, 46.8, 50.4]
+    V = np.ones((len(x),2))
+    V[:,0] = x
+    V[:,1] = y
+    P = mpath.Path(V)
+    ds = nc.Dataset(grid_fn)
+    lon = ds['lon_rho'][:]
+    lat = ds['lat_rho'][:]
+    Rlon = lon.flatten()
+    Rlat = lat.flatten()
+    R = np.ones((len(Rlon),2))
+    R[:,0] = Rlon
+    R[:,1] = Rlat
+    RR = P.contains_points(R) # boolean
+    RRm = RR.reshape(lon.shape)
+    T, N, M, L = fld.shape
+    for kk in range(N):
+        
+    fld[:,] = np.ma.masked_where(RR.reshape(lon.shape), fld)
+    return fld
 
 def create_bio_var(salt, vn):
     print('  -- adding ' + vn)

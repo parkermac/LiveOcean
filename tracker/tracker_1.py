@@ -95,9 +95,10 @@ parser.add_argument('-dbs', '--days_between_starts', default=1, type=int)
 parser.add_argument('-dtt', '--days_to_track', default=1, type=int)
 
 # number of divisions to make between saves for the integration
-# e.g. if ndiv = 3 and we have hourly saves, we use a 20 minute step
-# for the integration, but still only report fields hourly
-parser.add_argument('-ndiv', default=1, type=int)
+# e.g. if ndiv = 12 and we have hourly saves, we use a 300 sec step
+# for the integration, but still only report fields hourly.
+# 300 s seems like a good default value, based on Banas et al.
+parser.add_argument('-ndiv', default=12, type=int)
 
 args = parser.parse_args()
 TR = args.__dict__ 
@@ -115,6 +116,8 @@ if TR['rev']:
 TR['gtagex'], ic_name, plon00, plat00, pcs00 = exp.make_ic(TR['exp_name'])
 
 out_name = TR['exp_name']
+out_name += '_ndiv' + str(TR['ndiv'])
+
 # modify the output folder name, based on other choices
 if TR['rev']:
     out_name += '_reverse'
@@ -180,7 +183,7 @@ for idt0 in idt_list:
         else:
             idt = idt0 + timedelta(days=nd)
             
-        # debugging
+        # screen output
         idt_str = datetime.strftime(idt,'%Y.%m.%d')
         print(' - working on ' + idt_str)
             
@@ -202,14 +205,13 @@ for idt0 in idt_list:
             # do the tracking
             P = tf1.get_tracks(fn_list, plon0, plat0, pcs0, TR,
                                trim_loc=True)
-            # save the results to NetCDF
             if TR['rev']:
                 it0 = NT_full - 24*(nd+1) - 1
                 it1 = it0 + 25
             else:
                 it0 = 0
                 it1 = 25
-
+            # save the results to NetCDF
             tfnc.start_outfile(out_fn, P, NT_full, it0, it1)
         else: # subsequent days
             # set IC
@@ -223,14 +225,12 @@ for idt0 in idt_list:
                 pcs0 = P['cs'][-1,:]
             # do the tracking
             P = tf1.get_tracks(fn_list, plon0, plat0, pcs0, TR)
-            
             if TR['rev']:
                 it0 = NT_full - 24*(nd+1) - 1
                 it1 = it0 + 25
             else:
                 it0 = 24*nd
                 it1 = it0 + 25
-
             tfnc.append_to_outfile(out_fn, P, it0, it1)
             
     print(' - Took %0.1f sec for %s day(s)' %
