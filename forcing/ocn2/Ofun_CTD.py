@@ -37,11 +37,11 @@ def get_casts(Ldir):
     dir1 = Ldir['parent'] + 'ptools_data/canada/'
     # load processed station info and data
     sta_df_ca = pd.read_pickle(dir1 + 'sta_df.p')
-    sta_df = pd.concat((sta_df, sta_df_ca), sort=False)
+    sta_df = pd.concat((sta_df, sta_df_ca))
     year = 2017
     Casts = pd.read_pickle(dir0 + 'Casts_' + str(year) + '.p')
     Casts_ca = pd.read_pickle(dir1 + 'Casts_' + str(year) + '.p')
-    Casts = pd.concat((Casts, Casts_ca), sort=False)
+    Casts = pd.concat((Casts, Casts_ca))
 
     # limit the stations used, if desired
     sta_list = [s for s in sta_df.index]# if ('WPA' not in s) and ('GYS' not in s)]
