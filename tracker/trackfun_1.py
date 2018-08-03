@@ -407,7 +407,7 @@ def get_dAKs(vn_list_zh, ds0, ds1, plon, plat, pcs, R, S, frac, surface):
     AKs1b = get_V(['AKs',], ds1, plon, plat, pcs1b, R, surface) # diffusivity
     z1b = (pcs1b)*(ZH1[:,0]+ZH1[:,1]) # depth = pcs * full-depth
     V1 = (AKs1u-AKs1b).squeeze()/(z1u-z1b)
-    
+     
     # average of times
     V = (1-frac)*V0 + frac*V1
     

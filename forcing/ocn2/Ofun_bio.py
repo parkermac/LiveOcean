@@ -4,10 +4,11 @@ Functions to add biogeochemical fields to a clm file.
 
 import netCDF4 as nc
 import numpy as np
+import matplotlib.path as mpath
 
 ncformat = 'NETCDF3_64BIT_OFFSET' # NETCDF3_CLASSIC'
 
-def add_bio(nc_dir):
+def add_bio(nc_dir, G, add_CTD=False):
     print('-Writing bio variables to ocean_clm.nc')
     # name output file
     clm_fn = nc_dir + 'ocean_clm.nc'
@@ -31,23 +32,26 @@ def add_bio(nc_dir):
         vv.units = vn_dict[vn]
         vv.time = 'salt_time'
         V = create_bio_var(salt, vn)
-        #print(str(V.shape))
+        print(str(V.shape))
+        
+        if add_CTD:
+            V = salish_fields(V, vn, G)
+            
         vv[:] = V
         foo.close()
         
-def salish_fields(fld, vn, grid_fn):
+def salish_fields(V, vn, G):
     """
     Modify biogeochemical fields in the Salish Sea, for initial conditions.
     """
     x = [-125.5, -123.5, -121.9, -121.9]
     y = [50.4, 46.8, 46.8, 50.4]
-    V = np.ones((len(x),2))
-    V[:,0] = x
-    V[:,1] = y
-    P = mpath.Path(V)
-    ds = nc.Dataset(grid_fn)
-    lon = ds['lon_rho'][:]
-    lat = ds['lat_rho'][:]
+    p = np.ones((len(x),2))
+    p[:,0] = x
+    p[:,1] = y
+    P = mpath.Path(p)
+    lon = G['lon_rho']
+    lat = G['lat_rho']
     Rlon = lon.flatten()
     Rlat = lat.flatten()
     R = np.ones((len(Rlon),2))
@@ -55,11 +59,30 @@ def salish_fields(fld, vn, grid_fn):
     R[:,1] = Rlat
     RR = P.contains_points(R) # boolean
     RRm = RR.reshape(lon.shape)
-    T, N, M, L = fld.shape
-    for kk in range(N):
+    # print(RRm.shape)
+    # print(RRm.size)
+    # print(RRm.sum())
+    T, N, M, L = V.shape
+    for tt in range(T):
+        for nn in range(N):
+            lay = V[tt, nn, :, :].squeeze()
+            if vn == 'NO3':
+                lay[RRm] = 27.0
+                V[tt, nn, :, :] = lay
+            elif vn == 'oxygen':
+                lay[RRm] = 219.0
+                V[tt, nn, :, :] = lay
+            elif vn == 'alkalinity':
+                lay[RRm] = 2077.0
+                V[tt, nn, :, :] = lay
+            elif vn == 'TIC':
+                lay[RRm] = 2037.0
+                V[tt, nn, :, :] = lay
+            else:
+                pass
+            
         
-    fld[:,] = np.ma.masked_where(RR.reshape(lon.shape), fld)
-    return fld
+    return V
 
 def create_bio_var(salt, vn):
     print('  -- adding ' + vn)

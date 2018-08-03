@@ -239,7 +239,8 @@ elif planB == True:
 
     
 if do_bio:
-    Ofun_bio.add_bio(nc_dir)
+    G = zrfun.get_basic_info(Ldir['grid'] + 'grid.nc', only_G=True)
+    Ofun_bio.add_bio(nc_dir, G, add_CTD=add_CTD)
 
 nc_dir = Ldir['LOogf_f']
 Ofun_nc.make_ini_file(nc_dir)

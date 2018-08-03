@@ -11,7 +11,7 @@ Only set up to work on mac.
 """
 
 gridname='cas4'
-tag='v1'
+tag='v2'
 date_string = '2017.01.01'
 
 # setup
