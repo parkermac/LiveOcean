@@ -14,7 +14,7 @@ reload(cfun)
 
 # set defaults
 gridname = 'cas4'
-tag = 'v0'
+tag = 'v1'
 ex_name = 'lo6m'
 
 testing = False
