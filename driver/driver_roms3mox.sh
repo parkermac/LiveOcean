@@ -23,8 +23,8 @@ done < ../alpha/lo_info.csv
 
 # Set number of cores to use.
 # NOTE: anything above 196 will be sent to the checkpoint queue.
-np_num=196
-#np_num=392
+#np_num=196
+np_num=392
 #np_num=588
 
 # USE COMMAND LINE OPTIONS

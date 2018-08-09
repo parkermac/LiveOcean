@@ -17,6 +17,8 @@ if alp not in sys.path:
 import Lfun
 import zfun
 
+auto_lims = True
+
 # set limits
 lim_dict = {'temp': (0, 20),
         'salt': (25, 35),
@@ -161,10 +163,12 @@ for vn in list_to_plot:
         elif V[vn].ndim == 1:
             ax.plot(mdt, zfun.filt_godin(V[vn]))
     
-    try:    
-        ax.set_ylim(lim_dict[vn][0], lim_dict[vn][1])
+    try:
+        if not auto_lims:
+            ax.set_ylim(lim_dict[vn][0], lim_dict[vn][1])
     except KeyError:
         pass
+        
     ax.grid(True)
     ax.set_xlim(mdt[0], mdt[-1])
     if do_ticks:

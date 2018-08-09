@@ -141,7 +141,7 @@ if nmask.sum() > 0:
 
 # time series
 td = (ot_vec - ot_vec[0])/86400
-if False:
+if True:
     dia_list_orig = ['hit_sidewall','bad_pcs', 'hit_top', 'hit_bottom']
     dia_list = []
     for dia in dia_list_orig:
