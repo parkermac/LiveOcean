@@ -44,14 +44,15 @@ Ldir['gtagex'] = Ldir['gtag'] + '_' + args.ex_name
 # get list of history files to look at
 fn_list = Lfun.get_fn_list(args.list_type, Ldir, args.date_string0, args.date_string1)
 
+print('\n' + 10*'=' + Ldir['gtagex'] + 10*'=')
 vn_list = ['oxygen', 'TIC', 'alkalinity']
 for fn in fn_list:
-    print(fn.split('/')[-2:])
+    print('\n-' + fn.split('/')[-2] + '/' + fn.split('/')[-1])
     ds = nc4.Dataset(fn)
     for vn in vn_list:
         u = ds[vn][0,-1,:,:].squeeze()
         umax, ujmax, uimax, umin, ujmin, uimin = pfun.maxmin(u)
-        print('  %s max=%0.1g (%d,%d) min=%0.1g (%d,%d)' % (vn, umax, ujmax, uimax, umin, ujmin, uimin))
+        print('   %10s max=%20.1f (%4d,%4d) min=%20.1f (%4d,%4d)' % (vn, umax, ujmax, uimax, umin, ujmin, uimin))
     ds.close()
     
 

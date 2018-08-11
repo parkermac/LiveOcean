@@ -551,10 +551,8 @@ def get_section(ds, vn, x, y, in_dict):
 def maxmin(a):
     # find the value and location of the max and min of a 2D
     # masked array
-    #jmax,imax = np.unravel_index(a.argmax(fill_value=0),a.shape)
     jmax,imax = np.unravel_index(a.argmax(),a.shape)
     amax = a[jmax,imax]
-    #jmin,imin = np.unravel_index(a.argmin(fill_value=0),a.shape)
     jmin,imin = np.unravel_index(a.argmin(),a.shape)
     amin = a[jmin,imin]
     return amax, jmax, imax, amin, jmin, imin
