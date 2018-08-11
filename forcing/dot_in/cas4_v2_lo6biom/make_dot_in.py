@@ -43,7 +43,7 @@ elif Ldir['run_type'] == 'forecast':
 
 # time step in seconds (should fit evenly into 3600 sec)
 if Ldir['blow_ups'] == 0:
-    dtsec = 40
+    dtsec = 30 # was 40 2018/08/11
 elif Ldir['blow_ups'] == 1:
     dtsec = 30
 elif Ldir['blow_ups'] == 2:
