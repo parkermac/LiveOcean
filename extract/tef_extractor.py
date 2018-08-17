@@ -2,6 +2,9 @@
 Extract fields at a section which may be used later for TEF analysis
 of transport and transport-weighted properties.
 
+Performance - took 30 minutes for a year of cas4 on boiler,
+and the file is about 200 GB.
+
 """
 
 # setup
@@ -19,18 +22,20 @@ import zrfun
 import netCDF4 as nc
 
 # defaults
-if True:
+if False:
     sect_name = 'JdFmouth'
     lon0_str = ' -124.6'
     lat0_str = '48.35'
     lon1_str = ' -124.6'
     lat1_str = '48.6'
+    landward = 1 # sign for landward transport
 else:
     sect_name = 'SoGnorth'
     lon0_str = ' -125.4'
     lat0_str = '50.0'
     lon1_str = ' -124.6'
     lat1_str = '50.0'
+    landward = -1
 
 # get command line arguments
 import argparse
@@ -47,7 +52,9 @@ parser.add_argument('-lon0', '--lon0_str', nargs='?', type=str, default=lon0_str
 parser.add_argument('-lat0', '--lat0_str', nargs='?', type=str, default=lat0_str)
 parser.add_argument('-lon1', '--lon1_str', nargs='?', type=str, default=lon1_str)
 parser.add_argument('-lat1', '--lat1_str', nargs='?', type=str, default=lat1_str)
+parser.add_argument('-lnd', '--landward', nargs='?', type=int, default=landward)
 args = parser.parse_args()
+landward = args.landward
 
 # Get Ldir
 Ldir = Lfun.Lstart(args.gridname, args.tag)
@@ -267,7 +274,7 @@ for fn in fn_list:
         vel = ds['u'][0, :, jj0:jj1+1, ii0].squeeze()
     elif sdir=='EW':
         vel = ds['v'][0, :, jj0, ii0:ii1+1].squeeze()
-    q = vel * DA
+    q = vel * DA * landward
     
     foo['q'][count, :, :] = q
     foo['zeta'][count, :] = zeta
@@ -276,11 +283,15 @@ for fn in fn_list:
     # save the tracer fields averaged onto this section
     for vn in vn_list:
         if sdir=='NS':
-            vv = ds[vn][0,:,jj0:jj1+1,ii0:ii0+2].squeeze()
-            vvv = vv.mean(axis=2)
+            vvv = (ds[vn][0,:,jj0:jj1+1,ii0].squeeze()
+                + ds[vn][0,:,jj0:jj1+1,ii1].squeeze())/2
+            # vv = ds[vn][0,:,jj0:jj1+1,ii0:ii0+2].squeeze()
+            # vvv = vv.mean(axis=2)
         elif sdir=='EW':
-            vv = ds[vn][0,:,jj0:jj0+2,ii0:ii1+1].squeeze()
-            vvv = vv.mean(axis=1)
+            vvv = (ds[vn][0,:,jj0,ii0:ii1+1].squeeze()
+                + ds[vn][0,:,jj1,ii0:ii1+1].squeeze())/2
+            # vv = ds[vn][0,:,jj0:jj0+2,ii0:ii1+1].squeeze()
+            # vvv = vv.mean(axis=1)
         foo[vn][count,:,:] = vvv
     
     ds.close()
