@@ -21,21 +21,6 @@ import zfun
 import zrfun
 import netCDF4 as nc
 
-# defaults
-if False:
-    sect_name = 'JdFmouth'
-    lon0_str = ' -124.6'
-    lat0_str = '48.35'
-    lon1_str = ' -124.6'
-    lat1_str = '48.6'
-    landward = 1 # sign for landward transport
-else:
-    sect_name = 'SoGnorth'
-    lon0_str = ' -125.4'
-    lat0_str = '50.0'
-    lon1_str = ' -124.6'
-    lat1_str = '50.0'
-    landward = -1
 
 # get command line arguments
 import argparse
@@ -47,14 +32,28 @@ parser.add_argument('-x', '--ex_name', nargs='?', type=str, default='lo6biom')
 parser.add_argument('-0', '--date_string0', nargs='?', type=str, default='2017.09.01')
 parser.add_argument('-1', '--date_string1', nargs='?', type=str, default='2017.09.03')
 # section specific arguments
-parser.add_argument('-sn', '--sect_name', nargs='?', type=str, default=sect_name)
-parser.add_argument('-lon0', '--lon0_str', nargs='?', type=str, default=lon0_str)
-parser.add_argument('-lat0', '--lat0_str', nargs='?', type=str, default=lat0_str)
-parser.add_argument('-lon1', '--lon1_str', nargs='?', type=str, default=lon1_str)
-parser.add_argument('-lat1', '--lat1_str', nargs='?', type=str, default=lat1_str)
-parser.add_argument('-lnd', '--landward', nargs='?', type=int, default=landward)
+parser.add_argument('-sn', '--sect_name', nargs='?', type=str, default='JdFmouth')
 args = parser.parse_args()
-landward = args.landward
+
+# section definitions
+# * x and y are latitude and longitude and we require sections to be NS or EW so
+# either x0=x1 or y0=y1
+# * landwrd is the sign to multipy the transport by to be landward (1 or -1)
+if args.sect_name == 'JdFmouth':
+    x0 =  -124.6
+    y0 = 48.35
+    x1 =  -124.6
+    y1 = 48.6
+    landward = 1
+elif args.sect_name == 'SoGnorth':
+    x0 =  -125.4
+    y0 = 50.0
+    x1 =  -124.6
+    y1 = 50.0
+    landward = -1
+else:
+    print('--- invalid section name ---')
+    sys.exit()
 
 # Get Ldir
 Ldir = Lfun.Lstart(args.gridname, args.tag)
@@ -79,12 +78,6 @@ ndays = (dt1-dt0).days + 1
 # get list of history files to plot
 fn_list = Lfun.get_fn_list('hourly', Ldir, args.date_string0, args.date_string1)
 
-# end points
-x0 = float(args.lon0_str)
-y0 = float(args.lat0_str)
-x1 = float(args.lon1_str)
-y1 = float(args.lat1_str)
-
 # determine the direction of the section
 if (x0==x1) and (y0!=y1):
     sdir = 'NS'
@@ -95,7 +88,7 @@ else:
     sdir='bad'
     sys.exit()
 
-print('sect_name = ' + sect_name)
+print('sect_name = ' + args.sect_name)
 print('sdir = ' + sdir)
 
 # get grid info

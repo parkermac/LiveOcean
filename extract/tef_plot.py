@@ -21,7 +21,7 @@ Ldir = Lfun.Lstart()
 indir = Ldir['LOo'] + 'extract/'
 
 # choose the processed TEF fiel to plot
-print('\n%s\n' % '** Choose processed TEF file to process **')
+print('\n%s\n' % '** Choose processed TEF file to plot **')
 m_list_raw = os.listdir(indir)
 m_list_raw.sort()
 m_list = [m for m in m_list_raw if (('.p' in m) and ('tef_' in m))]
@@ -120,21 +120,24 @@ ax.set_xlim(0,365)
 ax.set_ylim(-500, 500)
 ax.set_xlabel('Days')
 ax.set_ylabel('Q (1e3 m3/s)')
+ax.grid(True)
 
 
 ax = fig.add_subplot(223)
 ax.plot(td, qnet_lp/1e3)
 ax.set_xlabel('Days')
-ax.set_ylim(-20, 50)
+ax.set_ylim(-50, 50)
 ax.set_xlim(0,365)
 ax.set_ylabel('LP Volume Flux (1e3 m3/s)')
+ax.grid(True)
 
 ax = fig.add_subplot(224)
 ax.plot(td, fnet_lp/1e9)
 ax.set_xlim(0,365)
 ax.set_xlabel('Days')
-ax.set_ylim(0, 15)
+ax.set_ylim(-15, 15)
 ax.set_ylabel('Energy Flux (GW)')
+ax.grid(True)
 
 
 plt.show()
