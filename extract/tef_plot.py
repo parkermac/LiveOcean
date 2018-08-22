@@ -32,7 +32,7 @@ for npt in range(Npt):
 if False:
     my_npt = int(input('-- Input number -- '))
 else:
-    my_npt = 1 # for testing
+    my_npt = 0 # for testing
 tef_file = m_dict[my_npt]
 fn = indir + tef_file
 
@@ -48,7 +48,7 @@ td = (ot - ot[0])/86400
 NS = len(sbins)
 
 # low-pass
-if False:
+if True:
     # tidal averaging
     tef_q_lp = zfun.filt_godin_mat(tef_q)
     tef_qs_lp = zfun.filt_godin_mat(tef_qs)
@@ -200,7 +200,7 @@ plt.close('all')
 rows = 2
 cols = 2
 
-fig, axes = plt.subplots(nrows=rows, ncols=cols, sharex=True, figsize=(24,10))
+fig, axes = plt.subplots(nrows=rows, ncols=cols, sharex=True, figsize=(13,8))
 
 ax = axes[0,0]
 cs = ax.pcolormesh(td, sbins, tef_q_lp.T/1e3, cmap='jet', vmin=-10, vmax=10)
@@ -214,10 +214,12 @@ ax.text(.05, .9, 'dQ/ds (1e3 m3/s psu-1)', transform=ax.transAxes)
 #ax.plot(td, Sin, '-k', td, Sout, '--k')
 ax.plot(td, S, 'ok', markersize=1)
 
+sz = 5
+
 ax = axes[0,1]
 nt, ns = S.shape
 Td = np.tile(td.reshape(nt,1),(1, ns))
-cs = ax.scatter(Td, Q/1e3, c=S, cmap='jet', vmin=25, vmax=35, s=15)
+cs = ax.scatter(Td, Q/1e3, c=S, cmap='jet', vmin=25, vmax=35, s=sz)
 fig.colorbar(cs, ax=ax)
 ax.plot(td, Q[:,0]/1e3, 'g-') # out
 ax.plot(td, Q[:,1]/1e3, 'r-') # in
@@ -240,7 +242,7 @@ ax.grid(True)
 ax = axes[1,1]
 nt, ns = S.shape
 Td = np.tile(td.reshape(nt,1),(1, ns))
-cs = ax.scatter(Td, S, c=Q/1e3, cmap='jet', vmin=-100, vmax=100, s=15)
+cs = ax.scatter(Td, S, c=Q/1e3, cmap='jet', vmin=-100, vmax=100, s=sz)
 fig.colorbar(cs, ax=ax)
 ax.plot(td, S[:,0], 'g-') # out
 ax.plot(td, S[:,1], 'r-') # in

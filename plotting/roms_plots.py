@@ -73,6 +73,52 @@ def P_basic(in_dict):
         plt.close()
     else:
         plt.show()
+        
+def P_phyt(in_dict):
+    # a custom movie for LuAnne
+    # START
+    fig = plt.figure(figsize=pinfo.figsize)
+    ds = nc.Dataset(in_dict['fn'])
+
+    # PLOT CODE
+    vn_list = ['phytoplankton', 'phytoplankton']
+    ii = 1
+    for vn in vn_list:
+        if in_dict['auto_vlims']:
+            pinfo.vlims_dict[vn] = ()
+        ax = fig.add_subplot(1, len(vn_list), ii)
+        cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict,
+                cmap=pinfo.cmap_dict[vn], fac=pinfo.fac_dict[vn])
+        pfun.add_coast(ax)
+        aa = [-123.5, -122.1, 47, 49]
+        pad = 0.005
+        aap = [-123.5-pad, -122.1+pad, 47-pad, 49+pad]
+        ax.plot([aa[0], aa[1], aa[1], aa[0], aa[0]], [aa[2], aa[2], aa[3], aa[3], aa[2]],
+            '-m', linewidth=3)
+        if ii == 1:
+            fig.colorbar(cs)
+            pfun.add_bathy_contours(ax, ds, txt=True)
+            ax.axis(pfun.get_aa(ds))
+        elif ii == 2:
+            ax.axis(aap)
+        pfun.dar(ax)
+        ax.set_xlabel('Longitude')
+        if ii == 1:
+            ax.set_title('Surface %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
+            ax.set_ylabel('Latitude')
+            pfun.add_info(ax, in_dict['fn'])
+            pfun.add_windstress_flower(ax, ds)
+        elif ii == 2:
+            ax.set_title('Puget Sound')
+        ii += 1
+        
+    # FINISH
+    ds.close()
+    if len(in_dict['fn_out']) > 0:
+        plt.savefig(in_dict['fn_out'])
+        plt.close()
+    else:
+        plt.show()
     
 def P_debug(in_dict):
     # Focused on debugging

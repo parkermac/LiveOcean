@@ -41,9 +41,9 @@ def boolean_string(s):
 parser = argparse.ArgumentParser()
 # standard arguments
 parser.add_argument('-g', '--gridname', nargs='?', type=str, default='cas4')
-parser.add_argument('-t', '--tag', nargs='?', type=str, default='v2')
+parser.add_argument('-t', '--tag', nargs='?', type=str, default='v1')
 parser.add_argument('-x', '--ex_name', nargs='?', type=str, default='lo6biom')
-parser.add_argument('-0', '--date_string0', nargs='?', type=str, default='2017.01.01')
+parser.add_argument('-0', '--date_string0', nargs='?', type=str, default='2017.09.01')
 parser.add_argument('-1', '--date_string1', nargs='?', type=str, default='')
 # arguments that allow you to bypass the interactive choices
 parser.add_argument('-hn', '--his_num', nargs='?', type=int, default=1)
@@ -106,7 +106,8 @@ if plot_type == 'P_tracks_MERHAB':
         print('NOTE: Overriding chosen list_type and using merhab instead.')
 
 # get list of history files to plot
-fn_list = Lfun.get_fn_list(list_type, Ldir, args.date_string0, args.date_string1, his_num=args.his_num)
+fn_list = Lfun.get_fn_list(list_type, Ldir,
+    args.date_string0, args.date_string1, his_num=args.his_num)
 
 # PLOTTING
 in_dict = dict()
