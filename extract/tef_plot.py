@@ -17,24 +17,37 @@ if alp not in sys.path:
 import Lfun
 import zfun
 
-Ldir = Lfun.Lstart()
-indir = Ldir['LOo'] + 'extract/'
+from warnings import filterwarnings
+filterwarnings('ignore') # skip some warning messages
 
-# choose the processed TEF file to plot
-print('\n%s\n' % '** Choose processed TEF file to plot **')
-m_list_raw = os.listdir(indir)
-m_list_raw.sort()
-m_list = [m for m in m_list_raw if (('.p' in m) and ('tef_' in m))]
-Npt = len(m_list)
-m_dict = dict(zip(range(Npt), m_list))
-for npt in range(Npt):
-    print(str(npt) + ': ' + m_list[npt])
+Ldir = Lfun.Lstart()
+
+pth = os.path.abspath(Ldir['LO'] + 'plotting')
+if pth not in sys.path:
+    sys.path.append(pth)
+import pfun
+
+indir = Ldir['LOo'] + 'tef/'
+print('\nSelect an Extraction to plot:\n')
+List_raw = os.listdir(indir)
+List_raw.sort()
+List = [item for item in List_raw]
+NL = len(List)
+Ldict = dict(zip(range(NL), List))
+for ii in range(NL):
+    print(str(ii) + ': ' + List[ii])
 if False:
-    my_npt = int(input('-- Input number -- '))
+    my_ii = int(input('-- Input number: '))
 else:
-    my_npt = 0 # for testing
-tef_file = m_dict[my_npt]
-fn = indir + tef_file
+    my_ii = 0 # for testing
+Litem = Ldict[my_ii]
+print('\nProcessing ' + Litem + '\n')
+LList_raw = os.listdir(indir + Litem)
+LList_raw.sort()
+LList = [item for item in LList_raw if ('.p' in item)]
+Indir = indir + Litem + '/'
+
+fn = Indir + LList[0] # eventually make this a loop
 
 # load results
 tef_dict = pickle.load(open(fn, 'rb'))
@@ -48,7 +61,7 @@ td = (ot - ot[0])/86400
 NS = len(sbins)
 
 # low-pass
-if True:
+if False:
     # tidal averaging
     tef_q_lp = zfun.filt_godin_mat(tef_q)
     tef_qs_lp = zfun.filt_godin_mat(tef_qs)
@@ -118,6 +131,8 @@ for tt in range(nt):
         imin = imin[mask]
     ivec = np.sort(np.concatenate((np.array([0]), imax, imin, np.array([NS]))))
     nlay = len(ivec)-1
+    
+    # combine non-alternating layers
     qq = np.zeros(nlay)
     qqs = np.zeros(nlay)
     jj = 0
@@ -173,6 +188,8 @@ for tt in range(nt):
     elif nlay ==4:
         if qq[0] >= 0:
             print('- Backwards 4: td=%5.1f  nlay = %d' % (td[tt],nlay))
+            Q[tt,:] = np.nan
+            QS[tt,:] = np.nan
         elif qq[0] < 0:
             Q[tt,0] = qq[0]
             QS[tt,0] = qqs[0]
@@ -194,101 +211,88 @@ Q[Q==0] = np.nan
 S = QS/Q
 
 # plotting
-plt.close('all')
+#plt.close('all')
 #fig = plt.figure(figsize=(24,10))
 
-rows = 2
-cols = 2
+lw = 2.5
 
-fig, axes = plt.subplots(nrows=rows, ncols=cols, sharex=True, figsize=(13,8))
+fig, axes = plt.subplots(nrows=2, ncols=3, sharex=True, figsize=(20,8))
 
 ax = axes[0,0]
-cs = ax.pcolormesh(td, sbins, tef_q_lp.T/1e3, cmap='jet', vmin=-10, vmax=10)
-fig.colorbar(cs, ax=ax)
-ax.set_xlim(0,365)
-ax.set_ylim(35, 25)
-ax.set_xlabel('Days')
-ax.set_ylabel('Salinity')
-ax.text(.05, .9, 'dQ/ds (1e3 m3/s psu-1)', transform=ax.transAxes)
-# integrated TEF quantities
-#ax.plot(td, Sin, '-k', td, Sout, '--k')
-ax.plot(td, S, 'ok', markersize=1)
-
-sz = 5
-
-ax = axes[0,1]
 nt, ns = S.shape
 Td = np.tile(td.reshape(nt,1),(1, ns))
-cs = ax.scatter(Td, Q/1e3, c=S, cmap='jet', vmin=25, vmax=35, s=sz)
-fig.colorbar(cs, ax=ax)
-ax.plot(td, Q[:,0]/1e3, 'g-') # out
-ax.plot(td, Q[:,1]/1e3, 'r-') # in
-ax.plot(td, Q[:,2]/1e3, 'b-') # out
-ax.plot(td, Q[:,3]/1e3, 'm-') # in
+ax.plot(td, Q[:,3]/1e3, '-r', linewidth=lw, label='Qin shallow', alpha=.5)
+ax.plot(td, Q[:,2]/1e3, '-b', linewidth=lw, label='Qout') # out
+ax.plot(td, Q[:,1]/1e3, '-r', linewidth=lw, label='Qin') # in
+ax.plot(td, Q[:,0]/1e3, '-b', linewidth=lw, label='Qout deep', alpha=.5) # out
+ax.legend(ncol=2, loc='upper left')
 ax.set_xlim(0,365)
-ax.set_ylim(-400, 400)
+ax.set_ylim(-500, 500)
 ax.set_xlabel('Days')
 ax.set_ylabel('Q (1e3 m3/s)')
 ax.grid(True)
 
 ax = axes[1,0]
-ax.plot(td, qnet_lp/1e3)
+nt, ns = S.shape
+Td = np.tile(td.reshape(nt,1),(1, ns))
+ax.plot(td, S[:,3], '-r', linewidth=lw, label='Sin shallow', alpha=.5)
+ax.plot(td, S[:,2], '-b', linewidth=lw, label='Sout') # out
+ax.plot(td, S[:,1], '-r', linewidth=lw, label='Sin') # in
+ax.plot(td, S[:,0], '-b', linewidth=lw, label='Sout deep', alpha=.5) # out
+# mark reversals
+rev = (S[:,2] - S[:,1]) > 0
+ax.plot(td[rev], 34.8*np.ones(nt)[rev], '*k', label='Reversals')
+ax.legend(loc='upper right')
+ax.set_xlim(0,365)
+ax.set_ylim(35, 25)
+ax.set_xlabel('Days')
+ax.set_ylabel('Salinity')
+ax.grid(True)
+
+ax = axes[0,1]
+ax.plot(td, qnet_lp/1e3, '-k', linewidth=lw)
 ax.set_xlabel('Days')
 ax.set_ylim(-50, 50)
 ax.set_xlim(0,365)
 ax.set_ylabel('LP Volume Flux (1e3 m3/s)')
 ax.grid(True)
+ax.text(0.05, 0.1, 'Positive is Landward', transform=ax.transAxes)
 
 ax = axes[1,1]
-nt, ns = S.shape
-Td = np.tile(td.reshape(nt,1),(1, ns))
-cs = ax.scatter(Td, S, c=Q/1e3, cmap='jet', vmin=-100, vmax=100, s=sz)
-fig.colorbar(cs, ax=ax)
-ax.plot(td, S[:,0], 'g-') # out
-ax.plot(td, S[:,1], 'r-') # in
-ax.plot(td, S[:,2], 'b-') # out
-ax.plot(td, S[:,3], 'm-') # in
+ax.plot(td, fnet_lp/1e9, '-k', linewidth=lw)
 ax.set_xlim(0,365)
-ax.set_ylim(35, 25)
 ax.set_xlabel('Days')
-ax.set_ylabel('S')
+ax.set_ylim(-15, 15)
+ax.set_ylabel('Energy Flux (GW)')
 ax.grid(True)
 
-# ax = fig.add_subplot(rows, cols, 4)
-# ax.plot(td, fnet_lp/1e9)
-# ax.set_xlim(0,365)
-# ax.set_xlabel('Days')
-# ax.set_ylim(-15, 15)
-# ax.set_ylabel('Energy Flux (GW)')
-# ax.grid(True)
+# remove extra axes
+axes[0,2].set_axis_off()
+axes[1,2].set_axis_off()
 
-# ax = fig.add_subplot(rows, cols, 5)
-# for tt in [10, 50, 100]:
-#     # we use these masks because there are multiple values
-#     maxmask = Imax[0]==tt
-#     minmask = Imin[0]==tt
-#     imax = Imax[1][maxmask]
-#     imin = Imin[1][minmask]
-#     # drop extrema indices which are too close to the ends
-#     if len(imax) > 0:
-#         mask = np.abs(qcs[tt,imax] - qcs[tt,0]) > crit
-#         imax = imax[mask]
-#     if len(imax) > 0:
-#         mask = np.abs(qcs[tt,imax] - qcs[tt,-1]) > crit
-#         imax = imax[mask]
-#     if len(imin) > 0:
-#         mask = np.abs(qcs[tt,imin] - qcs[tt,0]) > crit
-#         imin = imin[mask]
-#     if len(imin) > 0:
-#         mask = np.abs(qcs[tt,imin] - qcs[tt,-1]) > crit
-#         imin = imin[mask]
-#     ivec = np.sort(np.concatenate((np.array([0]), imax, imin, np.array([NS]))))
-#     ax.plot(qcs[tt,:], sbins)
-#     if len(imax) > 0:
-#         ax.plot(qcs[tt,imax], sbins[imax], '*r')
-#     if len(imax) > 0:
-#         ax.plot(qcs[tt,imin], sbins[imin], 'ob')
+# add section location map
+ax = fig.add_subplot(1,3,3)
+    
+# hack!
+sect_name = fn.split('/')[-1].split('_')[4]
+if sect_name == 'JdFmouth':
+    x0 =  -124.6
+    y0 = 48.35
+    x1 =  -124.6
+    y1 = 48.6
+elif sect_name == 'SoGnorth':
+    x0 =  -125.4
+    y0 = 50.0
+    x1 =  -124.6
+    y1 = 50.0
+        
 
+ax.plot([x0, x1], [y0, y1], '-m', linewidth=3)
+ax.set_title(sect_name)
+pfun.add_coast(ax)
+pfun.dar(ax)
+ax.set_xlim(-127.4, -122)
+ax.set_ylim(42, 50.3)
 
 
 plt.show()
