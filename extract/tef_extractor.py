@@ -3,7 +3,7 @@ Extract fields at a number of sections which may be used later for TEF analysis
 of transport and transport-weighted properties.
 
 Performance - took 30 minutes for a year of cas4 on boiler,
-and a single file is about 200 GB.
+and a single file is about 200 MB.
 
 """
 
@@ -76,7 +76,7 @@ for sect_name in sect_df.index:
     # name output file
     out_fn = (outdir + sect_name + '.nc')
     # get section lat, lon, and other info
-    x0, x1, y0, y1, landward, long_name = sect_df.loc[sect_name,:]
+    x0, x1, y0, y1, landward = sect_df.loc[sect_name,:]
     # get indices for this section
     ii0, ii1, jj0, jj1, sdir, Lon, Lat, Mask = tef_fun.get_inds(x0, x1, y0, y1, G)
     NX = len(Mask)

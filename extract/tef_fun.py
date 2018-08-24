@@ -14,11 +14,25 @@ def get_sect_df():
     # * x and y are latitude and longitude and we require sections to be NS or EW so
     # either x0=x1 or y0=y1
     # * landward is the sign to multipy the transport by to be landward (1 or -1)
-    sect_df = pd.DataFrame(columns=['x0', 'x1', 'y0', 'y1', 'landward', 'long_name'])
+    sect_df = pd.DataFrame(columns=['x0', 'x1', 'y0', 'y1', 'landward'])
     
-    sect_df.loc['JdFmouth',:] = [-124.6, -124.6, 48.35, 48.6, 1, 'Juan de Fuca Mouth']
-    sect_df.loc['SoGnorth',:] = [-125.4, -124.6, 50, 50, -1, 'Strait of Georgia North']
-    sect_df.loc['AInorth',:] = [-122.78, -122.58, 48.13, 48.13, -1, 'Admiralty Inlet North']
+    sect_df.loc['AInorth',:] = [-122.795, -122.584,   48.123,   48.123, -1]
+    sect_df.loc['AImiddle',:] = [-122.742, -122.518,   47.997,   47.997, -1]
+    sect_df.loc['AIsouth',:] = [-122.564, -122.399,   47.912,   47.912, -1]
+    sect_df.loc['MBnorth',:] = [-122.551, -122.313,   47.885,   47.885, -1]
+    sect_df.loc['MBmidnorth',:] = [-122.537, -122.333,   47.831,   47.831, -1]
+    sect_df.loc['MBmid',:] = [-122.544, -122.405,   47.646,   47.646, -1]
+    sect_df.loc['MBmidsouth',:] = [-122.570, -122.326,   47.444,   47.444, -1]
+    sect_df.loc['MBsouth',:] = [-122.577, -122.346,   47.340,   47.340, -1]
+    sect_df.loc['TNnorth',:] = [-122.584, -122.531,   47.309,   47.309, -1]
+    sect_df.loc['TNmid',:] = [-122.577, -122.518,   47.286,   47.286, -1]
+    sect_df.loc['TNsouth',:] = [-122.584, -122.524,   47.264,   47.264, -1]
+    sect_df.loc['SSnorth',:] = [-122.749, -122.537,   47.241,   47.241, -1]
+    #sect_df.loc['SSmid',:] = [-122.788, -122.788,   47.205,   47.111, -1]
+    #sect_df.loc['SSmidwest',:] = [-122.868, -122.868,   47.183,   47.133, -1]
+    sect_df.loc['BInorth',:] = [-122.934, -122.894,   47.129,   47.129, -1]
+    sect_df.loc['BImid',:] = [-122.934, -122.881,   47.111,   47.111, -1]
+    sect_df.loc['BIsouth',:] = [-122.934, -122.881,   47.066,   47.066, -1]
     
     return sect_df
     
