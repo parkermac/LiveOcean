@@ -31,7 +31,7 @@ NL = len(List)
 Ldict = dict(zip(range(NL), List))
 for ii in range(NL):
     print(str(ii) + ': ' + List[ii])
-if False:
+if True:
     my_ii = int(input('-- Input number: '))
 else:
     my_ii = 0 # for testing
