@@ -50,7 +50,8 @@ Casts = pd.concat((Casts, Casts_ca))
 
 
 # trim the station list as desired
-sta_list = [sta for sta in sta_df.index]
+sta_df = sta_df.loc[sta_df.index.dropna(),:]
+sta_list = [sta for sta in sta_df.index if 'SOG' in sta]
 
 for station in sta_list:
     
