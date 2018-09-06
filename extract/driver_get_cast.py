@@ -48,10 +48,8 @@ Casts_ca = pd.read_pickle(dir1 + 'Casts_' + str(year) + '.p')
 
 Casts = pd.concat((Casts, Casts_ca))
 
-
 # trim the station list as desired
-sta_df = sta_df.loc[sta_df.index.dropna(),:]
-sta_list = [sta for sta in sta_df.index if 'SOG' in sta]
+sta_list = [sta for sta in sta_df.index]# if 'SOG' in sta]
 
 for station in sta_list:
     
