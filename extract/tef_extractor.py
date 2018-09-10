@@ -49,13 +49,13 @@ Lfun.make_dir(outdir00)
 outdir0 = outdir00 + 'tef/'
 Lfun.make_dir(outdir0)
 outdir = outdir0 + Ldir['gtagex'] + '_' + Ldir['date_string0'] + '_' + Ldir['date_string1'] + '/'
-Lfun.make_dir(outdir, clean=True)
+Lfun.make_dir(outdir, clean=False)
 
 dt0 = datetime.strptime(args.date_string0, '%Y.%m.%d')
 dt1 = datetime.strptime(args.date_string1, '%Y.%m.%d')
 ndays = (dt1-dt0).days + 1
 
-# get list of history files to plot
+# get list of history files to process
 fn_list = Lfun.get_fn_list('hourly', Ldir, args.date_string0, args.date_string1)
 NT = len(fn_list)
 
@@ -70,8 +70,10 @@ sect_df = tef_fun.get_sect_df()
 
 sect_info = dict()
 
+sect_list = [item for item in sect_df.index if 'willapa' in item]
+
 print('\nGetting section definitions and indices')
-for sect_name in sect_df.index:
+for sect_name in sect_list:
     print(sect_name)
     # name output file
     out_fn = (outdir + sect_name + '.nc')
@@ -95,7 +97,7 @@ for fn in fn_list:
         sys.stdout.flush()
     ds = nc.Dataset(fn)
     # loop over all sections
-    for sect_name in sect_df.index:
+    for sect_name in sect_list:
         sinfo = sect_info[sect_name]
         tef_fun.add_fields(ds, count, vn_list, G, S, sinfo)
     ds.close()

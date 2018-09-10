@@ -91,6 +91,9 @@ def get_sect_df():
     # Channel in South Sound
     sect_df.loc['pick',:] = [-122.947, -122.907,   47.264,   47.264, 1]
     
+    # Coastal sections
+    sect_df.loc['willapa_mouth',:] = [-124.051, -124.051,   46.631,   46.748, 1]
+    
     return sect_df
     
 def get_inds(x0, x1, y0, y1, G):
@@ -177,7 +180,7 @@ def start_netcdf(fn, out_fn, NT, NX, NZ, Lon, Lat, Ldir):
     # generating some lists
     vn_list = []
     ds = nc.Dataset(fn)
-    if False:
+    if True:
         # all 3D variables on the s_rho grid
         for vv in ds.variables:
             vdim = ds.variables[vv].dimensions

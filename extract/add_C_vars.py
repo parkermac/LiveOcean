@@ -25,7 +25,7 @@ import zfun
 #reload(Lfun)
 
 Ldir = Lfun.Lstart()
-indir = Ldir['LOo'] + 'moor/'
+indir = Ldir['LOo'] + 'extract/'
 
 # choose the type of plot to make
 print('\n%s\n' % '** Choose mooring file to add C vars to **')

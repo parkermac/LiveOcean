@@ -80,7 +80,7 @@ Vu = dict()
 list_to_plot = v3_list_rho
 
 # hand edit variables not to look at
-for v in ['CaCO3', 'PH', 'ARAG']:
+for v in ['CaCO3']:#, 'PH', 'ARAG']:
     try:
         list_to_plot.remove(v)
     except ValueError:
