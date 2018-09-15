@@ -351,7 +351,7 @@ def P_Carbon(in_dict):
 def P_bio(in_dict):
     
     # START
-    fig = plt.figure(figsize=(21, 8))
+    fig = plt.figure(figsize=(18, 8))
     ds = nc.Dataset(in_dict['fn'])
 
     # PLOT CODE
@@ -387,6 +387,8 @@ def P_bio(in_dict):
             pfun.add_windstress_flower(ax, ds, center=(.2,.25))
         ii += 1
         
+    fig.tight_layout()
+    
     # FINISH
     ds.close()
     if len(in_dict['fn_out']) > 0:

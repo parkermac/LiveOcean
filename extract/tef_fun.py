@@ -312,7 +312,7 @@ def tef_integrals(fn):
     NS = len(sbins)
 
     # low-pass
-    if True:
+    if False:
         # tidal averaging
         tef_q_lp = zfun.filt_godin_mat(tef_q)
         tef_qs_lp = zfun.filt_godin_mat(tef_qs)
@@ -359,7 +359,7 @@ def tef_integrals(fn):
     Q = np.zeros((nt, nlay_max))
     QS = np.zeros((nt, nlay_max))
 
-    crit = np.nanmax(np.abs(qcs)) / 50
+    crit = np.nanmax(np.abs(qcs)) / 5 # was / 50
 
     for tt in range(nt):
         # we use these masks because there are multiple values for a given day
@@ -456,7 +456,7 @@ def tef_integrals(fn):
             QS[tt,:] = np.nan
         
     # form derived quantities
-    Q[Q==0] = np.nan
+    Q[np.abs(Q)<100] = np.nan
     S = QS/Q
     
     return Q, S, QS, qnet_lp, fnet_lp, td
