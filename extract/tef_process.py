@@ -42,7 +42,7 @@ LList_raw.sort()
 LList = [item for item in LList_raw if ('.nc' in item)]
 Indir = indir + Litem + '/'
 
-for tef_file in ['willapa_mouth.nc']:#LList:
+for tef_file in LList:
     print(tef_file)
     fn = Indir + tef_file
 
@@ -69,7 +69,7 @@ for tef_file in ['willapa_mouth.nc']:#LList:
     qs = q*s
     NT, NZ, NX = q.shape
     # initialize intermediate results arrays for TEF quantities
-    sedges = np.linspace(0, 35, 5001) # original was 1001
+    sedges = np.linspace(0, 36, 1001) # original was 1001 used 5001 for Willapa
     sbins = sedges[:-1] + np.diff(sedges)/2
     NS = len(sbins) # number of salinity bins
     tef_q = np.zeros((NT, NS))

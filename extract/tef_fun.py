@@ -5,6 +5,7 @@ import pandas as pd
 import netCDF4 as nc
 import numpy as np
 import pickle
+import matplotlib.pyplot as plt
 
 # path to alpha provided by driver
 import zfun
@@ -26,7 +27,7 @@ def get_sect_df():
     # Strait of Georgia
     sect_df.loc['sog1',:] = [-123.740, -122.663,   48.857,   48.857, 1]
     sect_df.loc['sog2',:] = [-124.065, -123.073,   49.184,   49.184, 1]
-    sect_df.loc['sog2',:] = [-124.223, -124.223,   49.220,   49.946, -1]
+    sect_df.loc['sog3',:] = [-124.223, -124.223,   49.220,   49.946, -1]
     sect_df.loc['sog4',:] = [-125.356, -124.556,   50.002,   50.002, 1]
 
     # San Juans
@@ -300,19 +301,29 @@ def add_fields(ds, count, vn_list, G, S, sinfo):
     foo.close()
     
 def tef_integrals(fn):
+    # choices
+    plot_profiles = True # plot profiles when certain conditions occur
+    tidal_average = False # which king of time filtering
+    NS_fact = 50 # range to look at for relative maxima (50 means 2% of the salt range)
+    Crit_fact = 5 # was 50, Used for dropping small extrema (5 means 20% of max transport)
+    nlay_max = 4 # maximum allowable number of layers to process
+    Q_crit = 100 # mask transport layers with |Q| smaller than this (m3 s-1)
+    
     # load results
     tef_dict = pickle.load(open(fn, 'rb'))
     tef_q = tef_dict['tef_q']
     tef_qs = tef_dict['tef_qs']
     sbins = tef_dict['sbins']
+    smax = sbins.max()
     qnet = tef_dict['qnet']
     fnet = tef_dict['fnet']
     ot = tef_dict['ot']
     td = (ot - ot[0])/86400
     NS = len(sbins)
+    #print('NS = %d' % (NS))
 
     # low-pass
-    if False:
+    if tidal_average:
         # tidal averaging
         tef_q_lp = zfun.filt_godin_mat(tef_q)
         tef_qs_lp = zfun.filt_godin_mat(tef_qs)
@@ -346,20 +357,20 @@ def tef_integrals(fn):
     # from high to low salinity
     rq = np.fliplr(tef_q_lp)
     rqs = np.fliplr(tef_qs_lp)
+    sbinsr = sbins[::-1]
     # then form the cumulative sum (the function Q(s))
     qcs = np.cumsum(rq, axis=1)
     nt = len(td)
 
     # new version to handle more layers
     from scipy.signal import argrelextrema
-    Imax = argrelextrema(qcs, np.greater, axis=1, order=int(NS/50))
-    Imin = argrelextrema(qcs, np.less, axis=1, order=int(NS/50))
+    Imax = argrelextrema(qcs, np.greater, axis=1, order=int(NS/NS_fact))
+    Imin = argrelextrema(qcs, np.less, axis=1, order=int(NS/NS_fact))
 
-    nlay_max = 4
     Q = np.zeros((nt, nlay_max))
     QS = np.zeros((nt, nlay_max))
 
-    crit = np.nanmax(np.abs(qcs)) / 5 # was / 50
+    crit = np.nanmax(np.abs(qcs)) / Crit_fact
 
     for tt in range(nt):
         # we use these masks because there are multiple values for a given day
@@ -438,9 +449,14 @@ def tef_integrals(fn):
                 QS[tt,2] = qqs[2]
         elif nlay ==4:
             if qq[0] >= 0:
-                print('- Backwards 4: td=%5.1f  nlay = %d' % (td[tt],nlay))
+                err_str = 'Backwards 4: td=%5.1f  nlay = %d' % (td[tt],nlay)
+                print(err_str)
                 Q[tt,:] = np.nan
                 QS[tt,:] = np.nan
+                # and plot a helpful figure
+                if plot_profiles:
+                    profile_plot(rq, sbinsr, smax, qcs, ivec, err_str, tt, NS)
+
             elif qq[0] < 0:
                 Q[tt,0] = qq[0]
                 QS[tt,0] = qqs[0]
@@ -456,8 +472,115 @@ def tef_integrals(fn):
             QS[tt,:] = np.nan
         
     # form derived quantities
-    Q[np.abs(Q)<100] = np.nan
+    Q[np.abs(Q)<Q_crit] = np.nan
     S = QS/Q
     
     return Q, S, QS, qnet_lp, fnet_lp, td
+    
+def profile_plot(rq, sbinsr, smax, qcs, ivec, err_str, tt, NS):
+    fig = plt.figure(figsize=(8,8))
+    ax = fig.add_subplot(121)
+    ax.plot(rq[tt,:], sbinsr)
+    ax.set_ylim(smax,0)
+    ax.grid(True)
+    ax.set_ylabel('Salinity')
+    ax.set_xlabel('q(s)')
+    #
+    ax = fig.add_subplot(122)
+    ax.plot(qcs[tt,:], sbinsr)
+    # print(ivec)
+    Ivec = ivec.copy()
+    Ivec[Ivec==NS] = NS-1
+    ax.plot(qcs[tt,Ivec], sbinsr[Ivec],'*k')
+    ax.set_ylim(smax,0)
+    ax.grid(True)
+    ax.set_xlabel('Q(s)')
+    ax.set_title(err_str)
+    
+def tef_integrals_v2(fn):
+    # choices
+    tidal_average = False # which kind of time filtering
+    nlay_max = 2 # maximum allowable number of layers to process
+    
+    # load results
+    tef_dict = pickle.load(open(fn, 'rb'))
+    tef_q = tef_dict['tef_q']
+    tef_qs = tef_dict['tef_qs']
+    sbins = tef_dict['sbins']
+    smax = sbins.max()
+    qnet = tef_dict['qnet']
+    fnet = tef_dict['fnet']
+    ot = tef_dict['ot']
+    td = (ot - ot[0])/86400
+    NS = len(sbins)
+
+    # low-pass
+    if tidal_average:
+        # tidal averaging
+        tef_q_lp = zfun.filt_godin_mat(tef_q)
+        tef_qs_lp = zfun.filt_godin_mat(tef_qs)
+        qnet_lp = zfun.filt_godin(qnet)
+        fnet_lp = zfun.filt_godin(fnet)
+        pad = 36
+    else:
+        # nday Hanning window
+        nday = 5
+        nfilt = nday*24
+        tef_q_lp = zfun.filt_hanning_mat(tef_q, n=nfilt)
+        tef_qs_lp = zfun.filt_hanning_mat(tef_qs, n=nfilt)
+        qnet_lp = zfun.filt_hanning(qnet, n=nfilt)
+        fnet_lp = zfun.filt_hanning(fnet, n=nfilt)
+        pad = int(np.ceil(nfilt/2))
+
+    # subsample
+    tef_q_lp = tef_q_lp[pad:-(pad+1):24, :]
+    tef_qs_lp = tef_qs_lp[pad:-(pad+1):24, :]
+    td = td[pad:-(pad+1):24]
+    qnet_lp = qnet_lp[pad:-(pad+1):24]
+    fnet_lp = fnet_lp[pad:-(pad+1):24]
+
+    #find integrated TEF quantities
+    
+    # start by making the low-passed flux arrays sorted
+    # from high to low salinity
+    rq = np.fliplr(tef_q_lp)
+    rqs = np.fliplr(tef_qs_lp)
+    sbinsr = sbins[::-1]
+    # then form the cumulative sum (the function Q(s))
+    Q = np.cumsum(rq, axis=1)
+    nt = len(td)
+
+    Qi = np.nan * np.zeros((nt, nlay_max))
+    Fi = np.nan * np.zeros((nt, nlay_max))
+    Qi_abs = np.nan * np.zeros((nt, nlay_max))
+    Fi_abs = np.nan * np.zeros((nt, nlay_max))
+
+    for tt in range(nt):
+        
+        imax = np.argmax(Q[tt,:])
+        imin = np.argmin(Q[tt,:])
+                
+        # set the dividing salinity by the size of the transport
+        Qin = rq[tt, 0:imax].sum()
+        Qout = rq[tt, 0:imin].sum()
+        if np.abs(Qin) > np.abs(Qout):
+            idiv = imax
+        else:
+            idiv = imin
+                
+        ivec = np.unique(np.array([0, idiv, NS+1]))
+        nlay = len(ivec)-1
+
+        for ii in range(nlay):
+            Qi[tt,ii] = rq[tt, ivec[ii]:ivec[ii+1]].sum()
+            Qi_abs[tt,ii] = np.abs(rq[tt, ivec[ii]:ivec[ii+1]]).sum()
+            Fi[tt,ii] = rqs[tt, ivec[ii]:ivec[ii+1]].sum()
+            Fi_abs[tt,ii] = np.abs(rqs[tt, ivec[ii]:ivec[ii+1]]).sum()
+        
+    # form derived quantities
+    Qcrit = np.abs(Qi[:,0]).mean()/5
+    Qi[np.abs(Qi)==0] = np.nan
+    Si = Fi_abs/Qi_abs
+    
+    return Qi, Si, Fi, qnet_lp, fnet_lp, td
     

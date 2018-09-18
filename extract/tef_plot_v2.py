@@ -56,7 +56,7 @@ else:
 print('\nProcessing ' + Litem + '\n')
 LList_raw = os.listdir(indir + Litem)
 LList_raw.sort()
-LList = [item for item in LList_raw if ('.p' in item) and ('hc2' in item)]
+LList = [item for item in LList_raw if ('.p' in item) and ('sog' in item)]
 Indir = indir + Litem + '/'
 
 plt.close('all')
@@ -68,7 +68,7 @@ for LL in LList:
 
     fn = Indir + LL
     
-    Q, S, QS, qnet_lp, fnet_lp, td = tef_fun.tef_integrals(fn)
+    Qi, Si, Fi, qnet_lp, fnet_lp, td = tef_fun.tef_integrals_v2(fn)
 
     # plotting
 
@@ -77,12 +77,10 @@ for LL in LList:
     fig, axes = plt.subplots(nrows=2, ncols=3, sharex=True, figsize=(20,8))
 
     ax = axes[0,0]
-    nt, ns = S.shape
+    nt, ns = Si.shape
     Td = np.tile(td.reshape(nt,1),(1, ns))
-    ax.plot(td, Q[:,3]/1e3, '-r', linewidth=lw, label='Qin shallow', alpha=.5)
-    ax.plot(td, Q[:,2]/1e3, '-b', linewidth=lw, label='Qout') # out
-    ax.plot(td, Q[:,1]/1e3, '-r', linewidth=lw, label='Qin') # in
-    ax.plot(td, Q[:,0]/1e3, '-b', linewidth=lw, label='Qout deep', alpha=.5) # out
+    ax.plot(td, Qi[:,1]/1e3, '-b', linewidth=lw, label='Q1') 
+    ax.plot(td, Qi[:,0]/1e3, '-r', linewidth=lw, label='Q0') 
     ax.legend(ncol=2, loc='upper left')
     ax.set_xlim(0,365)
     # ax.set_ylim(-500, 500)
@@ -93,14 +91,11 @@ for LL in LList:
     
 
     ax = axes[1,0]
-    nt, ns = S.shape
     Td = np.tile(td.reshape(nt,1),(1, ns))
-    ax.plot(td, S[:,3], '-r', linewidth=lw, label='Sin shallow', alpha=.5)
-    ax.plot(td, S[:,2], '-b', linewidth=lw, label='Sout') # out
-    ax.plot(td, S[:,1], '-r', linewidth=lw, label='Sin') # in
-    ax.plot(td, S[:,0], '-b', linewidth=lw, label='Sout deep', alpha=.5) # out
+    ax.plot(td, Si[:,1], '-b', linewidth=lw, label='S1')
+    ax.plot(td, Si[:,0], '-r', linewidth=lw, label='S0')
     # mark reversals
-    rev = (S[:,2] - S[:,1]) > 0
+    rev = (Qi[:,1] - Qi[:,0]) > 0
     ax.plot(td[rev], 34.8*np.ones(nt)[rev], '*k', label='Reversals')
     ax.legend(loc='lower right', ncol=2)
     ax.set_xlim(0,365)
@@ -111,7 +106,7 @@ for LL in LList:
 
     ax = axes[0,1]
     ax.plot(td, qnet_lp/1e3, '-k', linewidth=lw)
-    ax.plot(td, np.nansum(Q, axis=1)/1e3, '-m', linewidth=lw-1, alpha=.5)
+    ax.plot(td, np.nansum(Qi, axis=1)/1e3, '-m', linewidth=lw-1, alpha=.5)
     ax.set_xlabel('Days')
     # ax.set_ylim(-50, 50)
     #ax.set_ylim(-5, 5)
