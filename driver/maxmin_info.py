@@ -47,7 +47,7 @@ if len(args.date_string0) == 0:
     f_list.sort()
     ff = f_list[-1]
     indir = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/' + ff + '/'
-    fn_list = [indir + 'ocean_his_0001.nc', indir + 'ocean_his_0025.nc']
+    fn_list = [indir + 'ocean_his_0001.nc']
 else:
     if len(args.date_string1) == 0:
         args.date_string1 = args.date_string0
@@ -55,7 +55,7 @@ else:
     
 
 print('\n' + 10*'=' + Ldir['gtagex'] + 10*'=')
-vn_list = ['oxygen', 'TIC', 'alkalinity']
+vn_list = ['u', 'v', 'oxygen', 'TIC', 'alkalinity']
 for fn in fn_list:
     print('\n-' + fn.split('/')[-2] + '/' + fn.split('/')[-1])
     ds = nc4.Dataset(fn)
