@@ -6,6 +6,7 @@ import netCDF4 as nc
 import numpy as np
 import pickle
 import matplotlib.pyplot as plt
+import os
 
 # path to alpha provided by driver
 import zfun
