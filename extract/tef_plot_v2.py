@@ -56,7 +56,7 @@ else:
 print('\nProcessing ' + Litem + '\n')
 LList_raw = os.listdir(indir + Litem)
 LList_raw.sort()
-LList = [item for item in LList_raw if ('.p' in item) and ('sog' in item)]
+LList = [item for item in LList_raw if ('.p' in item) and ('sog1' in item)]
 Indir = indir + Litem + '/'
 
 plt.close('all')
@@ -154,12 +154,8 @@ for LL in LList:
     ax.set_title(sect_name)
     pfun.add_coast(ax)
     pfun.dar(ax)
-    if 'willapa' in sect_name:
-        ax.set_xlim(-124.5, -123.6)
-        ax.set_ylim(46, 47.4)
-    else:
-        ax.set_xlim(-124, -122)
-        ax.set_ylim(47, 49)
+    aa = [-125.5, -122, 46, 50.3]
+    ax.axis(aa)
 
 
     plt.show()

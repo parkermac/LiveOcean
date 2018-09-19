@@ -42,7 +42,7 @@ LList_raw.sort()
 LList = [item for item in LList_raw if ('.nc' in item)]
 Indir = indir + Litem + '/'
 
-for tef_file in LList:
+for tef_file in ['sog2.nc', 'sog3.nc']:#LList:
     print(tef_file)
     fn = Indir + tef_file
 

@@ -48,7 +48,8 @@ outdir00 = Ldir['LOo']
 Lfun.make_dir(outdir00)
 outdir0 = outdir00 + 'tef/'
 Lfun.make_dir(outdir0)
-outdir = outdir0 + Ldir['gtagex'] + '_' + Ldir['date_string0'] + '_' + Ldir['date_string1'] + '/'
+outdir = (outdir0 + Ldir['gtagex'] + '_' + Ldir['date_string0']
+        + '_' + Ldir['date_string1'] + '/')
 Lfun.make_dir(outdir, clean=False)
 
 dt0 = datetime.strptime(args.date_string0, '%Y.%m.%d')
@@ -70,7 +71,7 @@ sect_df = tef_fun.get_sect_df()
 
 sect_info = dict()
 
-sect_list = [item for item in sect_df.index if 'sog2' in item]
+sect_list = [item for item in sect_df.index if item in ['sog2', 'sog3']]
 
 print('\nGetting section definitions and indices')
 for sect_name in sect_list:
