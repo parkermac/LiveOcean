@@ -180,7 +180,7 @@ def get_inds(x0, x1, y0, y1, G):
     
 def start_netcdf(fn, out_fn, NT, NX, NZ, Lon, Lat, Ldir):
     try: # get rid of the existing version
-        os.remove(fn)
+        os.remove(out_fn)
     except OSError:
         pass # assume error was because the file did not exist
     ds = nc.Dataset(fn)
