@@ -41,7 +41,7 @@ Ldir['gtagex'] = Ldir['gtag'] + '_' + args.ex_name
 
 # get list of history files to look at
 
-if len(args.date_string0) == 0
+if len(args.date_string0) == 0:
     f_list_raw = os.listdir(Ldir['gtagex'])
     f_list = [f for f in f_list_raw if f[0]=='f']
     f_list.sort()
