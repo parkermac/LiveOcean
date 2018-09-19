@@ -178,9 +178,13 @@ def get_inds(x0, x1, y0, y1, G):
     return ii0, ii1, jj0, jj1, sdir, Lon, Lat, Mask
     
 def start_netcdf(fn, out_fn, NT, NX, NZ, Lon, Lat, Ldir):
+    try: # get rid of the existing version
+        os.remove(fn)
+    except OSError:
+        pass # assume error was because the file did not exist
+    ds = nc.Dataset(fn)
     # generating some lists
     vn_list = []
-    ds = nc.Dataset(fn)
     if False:
         # all 3D variables on the s_rho grid
         for vv in ds.variables:

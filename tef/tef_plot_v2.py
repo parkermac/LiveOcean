@@ -56,7 +56,7 @@ else:
 print('\nProcessing ' + Litem + '\n')
 LList_raw = os.listdir(indir + Litem)
 LList_raw.sort()
-LList = [item for item in LList_raw if ('.p' in item) and ('sog1' in item)]
+LList = [item for item in LList_raw if ('.p' in item) and ('sog' in item)]
 Indir = indir + Litem + '/'
 
 plt.close('all')
