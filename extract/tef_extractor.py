@@ -70,7 +70,7 @@ sect_df = tef_fun.get_sect_df()
 
 sect_info = dict()
 
-sect_list = [item for item in sect_df.index if 'sog3' in item]
+sect_list = [item for item in sect_df.index if 'sog2' in item]
 
 print('\nGetting section definitions and indices')
 for sect_name in sect_list:
