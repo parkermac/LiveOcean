@@ -32,17 +32,27 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-g', '--gridname', nargs='?', type=str, default='cas4')
 parser.add_argument('-t', '--tag', nargs='?', type=str, default='v2')
 parser.add_argument('-x', '--ex_name', nargs='?', type=str, default='lo6biom')
-parser.add_argument('-0', '--date_string0', nargs='?', type=str, default='2017.02.10')
-parser.add_argument('-1', '--date_string1', nargs='?', type=str, default='2017.02.12')
+parser.add_argument('-0', '--date_string0', nargs='?', type=str, default='')
+parser.add_argument('-1', '--date_string1', nargs='?', type=str, default='')
 parser.add_argument('-lt', '--list_type', nargs='?', type=str, default='hourly')
 args = parser.parse_args()
-if len(args.date_string1) == 0:
-    args.date_string1 = args.date_string0
 Ldir = Lfun.Lstart(args.gridname, args.tag)
 Ldir['gtagex'] = Ldir['gtag'] + '_' + args.ex_name
 
 # get list of history files to look at
-fn_list = Lfun.get_fn_list(args.list_type, Ldir, args.date_string0, args.date_string1)
+
+if len(args.date_string0) == 0
+    f_list_raw = os.listdir(Ldir['gtagex'])
+    f_list = [f for f in f_list_raw if f[0]=='f']
+    f_list.sort()
+    ff = flist[-1]
+    indir = Ldir['roms'] + Ldir['gtagex'] + '/' + ff + '/'
+    fn_list = [indir + 'ocean_his_0001.nc', indir + 'ocean_his_0025.nc']
+else:
+    if len(args.date_string1) == 0:
+        args.date_string1 = args.date_string0
+    fn_list = Lfun.get_fn_list(args.list_type, Ldir, args.date_string0, args.date_string1)
+    
 
 print('\n' + 10*'=' + Ldir['gtagex'] + 10*'=')
 vn_list = ['oxygen', 'TIC', 'alkalinity']
