@@ -5,6 +5,11 @@ of transport and transport-weighted properties.
 Performance - for all sections (primary ones, not side channels) with just salt
 this takes about 1.5 minutes per day for cas4 on boiler, so about 10 hours for a year.
 
+To do a year of a shelf section (two variables, for Sam) in cascadia1_base_lobio5
+takes about an hour and a half on fjord.  So it should take 7.5 hours for 2013-2017,
+and about a full day for all three sections.  The fields are about 900 MB per section
+per year.
+
 """
 
 # setup
@@ -73,7 +78,7 @@ sect_info = dict()
 
 # select which sections to extract
 if True: # limited list
-    sect_list = [item for item in sect_df.index if item in ['shelf_45']]
+    sect_list = [item for item in sect_df.index if item in ['shelf_45','shelf_46','shelf_47']]
 else: # full list
     sect_list = [item for item in sect_df.index]
 
