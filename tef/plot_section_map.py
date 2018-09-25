@@ -24,7 +24,7 @@ reload(tef_fun)
 sect_df = tef_fun.get_sect_df()
 
 plt.close('all')
-fig = plt.figure(figsize=(16,12))
+fig = plt.figure(figsize=(12,8))
 
 def plotit(ax, aa, sect_df):
     pfun.add_coast(ax)
@@ -44,7 +44,8 @@ def plotit(ax, aa, sect_df):
     
 
 ax = fig.add_subplot(121)
-aa = [-125.5, -122, 46, 50.3]
+#aa = [-125.5, -122, 46, 50.3]
+aa = [-127.1, -122, 44.5, 50.3]
 plotit(ax, aa, sect_df)
 
 ax = fig.add_subplot(222)

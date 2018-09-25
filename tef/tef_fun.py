@@ -19,6 +19,7 @@ def get_sect_df():
     # * landward is the sign to multipy the transport by to be landward (1 or -1)
     sect_df = pd.DataFrame(columns=['x0', 'x1', 'y0', 'y1', 'landward'])
     
+    
     # Juan de Fuca
     sect_df.loc['jdf1',:] = [-124.673, -124.673,   48.371,   48.632, 1]
     sect_df.loc['jdf2',:] = [-124.276, -124.276,   48.213,   48.542, 1]
@@ -35,10 +36,10 @@ def get_sect_df():
     sect_df.loc['sji1',:] = [-123.350, -122.451,   48.438,   48.438, 1]
     sect_df.loc['sji2',:] = [-123.449, -122.425,   48.681,   48.681, 1]
 
-    # # Channels around the San Juans
-    # sect_df.loc['dp',:] = [-122.643, -122.643,   48.389,   48.425, -1]
-    # sect_df.loc['swin',:] = [-122.531, -122.471,   48.420,   48.420, 1]
-    # sect_df.loc['haro',:] = [-123.429, -123.099,   48.542,   48.542, 1]
+    # Channels around the San Juans
+    sect_df.loc['dp',:] = [-122.643, -122.643,   48.389,   48.425, 1]
+    sect_df.loc['swin',:] = [-122.531, -122.471,   48.420,   48.420, -1]
+    sect_df.loc['haro',:] = [-123.429, -123.099,   48.542,   48.542, 1]
 
     # Admiralty Inlet
     sect_df.loc['ai1',:] = [-122.762, -122.762,   48.141,   48.227, 1]
@@ -69,8 +70,8 @@ def get_sect_df():
     sect_df.loc['mb4',:] = [-122.544, -122.339,   47.493,   47.493, -1]
     sect_df.loc['mb5',:] = [-122.610, -122.300,   47.349,   47.349, -1]
 
-    # # Colvos Passage
-    # sect_df.loc['clv',:] = [-122.577, -122.485,   47.444,   47.444, 1]
+    # Colvos Passage
+    sect_df.loc['clv',:] = [-122.577, -122.485,   47.444,   47.444, -1]
 
     # Tacoma Narrows
     sect_df.loc['tn1',:] = [-122.584, -122.537,   47.313,   47.313, -1]
@@ -82,26 +83,31 @@ def get_sect_df():
     sect_df.loc['ss2',:] = [-122.769, -122.769,   47.106,   47.187, -1]
     sect_df.loc['ss3',:] = [-122.888, -122.888,   47.142,   47.313, -1]
 
-    # # Inlets in South Sound
-    # sect_df.loc['carr',:] = [-122.769, -122.663,   47.291,   47.291, 1]
-    # sect_df.loc['case',:] = [-122.868, -122.788,   47.214,   47.214, 1]
-    # sect_df.loc['budd',:] = [-122.934, -122.894,   47.129,   47.129, -1]
-    # sect_df.loc['eld',:] = [-122.934, -122.934,   47.133,   47.160, -1]
-    # sect_df.loc['tott',:] = [-122.973, -122.934,   47.174,   47.174, -1]
-    # sect_df.loc['oak',:] = [-122.960, -122.960,   47.187,   47.214, -1]
+    # Inlets in South Sound
+    sect_df.loc['carr',:] = [-122.769, -122.663,   47.291,   47.291, 1]
+    sect_df.loc['case',:] = [-122.868, -122.788,   47.214,   47.214, 1]
+    sect_df.loc['budd',:] = [-122.934, -122.894,   47.129,   47.129, -1]
+    sect_df.loc['eld',:] = [-122.934, -122.934,   47.133,   47.160, -1]
+    sect_df.loc['tott',:] = [-122.973, -122.934,   47.174,   47.174, -1]
+    sect_df.loc['oak',:] = [-122.960, -122.960,   47.187,   47.214, -1]
 
-    # # Channel in South Sound
-    # sect_df.loc['pick',:] = [-122.947, -122.907,   47.264,   47.264, 1]
-    #
-    # # Coastal sections
-    # sect_df.loc['willapa_mouth',:] = [-124.051, -124.051,   46.631,   46.748, 1]
+    # Channel in South Sound
+    sect_df.loc['pick',:] = [-122.947, -122.907,   47.264,   47.264, 1]
+
+    # Coastal estuary sections
+    sect_df.loc['willapa_mouth',:] = [-124.051, -124.051,   46.631,   46.748, 1]
+    
+    # Shelf sections (that do not close on ocean end)
+    sect_df.loc['shelf_45',:] = [-127, -123.733,   45,   45, 1]
+    sect_df.loc['shelf_46',:] = [-127, -123.628,   46,   46, 1]
+    sect_df.loc['shelf_47',:] = [-127, -123.865,   47,   47, 1]
     
     return sect_df
     
 def get_inds(x0, x1, y0, y1, G):
     
     # determine the direction of the section
-    # and make sure indices are increasing
+    # and make sure indices are *increasing*
     if (x0==x1) and (y0!=y1):
         sdir = 'NS'
         a = [y0, y1]; a.sort()
@@ -156,12 +162,15 @@ def get_inds(x0, x1, y0, y1, G):
         # Note: argmax finds the index of the first True in this case
         igood0 = np.argmax(mask)
         igood1 = np.argmax(mask[::-1])
-        # keep one mask point on each end, just to be sure we have a closed section
-        Mask = mask[igood0-1:-igood1+1]
+        # check to see if section is "closed"
+        if (igood0==0) | (igood1==0):
+            print('Warning: not closed one or both ends')
+        # keep only to end of water points, to allow for ocean sections
+        Mask = mask[igood0:-igood1]
         # and change the indices to match.  These will be the indices
         # of the start and end points.
-        jj0 = jj0 + igood0 - 1
-        jj1 = jj1 - igood1 + 1
+        jj0 = jj0 + igood0
+        jj1 = jj1 - igood1
         print('  sdir=%2s: jj0=%4d, jj1=%4d, ii0=%4d' % (sdir, jj0, jj1, ii0))
         Lat = lat[jj0:jj1+1]
         Lon = lon[ii0] * np.ones_like(Mask)
@@ -169,9 +178,12 @@ def get_inds(x0, x1, y0, y1, G):
         mask = G['mask_v'][jj0, ii0:ii1+1]
         igood0 = np.argmax(mask)
         igood1 = np.argmax(mask[::-1])
-        Mask = mask[igood0-1:-igood1+1]
-        ii0 = ii0 + igood0 - 1
-        ii1 = ii1 - igood1 + 1
+        # check to see if section is "closed"
+        if (igood0==0) | (igood1==0):
+            print('Warning: not closed one or both ends')
+        Mask = mask[igood0:-igood1]
+        ii0 = ii0 + igood0
+        ii1 = ii1 - igood1
         print('  sdir=%2s: jj0=%4d, ii0=%4d, ii1=%4d' % (sdir, jj0, ii0, ii1))
         Lon = lon[ii0:ii1+1]
         Lat = lat[jj0] * np.ones_like(Mask)
@@ -195,9 +207,9 @@ def start_netcdf(fn, out_fn, NT, NX, NZ, Lon, Lat, Ldir):
     else:
         # override
         vn_list.append('salt')
+        vn_list.append('oxygen')
         # vn_list.append('temp')
         # vn_list.append('NO3')
-        # vn_list.append('oxygen')
     # and some dicts of long names and units
     long_name_dict = dict()
     units_dict = dict()
@@ -218,6 +230,12 @@ def start_netcdf(fn, out_fn, NT, NX, NZ, Lon, Lat, Ldir):
     units_dict['lon'] = 'degrees'
     long_name_dict['lat'] = 'latitude'
     units_dict['lat'] = 'degrees'
+    long_name_dict['h'] = 'depth'
+    units_dict['h'] = 'm'
+    long_name_dict['z0'] = 'z on rho-grid with zeta=0'
+    units_dict['z0'] = 'm'
+    long_name_dict['DA0'] = 'cell area on rho-grid with zeta=0'
+    units_dict['DA0'] = 'm2'
 
     # initialize netcdf output file
     foo = nc.Dataset(out_fn, 'w')
@@ -233,7 +251,11 @@ def start_netcdf(fn, out_fn, NT, NX, NZ, Lon, Lat, Ldir):
         v_var = foo.createVariable(vv, float, ('ocean_time', 's_rho', 'xi_sect'))
         v_var.long_name = long_name_dict[vv]
         v_var.units = units_dict[vv]
-    for vv in ['lon', 'lat']:
+    for vv in ['z0', 'DA0']:
+        v_var = foo.createVariable(vv, float, ('s_rho', 'xi_sect'))
+        v_var.long_name = long_name_dict[vv]
+        v_var.units = units_dict[vv]
+    for vv in ['lon', 'lat', 'h']:
         v_var = foo.createVariable(vv, float, ('xi_sect'))
         v_var.long_name = long_name_dict[vv]
         v_var.units = units_dict[vv]
@@ -261,7 +283,7 @@ def add_fields(ds, count, vn_list, G, S, sinfo):
     
     foo = nc.Dataset(out_fn, 'a')
     
-    # get depth and dz
+    # get depth and dz, and dd (which is either dx or dy)
     if sdir=='NS':
         h = ds['h'][jj0:jj1+1,ii0:ii1+1].squeeze()
         zeta = ds['zeta'][0,jj0:jj1+1,ii0:ii1+1].squeeze()
@@ -271,6 +293,18 @@ def add_fields(ds, count, vn_list, G, S, sinfo):
         dd = G['DY'][jj0:jj1+1,ii0:ii1+1].squeeze()
         DD = dd.mean(axis=1)
         zeta = zeta.mean(axis=1)
+        if count==0:
+            hh = h.mean(axis=1)
+            foo['h'][:] = hh
+            
+            z0 = zrfun.get_z(hh, 0*hh, S, only_rho=True)
+            foo['z0'][:] = z0
+            
+            zw0 = zrfun.get_z(hh, 0*hh, S, only_w=True)
+            DZ0 = np.diff(zw0, axis=0)
+            DA0 = DD.reshape((1, NX)) * DZ0
+            foo['DA0'][:] = DA0
+            
     elif sdir=='EW':
         h = ds['h'][jj0:jj1+1,ii0:ii1+1].squeeze()
         zeta = ds['zeta'][0,jj0:jj1+1,ii0:ii1+1].squeeze()
@@ -280,6 +314,18 @@ def add_fields(ds, count, vn_list, G, S, sinfo):
         dd = G['DX'][jj0:jj1+1,ii0:ii1+1].squeeze()
         DD = dd.mean(axis=0)
         zeta = zeta.mean(axis=0)
+        if count==0:
+            hh = h.mean(axis=0)
+            foo['h'][:] = hh
+            
+            z0 = zrfun.get_z(hh, 0*hh, S, only_rho=True)
+            foo['z0'][:] = z0
+            
+            zw0 = zrfun.get_z(hh, 0*hh, S, only_w=True)
+            DZ0 = np.diff(zw0, axis=0)
+            DA0 = DD.reshape((1, NX)) * DZ0
+            foo['DA0'][:] = DA0
+            
     # and then create the array of cell areas on the section
     DA = DD.reshape((1, NX)) * DZ
     # then velocity and hence transport
@@ -293,6 +339,7 @@ def add_fields(ds, count, vn_list, G, S, sinfo):
     foo['zeta'][count, :] = zeta
     foo['ocean_time'][count] = ds['ocean_time'][0]
     
+    
     # save the tracer fields averaged onto this section
     for vn in vn_list:
         if sdir=='NS':
@@ -305,7 +352,7 @@ def add_fields(ds, count, vn_list, G, S, sinfo):
         
     foo.close()
     
-def tef_integrals_v2(fn):
+def tef_integrals(fn):
     # choices
     tidal_average = False # which kind of time filtering
     nlay_max = 2 # maximum allowable number of layers to process

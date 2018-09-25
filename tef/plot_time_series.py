@@ -24,7 +24,6 @@ reload(tef_fun)
 # get the DataFrame of all sections
 sect_df = tef_fun.get_sect_df()
 
-
 from warnings import filterwarnings
 filterwarnings('ignore') # skip some warning messages
 
@@ -38,26 +37,32 @@ import pfun
 indir = Ldir['LOo'] + 'tef/'
 if False:
     print('\nSelect an Extraction to plot:\n')
-    List_raw = os.listdir(indir)
-    List_raw.sort()
-    List = [item for item in List_raw]
+    List = os.listdir(indir)
+    List.sort()
     NL = len(List)
     Ldict = dict(zip(range(NL), List))
     for ii in range(NL):
         print(str(ii) + ': ' + List[ii])
-    if True:
-        my_ii = int(input('-- Input number: '))
-    else:
-        my_ii = 0 # for testing
+    my_ii = int(input('-- Input number: '))
     Litem = Ldict[my_ii]
 else:
     Litem = 'cas4_v1_lo6biom_2017.01.01_2017.12.31'
-    
 print('\nProcessing ' + Litem + '\n')
+Indir = indir + Litem + '/'
+
 LList_raw = os.listdir(indir + Litem)
 LList_raw.sort()
-LList = [item for item in LList_raw if ('.p' in item) and ('sog' in item)]
-Indir = indir + Litem + '/'
+LList = [item for item in LList_raw if '.p' in item]
+
+if True: # plot all .p files
+    save_fig = True
+    out_dir0 = Ldir['LOo'] + 'tef_plots/'
+    Lfun.make_dir(out_dir0)
+    out_dir = out_dir0 + Litem + '/'
+    Lfun.make_dir(out_dir, clean=True)
+else: # override
+    save_fig = False
+    LList = [item for item in LList if 'sog' in item]
 
 plt.close('all')
 
@@ -68,7 +73,7 @@ for LL in LList:
 
     fn = Indir + LL
     
-    Qi, Si, Fi, qnet_lp, fnet_lp, td = tef_fun.tef_integrals_v2(fn)
+    Qi, Si, Fi, qnet_lp, fnet_lp, td = tef_fun.tef_integrals(fn)
 
     # plotting
 
@@ -79,39 +84,38 @@ for LL in LList:
     ax = axes[0,0]
     nt, ns = Si.shape
     Td = np.tile(td.reshape(nt,1),(1, ns))
-    ax.plot(td, Qi[:,1]/1e3, '-b', linewidth=lw, label='Q1') 
-    ax.plot(td, Qi[:,0]/1e3, '-r', linewidth=lw, label='Q0') 
+    ax.plot(td, Qi[:,1]/1e3, '-b', linewidth=lw, label='Qout') 
+    ax.plot(td, Qi[:,0]/1e3, '-r', linewidth=lw, label='Qin') 
     ax.legend(ncol=2, loc='upper left')
     ax.set_xlim(0,365)
     # ax.set_ylim(-500, 500)
     #ax.set_ylim(-50, 50)
-    ax.set_xlabel('Days')
-    ax.set_ylabel('Q (1e3 m3/s)')
+    ax.set_xlabel('Yearday 2017')
+    ax.set_ylabel('Q [1000 m3/s]')
     ax.grid(True)
     
-
     ax = axes[1,0]
     Td = np.tile(td.reshape(nt,1),(1, ns))
-    ax.plot(td, Si[:,1], '-b', linewidth=lw, label='S1')
-    ax.plot(td, Si[:,0], '-r', linewidth=lw, label='S0')
+    ax.plot(td, Si[:,1], '-b', linewidth=lw, label='Sout')
+    ax.plot(td, Si[:,0], '-r', linewidth=lw, label='Sin')
     # mark reversals
     rev = (Qi[:,1] - Qi[:,0]) > 0
     ax.plot(td[rev], 34.8*np.ones(nt)[rev], '*k', label='Reversals')
     ax.legend(loc='lower right', ncol=2)
     ax.set_xlim(0,365)
     #ax.set_ylim(35, 10)
-    ax.set_xlabel('Days')
+    ax.set_xlabel('Yearday 2017')
     ax.set_ylabel('Salinity')
     ax.grid(True)
 
     ax = axes[0,1]
     ax.plot(td, qnet_lp/1e3, '-k', linewidth=lw)
-    ax.plot(td, np.nansum(Qi, axis=1)/1e3, '-m', linewidth=lw-1, alpha=.5)
-    ax.set_xlabel('Days')
+    #ax.plot(td, np.nansum(Qi, axis=1)/1e3, '-m', linewidth=lw-1, alpha=.5)
+    ax.set_xlabel('Yearday 2017')
     # ax.set_ylim(-50, 50)
     #ax.set_ylim(-5, 5)
     ax.set_xlim(0,365)
-    ax.set_ylabel('LP Volume Flux (1e3 m3/s)')
+    ax.set_ylabel('LP Volume Flux [1000 m3/s]')
     ax.grid(True)
     
     # some information about direction
@@ -137,7 +141,7 @@ for LL in LList:
     ax = axes[1,1]
     ax.plot(td, fnet_lp/1e9, '-k', linewidth=lw)
     ax.set_xlim(0,365)
-    ax.set_xlabel('Days')
+    ax.set_xlabel('Yearday 2017')
     #ax.set_ylim(-15, 15)
     #ax.set_ylim(-1, 1)
     ax.set_ylabel('Energy Flux (GW)')
@@ -158,4 +162,8 @@ for LL in LList:
     ax.axis(aa)
 
 
-    plt.show()
+    if save_fig:
+        plt.savefig(out_dir + sect_name + '.png')
+        plt.close()
+    else:
+        plt.show()

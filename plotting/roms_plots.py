@@ -39,7 +39,7 @@ import pinfo; reload(pinfo)
 def P_basic(in_dict):
 
     # START
-    fig = plt.figure(figsize=pinfo.figsize)
+    fig = plt.figure(figsize=(16,12)) # or pinfo.figsize for default
     ds = nc.Dataset(in_dict['fn'])
 
     # PLOT CODE
@@ -65,7 +65,55 @@ def P_basic(in_dict):
         elif ii == 2:
             pfun.add_velocity_vectors(ax, ds, in_dict['fn'])
         ii += 1
+    fig.tight_layout()
+    
+    # FINISH
+    ds.close()
+    if len(in_dict['fn_out']) > 0:
+        plt.savefig(in_dict['fn_out'])
+        plt.close()
+    else:
+        plt.show()
         
+def P_basic_salish(in_dict):
+
+    # START
+    fig = plt.figure(figsize=(20,10)) # or pinfo.figsize for default
+    ds = nc.Dataset(in_dict['fn'])
+
+    # PLOT CODE
+    vn_list = ['salt', 'temp']
+    aa = [-124, -122, 47, 49]
+    ii = 1
+    for vn in vn_list:
+        if in_dict['auto_vlims']:
+            pinfo.vlims_dict[vn] = ()
+        ax = fig.add_subplot(1, len(vn_list), ii)
+        cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict,
+                cmap=pinfo.cmap_dict[vn], fac=pinfo.fac_dict[vn])
+        fig.colorbar(cs)
+        pfun.add_bathy_contours(ax, ds, txt=True)
+        pfun.add_coast(ax)
+        ax.axis(aa)
+        pfun.dar(ax)
+        ax.set_title('Surface %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
+        ax.set_xlabel('Longitude')
+        if ii == 1:
+            ax.set_ylabel('Latitude')
+            pfun.add_info(ax, in_dict['fn'])
+            #def add_windstress_flower(ax, ds, t_scl=0.2, t_leglen=0.1, center=(.85,.25)):
+                # ADD MEAN WINDSTRESS VECTOR
+                # t_scl: scale windstress vector (smaller to get longer arrows)
+                # t_leglen: # Pa for wind stress vector legend
+            pfun.add_windstress_flower(ax, ds, t_scl=.6, t_leglen=0.1, center=(.25, .3))
+        elif ii == 2:
+            #add_velocity_vectors(ax, ds, fn, v_scl=3, v_leglen=0.5, nngrid=80, zlev='top', center=(.7,.05)):
+                # v_scl: scale velocity vector (smaller to get longer arrows)
+                # v_leglen: m/s for velocity vector legend
+            pfun.add_velocity_vectors(ax, ds, in_dict['fn'], v_scl=10, v_leglen=1.5, center=(.1, .1))
+        ii += 1
+    fig.tight_layout()
+    
     # FINISH
     ds.close()
     if len(in_dict['fn_out']) > 0:

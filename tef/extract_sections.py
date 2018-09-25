@@ -2,8 +2,8 @@
 Extract fields at a number of sections which may be used later for TEF analysis
 of transport and transport-weighted properties.
 
-Performance - took 30 minutes for a year of cas4 on boiler,
-and a single file is about 200 MB.
+Performance - for all sections (primary ones, not side channels) with just salt
+this takes about 1.5 minutes per day for cas4 on boiler, so about 10 hours for a year.
 
 """
 
@@ -34,7 +34,6 @@ parser.add_argument('-x', '--ex_name', nargs='?', type=str, default='lo6biom')
 parser.add_argument('-0', '--date_string0', nargs='?', type=str, default='2017.09.01')
 parser.add_argument('-1', '--date_string1', nargs='?', type=str, default='2017.09.03')
 # section specific arguments
-#parser.add_argument('-sn', '--sect_name', nargs='?', type=str, default='JdFmouth')
 args = parser.parse_args()
 
 # Get Ldir
@@ -69,10 +68,12 @@ NZ = S['N']
 # get the DataFrame of all sections
 sect_df = tef_fun.get_sect_df()
 
+# initialize a dictionary of info for each section
 sect_info = dict()
 
-if False: # limited list
-    sect_list = [item for item in sect_df.index if item in ['sog2', 'sog3']]
+# select which sections to extract
+if True: # limited list
+    sect_list = [item for item in sect_df.index if item in ['shelf_45']]
 else: # full list
     sect_list = [item for item in sect_df.index]
 
@@ -85,11 +86,13 @@ for sect_name in sect_list:
     x0, x1, y0, y1, landward = sect_df.loc[sect_name,:]
     # get indices for this section
     ii0, ii1, jj0, jj1, sdir, Lon, Lat, Mask = tef_fun.get_inds(x0, x1, y0, y1, G)
-    NX = len(Mask)
+    NX = len(Mask) # this the length of the section, not specific to x or y
     # save some things for later use
     sect_info[sect_name] = (ii0, ii1, jj0, jj1, sdir, landward, NT, NX, NZ, out_fn)
     # initialize a netcdf file for this section, and get list of variables to gather
     vn_list = tef_fun.start_netcdf(fn, out_fn, NT, NX, NZ, Lon, Lat, Ldir)
+    # note that this function deletes the existing out_fn, and also creates the list
+    # of variables to extract.
 
 # extract and save time-dependent fields
 count = 0
@@ -103,6 +106,8 @@ for fn in fn_list:
     # loop over all sections
     for sect_name in sect_list:
         sinfo = sect_info[sect_name]
+        # this is where we add the data from this history file
+        # to all of the sections, each defined by sinfo
         tef_fun.add_fields(ds, count, vn_list, G, S, sinfo)
     ds.close()
     count += 1

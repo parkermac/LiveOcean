@@ -23,26 +23,30 @@ import zfun
 Ldir = Lfun.Lstart()
 
 indir = Ldir['LOo'] + 'tef/'
-print('\nSelect an Extraction to process:\n')
-List_raw = os.listdir(indir)
-List_raw.sort()
-List = [item for item in List_raw]
-NL = len(List)
-Ldict = dict(zip(range(NL), List))
-for ii in range(NL):
-    print(str(ii) + ': ' + List[ii])
-if True:
+if False:
+    print('\nSelect an Extraction to plot:\n')
+    List = os.listdir(indir)
+    List.sort()
+    NL = len(List)
+    Ldict = dict(zip(range(NL), List))
+    for ii in range(NL):
+        print(str(ii) + ': ' + List[ii])
     my_ii = int(input('-- Input number: '))
+    Litem = Ldict[my_ii]
 else:
-    my_ii = 0 # for testing
-Litem = Ldict[my_ii]
+    Litem = 'cas4_v1_lo6biom_2017.01.01_2017.12.31'
 print('\nProcessing ' + Litem + '\n')
-LList_raw = os.listdir(indir + Litem)
-LList_raw.sort()
-LList = [item for item in LList_raw if ('.nc' in item)]
 Indir = indir + Litem + '/'
 
-for tef_file in ['sog2.nc', 'sog3.nc']:#LList:
+LList_raw = os.listdir(indir + Litem)
+LList_raw.sort()
+
+if True: # process all .nc files
+    LList = [item for item in LList_raw if ('.nc' in item)]
+else: # override
+    LList = ['sog2.nc', 'sog3.nc']
+
+for tef_file in LList:
     print(tef_file)
     fn = Indir + tef_file
 
