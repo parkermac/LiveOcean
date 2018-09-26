@@ -207,8 +207,8 @@ def start_netcdf(fn, out_fn, NT, NX, NZ, Lon, Lat, Ldir):
     else:
         # override
         vn_list.append('salt')
-        vn_list.append('oxygen')
-        # vn_list.append('temp')
+        #vn_list.append('oxygen')
+        #vn_list.append('temp')
         # vn_list.append('NO3')
     # and some dicts of long names and units
     long_name_dict = dict()

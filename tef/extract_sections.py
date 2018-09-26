@@ -34,7 +34,7 @@ import argparse
 parser = argparse.ArgumentParser()
 # standard arguments
 parser.add_argument('-g', '--gridname', nargs='?', type=str, default='cas4')
-parser.add_argument('-t', '--tag', nargs='?', type=str, default='v1')
+parser.add_argument('-t', '--tag', nargs='?', type=str, default='v2')
 parser.add_argument('-x', '--ex_name', nargs='?', type=str, default='lo6biom')
 parser.add_argument('-0', '--date_string0', nargs='?', type=str, default='2017.09.01')
 parser.add_argument('-1', '--date_string1', nargs='?', type=str, default='2017.09.03')
@@ -77,7 +77,7 @@ sect_df = tef_fun.get_sect_df()
 sect_info = dict()
 
 # select which sections to extract
-if True: # limited list
+if False: # limited list
     sect_list = [item for item in sect_df.index if item in ['shelf_45','shelf_46','shelf_47']]
 else: # full list
     sect_list = [item for item in sect_df.index]
