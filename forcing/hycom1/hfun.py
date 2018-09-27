@@ -21,12 +21,7 @@ def get_extraction_limits():
 
 def get_dt_list(ds):
     # get the time in a meaningful format
-    t_hycom = ds.variables['time'][:].squeeze()
-    
-    # hack
-    import numpy as np
-    t_hycom = np.concatenate((t_hycom, np.array([164208. + 48])))
-    
+    t_hycom = ds.variables['time'][:].squeeze()    
     # tu = ds.variables['time'].units
     # print(' time units = ' + tu)
     # should be 'hours since 2000-01-01 00:00:00'
