@@ -121,23 +121,33 @@ salt = ds['salt'][:]
 oxygen = ds['oxygen'][:]
 
 # form time means
-qq = q.mean(axis=0)
-ss = salt.mean(axis=0)
-ox = oxygen.mean(axis=0)
+# qq = q.mean(axis=0)
+# ss = salt.mean(axis=0)
+# ox = oxygen.mean(axis=0)
+
+nday = 5
+nfilt = nday*24
+qq = zfun.filt_hanning_mat(q, n=nfilt)
+ss = zfun.filt_hanning_mat(salt, n=nfilt)
+ox = zfun.filt_hanning_mat(oxygen, n=nfilt)
+# subsample
+qq = qq[::nfilt, :, :]
+ss = ss[::nfilt, :, :]
+ox = ox[::nfilt, :, :]
 
 ax = fig.add_subplot(221)
-cs = ax.pcolormesh(xsect, z0, qq/da0, vmin=-.1, vmax=.1, cmap='bwr')
+cs = ax.pcolormesh(xsect, z0, qq[5,:,:]/da0, vmin=-.1, vmax=.1, cmap='bwr')
 fig.colorbar(cs)
 ax.text(0.05, 0.1, 'Positive is ' + dir_str, transform=ax.transAxes)
 ax.set_title('Mean Velocity (m/s)')
 
 ax = fig.add_subplot(222)
-cs = ax.pcolormesh(xsect, z0, ss, cmap='jet')
+cs = ax.pcolormesh(xsect, z0, ss[5,:,:], cmap='jet')
 fig.colorbar(cs)
 ax.set_title('Mean Salinity')
 
 ax = fig.add_subplot(223)
-cs = ax.pcolormesh(xsect, z0, ox, cmap='rainbow')
+cs = ax.pcolormesh(xsect, z0, ox[5,:,:], cmap='rainbow')
 fig.colorbar(cs)
 ax.set_title('Mean oxygen')
 

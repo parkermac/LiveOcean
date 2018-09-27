@@ -20,6 +20,7 @@ import zfun
 import tef_fun
 from importlib import reload
 reload(tef_fun)
+reload(zfun)
 
 # get the DataFrame of all sections
 sect_df = tef_fun.get_sect_df()
@@ -54,7 +55,7 @@ LList_raw = os.listdir(indir + Litem)
 LList_raw.sort()
 LList = [item for item in LList_raw if '.p' in item]
 
-if True: # plot all .p files
+if False: # plot all .p files
     save_fig = True
     out_dir0 = Ldir['LOo'] + 'tef_plots/'
     Lfun.make_dir(out_dir0)
@@ -62,7 +63,7 @@ if True: # plot all .p files
     Lfun.make_dir(out_dir, clean=True)
 else: # override
     save_fig = False
-    LList = [item for item in LList if 'sog' in item]
+    LList = [item for item in LList if 'sog1' in item]
 
 plt.close('all')
 

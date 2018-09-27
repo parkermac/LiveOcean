@@ -223,27 +223,37 @@ def filt_hanning(data, n=40):
     
 def filt_hanning_mat(data, axis=0, n=40):
     """
-    Input: 2D numpy array, with time on axis 0, meaning
-        each column is a time series, unless you pass it axis=1.
+    Input: ND numpy array, with time on axis 0.
     Output: Array of the same size, filtered with Hanning window of length n,
         padded with nan's
     """
-    smooth = np.nan * np.ones_like(data)
-    if axis == 1:
-        data = data.T
     filt = hanning_shape(n=n)
     filt = filt / filt.sum()
     n = np.ceil(len(filt)/2).astype(int)
-    NR, NC = data.shape
-    ii = 0
-    while ii < NC:
-        cc = data[:,ii]
-        smooth[:,ii] = np.convolve(cc, filt, mode = 'same')
-        ii += 1
+
+    #smooth = np.nan * np.ones_like(data)
+    
+    #ndim = data.ndim
+    sh = data.shape
+    
+    
+    # if axis == 1:
+    #     data = data.T
+        
+    df = data.flatten('F')
+    dfs = np.convolve(df, filt, mode = 'same')
+    smooth = dfs.reshape(sh, order='F')
+    
+    # NR, NC = data.shape
+    # ii = 0
+    # while ii < NC:
+    #     cc = data[:,ii]
+    #     smooth[:,ii] = np.convolve(cc, filt, mode = 'same')
+    #     ii += 1
     smooth[:n,:] = np.nan
     smooth[-n:,:] = np.nan
-    if axis == 1:
-        smooth = smooth.T
+    # if axis == 1:
+    #     smooth = smooth.T
     return smooth
     
 
