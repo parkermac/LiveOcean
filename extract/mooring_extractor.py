@@ -30,7 +30,6 @@ import zrfun
 import netCDF4 as nc
 
 # defaults
-list_type = 'hourly'
 sta_name = 'JdFmouth'
 lon_str = '-124.6'
 lat_str = '48.46'
@@ -40,11 +39,11 @@ import argparse
 parser = argparse.ArgumentParser()
 # standard arguments
 parser.add_argument('-g', '--gridname', nargs='?', type=str, default='cas4')
-parser.add_argument('-t', '--tag', nargs='?', type=str, default='v1')
+parser.add_argument('-t', '--tag', nargs='?', type=str, default='v2')
 parser.add_argument('-x', '--ex_name', nargs='?', type=str, default='lo6biom')
-parser.add_argument('-0', '--date_string0', nargs='?', type=str, default='2017.09.01')
-parser.add_argument('-1', '--date_string1', nargs='?', type=str, default='')
-parser.add_argument('-lt', '--list_type', nargs='?', type=str, default=list_type)
+parser.add_argument('-0', '--date_string0', nargs='?', type=str, default='2017.01.01')
+parser.add_argument('-1', '--date_string1', nargs='?', type=str, default='2017.01.03')
+parser.add_argument('-lt', '--list_type', nargs='?', type=str, default='hourly')
 # mooring specific arguments
 parser.add_argument('-sn', '--sta_name', nargs='?', type=str, default=sta_name)
 parser.add_argument('-lon', '--lon_str', nargs='?', type=str, default=lon_str)

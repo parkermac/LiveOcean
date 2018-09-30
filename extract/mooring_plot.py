@@ -32,13 +32,13 @@ lim_dict = {'temp': (0, 20),
         'alkalinity': (1800, 2600)}
 
 Ldir = Lfun.Lstart()
-indir = Ldir['LOo'] + 'extract/'
+indir = Ldir['LOo'] + 'moor/'
 
 # choose the mooring extraction to plot
 print('\n%s\n' % '** Choose mooring file to plot **')
 m_list_raw = os.listdir(indir)
 m_list_raw.sort()
-m_list = [m for m in m_list_raw if (('.nc' in m) and ('moor_' in m))]
+m_list = [m for m in m_list_raw if '.nc' in m]
 Npt = len(m_list)
 m_dict = dict(zip(range(Npt), m_list))
 for npt in range(Npt):
@@ -76,8 +76,8 @@ V = dict()
 Vu = dict()
 
 #choose what to plot
-#list_to_plot = v3_list_rho + v3_list_w + v2_list
-list_to_plot = v3_list_rho
+list_to_plot = v3_list_rho + v3_list_w + v2_list
+#list_to_plot = v3_list_rho
 
 # hand edit variables not to look at
 for v in ['CaCO3']:#, 'PH', 'ARAG']:
@@ -138,8 +138,8 @@ else:
     mdt = days
 
 cc = 0
-nmid = round(V['salt'].shape[0]/2)
-N = V['salt'].shape[0]
+nmid = round(V['z_rho'].shape[1]/2)
+N = V['z_rho'].shape[1]
 nbot = 0
 nmid = nmid
 ntop = N-1
@@ -150,16 +150,16 @@ for vn in list_to_plot:
     ax = axes[ir, ic]
     if True: # raw
         if V[vn].ndim == 2:
-            ax.plot(mdt, V[vn][ntop,:], '-r')
-            ax.plot(mdt, V[vn][nmid,:],'-g')
-            ax.plot(mdt, V[vn][nbot,:], '-b')
+            ax.plot(mdt, V[vn][:, ntop], '-r')
+            ax.plot(mdt, V[vn][:, nmid],'-g')
+            ax.plot(mdt, V[vn][:, nbot], '-b')
         elif V[vn].ndim == 1:
             ax.plot(mdt, V[vn])
     else: # filtered (e.g. tidally_averaged)
         if V[vn].ndim == 2:
-            ax.plot(mdt, zfun.filt_godin(V[vn][ntop,:]), '-r')
-            ax.plot(mdt, zfun.filt_godin(V[vn][nmid,:]),'-g')
-            ax.plot(mdt, zfun.filt_godin(V[vn][nbot,:]), '-b')
+            ax.plot(mdt, zfun.filt_godin(V[vn][:, ntop]), '-r')
+            ax.plot(mdt, zfun.filt_godin(V[vn][:, nmid]),'-g')
+            ax.plot(mdt, zfun.filt_godin(V[vn][:, nbot]), '-b')
         elif V[vn].ndim == 1:
             ax.plot(mdt, zfun.filt_godin(V[vn]))
     
