@@ -399,17 +399,17 @@ def P_Carbon(in_dict):
 def P_bio(in_dict):
     
     # START
-    fig = plt.figure(figsize=(18, 8))
+    fig = plt.figure(figsize=(20, 8))
     ds = nc.Dataset(in_dict['fn'])
 
     # PLOT CODE
-    vn_list = vn_list = ['NO3', 'oxygen', 'phytoplankton']
+    vn_list = vn_list = ['NO3', 'phytoplankton', 'alkalinity', 'TIC']
     ii = 1
     for vn in vn_list:
         if in_dict['auto_vlims']:
             pinfo.vlims_dict[vn] = ()
         ax = fig.add_subplot(1, len(vn_list), ii)
-        if vn in ['NO3', 'oxygen']:
+        if vn in []:
             slev = 0
             ttag = 'Bottom'
         else:

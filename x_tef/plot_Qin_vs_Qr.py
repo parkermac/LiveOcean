@@ -41,10 +41,9 @@ print('\nProcessing ' + Litem + '\n')
 Indir = indir + Litem + '/'
 
 save_fig = True
-out_dir0 = Ldir['LOo'] + 'tef_plots2/'
-Lfun.make_dir(out_dir0)
-out_dir = out_dir0 + Litem + '/'
-Lfun.make_dir(out_dir, clean=True)
+out_dir = Indir + 'plots/'
+Lfun.make_dir(out_dir)
+
 
 sr_list = [('sog1', 'fraser'),
             ('jdf2', 'fraser'),

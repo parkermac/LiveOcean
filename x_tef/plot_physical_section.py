@@ -47,8 +47,7 @@ if False:
     my_ii = int(input('-- Input number: '))
     Litem = Ldict[my_ii]
 else:
-    #Litem = 'cas4_v1_lo6biom_2017.01.01_2017.12.31'
-    #Litem = 'cas4_v1_lo6biom_2017.09.01_2017.09.03'
+    #Litem = 'cas4_v2_lo6biom_2017.01.01_2017.12.31'
     Litem = 'cascadia1_base_lobio5_2013.01.01_2013.12.31'
 print('\nProcessing ' + Litem + '\n')
 Indir = indir + Litem + '/'
@@ -59,10 +58,8 @@ sect_name = 'shelf_45'
 # set plotting parameters
 if False:
     save_fig = True
-    out_dir0 = Ldir['LOo'] + 'tef_plots3/'
-    Lfun.make_dir(out_dir0)
-    out_dir = out_dir0 + Litem + '/'
-    Lfun.make_dir(out_dir, clean=True)
+    out_dir = Indir + 'plots/'
+    Lfun.make_dir(out_dir)
 else:
     save_fig = False
 

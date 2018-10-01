@@ -23,7 +23,7 @@ import zfun
 Ldir = Lfun.Lstart()
 
 indir = Ldir['LOo'] + 'tef/'
-if False:
+if True:
     print('\nSelect an Extraction to plot:\n')
     List = os.listdir(indir)
     List.sort()
@@ -34,14 +34,14 @@ if False:
     my_ii = int(input('-- Input number: '))
     Litem = Ldict[my_ii]
 else:
-    Litem = 'cas4_v1_lo6biom_2017.01.01_2017.12.31'
+    Litem = 'cas4_v2_lo6biom_2017.01.01_2017.12.31'
 print('\nProcessing ' + Litem + '\n')
 Indir = indir + Litem + '/'
 
 LList_raw = os.listdir(indir + Litem)
 LList_raw.sort()
 
-if True: # process all .nc files
+if False: # process all .nc files
     LList = [item for item in LList_raw if ('.nc' in item)]
 else: # override
     LList = ['sog2.nc', 'sog3.nc']

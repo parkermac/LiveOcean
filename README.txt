@@ -1,0 +1,1 @@
+The "x_[*]" folders are all specific extraction, meant to operate on existing ROMS output, or the piles of forcing files that went into making them.  They write their output to LiveOcean_output/[*].

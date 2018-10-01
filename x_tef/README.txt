@@ -6,7 +6,6 @@ Steps and notes
 
 NOTE: the actual tracer variables to be extracted are defined in tef_fun.start_netcdf.nc().  Not ideal to have it hidden so deep, but it is a convenient place to create the whole list if needed.
 
-
 2. Run process_sections.py, which organizes all the transports at each time into salinity bins.
 
 3. Run plot_time_series.py to make plots of time series from each processed station.  You can edit the code to just look at a subset of the stations.

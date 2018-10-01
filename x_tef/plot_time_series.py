@@ -47,7 +47,7 @@ if False:
     my_ii = int(input('-- Input number: '))
     Litem = Ldict[my_ii]
 else:
-    Litem = 'cas4_v1_lo6biom_2017.01.01_2017.12.31'
+    Litem = 'cas4_v2_lo6biom_2017.01.01_2017.12.31'
 print('\nProcessing ' + Litem + '\n')
 Indir = indir + Litem + '/'
 
@@ -57,13 +57,11 @@ LList = [item for item in LList_raw if '.p' in item]
 
 if False: # plot all .p files
     save_fig = True
-    out_dir0 = Ldir['LOo'] + 'tef_plots/'
-    Lfun.make_dir(out_dir0)
-    out_dir = out_dir0 + Litem + '/'
-    Lfun.make_dir(out_dir, clean=True)
+    out_dir = Indir + 'plots/'
+    Lfun.make_dir(out_dir)
 else: # override
     save_fig = False
-    LList = [item for item in LList if 'sog1' in item]
+    LList = [item for item in LList if 'sog2' in item]
 
 plt.close('all')
 
