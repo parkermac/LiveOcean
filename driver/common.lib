@@ -33,3 +33,53 @@ next_date()
   fi
   D=$[10#$y*10000 + 10#$m*100 + 10#$d]
 }
+
+two_days_before()
+{
+  y=$1
+  m=$2
+  d=$3
+  
+  # initialize the date two days before, first by decrementing the day
+  dp=$[10#$d - 2]
+  mp=$m
+  yp=$y
+  
+  # then see if we need to decrement the month or even year
+  if [ $dp -lt 1 ]
+  then
+    mp=$[10#$m - 1]
+    if [ $mp -lt 1 ]
+    then
+      mp=12
+      yp=$[10#$y - 1]
+    fi
+    # determine daymax for this month
+    if [ $mp -eq 4 ] || [ $mp -eq 6 ] || [ $mp -eq 9 ] || [ $mp -eq 11 ]
+    then
+      daymax=30
+    elif [ $mp -eq 2 ] && [ $[$yp % 4] -eq 0 ]
+    then
+      daymax=29
+    elif [ $mp -eq 2 ] && [ $[$yp % 4] -ne 0 ]
+    then
+      daymax=28
+    else
+      daymax=31
+    fi
+    # then set the day to the correct value in the case where we went to 
+    # the previous month
+    if [ $dp -eq 0 ]
+    then
+      dp=$daymax
+    elif [ $dp -eq -1 ]
+    then
+        dp=$[10#$daymax - 1]
+    fi
+  fi
+
+  DPP=$[10#$yp*10000 + 10#$mp*100 + 10#$dp]
+}
+
+
+

@@ -5,6 +5,9 @@
 #
 # Designed to be run from MOX
 # and depends on other drivers having been run first on BOILER
+#
+# It improves on driver_roms3mox.sh by using the new function
+# two_days_before() to set which files to delete
 
 # run the code to put the environment into a csv
 if [ -e ../alpha/user_get_lo_info.sh ] ; then
@@ -19,13 +22,10 @@ do
   eval $col1="$col2"
 done < ../alpha/lo_info.csv
 
-. $LO"/driver/common.lib"
+. $LO"driver/common.lib"
 
 # Set number of cores to use.
-# NOTE: anything above 196 will be sent to the checkpoint queue.
 np_num=196
-#np_num=392
-#np_num=588
 
 # USE COMMAND LINE OPTIONS
 #
@@ -94,7 +94,6 @@ gtagex=$gtag"_"$ex_name
 # initialize control flags
 keep_going=1 # 1 => keep going, 0 => stop the driver
 blow_ups=0
-delete_previous_day=0
 
 # start the main loop over days
 while [ $D -le $D1 ] && [ $keep_going -eq 1 ]
@@ -109,6 +108,12 @@ do
   f_string="f"$DD
   Rf=$roms"output/"$gtagex"/"$f_string"/"
   log_file=$Rf"log.txt"
+  
+  # get the f_string for two days before, so those can be deleted
+  two_days_before $y $m $d
+  DDP=${DPP:0:4}.${DPP:4:2}.${DPP:6:2}
+  f_string_previous="f"$DDP
+  echo "TESTING: f_string = "$f_string", f_string_previous="$f_string_previous
 
   # Run make_dot_in.py, which creates an empty f_string directory,
   # and then cd to where the ROMS executable lives.
@@ -136,7 +141,7 @@ do
   # run ROMS
   if [ $lo_env == "pm_mac" ] ; then # testing
     echo "placeholder for something useful"
-    keep_going=0
+    keep_going=1
     
   elif [ $lo_env == "pm_mox" ] ; then
     
@@ -154,13 +159,8 @@ do
     # 2. Run ROMS
     
     python make_back_batch.py -xp $Rf -npn $np_num
-    
-    # select which queue to use based on the number of cores requested
-    if [ $np_num -eq 196 ] ; then
-      sbatch -p macc -A macc lo_back_batch.sh &
-    else
-      sbatch -p ckpt -A macc-ckpt lo_back_batch.sh &
-    fi
+
+    sbatch -p macc -A macc lo_back_batch.sh &
     
     # check the log_file to see if we should continue
     keep_checking_log=1
@@ -193,21 +193,11 @@ do
           wait $PID1
           echo "ROMS output files transferred for "$f_string
           
-          # 4. Delete forcing and ROMS files from mox from the previous day.
-          # This only executes after we have run one day sucessfully.
-          if [ $delete_previous_day -eq 1 ] ; then
-            echo "Deleting history and forcing files for "$f_string_previous
-            rm -rf $local_dir"LiveOcean_output/"$gtag/$f_string_previous
-            rm -rf $local_dir"LiveOcean_roms/output/"$gtagex/$f_string_previous
-          fi
-          
-          # update the identy of the day before
-          f_string_previous=$f_string
-          echo "-- set f_string_previous to "$f_string_previous
-          
-          # this will be 1 for all except the first day in a series
-          delete_previous_day=1
-          
+          # 4. Delete forcing and ROMS files from mox from two days before.
+          echo "Deleting history and forcing files for "$f_string_previous
+          rm -rf $local_dir"LiveOcean_output/"$gtag/$f_string_previous
+          rm -rf $local_dir"LiveOcean_roms/output/"$gtagex/$f_string_previous
+                    
         fi
       fi
     done
