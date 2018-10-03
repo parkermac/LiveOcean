@@ -192,7 +192,7 @@ def choose_item(indir, tag='', itext='** Choose item from list **'):
     ilist_raw = os.listdir(indir)
     ilist_raw.sort()
     if len(tag) == 0:
-        ilist = [item for item in ilist_raw]
+        ilist = [item for item in ilist_raw if item[0] != '.']
     else:
         ilist = [item for item in ilist_raw if tag in item]
     Nitem = len(ilist)

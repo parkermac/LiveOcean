@@ -28,6 +28,7 @@ import numpy as np
 import netCDF4 as nc
 import matplotlib.pyplot as plt
 import pickle
+from datetime import datetime, timedelta
     
 import zfun
 import zrfun
@@ -74,7 +75,91 @@ def P_basic(in_dict):
         plt.close()
     else:
         plt.show()
+
+def P_3day(in_dict):
+    # Makes a plot like the Chesapeake Hypoxia Forecast Page
+
+    # START
+    fig = plt.figure(figsize=(14,6))
+    fn0 = in_dict['fn']
+    ds0 = nc.Dataset(fn0)
+    x = ds0['lon_psi'][:]
+    y = ds0['lat_psi'][:]
+    
+    # Get the name of the history file 3 days later
+    fns = fn0.split('/')
+    indir = '/'.join(fns[:-2]) + '/'
+    f_string = fns[-2]
+    if in_dict['list_type'] == 'snapshot':
+        dstr0 = f_string[1:]
+        dt0 = datetime.strptime(dstr0, '%Y.%m.%d')
+        dt1 = dt0 + timedelta(days=2)
+        dstr1 = datetime.strftime(dt1, '%Y.%m.%d')
+        fn1 = indir + 'f' + dstr1 + '/ocean_his_0025.nc'
+    elif in_dict['list_type'] == 'forecast':
+        fn1 = indir + f_string + '/ocean_his_0073.nc'
+    else:
+        print('P_3day: unsupported list_type')
+    ds1 = nc.Dataset(fn1)
+    
+    if False:
+        pfun.get_aa(ds0)
+    else:
+        aa = [-124, -122, 47, 49.5]
+    
+
+    # PLOT CODE
+    ii = 0
+    for vn in range(3):
+        ax = fig.add_subplot(1, 3, ii+1)
         
+        vn = 'oxygen'
+        nlay = 0
+        laystr = 'Bottom'
+        cmap=pinfo.cmap_dict[vn]
+        fac=pinfo.fac_dict[vn]
+        vlims = pinfo.vlims_dict[vn]
+        
+        if ii == 0:
+            fld0 = ds0[vn][0,nlay,1:-1,1:-1].squeeze()
+            cs = ax.pcolormesh(x,y,fac*fld0,cmap=cmap, vmin=vlims[0],vmax=vlims[1])
+        elif ii == 1:
+            fld1 = ds1[vn][0,nlay,1:-1,1:-1].squeeze()
+            cs = ax.pcolormesh(x,y,fac*fld1,cmap=cmap, vmin=vlims[0],vmax=vlims[1])
+        elif ii == 2:
+            fld2 = (fld1-fld0)/3
+            if vn == 'oxygen':
+                vmin=-1
+                vmax=1
+            cs = ax.pcolormesh(x,y,fac*fld2,cmap='bwr',vmin=vmin,vmax=vmax)
+            
+        fig.colorbar(cs)
+        pfun.add_bathy_contours(ax, ds0, txt=True)
+        pfun.add_coast(ax)
+        ax.axis(aa)
+        pfun.dar(ax)
+        if ii==0:
+            ax.set_title('Current: %s %s %s' % (laystr, pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
+        elif ii==1:
+            ax.set_title('3 Days Later: %s %s %s' % (laystr, pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
+        elif ii==2:
+            ax.set_title('Trend: %s %s per day' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
+        ax.set_xlabel('Longitude')
+        if ii == 0:
+            ax.set_ylabel('Latitude')
+            pfun.add_info(ax, in_dict['fn'])
+        ii += 1
+    fig.tight_layout()
+    
+    # FINISH
+    ds0.close()
+    ds1.close()
+    if len(in_dict['fn_out']) > 0:
+        plt.savefig(in_dict['fn_out'])
+        plt.close()
+    else:
+        plt.show()
+
 def P_basic_salish(in_dict):
 
     # START
@@ -114,52 +199,6 @@ def P_basic_salish(in_dict):
         ii += 1
     fig.tight_layout()
     
-    # FINISH
-    ds.close()
-    if len(in_dict['fn_out']) > 0:
-        plt.savefig(in_dict['fn_out'])
-        plt.close()
-    else:
-        plt.show()
-        
-def P_phyt(in_dict):
-    # a custom movie for LuAnne
-    # START
-    fig = plt.figure(figsize=pinfo.figsize)
-    ds = nc.Dataset(in_dict['fn'])
-
-    # PLOT CODE
-    vn_list = ['phytoplankton', 'phytoplankton']
-    ii = 1
-    for vn in vn_list:
-        if in_dict['auto_vlims']:
-            pinfo.vlims_dict[vn] = ()
-        ax = fig.add_subplot(1, len(vn_list), ii)
-        cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict,
-                cmap=pinfo.cmap_dict[vn], fac=pinfo.fac_dict[vn])
-        pfun.add_coast(ax)
-        aa = [-123.5, -122.1, 47, 49]
-        pad = 0.005
-        aap = [-123.5-pad, -122.1+pad, 47-pad, 49+pad]
-        ax.plot([aa[0], aa[1], aa[1], aa[0], aa[0]], [aa[2], aa[2], aa[3], aa[3], aa[2]],
-            '-m', linewidth=3)
-        if ii == 1:
-            fig.colorbar(cs)
-            pfun.add_bathy_contours(ax, ds, txt=True)
-            ax.axis(pfun.get_aa(ds))
-        elif ii == 2:
-            ax.axis(aap)
-        pfun.dar(ax)
-        ax.set_xlabel('Longitude')
-        if ii == 1:
-            ax.set_title('Surface %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
-            ax.set_ylabel('Latitude')
-            pfun.add_info(ax, in_dict['fn'])
-            pfun.add_windstress_flower(ax, ds)
-        elif ii == 2:
-            ax.set_title('Puget Sound')
-        ii += 1
-        
     # FINISH
     ds.close()
     if len(in_dict['fn_out']) > 0:

@@ -101,34 +101,6 @@ fig, axes = plt.subplots(nrows=NR, ncols=NC, figsize=(13,8),
 
 days = (V['ocean_time'] - V['ocean_time'][0])/86400.
 
-mdays = Lfun.modtime_to_mdate_vec(V['ocean_time'])
-mdt = mdates.num2date(mdays) # list of datetimes of data
-
-# generate ticks and labels
-dt_ticks = []
-dt_ticks_yr = []
-dt_ticklabels = []
-yr0 = mdt[0].year
-yr1 = mdt[-1].year
-nyears = yr1 - yr0 + 1
-ndays = (mdt[-1] - mdt[0]).days
-do_ticks = False
-if nyears >= 2:
-    do_ticks = True
-    for yr in range(yr0, yr1+1):
-        for mo in [1,7]:
-            dt = datetime(yr, mo, 1).date()
-            if dt > mdt[0].date() and dt < mdt[-1].date():
-                dt_ticks.append(dt)
-                if mo == 1:
-                    dt_ticks_yr.append(dt)
-                if mo == 7:
-                    dt_ticklabels.append(dt.strftime('%Y'))
-                else:
-                    dt_ticklabels.append('')
-else:
-    mdt = days
-
 cc = 0
 nmid = round(V['z_rho'].shape[1]/2)
 N = V['z_rho'].shape[1]
@@ -142,18 +114,18 @@ for vn in list_to_plot:
     ax = axes[ir, ic]
     if True: # raw
         if V[vn].ndim == 2:
-            ax.plot(mdt, V[vn][:, ntop], '-r')
-            ax.plot(mdt, V[vn][:, nmid],'-g')
-            ax.plot(mdt, V[vn][:, nbot], '-b')
+            ax.plot(days, V[vn][:, ntop], '-r')
+            ax.plot(days, V[vn][:, nmid],'-g')
+            ax.plot(days, V[vn][:, nbot], '-b')
         elif V[vn].ndim == 1:
-            ax.plot(mdt, V[vn])
+            ax.plot(days, V[vn])
     else: # filtered (e.g. tidally_averaged)
         if V[vn].ndim == 2:
-            ax.plot(mdt, zfun.filt_godin(V[vn][:, ntop]), '-r')
-            ax.plot(mdt, zfun.filt_godin(V[vn][:, nmid]),'-g')
-            ax.plot(mdt, zfun.filt_godin(V[vn][:, nbot]), '-b')
+            ax.plot(days, zfun.filt_godin(V[vn][:, ntop]), '-r')
+            ax.plot(days, zfun.filt_godin(V[vn][:, nmid]),'-g')
+            ax.plot(days, zfun.filt_godin(V[vn][:, nbot]), '-b')
         elif V[vn].ndim == 1:
-            ax.plot(mdt, zfun.filt_godin(V[vn]))
+            ax.plot(days, zfun.filt_godin(V[vn]))
     
     try:
         if not auto_lims:
@@ -162,20 +134,10 @@ for vn in list_to_plot:
         pass
         
     ax.grid(True)
-    ax.set_xlim(mdt[0], mdt[-1])
-    if do_ticks:
-        ax.set_xticks(dt_ticks)
-        ax.set_xticklabels([])
-        if ir == NR-1:
-            ax.set_xlabel('Date')
-        ax.set_xticklabels(dt_ticklabels)
-        aa = ax.get_ylim()
-        for dtyr in dt_ticks_yr:
-            ax.plot([dtyr, dtyr], aa, '-k')
-        ax.set_ylim(aa)
-    else:
-        if ir == NR-1:
-            ax.set_xlabel('Days')
+    ax.set_xlim(days[0], days[-1])
+
+    if ir == NR-1:
+        ax.set_xlabel('Days')
 
     ax.ticklabel_format(useOffset=False, axis='y')
     ax.text(.05, .85, vn,
