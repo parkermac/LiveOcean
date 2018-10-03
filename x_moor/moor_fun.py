@@ -125,3 +125,39 @@ def start_netcdf(out_fn, N, NT, v0_list, v1_list, v2_list, v3_list_rho, v3_list_
         v_var.units = V_units[vv]
 
     foo.close()
+    
+def get_ij_good(lon, lat, mask, xvec, yvec, i0, j0):
+    # find the nearest unmasked point
+    #
+    # starting point
+    lon0 = lon[j0,i0]
+    lat0 = lat[j0,i0]
+    pad = 5 # how far to look (points)
+    # indices of box to search over
+    imax = len(xvec)-1
+    jmax = len(yvec)-1
+    I = np.arange(i0-pad, i0+pad)
+    J = np.arange(j0-pad,j0+pad)
+    # account for out-of-range points
+    if I[0] < 0:
+        I = I - I[0]
+    if I[-1] > imax:
+        I = I - (I[-1] - imax)
+    if J[0] < 0:
+        J = J - J[0]
+    if J[-1] > jmax:
+        J = J - (J[-1] - jmax)
+    ii, jj = np.meshgrid(I, J)
+    # sub arrays
+    llon = lon[jj,ii]
+    llat = lat[jj,ii]
+    xxx, yyy = zfun.ll2xy(llon, llat, lon0, lat0)
+    ddd = np.sqrt(xxx**2 + yyy**2) # distance from original point
+    mmask = mask[jj,ii] 
+    mm = mmask==1 # Boolean array of good points
+    dddm = ddd[mm] # vector of good distances
+    # indices of best point
+    igood = ii[mm][dddm==dddm.min()][0]
+    jgood = jj[mm][dddm==dddm.min()][0]
+    #
+    return igood, jgood

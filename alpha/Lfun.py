@@ -186,5 +186,21 @@ def get_fn_list(list_type, Ldir, date_string0, date_string1, his_num=1):
         fn_list.sort()
         fn_list.pop(0) # remove the first hour
     return fn_list
+    
+def choose_item(indir, tag='', itext='** Choose item from list **'):
+    print('\n%s\n' % (itext))
+    ilist_raw = os.listdir(indir)
+    ilist_raw.sort()
+    if len(tag) == 0:
+        ilist = [item for item in ilist_raw]
+    else:
+        ilist = [item for item in ilist_raw if tag in item]
+    Nitem = len(ilist)
+    idict = dict(zip(range(Nitem), ilist))
+    for ii in range(Nitem):
+        print(str(ii) + ': ' + ilist[ii])
+    my_choice = int(input('-- Input number -- '))
+    my_item = idict[my_choice]
+    return my_item
 
 

@@ -16,6 +16,8 @@ if alp not in sys.path:
     sys.path.append(alp)
 import Lfun
 import zfun
+from importlib import reload
+reload(Lfun)
 
 auto_lims = True
 
@@ -32,23 +34,13 @@ lim_dict = {'temp': (0, 20),
         'alkalinity': (1800, 2600)}
 
 Ldir = Lfun.Lstart()
-indir = Ldir['LOo'] + 'moor/'
+indir0 = Ldir['LOo'] + 'moor/'
 
 # choose the mooring extraction to plot
-print('\n%s\n' % '** Choose mooring file to plot **')
-m_list_raw = os.listdir(indir)
-m_list_raw.sort()
-m_list = [m for m in m_list_raw if '.nc' in m]
-Npt = len(m_list)
-m_dict = dict(zip(range(Npt), m_list))
-for npt in range(Npt):
-    print(str(npt) + ': ' + m_list[npt])
-if True:
-    my_npt = int(input('-- Input number -- '))
-else:
-    my_npt = 0 # for testing
-moor_file = m_dict[my_npt]
-fn = indir + moor_file
+item = Lfun.choose_item(indir0)
+indir = indir0 + item + '/'
+infile = Lfun.choose_item(indir, tag='.nc')
+fn = indir + infile
 
 #%% load and organize data
 

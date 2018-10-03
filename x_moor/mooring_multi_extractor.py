@@ -80,6 +80,33 @@ S = zrfun.get_basic_info(fn, only_S=True)
 N = S['N']
 NT = len(fn_list)
 
+lon = G['lon_rho']
+lat = G['lat_rho']
+mask = G['mask_rho']
+xvec = lon[0,:].flatten()
+yvec = lat[:,0].flatten()
+
+
+# automatically correct for moorings that are on land
+for sta in sta_dict.keys():
+    xy = sta_dict[sta]
+    slon = xy[0]
+    slat = xy[1]
+    i0, i1, frx = zfun.get_interpolant(np.array([float(slon)]), xvec)
+    j0, j1, fry = zfun.get_interpolant(np.array([float(slat)]), yvec)
+    i0 = int(i0)
+    j0 = int(j0)
+    # find indices of nearest good point
+    if mask[j0,i0] == 1:
+        print(sta + ': point ok')
+    elif mask[j0,i0] == 0:
+        print(sta + ':point masked')
+        i0, j0 = mfun.get_ij_good(lon, lat, mask, xvec, yvec, i0, j0)
+        newlon = xvec[i0]
+        newlat = yvec[j0]
+        print(' Replacing (%0.3f,%0.3f) with (%0.3f,%0.3f)' % (slon, slat, newlon, newlat))
+        sta_dict[sta] = (newlon, newlat)
+
 # get interpolants
 itp_dict = mfun.get_itp_dict(sta_dict, G)
 
