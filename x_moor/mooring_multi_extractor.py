@@ -27,10 +27,10 @@ import argparse
 parser = argparse.ArgumentParser()
 # standard arguments
 parser.add_argument('-g', '--gridname', nargs='?', type=str, default='cas4')
-parser.add_argument('-t', '--tag', nargs='?', type=str, default='v1')
+parser.add_argument('-t', '--tag', nargs='?', type=str, default='v2')
 parser.add_argument('-x', '--ex_name', nargs='?', type=str, default='lo6biom')
-parser.add_argument('-0', '--date_string0', nargs='?', type=str, default='2017.09.01')
-parser.add_argument('-1', '--date_string1', nargs='?', type=str, default='2017.09.03')
+parser.add_argument('-0', '--date_string0', nargs='?', type=str, default='2017.07.20')
+parser.add_argument('-1', '--date_string1', nargs='?', type=str, default='2017.07.22')
 parser.add_argument('-lt', '--list_type', nargs='?', type=str, default='hourly')
 args = parser.parse_args()
 
@@ -47,18 +47,25 @@ if False:
     limit_lists = False
 else:
     # read in a custom job
-    job_name = 'kd_array'
+    job_name = 'willapa_bc'
     sta_dict, v2_list, v3_list_rho, v3_list_w = mfun.get_sta_dict(job_name)
-    limit_lists = True
+    limit_lists = False
+    
+    # job_name = 'kd_array'
+    # sta_dict, v2_list, v3_list_rho, v3_list_w = mfun.get_sta_dict(job_name)
+    # limit_lists = True
 
 # name output files
 out_fn_dict = dict()
 for sta_name in sta_dict.keys():
     # make sure the output directory exists
-    outdir = Ldir['LOo'] + 'moor/'
+    outdir0 = Ldir['LOo'] + 'moor/'
+    Lfun.make_dir(outdir0)
+    mod_string = (Ldir['gtagex'] + '_' + args.date_string0 + '_' + args.date_string1)
+    outdir = outdir0 + mod_string + '/'
     Lfun.make_dir(outdir)
     # name output file
-    out_fn = (outdir + sta_name + '_' + Ldir['gtagex'] + '_' +  args.list_type + '.nc')
+    out_fn = (outdir + sta_name + '_' +  args.list_type + '.nc')
     # get rid of the old version, if it exists
     try:
         os.remove(out_fn)

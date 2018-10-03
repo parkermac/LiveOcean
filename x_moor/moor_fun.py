@@ -7,7 +7,14 @@ import netCDF4 as nc
 import zfun
 
 def get_sta_dict(job_name):
-    if job_name == 'kd_array': # Kathy Donohue, Slow Slip related 2018_09
+    v2_list = []
+    v3_list_rho = []
+    v3_list_w = []
+    if job_name == 'willapa_bc': # Willapa Bay Center PCSGA Mooring
+        sta_dict = {
+            'wbc': (-123.9516, 46.6290)
+            }
+    elif job_name == 'kd_array': # Kathy Donohue, Slow Slip related 2018_09
         sta_dict = {
             'kda00': (-125.155750, 44.447250),
             'kda01': (-125.206174, 44.447359),
