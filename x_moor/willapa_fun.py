@@ -2,10 +2,10 @@
 Functions for plotting Willapa Moorings.
 """
 
-vlims_dict = {'salt': (14, 35),
+vlims_dict = {'salt': (0, 35),
         'temp': (0, 24),
-        'NO3': (0, 44),
-        'phytoplankton': (0,45),
+        'NO3': (0, 30),
+        'phytoplankton': (0,60),
         'zooplankton': (0, 4),
         'oxygen': (0, 8),
         'TIC': (1400, 2400),

@@ -131,7 +131,7 @@ def P_3day(in_dict):
             if vn == 'oxygen':
                 vmin=-1
                 vmax=1
-            cs = ax.pcolormesh(x,y,fac*fld2,cmap='bwr',vmin=vmin,vmax=vmax)
+            cs = ax.pcolormesh(x,y,fac*fld2,cmap='bwr_r',vmin=vmin,vmax=vmax)
             
         fig.colorbar(cs)
         pfun.add_bathy_contours(ax, ds0, txt=True)

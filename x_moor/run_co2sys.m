@@ -143,7 +143,7 @@ if 1
         else
             % do this if the variable is absent
             disp(['** ',var2put,' not found']);
-            varid = netcdf.defVar(ncid,var2put,'double',[ot_id, s_rho_id]);
+            varid = netcdf.defVar(ncid,var2put,'double',[s_rho_id, ot_id]);
             netcdf.putVar(ncid,varid,var_temp)
         end
     end

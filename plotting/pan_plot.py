@@ -116,6 +116,7 @@ in_dict['auto_vlims'] = args.auto_vlims
 if plot_type == 'P_3day':
     # special additions for this plot type
     in_dict['list_type'] = list_type
+    fn_list = [fn_list[0], fn_list[0]] # two repeats so that we save to a file
 
 if len(fn_list) == 1:
     # plot a single image to screen

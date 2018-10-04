@@ -25,32 +25,20 @@ import zfun
 #reload(Lfun)
 
 Ldir = Lfun.Lstart()
-indir = Ldir['LOo'] + 'extract/'
+indir0 = Ldir['LOo'] + 'moor/'
 
 # choose the type of plot to make
-print('\n%s\n' % '** Choose mooring file to add C vars to **')
-m_list_raw = os.listdir(indir)
-m_list_raw.sort()
-m_list = []
-for m in m_list_raw:
-    if '.nc' in m:
-        m_list.append(m)
-Npt = len(m_list)
-m_dict = dict(zip(range(Npt), m_list))
-for npt in range(Npt):
-    print(str(npt) + ': ' + m_list[npt])
-if True:
-    my_npt = int(input('-- Input number -- '))
-else:
-    my_npt = 0 # for testing
-moor_file = m_dict[my_npt]
-fn = indir + moor_file
+# choose the mooring extraction to plot
+item = Lfun.choose_item(indir0)
+indir = indir0 + item + '/'
+infile = Lfun.choose_item(indir, tag='.nc')
+fn = indir + infile
 
 #%% calculate pH and Aragonite saturation state
 import subprocess
 func = ("run_co2sys(\'" +
     indir + "\',\'" +
-    moor_file + "\',\'" +
+    infile + "\',\'" +
     'input3' + "\')")
 cmd = Ldir['which_matlab']
 run_cmd = [cmd, "-nojvm", "-nodisplay", "-r", func, "&"]
@@ -59,4 +47,8 @@ out, err = proc.communicate() # "out" is the screen output of the matlab code
 print(out.decode())
 print(err.decode())
 
-zfun.ncd(fn)
+import netCDF4 as nc
+ds = nc.Dataset(fn)
+for vn in ds.variables:
+    print(vn)
+ds.close()
