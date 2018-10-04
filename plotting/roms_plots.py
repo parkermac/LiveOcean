@@ -129,8 +129,8 @@ def P_3day(in_dict):
         elif ii == 2:
             fld2 = (fld1-fld0)/3
             if vn == 'oxygen':
-                vmin=-1
-                vmax=1
+                vmin=-.5
+                vmax=.5
             cs = ax.pcolormesh(x,y,fac*fld2,cmap='bwr_r',vmin=vmin,vmax=vmax)
             
         fig.colorbar(cs)
