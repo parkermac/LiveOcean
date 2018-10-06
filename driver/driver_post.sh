@@ -114,7 +114,7 @@ do
     sleeptime=1
   elif [ $lo_env == "pm_boiler" ] ; then
     maxcount=240
-    sleeptime=1
+    sleeptime=60
   fi
 
   echo "- Looking in "$Rf
@@ -135,7 +135,11 @@ do
     echo "-- count = "$count
     echo "-- all_files_here = "$all_files_here
     count=$[10#$count + 1]
-    sleep $sleeptime
+    if [ $all_files_here -eq 0 ]; then
+      sleep $sleeptime
+    else
+      sleep 11
+    fi
   done
   
   # run post processing
@@ -144,14 +148,14 @@ do
     keep_going=1
   elif [ $lo_env == "pm_boiler" ] && [ $all_files_here -eq 1 ]; then
     for frc in 'tracks_m' 'carbon'; do
-      echo "Would be working on "$frc
-      # ./driver_forcing2.sh -g $gridname -t $tag -x $ex_name -f $frc -r $run_type > $LO"driver/dlog_"$frc &
-      # # Check that the job has finished successfully.
-      # PID1=$!
-      # wait $PID1
-      # echo "job completed for" $frc "at" $(date)
-      # echo $(date)
-      # sleep 10
+      # echo "Would be working on "$frc
+      ./driver_forcing2.sh -g $gridname -t $tag -x $ex_name -f $frc -r $run_type > $LO"driver/dlog_"$frc &
+      # Check that the job has finished successfully.
+      PID1=$!
+      wait $PID1
+      echo "job completed for" $frc "at" $(date)
+      echo $(date)
+      sleep 12
     done
 
   fi
