@@ -93,7 +93,6 @@ do
 
   f_string="f"$DD
   Rf=$roms"output/"$gtagex"/"$f_string"/"
-  log_file=$Rf"log.txt"
   
   if [ -e $HOME"/.bashrc" ] ; then
     source $HOME"/.bashrc"
@@ -110,10 +109,18 @@ do
     nhis=25
   fi
 
+  if [ $lo_env == "pm_mac" ] ; then # testing
+    maxcount=3
+    sleeptime=1
+  elif [ $lo_env == "pm_boiler" ] ; then
+    maxcount=240
+    sleeptime=1
+  fi
+
   echo "- Looking in "$Rf
   all_files_here=0
   count=0
-  while [ $all_files_here -eq 0 ] && [ $count -le 3 ]
+  while [ $all_files_here -eq 0 ] && [ $count -le $maxcount ]
   do
     # test to see if all files are here
     all_files_here=1
@@ -128,6 +135,7 @@ do
     echo "-- count = "$count
     echo "-- all_files_here = "$all_files_here
     count=$[10#$count + 1]
+    sleep $sleeptime
   done
   
   # run post processing

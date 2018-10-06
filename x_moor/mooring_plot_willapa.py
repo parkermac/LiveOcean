@@ -34,7 +34,7 @@ from importlib import reload
 reload(wfun)
 
 
-nlay = 0 # which layer to choose
+nlay = -1 # which layer to choose
 
 fs1=14 # fontsize for labels
 fs2 = 12
