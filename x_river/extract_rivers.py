@@ -99,7 +99,7 @@ df = pd.DataFrame(index=Qind, columns=riv_name_list, data=Qr)
 
 outdir = Ldir['LOo'] + 'river/'
 Lfun.make_dir(outdir)
-fn = outdir + Ldir['gtag'] + '_' + args.date_string0 + '_' + args.date_string0 + '.p'
+fn = outdir + Ldir['gtag'] + '_' + args.date_string0 + '_' + args.date_string1 + '.p'
 
 df.to_pickle(fn)
     
