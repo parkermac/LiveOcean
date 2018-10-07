@@ -83,7 +83,7 @@ for mds in mds_list:
         rds = datetime.strftime(rdt, '%Y.%m.%d')
         if rds == mds:
             #print('Match at ii=%d, %s' % (ii, rds))
-            Qr[tt,:] = ds['river_transport'][tt,:]
+            Qr[tt,:] = ds['river_transport'][ii,:]
         ii += 1
     ds.close()
     tt += 1
