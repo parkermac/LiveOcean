@@ -79,7 +79,7 @@ D1=$[10#$y1*10000 + 10#$m1*100 + 10#$d1]
 gtag=$gridname"_"$tag
 gtagex=$gtag"_"$ex_name
 
-# initialize control flags
+# initialize control flags (is this really needed here?)
 keep_going=1 # 1 => keep going, 0 => stop the driver
 
 # start the main loop over days
