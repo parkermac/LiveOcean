@@ -5,11 +5,6 @@
 This creates a single NetCDF file containing fields from one or more
 model layers, for some time range.
 
-run layer_extractor.py -1 2017.09.03
-
-# for the surface layer you need to use quotes and a space before -1
-run layer_extractor.py -1 2017.09.03 -nlay " -1"
-
 """
 
 from datetime import datetime, timedelta
@@ -31,23 +26,21 @@ import zfun
 
 # defaults
 list_type = 'hourly' # hourly, daily, low_passed
-nlay_str = '0' # layer number, -1 for top, 0 for bottom
+layer_name = 'zeta' # name to control choices in code
 
 # get command line arguments
 import argparse
 parser = argparse.ArgumentParser()
 # standard arguments
 parser.add_argument('-g', '--gridname', nargs='?', type=str, default='cas4')
-parser.add_argument('-t', '--tag', nargs='?', type=str, default='v1')
+parser.add_argument('-t', '--tag', nargs='?', type=str, default='v2')
 parser.add_argument('-x', '--ex_name', nargs='?', type=str, default='lo6biom')
-parser.add_argument('-0', '--date_string0', nargs='?', type=str, default='2017.09.01')
-parser.add_argument('-1', '--date_string1', nargs='?', type=str, default='')
+parser.add_argument('-0', '--date_string0', nargs='?', type=str, default='2017.07.20')
+parser.add_argument('-1', '--date_string1', nargs='?', type=str, default='2017.07.22')
 parser.add_argument('-lt', '--list_type', nargs='?', type=str, default=list_type)
 # layer specific arguments
-parser.add_argument('-nlay', '--layer_number', nargs='?', type=str, default=nlay_str)
+parser.add_argument('-ln', '--layer_name', nargs='?', type=str, default=layer_name)
 args = parser.parse_args()
-if len(args.date_string1) == 0:
-    args.date_string1 = args.date_string0
 
 # save some arguments
 Ldir = Lfun.Lstart(args.gridname, args.tag)
@@ -55,31 +48,50 @@ Ldir['gtagex'] = Ldir['gtag'] + '_' + args.ex_name
 Ldir['list_type'] = args.list_type
 Ldir['date_string0'] = args.date_string0
 Ldir['date_string1'] = args.date_string1
-Ldir['layer_number'] = args.layer_number
+Ldir['layer_name'] = args.layer_name
+
+# make sure the output directory exists
+outdir00 = Ldir['LOo']
+Lfun.make_dir(outdir00)
+outdir0 = outdir00 + 'layer/'
+Lfun.make_dir(outdir0)
+outdir = (outdir0 + Ldir['gtagex'] + '_' + Ldir['date_string0']
+        + '_' + Ldir['date_string1'] + '/')
+Lfun.make_dir(outdir, clean=False)
 
 # get list of history files to plot
 fn_list = Lfun.get_fn_list(args.list_type, Ldir, args.date_string0, args.date_string1)
 
-# make sure the output directory exists
-outdir = Ldir['LOo'] + 'extract/'
-Lfun.make_dir(outdir)
-
 # name output file
-out_fn = (outdir + 'layer_' +
-    Ldir['gtagex'] + '_' +
-    Ldir['layer_number'].strip() + '_' +
-    Ldir['list_type'] + '_' +
-    Ldir['date_string0'] + '_' +
-    Ldir['date_string1'] +
-    '.nc')
+out_fn = (outdir + Ldir['layer_name'] + '_' + Ldir['list_type'] + '.nc')
 # get rid of the old version, if it exists
 try:
     os.remove(out_fn)
 except OSError:
     pass
     
+# lists of variables to process
+dlist = ['xi_rho', 'eta_rho', 'xi_psi', 'eta_psi', 'ocean_time']
+vn_list_2d = [ 'lon_rho', 'lat_rho', 'lon_psi', 'lat_psi', 'mask_rho', 'h']
+if args.layer_name == 'zeta':
+    nlay = -1
+    vn_list_2d_t = ['zeta', 'Pair']
+    vn_list_3d_t = []
+    vn_list_2d_uv_t = []
+    vn_list_3d_uv_t = []
+    vn_list_2d_custom = []
+elif args.layer_name == 'bottom':
+    nlay = 0
+    vn_list_2d_t = ['zeta', 'Pair']
+    vn_list_3d_t = ['salt', 'temp']
+    vn_list_2d_uv_t = ['bustr', 'bvstr']
+    vn_list_3d_uv_t = ['u', 'v']
+    vn_list_2d_custom = ['zlay']
+else:
+    print('Unsupported list type')
+    sys.exit()
+    
 # make some things
-nlay = int(args.layer_number)
 fn = fn_list[0]
 G = zrfun.get_basic_info(fn, only_G=True)
 h = G['h']
@@ -89,15 +101,6 @@ zlay = zr[nlay, :, :].squeeze()
 
 ds1 = nc.Dataset(fn)
 ds2 = nc.Dataset(out_fn, 'w')
-
-# lists of variables to process
-dlist = ['xi_rho', 'eta_rho', 'xi_psi', 'eta_psi', 'ocean_time']
-vn_list_2d = [ 'lon_rho', 'lat_rho', 'lon_psi', 'lat_psi', 'mask_rho', 'h']
-vn_list_2d_t = []#['zeta']
-vn_list_3d_t = []#['salt', 'temp']#, 'NO3']
-vn_list_2d_uv_t = ['bustr', 'bvstr']
-vn_list_3d_uv_t = ['u', 'v']
-vn_list_2d_custom = ['zlay']
 
 # Create dimensions
 for dname, the_dim in ds1.dimensions.items():

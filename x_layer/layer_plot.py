@@ -19,23 +19,13 @@ import zfun
 
 
 Ldir = Lfun.Lstart()
-indir = Ldir['LOo'] + 'extract/'
+indir0 = Ldir['LOo'] + 'layer/'
 
-# choose the mooring extraction to plot
-print('\n%s\n' % '** Choose layer file to plot **')
-m_list_raw = os.listdir(indir)
-m_list_raw.sort()
-m_list = [m for m in m_list_raw if (('.nc' in m) and ('layer_' in m))]
-Npt = len(m_list)
-m_dict = dict(zip(range(Npt), m_list))
-for npt in range(Npt):
-    print(str(npt) + ': ' + m_list[npt])
-if True:
-    my_npt = int(input('-- Input number -- '))
-else:
-    my_npt = 0 # for testing
-moor_file = m_dict[my_npt]
-fn = indir + moor_file
+# choose the layer extraction to plot
+item = Lfun.choose_item(indir0)
+indir = indir0 + item + '/'
+infile = Lfun.choose_item(indir, tag='.nc')
+fn = indir + infile
 
 ds = nc.Dataset(fn)
 
@@ -48,7 +38,8 @@ xp = ds['lon_psi'][:]
 yp = ds['lat_psi'][:]
 ot = ds['ocean_time'][:]
 
-v_list = ['u','v', 'bustr', 'bvstr']
+#v_list = ['u','v', 'bustr', 'bvstr']
+v_list = ['zeta', 'Pair']
 
 F = dict() # field
 S = dict() # series
