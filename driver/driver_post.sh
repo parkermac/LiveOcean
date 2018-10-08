@@ -29,11 +29,12 @@ done < ../alpha/lo_info.csv
 # -0 start date: yyyymmdd
 # -1 end date: yyyymmdd
 #
-# example call to do backfill, with a cold start:
-# ./driver_roms2.sh -g cascadia1 -t base -x lobio5 -s new -r backfill -0 20140201 -1 20140203
+# example call to do backfill
+# NOTE: I don't think this will be called for backfill.  It is really
+# meant to be used in forecast mode, called by cron.
 #
 # example call to do forecast:
-# ./driver_roms2.sh -g cascadia1 -t base -x lobio5 -s continuation -r forecast
+# ./driver_post.sh -g cas4 -t v2 -x lo6biom -r forecast
 
 while [ "$1" != "" ]; do
   case $1 in
@@ -79,11 +80,8 @@ D1=$[10#$y1*10000 + 10#$m1*100 + 10#$d1]
 gtag=$gridname"_"$tag
 gtagex=$gtag"_"$ex_name
 
-# initialize control flags (is this really needed here?)
-keep_going=1 # 1 => keep going, 0 => stop the driver
-
 # start the main loop over days
-while [ $D -le $D1 ] && [ $keep_going -eq 1 ]
+while [ $D -le $D1 ]
 do
   echo "********** driver_post.sh *******************"
   
@@ -145,7 +143,6 @@ do
   # run post processing
   if [ $lo_env == "pm_mac" ] ; then # testing
     echo "TESTING"
-    keep_going=1
   elif [ $lo_env == "pm_boiler" ] && [ $all_files_here -eq 1 ]; then
     for frc in 'tracks_m' 'carbon'; do
       # echo "Would be working on "$frc
