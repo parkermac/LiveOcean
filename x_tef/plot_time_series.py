@@ -16,11 +16,17 @@ if alp not in sys.path:
     sys.path.append(alp)
 import Lfun
 import zfun
+Ldir = Lfun.Lstart()
 
 import tef_fun
 from importlib import reload
 reload(tef_fun)
 reload(zfun)
+
+pth = os.path.abspath(Ldir['LO'] + 'plotting')
+if pth not in sys.path:
+    sys.path.append(pth)
+import pfun
 
 # get the DataFrame of all sections
 sect_df = tef_fun.get_sect_df()
@@ -28,40 +34,22 @@ sect_df = tef_fun.get_sect_df()
 from warnings import filterwarnings
 filterwarnings('ignore') # skip some warning messages
 
-Ldir = Lfun.Lstart()
+indir0 = Ldir['LOo'] + 'tef/'
+# choose the tef extraction to plot
+item = Lfun.choose_item(indir0)
+indir = indir0 + item + '/'
 
-pth = os.path.abspath(Ldir['LO'] + 'plotting')
-if pth not in sys.path:
-    sys.path.append(pth)
-import pfun
-
-indir = Ldir['LOo'] + 'tef/'
-if False:
-    print('\nSelect an Extraction to plot:\n')
-    List = os.listdir(indir)
-    List.sort()
-    NL = len(List)
-    Ldict = dict(zip(range(NL), List))
-    for ii in range(NL):
-        print(str(ii) + ': ' + List[ii])
-    my_ii = int(input('-- Input number: '))
-    Litem = Ldict[my_ii]
-else:
-    Litem = 'cas4_v2_lo6biom_2017.01.01_2017.12.31'
-print('\nProcessing ' + Litem + '\n')
-Indir = indir + Litem + '/'
-
-LList_raw = os.listdir(indir + Litem)
+LList_raw = os.listdir(indir )
 LList_raw.sort()
 LList = [item for item in LList_raw if '.p' in item]
 
 if False: # plot all .p files
     save_fig = True
-    out_dir = Indir + 'plots/'
+    out_dir = indir + 'plots/'
     Lfun.make_dir(out_dir)
 else: # override
     save_fig = False
-    LList = [item for item in LList if 'sog2' in item]
+    LList = [item for item in LList if 'ai1' in item]
 
 plt.close('all')
 
@@ -70,7 +58,7 @@ for LL in LList:
     sect_name = LL.replace('.p','')
     print('\n** ' + sect_name + ' **')
 
-    fn = Indir + LL
+    fn = indir + LL
     
     Qi, Si, Fi, qnet_lp, fnet_lp, td = tef_fun.tef_integrals(fn)
 
@@ -159,7 +147,8 @@ for LL in LList:
     pfun.dar(ax)
     aa = [-125.5, -122, 46, 50.3]
     ax.axis(aa)
-
+    
+    fig.tight_layout()
 
     if save_fig:
         plt.savefig(out_dir + sect_name + '.png')

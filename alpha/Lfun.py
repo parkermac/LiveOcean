@@ -199,8 +199,10 @@ def choose_item(indir, tag='', itext='** Choose item from list **'):
     idict = dict(zip(range(Nitem), ilist))
     for ii in range(Nitem):
         print(str(ii) + ': ' + ilist[ii])
-    my_choice = int(input('-- Input number -- '))
-    my_item = idict[my_choice]
+    my_choice = input('-- Input number -- (return=0)')
+    if len(my_choice)==0:
+        my_choice = 0
+    my_item = idict[int(my_choice)]
     return my_item
 
 

@@ -77,6 +77,7 @@ if args.layer_name == 'zeta':
     nlay = -1
     vn_list_2d_t = ['zeta', 'Pair']
     vn_list_3d_t = []
+    vn_list_3d_t_custom = []
     vn_list_2d_uv_t = []
     vn_list_3d_uv_t = []
     vn_list_2d_custom = []
@@ -84,9 +85,21 @@ elif args.layer_name == 'bottom':
     nlay = 0
     vn_list_2d_t = ['zeta', 'Pair']
     vn_list_3d_t = ['salt', 'temp']
+    vn_list_3d_t_custom = []
     vn_list_2d_uv_t = ['bustr', 'bvstr']
     vn_list_3d_uv_t = ['u', 'v']
     vn_list_2d_custom = ['zlay']
+elif args.layer_name == 'svar':
+    # a custom extraction of vertically integrated "mixing" in the
+    # sense of destruction of salinity variance
+    nlay = -1
+    vn_list_2d_t = []
+    vn_list_3d_t = []
+    vn_list_3d_t_custom = ['mix']
+    vn_list_2d_uv_t = []
+    vn_list_3d_uv_t = []
+    vn_list_2d_custom = ['DA']
+
 else:
     print('Unsupported list type')
     sys.exit()
@@ -94,6 +107,8 @@ else:
 # make some things
 fn = fn_list[0]
 G = zrfun.get_basic_info(fn, only_G=True)
+DA = G['DX'] * G['DY']
+ny, nx = DA.shape
 h = G['h']
 S = zrfun.get_basic_info(fn, only_S=True)
 zr = zrfun.get_z(h, 0*h, S, only_rho=True)
@@ -127,6 +142,11 @@ for vn in vn_list_2d_custom:
         vv.long_name = 'Layer Z position'
         vv.units = 'm'
         vv[:] = zlay
+    elif vn == 'DA':
+        vv = ds2.createVariable(vn, float, ('eta_rho', 'xi_rho'))
+        vv.long_name = 'Cell horizontal area'
+        vv.units = 'm2'
+        vv[:] = DA
 #
 # for time-dependent fields we create variables here and write them later
 # - then time-dependent 2d fields
@@ -146,6 +166,13 @@ for vn in vn_list_3d_t:
     except AttributeError:
         pass # salt has no units
     vv.time = varin.time
+# - then time-dependent custom 3d fields
+for vn in vn_list_3d_t_custom:
+    if vn == 'mix':
+        vv = ds2.createVariable(vn, float, ('ocean_time', 'eta_rho', 'xi_rho'))
+        vv.long_name = 'Vertically Integrated Mixing'
+        vv.units = 'W m-2'
+        vv.time='ocean_time' # is this right?
 # - then time-dependent 2d fields interpolated from uv grids
 for vn in vn_list_2d_uv_t:
     varin = ds1[vn]
@@ -180,6 +207,22 @@ for fn in fn_list:
 
     for vn in vn_list_3d_t:
         ds2[vn][tt,:,:] = ds[vn][0, nlay, :, :].squeeze()
+        
+    for vn in vn_list_3d_t_custom:
+        if vn == 'mix':
+            zeta = ds['zeta'][0, :, :].squeeze()
+            salt = ds['salt'][0, :, :, :].squeeze()
+            zr, zw = zrfun.get_z(h, zeta, S)
+            dzr = np.diff(zw, axis=0)
+            # calculate net destruction of variance by vertical mixing
+            K = ds['AKs'][0, 1:-1, :, :].squeeze()
+            dzw = np.diff(zr, axis=0)
+            dsdz = np.diff(salt, axis=0) / dzw
+            mix = 2 * K * dsdz**2
+            #dvw = DA.reshape((1,ny,nx))*dzw
+            Mix = np.sum(mix * dzw, axis=0)
+            Mix = np.ma.masked_where(G['mask_rho']==0, Mix)
+            ds2[vn][tt,:,:] = Mix
         
     if ('sustr' in vn_list_2d_uv_t) and ('svstr' in vn_list_2d_uv_t):
         sustr0 = ds['sustr'][0, :, :].squeeze()

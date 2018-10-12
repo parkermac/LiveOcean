@@ -17,48 +17,33 @@ if alp not in sys.path:
     sys.path.append(alp)
 import Lfun
 import zfun
+Ldir = Lfun.Lstart()
 
 import tef_fun
 from importlib import reload
 reload(tef_fun)
-
-# get the DataFrame of all sections
-sect_df = tef_fun.get_sect_df()
-
-from warnings import filterwarnings
-filterwarnings('ignore') # skip some warning messages
-
-Ldir = Lfun.Lstart()
 
 pth = os.path.abspath(Ldir['LO'] + 'plotting')
 if pth not in sys.path:
     sys.path.append(pth)
 import pfun
 
-indir = Ldir['LOo'] + 'tef/'
-if False:
-    print('\nSelect an Extraction to plot:\n')
-    List = os.listdir(indir)
-    List.sort()
-    NL = len(List)
-    Ldict = dict(zip(range(NL), List))
-    for ii in range(NL):
-        print(str(ii) + ': ' + List[ii])
-    my_ii = int(input('-- Input number: '))
-    Litem = Ldict[my_ii]
-else:
-    #Litem = 'cas4_v2_lo6biom_2017.01.01_2017.12.31'
-    Litem = 'cascadia1_base_lobio5_2013.01.01_2013.12.31'
-print('\nProcessing ' + Litem + '\n')
-Indir = indir + Litem + '/'
+# get the DataFrame of all sections
+sect_df = tef_fun.get_sect_df()
 
-# USER set which section to look at
-sect_name = 'shelf_45'
+indir0 = Ldir['LOo'] + 'tef/'
+# choose the tef extraction to plot
+item = Lfun.choose_item(indir0)
+indir = indir0 + item + '/'
+item = Lfun.choose_item(indir, tag='.nc')
+fn = indir + item
+
+sect_name = item.replace('.nc','')
 
 # set plotting parameters
 if False:
     save_fig = True
-    out_dir = Indir + 'plots/'
+    out_dir = indir + 'plots/'
     Lfun.make_dir(out_dir)
 else:
     save_fig = False
@@ -84,7 +69,6 @@ def plotit(ax, aa, sect_df, sn):
         ax.plot([x0,x1], [y0,y1], '-b', linewidth=3, alpha=.5)
         ax.text(xx, yy, sn, fontsize=12, color='r', fontweight='bold')
     
-fn = Indir + sect_name + '.nc'
 ds = nc.Dataset(fn)
 z0 = ds['z0'][:]
 da0 = ds['DA0'][:]
@@ -115,46 +99,30 @@ elif (x0!=x1) and (y0==y1):
 # time variable fields
 q = ds['q'][:]
 salt = ds['salt'][:]
-oxygen = ds['oxygen'][:]
 
 # form time means
-# qq = q.mean(axis=0)
-# ss = salt.mean(axis=0)
-# ox = oxygen.mean(axis=0)
-
-nday = 5
-nfilt = nday*24
-qq = zfun.filt_hanning_mat(q, n=nfilt)
-ss = zfun.filt_hanning_mat(salt, n=nfilt)
-ox = zfun.filt_hanning_mat(oxygen, n=nfilt)
-# subsample
-qq = qq[::nfilt, :, :]
-ss = ss[::nfilt, :, :]
-ox = ox[::nfilt, :, :]
+qq = q.mean(axis=0)
+ss = salt.mean(axis=0)
 
 ax = fig.add_subplot(221)
-cs = ax.pcolormesh(xsect, z0, qq[5,:,:]/da0, vmin=-.1, vmax=.1, cmap='bwr')
+cs = ax.pcolormesh(xsect, z0, qq/da0, vmin=-.1, vmax=.1, cmap='bwr')
 fig.colorbar(cs)
 ax.text(0.05, 0.1, 'Positive is ' + dir_str, transform=ax.transAxes)
 ax.set_title('Mean Velocity (m/s)')
 
-ax = fig.add_subplot(222)
-cs = ax.pcolormesh(xsect, z0, ss[5,:,:], cmap='jet')
+ax = fig.add_subplot(223)
+cs = ax.pcolormesh(xsect, z0, ss, cmap='jet')
 fig.colorbar(cs)
 ax.set_title('Mean Salinity')
 
-ax = fig.add_subplot(223)
-cs = ax.pcolormesh(xsect, z0, ox[5,:,:], cmap='rainbow')
-fig.colorbar(cs)
-ax.set_title('Mean oxygen')
-
 # add section location map
-ax = fig.add_subplot(224)
+ax = fig.add_subplot(122)
 plotit(ax, aa, sect_df, sect_name)
-
 
 if save_fig:
     plt.savefig(out_dir + sect_name + '.png')
     plt.close()
 else:
     plt.show()
+    
+

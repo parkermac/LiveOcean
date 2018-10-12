@@ -186,15 +186,8 @@ def P_basic_salish(in_dict):
         if ii == 1:
             ax.set_ylabel('Latitude')
             pfun.add_info(ax, in_dict['fn'])
-            #def add_windstress_flower(ax, ds, t_scl=0.2, t_leglen=0.1, center=(.85,.25)):
-                # ADD MEAN WINDSTRESS VECTOR
-                # t_scl: scale windstress vector (smaller to get longer arrows)
-                # t_leglen: # Pa for wind stress vector legend
             pfun.add_windstress_flower(ax, ds, t_scl=.6, t_leglen=0.1, center=(.25, .3))
         elif ii == 2:
-            #add_velocity_vectors(ax, ds, fn, v_scl=3, v_leglen=0.5, nngrid=80, zlev='top', center=(.7,.05)):
-                # v_scl: scale velocity vector (smaller to get longer arrows)
-                # v_leglen: m/s for velocity vector legend
             pfun.add_velocity_vectors(ax, ds, in_dict['fn'], v_scl=10, v_leglen=1.5, center=(.1, .1))
         ii += 1
     fig.tight_layout()

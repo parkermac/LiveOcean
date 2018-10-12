@@ -22,36 +22,25 @@ import zfun
 
 Ldir = Lfun.Lstart()
 
-indir = Ldir['LOo'] + 'tef/'
-if True:
-    print('\nSelect an Extraction to plot:\n')
-    List = os.listdir(indir)
-    List.sort()
-    NL = len(List)
-    Ldict = dict(zip(range(NL), List))
-    for ii in range(NL):
-        print(str(ii) + ': ' + List[ii])
-    my_ii = int(input('-- Input number: '))
-    Litem = Ldict[my_ii]
-else:
-    Litem = 'cas4_v2_lo6biom_2017.01.01_2017.12.31'
-print('\nProcessing ' + Litem + '\n')
-Indir = indir + Litem + '/'
+indir0 = Ldir['LOo'] + 'tef/'
+# choose the tef extraction to process
+item = Lfun.choose_item(indir0)
+indir = indir0 + item + '/'
 
-LList_raw = os.listdir(indir + Litem)
+LList_raw = os.listdir(indir)
 LList_raw.sort()
 
-if False: # process all .nc files
+if True: # process all .nc files
     LList = [item for item in LList_raw if ('.nc' in item)]
 else: # override
-    LList = ['sog2.nc', 'sog3.nc']
+    LList = ['ai1.nc']
 
 for tef_file in LList:
     print(tef_file)
-    fn = Indir + tef_file
+    fn = indir + tef_file
 
     # name output file
-    out_fn = Indir + tef_file.replace('.nc','.p')
+    out_fn = indir + tef_file.replace('.nc','.p')
     # get rid of the old version, if it exists
     try:
         os.remove(out_fn)
@@ -94,11 +83,20 @@ for tef_file in LList:
             print('  time %d out of %d' % (tt,NT))
             sys.stdout.flush()
         si = s[tt,:,:].squeeze()
-        sf = si[si.mask==False] # flattens the array
+        try:
+            sf = si[si.mask==False] # flattens the array
+        except AttributeError:
+            sf = si.flatten()
         qi = q[tt,:,:].squeeze()
-        qf = qi[qi.mask==False]
+        try:
+            qf = qi[qi.mask==False] # flattens the array
+        except AttributeError:
+            qf = qi.flatten()
         qsi = qs[tt,:,:].squeeze()
-        qsf = qsi[qsi.mask==False]
+        try:
+            qsf = qsi[qsi.mask==False] # flattens the array
+        except AttributeError:
+            qsf = qsi.flatten()
         # sort into salinity bins
         inds = np.digitize(sf, sedges, right=True)
         inds[inds>NS] = NS # catching an addo Willaa error
