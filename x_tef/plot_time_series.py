@@ -41,7 +41,7 @@ indir = indir0 + item + '/'
 
 LList_raw = os.listdir(indir )
 LList_raw.sort()
-LList = [item for item in LList_raw if '.p' in item]
+LList = [item for item in LList_raw if ('.p' in item) and ('ThalMean' not in item)]
 
 if False: # plot all .p files
     save_fig = True
@@ -49,7 +49,7 @@ if False: # plot all .p files
     Lfun.make_dir(out_dir)
 else: # override
     save_fig = False
-    LList = [item for item in LList if 'ai1' in item]
+    LList = [item for item in LList if 'jdf1' in item]
 
 plt.close('all')
 

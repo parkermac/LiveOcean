@@ -35,19 +35,6 @@ def interp_scattered_on_plaid(x, y, xvec, yvec, u, exnan=True):
     """
     Gets values of the field u at locations (x,y).
 
-    NOTE: this can also be used to interpolate to a plaid grid.
-    Just reshape the output to be the shape of the input grids.
-    Appears to be super fast.
-    
-    Example:
-    lon and lat are vectors that define the plaid grid that
-        matrix v is defined on
-    v = b['ssh']
-    x = G['lon_rho'] # matrix
-    y = G['lat_rho'] # matrix
-    vv = zfun.interp_scattered_on_plaid(x, y, lon, lat, v)
-    vv = np.reshape(vv, x.shape)
-
     All inputs and outputs are numpy arrays.
 
     Field u is defined on a plaid grid defined by vectors xvec and yvec.
@@ -221,7 +208,7 @@ def filt_hanning(data, n=40):
         smooth[-npad:] = np.nan
     return smooth
     
-def filt_hanning_mat(data, axis=0, n=40):
+def filt_hanning_mat(data, n=40):
     """
     Input: ND numpy array, with time on axis 0.
     Output: Array of the same size, filtered with Hanning window of length n,
@@ -230,32 +217,13 @@ def filt_hanning_mat(data, axis=0, n=40):
     filt = hanning_shape(n=n)
     filt = filt / filt.sum()
     n = np.ceil(len(filt)/2).astype(int)
-
-    #smooth = np.nan * np.ones_like(data)
-    
-    #ndim = data.ndim
     sh = data.shape
-    
-    
-    # if axis == 1:
-    #     data = data.T
-        
     df = data.flatten('F')
     dfs = np.convolve(df, filt, mode = 'same')
     smooth = dfs.reshape(sh, order='F')
-    
-    # NR, NC = data.shape
-    # ii = 0
-    # while ii < NC:
-    #     cc = data[:,ii]
-    #     smooth[:,ii] = np.convolve(cc, filt, mode = 'same')
-    #     ii += 1
     smooth[:n,:] = np.nan
     smooth[-n:,:] = np.nan
-    # if axis == 1:
-    #     smooth = smooth.T
     return smooth
-    
 
 def filt_godin(data):
     """
@@ -271,29 +239,21 @@ def filt_godin(data):
     smooth[-n:] = np.nan
     return smooth
 
-def filt_godin_mat(data, axis=0):
+def filt_godin_mat(data):
     """
-    Input: 2D numpy array of HOURLY values, with time on axis 0, meaning
-        each column is a time series, unless you pass it axis=1.
+    Input: ND numpy array of HOURLY, with time on axis 0.
     Output: Array of the same size, filtered with 24-24-25 Godin filter,
         padded with nan's
     """
-    smooth = np.nan * np.ones_like(data)
-    if axis == 1:
-        data = data.T
     filt = godin_shape()
     filt = filt / filt.sum()
     n = np.ceil(len(filt)/2).astype(int)
-    NR, NC = data.shape
-    ii = 0
-    while ii < NC:
-        cc = data[:,ii]
-        smooth[:,ii] = np.convolve(cc, filt, mode = 'same')
-        ii += 1
+    sh = data.shape
+    df = data.flatten('F')
+    dfs = np.convolve(df, filt, mode = 'same')
+    smooth = dfs.reshape(sh, order='F')
     smooth[:n,:] = np.nan
     smooth[-n:,:] = np.nan
-    if axis == 1:
-        smooth = smooth.T
     return smooth
     
 def godin_shape():
