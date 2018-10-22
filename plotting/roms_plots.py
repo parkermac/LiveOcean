@@ -20,22 +20,20 @@ import Lfun
 Ldir = Lfun.Lstart()
 if Ldir['lo_env'] == 'pm_mac': # mac version
     pass
-else: # fjord version
+else: # fjord/boiler version
     import matplotlib as mpl
     mpl.use('Agg')
-    
+import zfun
+import zrfun
+from importlib import reload
+import pfun; reload(pfun)
+import pinfo; reload(pinfo)
+
 import numpy as np
 import netCDF4 as nc
 import matplotlib.pyplot as plt
 import pickle
 from datetime import datetime, timedelta
-    
-import zfun
-import zrfun
-
-from importlib import reload
-import pfun; reload(pfun)
-import pinfo; reload(pinfo)
 
 def P_basic(in_dict):
 
@@ -65,6 +63,76 @@ def P_basic(in_dict):
             pfun.add_windstress_flower(ax, ds)
         elif ii == 2:
             pfun.add_velocity_vectors(ax, ds, in_dict['fn'])
+        ii += 1
+    fig.tight_layout()
+    
+    # FINISH
+    ds.close()
+    if len(in_dict['fn_out']) > 0:
+        plt.savefig(in_dict['fn_out'])
+        plt.close()
+    else:
+        plt.show()
+        
+def P_color(in_dict):
+    # Code to explore cool color maps
+
+    # START
+    fig = plt.figure(figsize=(12,8)) # or pinfo.figsize for default
+    ds = nc.Dataset(in_dict['fn'])
+    
+    # ** make a mask to isolate field for chosing color limits
+    G = zrfun.get_basic_info(in_dict['fn'], only_G=True)
+    x0 = -123.5; x1 = -122
+    y0 = 47; y1 = 48.5
+    x = G['lon_rho']; y = G['lat_rho']
+    m = G['mask_rho'] # 1 on water
+    m[x<x0] = 0; m[x>x1] = 0
+    m[y<y0] = 0; m[y>y1] = 0
+    # override colormaps
+    pinfo.cmap_dict['salt'] = 'Spectral_r'
+    pinfo.cmap_dict['temp'] = 'coolwarm'
+    # **
+
+    # PLOT CODE
+    vn_list = ['salt', 'temp']
+    ii = 1
+    for vn in vn_list:
+        
+        # ** set custom color limits
+        fld = ds[vn][0,-1,:,:].squeeze()
+        fldm = fld[m==1]
+        if vn == 'salt':
+            ffac=1
+        elif vn == 'temp':
+            ffac=2.5
+        flo = np.max([np.mean(fldm) - ffac*np.std(fldm), np.min(fldm)])
+        fhi = np.min([np.mean(fldm) + ffac*np.std(fldm), np.max(fldm)])
+        pinfo.vlims_dict[vn] = (flo, fhi)
+        # **
+        
+        ax = fig.add_subplot(1, len(vn_list), ii)
+        cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict,
+                cmap=pinfo.cmap_dict[vn], fac=pinfo.fac_dict[vn])
+                
+        # Inset colorbar
+        from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+        cbaxes = inset_axes(ax, width="4%", height="40%", loc=6) 
+        fig.colorbar(cs, cax=cbaxes, orientation='vertical')
+        
+        #pfun.add_bathy_contours(ax, ds, txt=True)
+        pfun.add_coast(ax)
+        ax.axis([x0, x1, y0, y1])
+        pfun.dar(ax)
+        ax.set_title('Surface %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
+        ax.set_xlabel('Longitude')
+        if ii == 1:
+            ax.set_ylabel('Latitude')
+            pfun.add_info(ax, in_dict['fn'])
+            #pfun.add_windstress_flower(ax, ds)
+        elif ii == 2:
+            ax.set_yticklabels('')
+            #pfun.add_velocity_vectors(ax, ds, in_dict['fn'])
         ii += 1
     fig.tight_layout()
     
@@ -477,7 +545,6 @@ def P_bio(in_dict):
     else:
         plt.show()
 
-
 def P_layer(in_dict):
 
     # START
@@ -677,7 +744,6 @@ def P_sect2(in_dict):
     # PLOTTING
     vn_list = ['NO3', 'phytoplankton']
     # override colors
-    in_dict['auto_vlims'] = False
     pinfo.vlims_dict['NO3'] = (0,40)
     pinfo.vlims_dict['phytoplankton'] = (0,20)
     counter = 0
@@ -1249,7 +1315,7 @@ def P_tracks_MERHAB(in_dict):
         plt.close()
     else:
         plt.show()
-        
+
 def P_tracks_full(in_dict):
     # Use trackfun_1 to create surface drifter tracks for a full-domain plot.
     # It automatically makes tracks for as long as there are
@@ -1299,8 +1365,6 @@ def P_tracks_full(in_dict):
 
     if len(fn_list) == 2:
         # only do the tracking at the start
-    
-        # standard MERHAB version
         nyp = 40
         x0 = -127.1
         x1 = -122
@@ -1412,3 +1476,182 @@ def P_tracks_full(in_dict):
         plt.close()
     else:
         plt.show()
+
+def P_tracks_ps(in_dict):
+    # Use trackfun_1 to create surface drifter tracks for Puget Sound.
+    # It automatically makes tracks for as long as there are
+    # hours in the folder.
+    
+    # START
+    fig = plt.figure(figsize=(10,12))
+
+    # TRACKS
+    import os
+    import sys
+    pth = os.path.abspath('../tracker')
+    if pth not in sys.path:
+        sys.path.append(pth)
+    import trackfun_1 as tf1
+    import pickle
+    fn = in_dict['fn']
+    gtagex = fn.split('/')[-3]
+    gtx_list = gtagex.split('_')
+    import Lfun
+    Ldir = Lfun.Lstart(gtx_list[0], gtx_list[1])
+    # make a list of history files in this folder,
+    in_dir = fn[:fn.rindex('/')+1]
+    fn_list_raw = os.listdir(in_dir)
+    fn_list = []
+    for item in fn_list_raw:
+        if 'ocean_his' in item:
+            fn_list.append(in_dir + item)
+    fn_list.sort()
+    # save the full list to use with the tracking code 
+    fn_list_full = fn_list.copy()
+    # then trim fn_list to end at the selected hour for this plot
+    fn_list = fn_list[:fn_list.index(fn)+1]
+    
+    # and use the CURRENT file for the map field overlay
+    ds = nc.Dataset(in_dict['fn'])
+
+    # ** make a mask to isolate field for chosing color limits
+    G, S, T = zrfun.get_basic_info(in_dict['fn'])
+    T0 = zrfun.get_basic_info(fn_list[0], only_T=True)
+    x0 = -123.5; x1 = -122
+    y0 = 47; y1 = 48.5
+    x = G['lon_rho']; y = G['lat_rho']
+    m = G['mask_rho'] # 1 on water
+    m[x<x0] = 0; m[x>x1] = 0
+    m[y<y0] = 0; m[y>y1] = 0
+    # override colormaps
+    pinfo.cmap_dict['salt'] = 'Spectral_r'
+    pinfo.cmap_dict['temp'] = 'coolwarm'
+    # **
+    vn = 'salt'
+    
+    if len(fn_list) == 2:
+        # only do the tracking at the start
+        
+        # ** set custom color limits
+        fld = ds[vn][0,-1,:,:].squeeze()
+        fldm = fld[m==1]
+        if vn == 'salt':
+            ffac=1
+        elif vn == 'temp':
+            ffac=2.5
+        flo = np.max([np.mean(fldm) - ffac*np.std(fldm), np.min(fldm)])
+        fhi = np.min([np.mean(fldm) + ffac*np.std(fldm), np.max(fldm)])
+        pinfo.vlims_dict[vn] = (flo, fhi)
+        # **
+        
+        # Specific release locations
+        rloc_dict = {'Seattle': (-122.36, 47.6),
+                    'Tacoma': (-122.44, 47.285)}
+        count = 0
+        rnp = 1000
+        for rloc in rloc_dict:
+            rx = rloc_dict[rloc][0]
+            ry = rloc_dict[rloc][1]
+            #print('%s %0.3f %0.3f' % (rloc, rx, ry))
+            px00 = rx + 0.01*np.random.randn(rnp)
+            py00 = ry + 0.01*np.random.randn(rnp)
+            if count == 0:
+                plon00 = px00.copy()
+                plat00 = py00.copy()
+            else:
+                plon00 = np.concatenate((plon00, px00.copy()))
+                plat00 = np.concatenate((plat00, py00.copy()))
+            count += 1
+        #
+        pcs00 = np.array([-.05])
+        # make the full IC vectors, which will have equal length
+        # (one value for each particle)
+        NSP = len(pcs00)
+        NXYP = len(plon00)
+        plon0 = plon00.reshape(NXYP,1) * np.ones((NXYP,NSP))
+        plat0 = plat00.reshape(NXYP,1) * np.ones((NXYP,NSP))
+        pcs0 = np.ones((NXYP,NSP)) * pcs00.reshape(1,NSP)
+        plon0 = plon0.flatten()
+        plat0 = plat0.flatten()
+        pcs0 = pcs0.flatten()
+        # DO THE TRACKING
+        import time
+        tt0 = time.time()
+        # NOTE: we use at least ndiv=12 to get advection right in places
+        # like Tacoma Narrows.
+        TR = {'3d': False, 'rev': False, 'turb': False,
+            'ndiv': 12, 'windage': 0}
+        P = tf1.get_tracks(fn_list_full, plon0, plat0, pcs0, TR,
+                           trim_loc=True)
+        print('  took %0.1f seconds' % (time.time() - tt0))
+        # and store the output
+        fo = in_dict['fn_out']
+        out_dir = fo[:fo.rindex('/')+1]
+        out_fn = out_dir + 'tracks.p'
+        pickle.dump(P, open(out_fn, 'wb'))
+    else:
+        # load the output on all subsequent days
+        fo = in_dict['fn_out']
+        out_dir = fo[:fo.rindex('/')+1]
+        out_fn = out_dir + 'tracks.p'
+        P = pickle.load(open(out_fn, 'rb'))
+
+    # PLOT CODE
+
+    # panel 1
+    ax = fig.add_subplot(111)
+    cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict,
+            cmap=pinfo.cmap_dict[vn], fac=pinfo.fac_dict[vn],
+            alpha=1)
+    # Inset colorbar
+    from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+    cbaxes = inset_axes(ax, width="4%", height="40%", loc=6) 
+    fig.colorbar(cs, cax=cbaxes, orientation='vertical')
+    #fig.colorbar(cs)
+    pfun.add_coast(ax)
+    ax.axis([x0, x1, y0, y1])
+    pfun.dar(ax)
+    fs1 = 14
+    ax.set_xlabel('Longitude', fontsize=fs1)
+    ax.set_ylabel('Latitude', fontsize=fs1)
+    nhour = 3
+    tstr = 'Surface ' + pinfo.tstr_dict[vn] +' and ' + str(nhour) + ' hour Tracks'
+    ax.set_title(tstr, fontsize=fs1)
+    # add info
+    fs = fs1 - 2
+    ax.text(.98, .10, T0['tm'].strftime('%Y-%m-%d %H:%M'),
+        horizontalalignment='right' , verticalalignment='bottom',
+        transform=ax.transAxes, fontsize=fs)
+    ax.text(.98, .07, 'to ' + T['tm'].strftime('%Y-%m-%d %H:%M'),
+        horizontalalignment='right', verticalalignment='bottom',
+        transform=ax.transAxes, fontsize=fs)
+    ax.text(.98, .04, 'UTC',
+        horizontalalignment='right', verticalalignment='bottom',
+        transform=ax.transAxes, fontsize=fs)
+    ax.text(.06, .04, fn.split('/')[-3],
+        verticalalignment='bottom', transform=ax.transAxes,
+        rotation='vertical', fontsize=fs)
+    # add the tracks
+    t_lw = .5
+    c_end = 'k'; s_end = 3
+    ntt = len(fn_list) -1
+    ntt0 = ntt-nhour
+    if ntt0<0:
+        ntt0 = 0
+    ax.plot(P['lon'][ntt0:ntt,:], P['lat'][ntt0:ntt,:], '-k', linewidth=t_lw)
+    ax.plot(P['lon'][ntt,:],P['lat'][ntt,:],'o'+c_end,
+            markersize=s_end, alpha = 1, markeredgecolor='k')
+    #
+    fig.tight_layout()
+
+    # FINISH
+    ds.close()
+    if len(in_dict['fn_out']) > 0:
+        plt.savefig(in_dict['fn_out'])
+        plt.close()
+    else:
+        plt.show()
+
+
+
+
