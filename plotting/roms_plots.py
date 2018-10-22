@@ -457,6 +457,49 @@ def P_pH_Arag(in_dict):
         plt.close()
     else:
         plt.show()
+        
+def P_willapa_oa(in_dict):
+
+    # START
+    fig = plt.figure(figsize=(12,9))
+    ds = nc.Dataset(in_dict['fn'])
+    
+    # ** override colormaps and limits
+    pinfo.vlims_dict['PH'] = (7, 8.5)
+    pinfo.cmap_dict['PH'] = 'Spectral'
+    pinfo.vlims_dict['ARAG'] = (0,3)
+    pinfo.cmap_dict['ARAG'] = 'coolwarm_r'
+    # **
+
+    # PLOT CODE
+    aa = [-124.4, -123.6, 46, 47.2]
+    vn_list = ['PH', 'ARAG']
+    ii = 1
+    for vn in vn_list:
+        ax = fig.add_subplot(1, len(vn_list), ii)
+        cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict, slev=0,
+                cmap=pinfo.cmap_dict[vn], fac=pinfo.fac_dict[vn])
+        fig.colorbar(cs)
+        pfun.add_coast(ax)
+        ax.axis(aa)
+        pfun.dar(ax)
+        ax.set_title('Bottom %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
+        ax.set_xlabel('Longitude')
+        if ii == 1:
+            ax.set_ylabel('Latitude')
+            pfun.add_info(ax, in_dict['fn'])
+        elif ii == 2:
+            ax.set_yticklabels('')
+        ii += 1
+    fig.tight_layout()
+        
+    # FINISH
+    ds.close()
+    if len(in_dict['fn_out']) > 0:
+        plt.savefig(in_dict['fn_out'])
+        plt.close()
+    else:
+        plt.show()
 
 def P_Carbon(in_dict):
 
