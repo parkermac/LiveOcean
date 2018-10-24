@@ -144,7 +144,7 @@ do
   if [ $lo_env == "pm_mac" ] ; then # testing
     echo "TESTING"
   elif [ $lo_env == "pm_boiler" ] && [ $all_files_here -eq 1 ]; then
-    for frc in 'tracks_m' 'carbon'; do
+    for frc in 'tracks_m' 'carbon' 'active_forecast'; do
       # echo "Would be working on "$frc
       ./driver_forcing2.sh -g $gridname -t $tag -x $ex_name -f $frc -r $run_type > $LO"driver/dlog_"$frc &
       # Check that the job has finished successfully.

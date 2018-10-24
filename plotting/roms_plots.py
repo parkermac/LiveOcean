@@ -1624,7 +1624,7 @@ def P_tracks_ps(in_dict):
         # NOTE: we use at least ndiv=12 to get advection right in places
         # like Tacoma Narrows.
         TR = {'3d': False, 'rev': False, 'turb': False,
-            'ndiv': 1, 'windage': 0}
+            'ndiv': 12, 'windage': 0}
         P = tf1.get_tracks(fn_list_full, plon0, plat0, pcs0, TR,
                            trim_loc=True)
         print('  took %0.1f seconds' % (time.time() - tt0))
