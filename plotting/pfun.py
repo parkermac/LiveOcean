@@ -21,6 +21,8 @@ import zrfun
 import zfun
 
 import numpy as np
+from datetime import datetime
+import pytz
 
 if Ldir['lo_env'] == 'pm_mac': # mac version
     pass
@@ -258,15 +260,28 @@ def add_windstress_flower(ax, ds, t_scl=0.2, t_leglen=0.1, center=(.85,.25)):
 def add_info(ax, fn, fs=12):
     # put info on plot
     T = zrfun.get_basic_info(fn, only_T=True)
-    ax.text(.95, .075, T['tm'].strftime('%Y-%m-%d'),
+    dt_local = get_dt_local(T['tm'])
+    # tz_utc = pytz.timezone('UTC')
+    # tz_local = pytz.timezone('US/Pacific')
+    # dt = T['tm']
+    # dt_utc = dt.replace(tzinfo=tz_utc)
+    # dt_local = dt_utc.astimezone(tz_local)
+    ax.text(.95, .075, dt_local.strftime('%Y-%m-%d'),
         horizontalalignment='right' , verticalalignment='bottom',
         transform=ax.transAxes, fontsize=fs)
-    ax.text(.95, .065, T['tm'].strftime('%H:%M') + ' UTC',
+    ax.text(.95, .065, dt_local.strftime('%H:%M') + ' ' + dt_local.tzname(),
         horizontalalignment='right', verticalalignment='top',
         transform=ax.transAxes, fontsize=fs)
     ax.text(.06, .04, fn.split('/')[-3],
         verticalalignment='bottom', transform=ax.transAxes,
         rotation='vertical', fontsize=fs)
+        
+def get_dt_local(dt, tzl='US/Pacific'):
+    tz_utc = pytz.timezone('UTC')
+    tz_local = pytz.timezone(tzl)
+    dt_utc = dt.replace(tzinfo=tz_utc)
+    dt_local = dt_utc.astimezone(tz_local)
+    return dt_local
 
 def get_aa(ds):
     x = ds['lon_psi'][0,:]

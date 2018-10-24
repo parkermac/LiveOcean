@@ -22,8 +22,8 @@ vlims_dict = {'salt': (14, 35),
         'Ldetritus': ()}
 
 # Colormaps (use _r for reverse)
-cmap_dict = {'salt': 'rainbow',
-             'temp': 'jet',
+cmap_dict = {'salt': 'Spectral_r',#'rainbow',
+             'temp': 'bwr',#run 'jet',
              'NO3': 'jet',
              'phytoplankton': 'jet',
              'zooplankton': 'jet',

@@ -38,7 +38,7 @@ from datetime import datetime, timedelta
 def P_basic(in_dict):
 
     # START
-    fig = plt.figure(figsize=(16,12)) # or pinfo.figsize for default
+    fig = plt.figure(figsize=pinfo.figsize) # (16,12) or pinfo.figsize for default
     ds = nc.Dataset(in_dict['fn'])
 
     # PLOT CODE
@@ -63,6 +63,7 @@ def P_basic(in_dict):
             pfun.add_windstress_flower(ax, ds)
         elif ii == 2:
             pfun.add_velocity_vectors(ax, ds, in_dict['fn'])
+            #pfun.add_velocity_streams(ax, ds, in_dict['fn'])
         ii += 1
     fig.tight_layout()
     
@@ -1623,7 +1624,7 @@ def P_tracks_ps(in_dict):
         # NOTE: we use at least ndiv=12 to get advection right in places
         # like Tacoma Narrows.
         TR = {'3d': False, 'rev': False, 'turb': False,
-            'ndiv': 12, 'windage': 0}
+            'ndiv': 1, 'windage': 0}
         P = tf1.get_tracks(fn_list_full, plon0, plat0, pcs0, TR,
                            trim_loc=True)
         print('  took %0.1f seconds' % (time.time() - tt0))
@@ -1662,13 +1663,15 @@ def P_tracks_ps(in_dict):
     ax.set_title(tstr, fontsize=fs1)
     # add info
     fs = fs1 - 2
-    ax.text(.98, .10, T0['tm'].strftime('%Y-%m-%d %H:%M'),
+    dt0_local = pfun.get_dt_local(T0['tm'])
+    dt_local = pfun.get_dt_local(T['tm'])
+    ax.text(.98, .10, dt0_local.strftime('%Y-%m-%d %H:%M'),
         horizontalalignment='right' , verticalalignment='bottom',
         transform=ax.transAxes, fontsize=fs)
-    ax.text(.98, .07, 'to ' + T['tm'].strftime('%Y-%m-%d %H:%M'),
+    ax.text(.98, .07, 'to ' + dt_local.strftime('%Y-%m-%d %H:%M'),
         horizontalalignment='right', verticalalignment='bottom',
         transform=ax.transAxes, fontsize=fs)
-    ax.text(.98, .04, 'UTC',
+    ax.text(.98, .04, dt_local.tzname(),
         horizontalalignment='right', verticalalignment='bottom',
         transform=ax.transAxes, fontsize=fs)
     ax.text(.06, .04, fn.split('/')[-3],
