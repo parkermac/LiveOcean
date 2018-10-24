@@ -78,7 +78,7 @@ for P_name in P_list:
     # for some reason the ffmpeg output ends up in stderr
     print(proc.stderr.decode())
     
-    if P_name = 'P_3day':
+    if P_name == 'P_3day':
         fn = Ldir['LOo'] + 'plots/' + lt + '_' + P_name + '_' + Ldir['gtagex'] + '/plot_0000.png'
         out_fn = P_name + '.png'
     else:
