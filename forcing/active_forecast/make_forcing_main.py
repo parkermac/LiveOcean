@@ -53,16 +53,23 @@ def write_to_azure(out_fn, blob_service, containername, out_name):
 print(' - Creating wesite images for ' + Ldir['date_string'])
 os.chdir(Ldir['LO'] + 'plotting/')
 
-P_list = ['P_willapa_oa', 'P_tracks_ps']
+P_list = ['P_3day', 'P_willapa_oa', 'P_tracks_ps']
 for P_name in P_list:
+    
     if P_name == 'P_tracks_ps':
         lt = 'merhab'
     else:
         lt = 'forecast'
+        
+    if P_name == 'P_3day':
+        do_mov = 'False'
+    else:
+        do_mov = 'True'
+        
     cmd = ['python','pan_plot.py',
                   '-g', Ldir['gridname'],'-t', Ldir['tag'],'-x', Ldir['ex_name'],
                   '-lt', lt,'-0', Ldir['date_string'],'-1', Ldir['date_string'],
-                  '-pt', P_name, '-avl', 'False','-mov', 'True']
+                  '-pt', P_name, '-avl', 'False','-mov', do_mov]
     proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     print('\n-main: screen output from subprocess-')
@@ -71,8 +78,13 @@ for P_name in P_list:
     # for some reason the ffmpeg output ends up in stderr
     print(proc.stderr.decode())
     
-    fn = Ldir['LOo'] + 'plots/' + lt + '_' + P_name + '_' + Ldir['gtagex'] + '/movie.mp4'
-    out_fn = P_name + '.mp4'
+    if P_name = 'P_3day':
+        fn = Ldir['LOo'] + 'plots/' + lt + '_' + P_name + '_' + Ldir['gtagex'] + '/plot_0000.png'
+        out_fn = P_name + '.png'
+    else:
+        fn = Ldir['LOo'] + 'plots/' + lt + '_' + P_name + '_' + Ldir['gtagex'] + '/movie.mp4'
+        out_fn = P_name + '.mp4'
+        
     result = write_to_azure(fn, blob_service, containername, out_fn)
     
 #%% prepare for finale
