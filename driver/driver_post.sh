@@ -152,7 +152,7 @@ do
       wait $PID1
       echo "job completed for" $frc "at" $(date)
       echo $(date)
-      sleep 12
+      sleep 15
     done
 
   fi
