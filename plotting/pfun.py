@@ -232,7 +232,7 @@ def add_velocity_streams(ax, ds, fn, nngrid=80, zlev=0):
     ax.streamplot(x, y, uu, vv, density = 6,
     color='k', linewidth=spd*3, arrowstyle='-')
 
-def add_windstress_flower(ax, ds, t_scl=0.2, t_leglen=0.1, center=(.85,.25)):
+def add_windstress_flower(ax, ds, t_scl=0.2, t_leglen=0.1, center=(.85,.25), fs=12):
     # ADD MEAN WINDSTRESS VECTOR
     # t_scl: scale windstress vector (smaller to get longer arrows)
     # t_leglen: # Pa for wind stress vector legend
@@ -246,16 +246,16 @@ def add_windstress_flower(ax, ds, t_scl=0.2, t_leglen=0.1, center=(.85,.25)):
         units='y', scale=t_scl, scale_units='y', color='k',
         transform=ax.transAxes)
     tt = 1./np.sqrt(2)
-    t_alpha = 0.3
+    t_alpha = 0.4
     ax.quiver([x, x] , [y, y],
         t_leglen*np.array([0,tt,1,tt,0,-tt,-1,-tt]),
         t_leglen*np.array([1,tt,0,-tt,-1,-tt,0,tt]),
         units='y', scale=t_scl, scale_units='y', color='k', alpha=t_alpha,
         transform=ax.transAxes)
     ax.text(x, y-.13,'Windstress',
-        horizontalalignment='center', alpha=t_alpha, transform=ax.transAxes)
+        horizontalalignment='center', alpha=t_alpha, transform=ax.transAxes, fontsize=fs)
     ax.text(x, y-.1, str(t_leglen) + ' Pa',
-        horizontalalignment='center', alpha=t_alpha, transform=ax.transAxes)
+        horizontalalignment='center', alpha=t_alpha, transform=ax.transAxes, fontsize=fs)
 
 def add_info(ax, fn, fs=12):
     # put info on plot

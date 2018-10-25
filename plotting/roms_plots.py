@@ -38,7 +38,7 @@ from datetime import datetime, timedelta
 def P_basic(in_dict):
 
     # START
-    fig = plt.figure(figsize=pinfo.figsize) # (16,12) or pinfo.figsize for default
+    fig = plt.figure(figsize=(12,8)) # (16,12) or pinfo.figsize for default
     ds = nc.Dataset(in_dict['fn'])
 
     # PLOT CODE
@@ -1527,7 +1527,7 @@ def P_tracks_ps(in_dict):
     # hours in the folder.
     
     # START
-    fig = plt.figure(figsize=(10,12))
+    fig = plt.figure(figsize=(16,12))#(10,12))
 
     # TRACKS
     import os
@@ -1622,9 +1622,13 @@ def P_tracks_ps(in_dict):
         import time
         tt0 = time.time()
         # NOTE: we use at least ndiv=12 to get advection right in places
-        # like Tacoma Narrows.
+        # like Tacoma Narrows, but we reduce it for testing.
+        if Ldir['lo_env'] == 'pm_mac':
+            ndiv = 1
+        else:
+            ndiv = 12
         TR = {'3d': False, 'rev': False, 'turb': False,
-            'ndiv': 12, 'windage': 0}
+            'ndiv': ndiv, 'windage': 0}
         P = tf1.get_tracks(fn_list_full, plon0, plat0, pcs0, TR,
                            trim_loc=True)
         print('  took %0.1f seconds' % (time.time() - tt0))
@@ -1641,50 +1645,53 @@ def P_tracks_ps(in_dict):
         P = pickle.load(open(out_fn, 'rb'))
 
     # PLOT CODE
-
+    fs1 = 16
+    
     # panel 1
-    ax = fig.add_subplot(111)
+    ax = fig.add_subplot(121)
+    cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict,
+            cmap=pinfo.cmap_dict[vn], fac=pinfo.fac_dict[vn])
+    #fig.colorbar(cs)
+    pfun.add_bathy_contours(ax, ds, txt=True)
+    pfun.add_coast(ax)
+    ax.axis(pfun.get_aa(ds))
+    pfun.dar(ax)
+    ax.set_title('Full Domain: Surface %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]),
+        fontsize=fs1)
+    ax.set_xlabel('Longitude', fontsize=fs1)
+    ax.set_ylabel('Latitude', fontsize=fs1)
+    pfun.add_info(ax, in_dict['fn'], fs=fs1)
+    pfun.add_windstress_flower(ax, ds, fs=fs1-2)
+    ax.tick_params(axis = 'both', which = 'major', labelsize = fs1-2)
+        
+    # panel 2
+    ax = fig.add_subplot(122)
     cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict,
             cmap=pinfo.cmap_dict[vn], fac=pinfo.fac_dict[vn],
             alpha=1)
     # Inset colorbar
     from mpl_toolkits.axes_grid1.inset_locator import inset_axes
     cbaxes = inset_axes(ax, width="4%", height="40%", loc=6) 
-    fig.colorbar(cs, cax=cbaxes, orientation='vertical')
+    cbar = fig.colorbar(cs, cax=cbaxes, orientation='vertical')
     #fig.colorbar(cs)
     pfun.add_coast(ax)
     ax.axis([x0, x1, y0, y1])
     pfun.dar(ax)
-    fs1 = 14
     ax.set_xlabel('Longitude', fontsize=fs1)
     ax.set_ylabel('Latitude', fontsize=fs1)
     nhour = 3
-    tstr = 'Surface ' + pinfo.tstr_dict[vn] +' and ' + str(nhour) + ' hour Tracks'
+    tstr = ('Puget Sound: Surface ' + pinfo.tstr_dict[vn] +
+            ' and ' + str(nhour) + ' hour Particle Tracks')
     ax.set_title(tstr, fontsize=fs1)
-    # add info
-    fs = fs1 - 2
-    dt0_local = pfun.get_dt_local(T0['tm'])
-    dt_local = pfun.get_dt_local(T['tm'])
-    ax.text(.98, .10, dt0_local.strftime('%Y-%m-%d %H:%M'),
-        horizontalalignment='right' , verticalalignment='bottom',
-        transform=ax.transAxes, fontsize=fs)
-    ax.text(.98, .07, 'to ' + dt_local.strftime('%Y-%m-%d %H:%M'),
-        horizontalalignment='right', verticalalignment='bottom',
-        transform=ax.transAxes, fontsize=fs)
-    ax.text(.98, .04, dt_local.tzname(),
-        horizontalalignment='right', verticalalignment='bottom',
-        transform=ax.transAxes, fontsize=fs)
-    ax.text(.06, .04, fn.split('/')[-3],
-        verticalalignment='bottom', transform=ax.transAxes,
-        rotation='vertical', fontsize=fs)
+    ax.tick_params(axis = 'both', which = 'major', labelsize = fs1-2)
     # add the tracks
     t_lw = .5
-    c_end = 'k'; s_end = 3
+    c_end = 'k'; s_end = 1
     ntt = len(fn_list) -1
     ntt0 = ntt-nhour
     if ntt0<0:
         ntt0 = 0
-    ax.plot(P['lon'][ntt0:ntt,:], P['lat'][ntt0:ntt,:], '-k', linewidth=t_lw)
+    ax.plot(P['lon'][ntt0:ntt+1,:], P['lat'][ntt0:ntt+1,:], '-k', linewidth=t_lw)
     ax.plot(P['lon'][ntt,:],P['lat'][ntt,:],'o'+c_end,
             markersize=s_end, alpha = 1, markeredgecolor='k')
     #
