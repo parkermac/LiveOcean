@@ -851,6 +851,128 @@ def P_sect2(in_dict):
     else:
         plt.show()
 
+def P_sect_hc(in_dict):
+    # plots a map and a section (distance, z)
+    
+    # START
+    fig = plt.figure(figsize=(24,8))
+    ds = nc.Dataset(in_dict['fn'])
+
+    # PLOT CODE
+    vn = 'salt'
+    #vn = 'phytoplankton'
+    # we allow for the possibility of using different color scales
+    # on the map and section for the same varible, and these follow
+    # the general scheme that the default is for them to be chosen
+    # automatically based on the first plot in a series.
+    if in_dict['auto_vlims']:
+        pinfo.vlims_dict[vn] = ()
+        pinfo.vlims_dict['sect_'+vn] = ()
+    #
+    # GET DATA
+    G, S, T = zrfun.get_basic_info(in_dict['fn'])
+    
+    # ** make a mask to isolate field for chosing color limits
+    aa = [-123.2, -122.4, 47.2, 48.2]
+    x0 = aa[0]; x1 = aa[1]
+    y0 = aa[2]; y1 = aa[3]
+    x = G['lon_rho']; y = G['lat_rho']
+    m = G['mask_rho'] # 1 on water
+    m[x<x0] = 0; m[x>x1] = 0
+    m[y<y0] = 0; m[y>y1] = 0
+    # override colormaps
+    pinfo.cmap_dict['salt'] = 'Spectral_r'
+    pinfo.cmap_dict['temp'] = 'coolwarm'
+    # **
+    
+    # CREATE THE SECTION
+    tracks_path = Ldir['data'] + 'tracks_new/'
+    zdeep = -120
+    track = 'HC_north.p'
+    track_fn = tracks_path + track
+    # get the track to interpolate onto
+    pdict = pickle.load(open(track_fn, 'rb'))
+    xx = pdict['lon_poly']
+    yy = pdict['lat_poly']
+    for ii in range(len(xx)-1):
+        x0 = xx[ii]
+        x1 = xx[ii+1]
+        y0 = yy[ii]
+        y1 = yy[ii+1]
+        nn = 20
+        if ii == 0:
+            x = np.linspace(x0, x1, nn)
+            y = np.linspace(y0,y1, nn)
+        else:
+            x = np.concatenate((x, np.linspace(x0, x1, nn)[1:]))
+            y = np.concatenate((y, np.linspace(y0, y1, nn)[1:]))
+    v2, v3, dist, idist0 = pfun.get_section(ds, vn, x, y, in_dict)
+
+    # PLOTTING
+    
+    # ** set custom color limits
+    fld = ds[vn][0,-1,:,:].squeeze()
+    fldm = fld[m==1]
+    if vn == 'salt':
+        ffac=1
+    elif vn == 'temp':
+        ffac=2.5
+    flo = np.max([np.mean(fldm) - ffac*np.std(fldm), np.min(fldm)])
+    fhi = np.min([np.mean(fldm) + ffac*np.std(fldm), np.max(fldm)])
+    pinfo.vlims_dict[vn] = (flo, fhi)
+    # **
+    
+    # map with section line
+    ax = fig.add_subplot(1, 3, 1)
+    cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict,
+            cmap=pinfo.cmap_dict[vn], fac=pinfo.fac_dict[vn])
+    fig.colorbar(cs)
+    pfun.add_bathy_contours(ax, ds, txt=True)
+    pfun.add_coast(ax)
+    ax.axis(aa)
+    pfun.dar(ax)
+    ax.set_title('Surface %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
+    ax.set_xlabel('Longitude')
+    ax.set_ylabel('Latitude')
+    pfun.add_info(ax, in_dict['fn'])
+    #pfun.add_windstress_flower(ax, ds)
+    # add section track
+    ax.plot(x, y, '-r', linewidth=2)
+    ax.plot(x[idist0], y[idist0], 'or', markersize=5, markerfacecolor='w',
+        markeredgecolor='r', markeredgewidth=2)
+    #
+    # section
+    ax = fig.add_subplot(1, 3, (2, 3))
+    ax.plot(dist, v2['zbot'], '-k', linewidth=2)
+    ax.plot(dist, v2['zeta'], '-b', linewidth=1)
+    ax.set_xlim(dist.min(), dist.max())
+    ax.set_ylim(zdeep, 5)
+    sf = pinfo.fac_dict[vn] * v3['sectvarf']
+    # set section color limits
+    svlims = pinfo.vlims_dict['sect_'+vn]
+    if len(svlims) == 0:
+        svlims = pfun.auto_lims(sf)
+        pinfo.vlims_dict['sect_'+vn] = svlims
+    # plot section
+    cs = ax.pcolormesh(v3['distf'], v3['zrf'], sf,
+                       vmin=svlims[0], vmax=svlims[1], cmap=pinfo.cmap_dict[vn])
+    fig.colorbar(cs)
+    cs = ax.contour(v3['distf'], v3['zrf'], sf,
+        np.linspace(np.floor(svlims[0]), np.ceil(svlims[1]), 20),
+        colors='k', linewidths=0.5)
+    ax.set_xlabel('Distance (km)')
+    ax.set_ylabel('Z (m)')
+    ax.set_title('Section %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
+    fig.tight_layout()
+
+    # FINISH
+    ds.close()
+    if len(in_dict['fn_out']) > 0:
+        plt.savefig(in_dict['fn_out'])
+        plt.close()
+    else:
+        plt.show()
+
 def P_sect_willapa(in_dict):
     # Focus on Willapa
     
