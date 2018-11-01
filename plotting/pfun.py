@@ -34,22 +34,6 @@ import matplotlib.pyplot as plt
 import matplotlib.path as mpath
 import pandas as pd
 
-def topfig():
-    """
-    Positions the figure at the top left of the screen, and puts it
-    on top of the Spyder window.  Copied from Stack Overflow.
-    """
-    try:
-        figmgr = plt.get_current_fig_manager()
-        figmgr.canvas.manager.window.raise_()
-        geom = figmgr.window.geometry()
-        x,y,dx,dy = geom.getRect()
-        figmgr.window.setGeometry(10, 10, dx, dy)
-    except AttributeError:
-        # this only works, and is only needed, in Spyder
-        # so working from the terminal we just skip it.
-        pass
-
 def dar(ax):
     """
     Fixes the plot aspect ratio to be locally Cartesian.
@@ -70,7 +54,7 @@ def get_coast(dir0=Ldir['data']):
     lat = C['lat'].values
     return lon, lat
 
-def auto_lims(fld):
+def auto_lims(fld, vlims_fac=3):
     """
     A convenience function for automatically setting color limits.
     Input: a numpy array (masked OK)
@@ -78,8 +62,8 @@ def auto_lims(fld):
     """
     from warnings import filterwarnings
     filterwarnings('ignore') # skip some warning messages
-    flo = np.nanmax([np.nanmean(fld) - 3*np.nanstd(fld), np.nanmin(fld)])
-    fhi = np.nanmin([np.nanmean(fld) + 3*np.nanstd(fld), np.nanmax(fld)])
+    flo = np.nanmax([np.nanmean(fld) - vlims_fac*np.nanstd(fld), np.nanmin(fld)])
+    fhi = np.nanmin([np.nanmean(fld) + vlims_fac*np.nanstd(fld), np.nanmax(fld)])
     return (flo, fhi)
 
 def get_units(ds, vn):
@@ -110,11 +94,12 @@ def add_bathy_contours(ax, ds, depth_levs = [], txt=False):
         #ax.clabel(cs)
 
 def add_map_field(ax, ds, vn, vlims_dict, slev=-1, cmap='rainbow',
-                  fac=1, alpha=1, do_mask_salish=False):
+                  fac=1, alpha=1, do_mask_salish=False, aa=[], vlims_fac=3):
     cmap = plt.get_cmap(name=cmap)
     if 'lon_rho' in ds[vn].coordinates:
         x = ds['lon_psi'][:]
         y = ds['lat_psi'][:]
+        m = ds['mask_psi'][:]
         if vn == 'zeta':
             v = ds[vn][0, 1:-1, 1:-1].squeeze()
         else:
@@ -122,6 +107,7 @@ def add_map_field(ax, ds, vn, vlims_dict, slev=-1, cmap='rainbow',
     elif 'lon_v' in ds[vn].coordinates:
         x = ds['lon_u'][:]
         y = ds['lat_u'][:]
+        m = ds['mask_u'][:]
         if vn == 'vbar':
             v = ds[vn][0, :, 1:-1].squeeze()
         else:
@@ -129,6 +115,7 @@ def add_map_field(ax, ds, vn, vlims_dict, slev=-1, cmap='rainbow',
     elif 'lon_u' in ds[vn].coordinates:
         x = ds['lon_v'][:]
         y = ds['lat_v'][:]
+        m = ds['mask_v'][:]
         if vn == 'ubar':
             v = ds[vn][0, 1:-1, :].squeeze()
         else:
@@ -136,10 +123,24 @@ def add_map_field(ax, ds, vn, vlims_dict, slev=-1, cmap='rainbow',
         
     v_scaled = fac*v
     
+    # SETTING COLOR LIMITS
+    # First see if they are already set. If so then we are done.
     vlims = vlims_dict[vn]
     if len(vlims) == 0:
-        vlims = auto_lims(v_scaled)
+        # If they are not set then set them.
+        if len(aa) == 4:
+            # make a mask to isolate field for chosing color limits
+            x0 = aa[0]; x1 = aa[1]
+            y0 = aa[2]; y1 = aa[3]
+            m[x<x0] = 0; m[x>x1] = 0
+            m[y<y0] = 0; m[y>y1] = 0
+            # set section color limits
+            fldm = v_scaled[m[1:,1:]==1]
+            vlims = auto_lims(fldm, vlims_fac=vlims_fac)
+        else:
+            vlims = auto_lims(v_scaled, vlims_fac=vlims_fac)
         vlims_dict[vn] = vlims
+        # dicts have essentially global scope, so setting it here sets it everywhere
         
     if do_mask_salish:
         v_scaled = mask_salish(v_scaled, ds['lon_rho'][1:-1, 1:-1], ds['lat_rho'][1:-1, 1:-1])  
@@ -257,25 +258,28 @@ def add_windstress_flower(ax, ds, t_scl=0.2, t_leglen=0.1, center=(.85,.25), fs=
     ax.text(x, y-.1, str(t_leglen) + ' Pa',
         horizontalalignment='center', alpha=t_alpha, transform=ax.transAxes, fontsize=fs)
 
-def add_info(ax, fn, fs=12):
+def add_info(ax, fn, fs=12, loc='lower_right'):
     # put info on plot
     T = zrfun.get_basic_info(fn, only_T=True)
     dt_local = get_dt_local(T['tm'])
-    # tz_utc = pytz.timezone('UTC')
-    # tz_local = pytz.timezone('US/Pacific')
-    # dt = T['tm']
-    # dt_utc = dt.replace(tzinfo=tz_utc)
-    # dt_local = dt_utc.astimezone(tz_local)
-    ax.text(.95, .075, dt_local.strftime('%Y-%m-%d'),
-        horizontalalignment='right' , verticalalignment='bottom',
-        transform=ax.transAxes, fontsize=fs)
-    ax.text(.95, .065, dt_local.strftime('%H:%M') + ' ' + dt_local.tzname(),
-        horizontalalignment='right', verticalalignment='top',
-        transform=ax.transAxes, fontsize=fs)
+    if loc == 'lower_right':
+        ax.text(.95, .075, dt_local.strftime('%Y-%m-%d'),
+            horizontalalignment='right' , verticalalignment='bottom',
+            transform=ax.transAxes, fontsize=fs)
+        ax.text(.95, .065, dt_local.strftime('%H:%M') + ' ' + dt_local.tzname(),
+            horizontalalignment='right', verticalalignment='top',
+            transform=ax.transAxes, fontsize=fs)
+    elif loc == 'upper_right':
+        ax.text(.95, .935, dt_local.strftime('%Y-%m-%d'),
+            horizontalalignment='right' , verticalalignment='bottom',
+            transform=ax.transAxes, fontsize=fs)
+        ax.text(.95, .925, dt_local.strftime('%H:%M') + ' ' + dt_local.tzname(),
+            horizontalalignment='right', verticalalignment='top',
+            transform=ax.transAxes, fontsize=fs)
     ax.text(.06, .04, fn.split('/')[-3],
         verticalalignment='bottom', transform=ax.transAxes,
         rotation='vertical', fontsize=fs)
-        
+
 def get_dt_local(dt, tzl='US/Pacific'):
     tz_utc = pytz.timezone('UTC')
     tz_local = pytz.timezone(tzl)

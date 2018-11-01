@@ -8,6 +8,7 @@ INPUT: in_dict: a tuple with information to pass to the plot, such as:
 - fn: text string with the full path name of the history file to plot
 - fn_out: text string with full path of output file name
 - auto_vlims: a boolean governing how color limits are set
+- testing: a boolean for testing (e.g. shorter, faster particle tracking)
 OUTPUT: either a screen image or a graphics file
 
 """
@@ -82,58 +83,40 @@ def P_color(in_dict):
     fig = plt.figure(figsize=(12,8)) # or pinfo.figsize for default
     ds = nc.Dataset(in_dict['fn'])
     
-    # ** make a mask to isolate field for chosing color limits
-    G = zrfun.get_basic_info(in_dict['fn'], only_G=True)
-    x0 = -123.5; x1 = -122
-    y0 = 47; y1 = 48.5
-    x = G['lon_rho']; y = G['lat_rho']
-    m = G['mask_rho'] # 1 on water
-    m[x<x0] = 0; m[x>x1] = 0
-    m[y<y0] = 0; m[y>y1] = 0
-    # override colormaps
-    pinfo.cmap_dict['salt'] = 'Spectral_r'
-    pinfo.cmap_dict['temp'] = 'coolwarm'
-    # **
-
     # PLOT CODE
     vn_list = ['salt', 'temp']
+    aa = [-123.5, -122, 47,48.5]
     ii = 1
     for vn in vn_list:
         
-        # ** set custom color limits
-        fld = ds[vn][0,-1,:,:].squeeze()
-        fldm = fld[m==1]
+        # things about color limits
+        if in_dict['auto_vlims']:
+            pinfo.vlims_dict[vn] = ()
         if vn == 'salt':
-            ffac=1
+            vlims_fac=1
         elif vn == 'temp':
-            ffac=2.5
-        flo = np.max([np.mean(fldm) - ffac*np.std(fldm), np.min(fldm)])
-        fhi = np.min([np.mean(fldm) + ffac*np.std(fldm), np.max(fldm)])
-        pinfo.vlims_dict[vn] = (flo, fhi)
-        # **
+            vlims_fac=2.5
         
         ax = fig.add_subplot(1, len(vn_list), ii)
         cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict,
-                cmap=pinfo.cmap_dict[vn], fac=pinfo.fac_dict[vn])
+                cmap=pinfo.cmap_dict[vn], fac=pinfo.fac_dict[vn],
+                aa=aa, vlims_fac=vlims_fac)
                 
         # Inset colorbar
         from mpl_toolkits.axes_grid1.inset_locator import inset_axes
         cbaxes = inset_axes(ax, width="4%", height="40%", loc=6) 
         fig.colorbar(cs, cax=cbaxes, orientation='vertical')
         
-        #pfun.add_bathy_contours(ax, ds, txt=True)
         pfun.add_coast(ax)
-        ax.axis([x0, x1, y0, y1])
+        ax.axis(aa)
         pfun.dar(ax)
         ax.set_title('Surface %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
         ax.set_xlabel('Longitude')
         if ii == 1:
             ax.set_ylabel('Latitude')
             pfun.add_info(ax, in_dict['fn'])
-            #pfun.add_windstress_flower(ax, ds)
         elif ii == 2:
             ax.set_yticklabels('')
-            #pfun.add_velocity_vectors(ax, ds, in_dict['fn'])
         ii += 1
     fig.tight_layout()
     
@@ -171,12 +154,9 @@ def P_3day(in_dict):
         print('P_3day: unsupported list_type')
     ds1 = nc.Dataset(fn1)
     
-    if False:
-        pfun.get_aa(ds0)
-    else:
-        aa = [-124, -122, 47, 49.5]
+    aa = [-124, -122, 47, 49.5]
+    fs=16
     
-
     # PLOT CODE
     ii = 0
     for vn in range(3):
@@ -187,6 +167,8 @@ def P_3day(in_dict):
         laystr = 'Bottom'
         cmap=pinfo.cmap_dict[vn]
         fac=pinfo.fac_dict[vn]
+        
+        # don't allow auto scaling of colors
         vlims = pinfo.vlims_dict[vn]
         
         if ii == 0:
@@ -195,28 +177,35 @@ def P_3day(in_dict):
         elif ii == 1:
             fld1 = ds1[vn][0,nlay,1:-1,1:-1].squeeze()
             cs = ax.pcolormesh(x,y,fac*fld1,cmap=cmap, vmin=vlims[0],vmax=vlims[1])
+            ax.set_yticklabels([])
         elif ii == 2:
             fld2 = (fld1-fld0)/3
             if vn == 'oxygen':
                 vmin=-.5
                 vmax=.5
             cs = ax.pcolormesh(x,y,fac*fld2,cmap='bwr_r',vmin=vmin,vmax=vmax)
-            
-        fig.colorbar(cs)
-        pfun.add_bathy_contours(ax, ds0, txt=True)
+            ax.set_yticklabels([])
+        cb = fig.colorbar(cs)
+        cb.ax.tick_params(labelsize=fs-2)
+        
         pfun.add_coast(ax)
         ax.axis(aa)
         pfun.dar(ax)
+        ax.tick_params(labelsize=fs-2)
+        
         if ii==0:
-            ax.set_title('Current: %s %s %s' % (laystr, pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
+            ax.set_title('Current: %s %s %s' %
+                (laystr, pinfo.tstr_dict[vn],pinfo.units_dict[vn]), fontsize=fs)
         elif ii==1:
-            ax.set_title('3 Days Later: %s %s %s' % (laystr, pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
+            ax.set_title('3 Days Later: %s %s %s' %
+                (laystr, pinfo.tstr_dict[vn],pinfo.units_dict[vn]), fontsize=fs)
         elif ii==2:
-            ax.set_title('Trend: %s %s per day' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
-        ax.set_xlabel('Longitude')
+            ax.set_title('Trend: %s %s per day' %
+                (pinfo.tstr_dict[vn],pinfo.units_dict[vn]), fontsize=fs)
+        ax.set_xlabel('Longitude', fontsize=fs)
         if ii == 0:
-            ax.set_ylabel('Latitude')
-            pfun.add_info(ax, in_dict['fn'])
+            ax.set_ylabel('Latitude', fontsize=fs)
+            pfun.add_info(ax, in_dict['fn'], fs=fs-2, loc='upper_right')
         ii += 1
     fig.tight_layout()
     
@@ -473,6 +462,7 @@ def P_willapa_oa(in_dict):
     # **
 
     # PLOT CODE
+    fs = 18
     aa = [-124.4, -123.6, 46, 47.2]
     vn_list = ['PH', 'ARAG']
     ii = 1
@@ -480,17 +470,20 @@ def P_willapa_oa(in_dict):
         ax = fig.add_subplot(1, len(vn_list), ii)
         cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict, slev=0,
                 cmap=pinfo.cmap_dict[vn], fac=pinfo.fac_dict[vn])
-        fig.colorbar(cs)
+        cb = fig.colorbar(cs)
+        cb.ax.tick_params(labelsize=fs-2)
         pfun.add_coast(ax)
         ax.axis(aa)
         pfun.dar(ax)
-        ax.set_title('Bottom %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
-        ax.set_xlabel('Longitude')
+        ax.set_title('Bottom %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]),
+            fontsize=fs)
+        ax.set_xlabel('Longitude', fontsize=fs)
         if ii == 1:
-            ax.set_ylabel('Latitude')
-            pfun.add_info(ax, in_dict['fn'])
+            ax.set_ylabel('Latitude', fontsize=fs)
+            pfun.add_info(ax, in_dict['fn'], fs=fs)
         elif ii == 2:
             ax.set_yticklabels('')
+        ax.tick_params(labelsize=fs-2)
         ii += 1
     fig.tight_layout()
         
@@ -860,7 +853,11 @@ def P_sect_hc(in_dict):
 
     # PLOT CODE
     vn = 'salt'
-    #vn = 'phytoplankton'
+    if vn == 'salt':
+        vlims_fac = 1
+    else:
+        vlims_fac = 2.5
+    
     # we allow for the possibility of using different color scales
     # on the map and section for the same varible, and these follow
     # the general scheme that the default is for them to be chosen
@@ -868,22 +865,6 @@ def P_sect_hc(in_dict):
     if in_dict['auto_vlims']:
         pinfo.vlims_dict[vn] = ()
         pinfo.vlims_dict['sect_'+vn] = ()
-    #
-    # GET DATA
-    G, S, T = zrfun.get_basic_info(in_dict['fn'])
-    
-    # ** make a mask to isolate field for chosing color limits
-    aa = [-123.2, -122.4, 47.2, 48.2]
-    x0 = aa[0]; x1 = aa[1]
-    y0 = aa[2]; y1 = aa[3]
-    x = G['lon_rho']; y = G['lat_rho']
-    m = G['mask_rho'] # 1 on water
-    m[x<x0] = 0; m[x>x1] = 0
-    m[y<y0] = 0; m[y>y1] = 0
-    # override colormaps
-    pinfo.cmap_dict['salt'] = 'Spectral_r'
-    pinfo.cmap_dict['temp'] = 'coolwarm'
-    # **
     
     # CREATE THE SECTION
     tracks_path = Ldir['data'] + 'tracks_new/'
@@ -910,24 +891,13 @@ def P_sect_hc(in_dict):
 
     # PLOTTING
     
-    # ** set custom color limits
-    fld = ds[vn][0,-1,:,:].squeeze()
-    fldm = fld[m==1]
-    if vn == 'salt':
-        ffac=1
-    elif vn == 'temp':
-        ffac=2.5
-    flo = np.max([np.mean(fldm) - ffac*np.std(fldm), np.min(fldm)])
-    fhi = np.min([np.mean(fldm) + ffac*np.std(fldm), np.max(fldm)])
-    pinfo.vlims_dict[vn] = (flo, fhi)
-    # **
-    
     # map with section line
     ax = fig.add_subplot(1, 3, 1)
+    aa = [-123.2, -122.4, 47.2, 48.2]
     cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict,
-            cmap=pinfo.cmap_dict[vn], fac=pinfo.fac_dict[vn])
+            cmap=pinfo.cmap_dict[vn], fac=pinfo.fac_dict[vn], aa=aa, vlims_fac=vlims_fac)
     fig.colorbar(cs)
-    pfun.add_bathy_contours(ax, ds, txt=True)
+    #pfun.add_bathy_contours(ax, ds, txt=True)
     pfun.add_coast(ax)
     ax.axis(aa)
     pfun.dar(ax)
@@ -951,7 +921,7 @@ def P_sect_hc(in_dict):
     # set section color limits
     svlims = pinfo.vlims_dict['sect_'+vn]
     if len(svlims) == 0:
-        svlims = pfun.auto_lims(sf)
+        svlims = pfun.auto_lims(sf, vlims_fac=vlims_fac)
         pinfo.vlims_dict['sect_'+vn] = svlims
     # plot section
     cs = ax.pcolormesh(v3['distf'], v3['zrf'], sf,
@@ -1672,44 +1642,23 @@ def P_tracks_ps(in_dict):
         if 'ocean_his' in item:
             fn_list.append(in_dir + item)
     fn_list.sort()
+    
+            
     # save the full list to use with the tracking code 
     fn_list_full = fn_list.copy()
+    
+    if in_dict['testing'] == True:
+        fn_list_full = fn_list_full[:5]
+
     # then trim fn_list to end at the selected hour for this plot
     fn_list = fn_list[:fn_list.index(fn)+1]
     
     # and use the CURRENT file for the map field overlay
     ds = nc.Dataset(in_dict['fn'])
-
-    # ** make a mask to isolate field for chosing color limits
-    G, S, T = zrfun.get_basic_info(in_dict['fn'])
-    T0 = zrfun.get_basic_info(fn_list[0], only_T=True)
-    x0 = -123.5; x1 = -122
-    y0 = 47; y1 = 48.5
-    x = G['lon_rho']; y = G['lat_rho']
-    m = G['mask_rho'] # 1 on water
-    m[x<x0] = 0; m[x>x1] = 0
-    m[y<y0] = 0; m[y>y1] = 0
-    # override colormaps
-    pinfo.cmap_dict['salt'] = 'Spectral_r'
-    pinfo.cmap_dict['temp'] = 'coolwarm'
-    # **
-    vn = 'salt'
     
     if len(fn_list) == 2:
         # only do the tracking at the start
-        
-        # ** set custom color limits
-        fld = ds[vn][0,-1,:,:].squeeze()
-        fldm = fld[m==1]
-        if vn == 'salt':
-            ffac=1
-        elif vn == 'temp':
-            ffac=2.5
-        flo = np.max([np.mean(fldm) - ffac*np.std(fldm), np.min(fldm)])
-        fhi = np.min([np.mean(fldm) + ffac*np.std(fldm), np.max(fldm)])
-        pinfo.vlims_dict[vn] = (flo, fhi)
-        # **
-        
+
         # Specific release locations
         rloc_dict = {'Seattle': (-122.36, 47.6),
                     'Tacoma': (-122.44, 47.285)}
@@ -1745,8 +1694,9 @@ def P_tracks_ps(in_dict):
         tt0 = time.time()
         # NOTE: we use at least ndiv=12 to get advection right in places
         # like Tacoma Narrows, but we reduce it for testing.
-        if Ldir['lo_env'] == 'pm_mac':
+        if in_dict['testing'] == True:
             ndiv = 1
+            print('** using ndiv = 1 **')
         else:
             ndiv = 12
         TR = {'3d': False, 'rev': False, 'turb': False,
@@ -1767,37 +1717,25 @@ def P_tracks_ps(in_dict):
         P = pickle.load(open(out_fn, 'rb'))
 
     # PLOT CODE
-    fs1 = 16
+    fs1 = 18
+    vn = 'salt'
+    vlims_fac = 1
+    if in_dict['auto_vlims']:
+        pinfo.vlims_dict[vn] = ()
     
-    # panel 1
-    ax = fig.add_subplot(121)
-    cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict,
-            cmap=pinfo.cmap_dict[vn], fac=pinfo.fac_dict[vn])
-    #fig.colorbar(cs)
-    pfun.add_bathy_contours(ax, ds, txt=True)
-    pfun.add_coast(ax)
-    ax.axis(pfun.get_aa(ds))
-    pfun.dar(ax)
-    ax.set_title('Full Domain: Surface %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]),
-        fontsize=fs1)
-    ax.set_xlabel('Longitude', fontsize=fs1)
-    ax.set_ylabel('Latitude', fontsize=fs1)
-    pfun.add_info(ax, in_dict['fn'], fs=fs1)
-    pfun.add_windstress_flower(ax, ds, fs=fs1-2)
-    ax.tick_params(axis = 'both', which = 'major', labelsize = fs1-2)
-        
-    # panel 2
+    # panel 2: do this first so it controls the color limits
     ax = fig.add_subplot(122)
+    aa = [-123.5, -122, 47, 48.5]
     cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict,
             cmap=pinfo.cmap_dict[vn], fac=pinfo.fac_dict[vn],
-            alpha=1)
+            alpha=1, aa=aa, vlims_fac=vlims_fac)
     # Inset colorbar
     from mpl_toolkits.axes_grid1.inset_locator import inset_axes
     cbaxes = inset_axes(ax, width="4%", height="40%", loc=6) 
-    cbar = fig.colorbar(cs, cax=cbaxes, orientation='vertical')
-    #fig.colorbar(cs)
+    cb = fig.colorbar(cs, cax=cbaxes, orientation='vertical')
+    cb.ax.tick_params(labelsize=fs1-2)
     pfun.add_coast(ax)
-    ax.axis([x0, x1, y0, y1])
+    ax.axis(aa)
     pfun.dar(ax)
     ax.set_xlabel('Longitude', fontsize=fs1)
     ax.set_ylabel('Latitude', fontsize=fs1)
@@ -1816,6 +1754,25 @@ def P_tracks_ps(in_dict):
     ax.plot(P['lon'][ntt0:ntt+1,:], P['lat'][ntt0:ntt+1,:], '-k', linewidth=t_lw)
     ax.plot(P['lon'][ntt,:],P['lat'][ntt,:],'o'+c_end,
             markersize=s_end, alpha = 1, markeredgecolor='k')
+    
+    # panel 1
+    ax = fig.add_subplot(121)
+    cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict,
+            cmap=pinfo.cmap_dict[vn], fac=pinfo.fac_dict[vn])
+    #fig.colorbar(cs)
+    pfun.add_bathy_contours(ax, ds, txt=True)
+    pfun.add_coast(ax)
+    ax.axis(pfun.get_aa(ds))
+    pfun.dar(ax)
+    ax.set_title('Full Domain: Surface %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]),
+        fontsize=fs1)
+    ax.set_xlabel('Longitude', fontsize=fs1)
+    ax.set_ylabel('Latitude', fontsize=fs1)
+    pfun.add_info(ax, in_dict['fn'], fs=fs1)
+    pfun.add_windstress_flower(ax, ds, fs=fs1-2)
+    ax.tick_params(axis = 'both', which = 'major', labelsize = fs1-2)
+        
+
     #
     fig.tight_layout()
 

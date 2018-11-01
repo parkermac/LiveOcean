@@ -53,6 +53,7 @@ parser.add_argument('-pt', '--plot_type', nargs='?', type=str, default='')
 #  e.g. make a movie, override auto color limits
 parser.add_argument('-mov', '--make_movie', default=False, type=boolean_string)
 parser.add_argument('-avl', '--auto_vlims', default=True, type=boolean_string)
+parser.add_argument('-test', '--testing', default=False, type=boolean_string)
 
 args = parser.parse_args()
 if len(args.date_string1) == 0:
@@ -109,9 +110,19 @@ if plot_type == 'P_tracks_MERHAB':
 fn_list = Lfun.get_fn_list(list_type, Ldir,
     args.date_string0, args.date_string1, his_num=args.his_num)
 
+if (list_type == 'merhab') and (args.testing == True):
+    fn_list = fn_list[:4]
+    
+if (list_type == 'forecast') and (args.testing == True):
+    # list of all history files in a directory
+    hourmax = 4 #Ldir['forecast_days'] * 24
+    dt0 = datetime.strptime(args.date_string0, '%Y.%m.%d')
+    fn_list = Lfun.fn_list_utility(dt0, dt0, Ldir, hourmax=hourmax)
+    
 # PLOTTING
 in_dict = dict()
 in_dict['auto_vlims'] = args.auto_vlims
+in_dict['testing'] = args.testing
 
 if plot_type == 'P_3day':
     # special additions for this plot type
