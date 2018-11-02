@@ -1694,7 +1694,7 @@ def P_tracks_ps(in_dict):
         tt0 = time.time()
         # NOTE: we use at least ndiv=12 to get advection right in places
         # like Tacoma Narrows, but we reduce it for testing.
-        if Ldir['lo_env'] == 'pm_mac':
+        if (Ldir['lo_env'] == 'pm_mac') or (in_dict['testing'] == True):
             ndiv = 1
             print('** using ndiv = 1 **')
         else:

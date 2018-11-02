@@ -70,7 +70,7 @@ for P_name in P_list:
     cmd = ['python','pan_plot.py',
                   '-g', Ldir['gridname'],'-t', Ldir['tag'],'-x', Ldir['ex_name'],
                   '-lt', lt,'-0', Ldir['date_string'],'-1', Ldir['date_string'],
-                  '-pt', P_name, '-avl', 'False','-mov', do_mov]
+                  '-pt', P_name,'-mov', do_mov]
     proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     print('\n-main: screen output from subprocess-')
