@@ -27,9 +27,9 @@ import pfun
 
 import matplotlib.pyplot as plt
 
-Ldir = Lfun.Lstart('cascadia1', 'base')
-Ldir['gtagex'] = Ldir['gtag'] + '_lobio1'
-f_string = 'f2017.07.11'
+Ldir = Lfun.Lstart('cas4', 'v2')
+Ldir['gtagex'] = Ldir['gtag'] + '_lo6biom'
+f_string = 'f2018.11.03'
 in_dir = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/' + f_string + '/'
 out_name = 'ocean_surface.nc'
 out_fn = in_dir + out_name

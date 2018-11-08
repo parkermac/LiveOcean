@@ -75,6 +75,34 @@ def P_basic(in_dict):
         plt.close()
     else:
         plt.show()
+
+def P_splash(in_dict):
+    # pretty picture for use in Google Earth
+
+    # START
+    fig = plt.figure(figsize=(8,12)) # (16,12) or pinfo.figsize for default
+    ds = nc.Dataset(in_dict['fn'])
+
+    # PLOT CODE
+    vn = 'salt'
+    if in_dict['auto_vlims']:
+        pinfo.vlims_dict[vn] = ()
+    ax = fig.add_subplot(111)
+    cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict,
+            cmap=pinfo.cmap_dict[vn], fac=pinfo.fac_dict[vn])
+    pfun.add_coast(ax)
+    ax.axis(pfun.get_aa(ds))
+    pfun.dar(ax)
+    ax.set_axis_off()
+    
+    fig.tight_layout()
+    
+    
+    
+    # FINISH
+    ds.close()
+    plt.show()
+    plt.savefig('/Users/pm7/Desktop/splash.png', transparent=True)
         
 def P_color(in_dict):
     # Code to explore cool color maps
