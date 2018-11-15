@@ -783,7 +783,8 @@ def P_sect2(in_dict):
     G, S, T = zrfun.get_basic_info(in_dict['fn'])
     # CREATE THE SECTION
     tracks_path = Ldir['data'] + 'tracks_new/'
-    tracks = ['Line_jdf_v0.p', 'Line_ps_main_v0.p']
+    #tracks = ['Line_jdf_v0.p', 'Line_ps_main_v0.p']
+    tracks = ['Line_jdf_v0.p', 'Line_HC_thalweg_long.p']
     zdeep = -250
     xx = np.array([])
     yy = np.array([])
@@ -807,10 +808,13 @@ def P_sect2(in_dict):
             y = np.concatenate((y, np.linspace(y0, y1, nn)[1:]))
 
     # PLOTTING
-    vn_list = ['NO3', 'phytoplankton']
+    #vn_list = ['NO3', 'phytoplankton']
+    vn_list = ['PH', 'ARAG']
     # override colors
     pinfo.vlims_dict['NO3'] = (0,40)
     pinfo.vlims_dict['phytoplankton'] = (0,20)
+    pinfo.vlims_dict['PH'] = (7, 8)
+    pinfo.vlims_dict['ARAG'] = (0, 3)
     counter = 0
     for vn in vn_list:
         v2, v3, dist, idist0 = pfun.get_section(ds, vn, x, y, in_dict)
