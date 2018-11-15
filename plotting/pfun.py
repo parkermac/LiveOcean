@@ -24,11 +24,11 @@ import numpy as np
 from datetime import datetime
 import pytz
 
-# if Ldir['lo_env'] == 'pm_mac': # mac version
-#     pass
-# else: # regular (remote, linux) version
-#     import matplotlib as mpl
-#     mpl.use('Agg')
+if Ldir['lo_env'] == 'pm_mac': # mac version
+    pass
+else: # regular (remote, linux) version
+    import matplotlib as mpl
+    mpl.use('Agg')
 
 import matplotlib.pyplot as plt
 import matplotlib.path as mpath
