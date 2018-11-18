@@ -90,8 +90,16 @@ def add_bathy_contours(ax, ds, depth_levs = [], txt=False):
             ax.text(.95, .92, '2000 m', color=c2,
                     horizontalalignment='right',transform=ax.transAxes)
     else:
-        cs = ax.contour(lon, lat, h, depth_levs, colors='k', linewidths=0.5)
-        #ax.clabel(cs)
+        cs = ax.contour(lon, lat, h, depth_levs, colors='k',
+            linewidths=0.5, linestyles='dashed')
+        if txt==True:
+            ii = 0
+            for lev in depth_levs:
+                ax.text(.95, .95 - ii*.03, str(lev)+' m', color=c1,
+                        horizontalalignment='right',
+                        transform=ax.transAxes)
+                ii += 1
+        
 
 def add_map_field(ax, ds, vn, vlims_dict, slev=-1, cmap='rainbow',
                   fac=1, alpha=1, do_mask_salish=False, aa=[], vlims_fac=3):

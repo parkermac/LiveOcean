@@ -249,7 +249,7 @@ def P_3day(in_dict):
 def P_basic_salish(in_dict):
 
     # START
-    fig = plt.figure(figsize=(20,10)) # or pinfo.figsize for default
+    fig = plt.figure(figsize=(12,8)) # or pinfo.figsize for default
     ds = nc.Dataset(in_dict['fn'])
 
     # PLOT CODE
@@ -260,10 +260,19 @@ def P_basic_salish(in_dict):
         if in_dict['auto_vlims']:
             pinfo.vlims_dict[vn] = ()
         ax = fig.add_subplot(1, len(vn_list), ii)
+        if vn == 'salt':
+            vlims_fac = .75
+        else:
+            vlims_fac = 2.5
         cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict,
-                cmap=pinfo.cmap_dict[vn], fac=pinfo.fac_dict[vn])
-        fig.colorbar(cs)
-        pfun.add_bathy_contours(ax, ds, txt=True)
+                cmap=pinfo.cmap_dict[vn], fac=pinfo.fac_dict[vn],
+                aa=aa, vlims_fac=vlims_fac)
+        # Inset colorbar
+        from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+        cbaxes = inset_axes(ax, width="4%", height="40%", loc='upper right', borderpad=3) 
+        cb = fig.colorbar(cs, cax=cbaxes, orientation='vertical')
+        # cb.ax.tick_params(labelsize=fs1-2)
+        #fig.colorbar(cs)
         pfun.add_coast(ax)
         ax.axis(aa)
         pfun.dar(ax)
@@ -272,9 +281,12 @@ def P_basic_salish(in_dict):
         if ii == 1:
             ax.set_ylabel('Latitude')
             pfun.add_info(ax, in_dict['fn'])
-            pfun.add_windstress_flower(ax, ds, t_scl=.6, t_leglen=0.1, center=(.25, .3))
+            pfun.add_windstress_flower(ax, ds, t_scl=.6,
+                t_leglen=0.1, center=(.25, .3))
         elif ii == 2:
-            pfun.add_velocity_vectors(ax, ds, in_dict['fn'], v_scl=10, v_leglen=1.5, center=(.1, .1))
+            pfun.add_velocity_vectors(ax, ds, in_dict['fn'],
+                v_scl=20, v_leglen=2, nngrid=100, center=(.1, .1))
+            ax.set_yticklabels([])
         ii += 1
     fig.tight_layout()
     
@@ -513,6 +525,62 @@ def P_willapa_oa(in_dict):
             ax.set_yticklabels('')
         ax.tick_params(labelsize=fs-2)
         ii += 1
+    fig.tight_layout()
+        
+    # FINISH
+    ds.close()
+    if len(in_dict['fn_out']) > 0:
+        plt.savefig(in_dict['fn_out'])
+        plt.close()
+    else:
+        plt.show()
+
+def P_willapa_oa2(in_dict):
+    # lige P_willapa_oa but for surface
+
+    # START
+    fig = plt.figure(figsize=(12,9))
+    ds = nc.Dataset(in_dict['fn'])
+    
+    # ** override colormaps and limits
+    pinfo.vlims_dict['PH'] = (7, 8.5)
+    pinfo.cmap_dict['PH'] = 'Spectral'
+    pinfo.vlims_dict['ARAG'] = (0,3)
+    pinfo.cmap_dict['ARAG'] = 'coolwarm_r'
+    # **
+
+    # PLOT CODE
+    fs = 18
+    aa = [-124.4, -123.6, 46, 47.2]
+    vn_list = ['ARAG', 'ARAG']
+    ii = 1
+    slev = 0 # first panel is the bottom
+    for vn in vn_list:
+        ax = fig.add_subplot(1, len(vn_list), ii)
+        cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict, slev=slev,
+                cmap=pinfo.cmap_dict[vn], fac=pinfo.fac_dict[vn])
+        pfun.add_coast(ax)
+        ax.axis(aa)
+        pfun.dar(ax)
+        ax.set_xlabel('Longitude', fontsize=fs)
+        if ii == 1:
+            pfun.add_bathy_contours(ax, ds, depth_levs=[10, 20, 30], txt=True)
+            ax.set_title('Bottom %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]),
+                fontsize=fs)
+            ax.set_ylabel('Latitude', fontsize=fs)
+            pfun.add_info(ax, in_dict['fn'], fs=fs)
+        elif ii == 2:
+            cb = fig.colorbar(cs)
+            cb.ax.tick_params(labelsize=fs-2)
+            ax.set_title('Surface %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]),
+                fontsize=fs)
+            ax.set_yticklabels('')
+            ax.text(-123.9, 46.85, 'Grays\nHarbor', fontsize=fs-2, style='italic')
+            ax.text(-123.86, 46.58, 'Willapa\nBay', fontsize=fs-2, style='italic')
+            ax.text(-123.9, 46.04, 'Columbia\nRiver', fontsize=fs-2, style='italic')
+        ax.tick_params(labelsize=fs-2)
+        ii += 1
+        slev = -1 # second panel is the top
     fig.tight_layout()
         
     # FINISH
