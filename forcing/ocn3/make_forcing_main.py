@@ -24,9 +24,7 @@ cd ~/Documents/LiveOcean/forcing/ocn2
 
 (good for testing the new Ofun_CTD code)
 
-run make_forcing_main.py -g cas4 -t v1 -r backfill -d 2017.01.01
-
-run make_forcing_main.py -g cascadia1 -t v1 -r backfill -d 2017.01.02
+run make_forcing_main.py -g cas4 -t v2 -r forecast
 
 """
 
@@ -58,9 +56,7 @@ reload(Ofun_bio)
 
 start_time = datetime.now()
 
-vnl_full = ['ssh','s3d','t3d','u3d','v3d']
-#exnum = '91.2'
-exnum = '93.0'
+forecast_fn = 'http://tds.hycom.org/thredds/dodsC/GLBu0.08/expt_93.0/data/forecasts/FMRC_best.ncd'
 
 # defaults
 planB = False
@@ -78,52 +74,40 @@ if this_dt == datetime(2017,1,1):
 if (Ldir['run_type'] == 'forecast') and (planB == False):
     # this either gets new hycom files, or sets planB to True
     
-    h_out_dir = Ldir['LOogf_fd']      
-    print('** START getting catalog')
-    # create a list of url's of the preprocessed HYCOM files for this forecast
-    try:
-        fn_list = Ofun.get_hycom_file_list(exnum)
-        print('** END getting catalog')
-        # get a selection of the raw list (e.g. one per day)
-        varf_dict, dt_list = Ofun.get_varf_dict(fn_list, Ldir)
-        var_list = list(varf_dict.keys())    
-        vnl_dict = {'ssh':['ssh'], 'ts3z':['s3d','t3d'], 'uv3z':['u3d','v3d']}
-        #get the data and pack it in pickle files
-        for vns in var_list:
-            this_list = varf_dict[vns]
-            if testing:
-                this_list = [this_list[0]]
-            for fn in this_list:
-                a = Ofun.get_extraction(fn, vns)
-                dts = datetime.strftime(a['dt'], '%Y.%m.%d')
-                out_fn = h_out_dir + 'h' + dts + '.p'
-                if os.path.exists(out_fn)== True:
-                    print('  Opening ' + out_fn)
-                    aa = pickle.load(open(out_fn, 'rb'))
-                    for vn in vnl_dict[vns]:
-                        aa[vn] = a[vn]
-                        print('    adding ' + vn)
-                else:
-                    print('  Creating ' + out_fn)
-                    aa = dict()
-                    aa['dt'] = a['dt']
-                    for vn in vnl_dict[vns]:
-                        aa[vn] = a[vn]
-                        print('    adding ' + vn)
-                pickle.dump(aa, open(out_fn, 'wb'))
-        h_in_dir = h_out_dir
-        h_list0 = os.listdir(h_in_dir)
-        h_list0.sort()
-        h_list = [item for item in h_list0 if item[0] == 'h']
-    except:
-        print('*** using planB ***')
-        planB = True
+    h_out_dir = Ldir['LOogf_fd']
+    Lfun.make_dir(h_out_dir, clean=True)
+    print('** START getting time indices of forecast')
+    
+#    try:
+    dt_list, iit_list = Ofun.get_time_indices(forecast_fn, Ldir)
+    print('** END getting time indices of forecast')
+    
+    #get the data and pack it in pickle files
+    if testing == True:
+        iit_list = [iit_list[0]]
+        
+    for iit in iit_list:
+        a = dict()
+        # get a dict of extractions at this time
+        a = Ofun.get_extraction(forecast_fn, iit)
+        dts = datetime.strftime(a['dt'], '%Y.%m.%d')
+        out_fn = h_out_dir + 'h' + dts + '.p'
+        pickle.dump(a, open(out_fn, 'wb'))
+            
+    h_in_dir = h_out_dir
+    h_list0 = os.listdir(h_in_dir)
+    h_list0.sort()
+    h_list = [item for item in h_list0 if item[0] == 'h']
+        
+    # except:
+    #     print('*** using planB ***')
+    #     planB = True
        
 elif (Ldir['run_type'] == 'backfill') and (planB == False):
     # make a list of files to use from the hocom1 archive
-    
+
     # get a list of all available times
-    h_in_dir = Ldir['data'] + 'hycom1/'        
+    h_in_dir = Ldir['data'] + 'hycom1/'
     h_list0 = os.listdir(h_in_dir)
     h_list0.sort()
     h_list1 = [item for item in h_list0 if item[0] == 'h']
@@ -143,11 +127,11 @@ elif (Ldir['run_type'] == 'backfill') and (planB == False):
             if counter > 0:
                 print('Warning: Needed %d iterations' % (counter))
         except ValueError:
-            counter += 1       
+            counter += 1
     # save the list of files
     if it0 == None:
-        print('ERROR: no valid files found at nearby times')    
-    else:        
+        print('ERROR: no valid files found at nearby times')
+    else:
         it_list = range(it0-2, it0+4)
         h_list = []
         for it in it_list:
@@ -158,17 +142,15 @@ elif (Ldir['run_type'] == 'backfill') and (planB == False):
 
 if planB == False:
     # process the hycom files
-    
-    # copy in the coordinates (assume those from hycom1 work)
-    exnum1 = '91.2'
-    c_in_dir = Ldir['data'] + 'hycom1/'
-    c_out_dir = Ldir['LOogf_fd']
-    coords_dict = pickle.load(open(c_in_dir + 'coords_dict.p', 'rb'))
+
+    # copy in the coordinates (assume those from first file work)
+    this_h_dict = pickle.load(open(h_in_dir + h_list[0], 'rb'))
     coord_dict = dict()
     for vn in ['lon', 'lat', 'z']:
-        coord_dict[vn] = coords_dict[exnum1][vn]
-    pickle.dump(coord_dict, open(c_out_dir + 'coord_dict.p', 'wb'))    
-        
+        coord_dict[vn] = this_h_dict[vn]
+    c_out_dir = Ldir['LOogf_fd']
+    pickle.dump(coord_dict, open(c_out_dir + 'coord_dict.p', 'wb'))
+
     #%% filter in time
     fh_dir = Ldir['LOogf_fd']
     Ofun.time_filter(h_in_dir, h_list, fh_dir, Ldir)
@@ -178,8 +160,8 @@ if planB == False:
     a = os.listdir(fh_dir)
     a.sort()
     aa = [item for item in a if item[:2]=='fh']
-    for fn in aa:    
-        print('-Extrapolating ' + fn)    
+    for fn in aa:
+        print('-Extrapolating ' + fn)
         in_fn = fh_dir + fn
         V = Ofun.get_extrapolated(in_fn, L, M, N, X, Y, lon, lat, z, Ldir, add_CTD=add_CTD)
         pickle.dump(V, open(fh_dir + 'x' + fn, 'wb'))
@@ -204,14 +186,14 @@ if planB == False:
         in_fn = fh_dir + fn
         b = pickle.load(open(in_fn, 'rb'))
         dt_list.append(b['dt'])
-        c = Ofun.get_interpolated(G, S, b, lon, lat, z, N)   
+        c = Ofun.get_interpolated(G, S, b, lon, lat, z, N)
         c_dict[count] = c
         count += 1
-    
+
     #%% Write to ROMS forcing files
     nc_dir = Ldir['LOogf_f']
     Ofun_nc.make_clm_file(Ldir, nc_dir, fh_dir, c_dict, dt_list, S, G)
-    
+
 elif planB == True:
     print('**** Using planB ****')
     ds_today = Ldir['date_string']
@@ -221,7 +203,7 @@ elif planB == True:
     clm_yesterday = (Ldir['LOog'] + 'f' + ds_yesterday + '/'
         + Ldir['frc'] + '/' + 'ocean_clm.nc')
     clm_today = Ldir['LOogf_f'] + 'ocean_clm.nc'
-    
+
     #print(clm_yesterday)
     #print(clm_today)
     shutil.copyfile(clm_yesterday, clm_today)
@@ -238,7 +220,7 @@ elif planB == True:
         #print(ds[tname + '_time'][:])
     ds.close()
 
-    
+
 if do_bio:
     G = zrfun.get_basic_info(Ldir['grid'] + 'grid.nc', only_G=True)
     Ofun_bio.add_bio(nc_dir, G, add_CTD=add_CTD)
