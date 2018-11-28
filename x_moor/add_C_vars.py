@@ -41,7 +41,7 @@ func = ("run_co2sys(\'" +
     infile + "\',\'" +
     'input3' + "\')")
 cmd = Ldir['which_matlab']
-run_cmd = [cmd, "-nojvm", "-nodisplay", "-r", func, "&"]
+run_cmd = [cmd, "-nodisplay", "-r", func, "&"]
 proc = subprocess.Popen(run_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 out, err = proc.communicate() # "out" is the screen output of the matlab code
 print(out.decode())
