@@ -42,7 +42,9 @@ fn_list = Lfun.get_fn_list(args.list_type, Ldir, args.date_string0, args.date_st
 # specify list of moorings to work on
 if True:
     # specify by hand
-    sta_dict = {'Lynch_Cove': (-122.96, 47.390)}
+    # sta_dict = {'Lynch_Cove': (-122.96, 47.390)}
+    # limit_lists = False
+    sta_dict = {'Dabob': (-122.85, 47.7)}
     limit_lists = False
 else:
     # read in a custom job
