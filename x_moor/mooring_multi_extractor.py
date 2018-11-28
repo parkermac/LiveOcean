@@ -40,10 +40,9 @@ Ldir['gtagex'] = Ldir['gtag'] + '_' + args.ex_name
 fn_list = Lfun.get_fn_list(args.list_type, Ldir, args.date_string0, args.date_string1)
 
 # specify list of moorings to work on
-if False:
+if True:
     # specify by hand
-    sta_dict = {'m1': (-124.6, 48.46),
-                'm2': (-124.6, 47)}
+    sta_dict = {'Lynch_Cove': (-122.96, 47.390)}
     limit_lists = False
 else:
     # read in a custom job
