@@ -22,6 +22,11 @@ import moor_fun as mfun
 from importlib import reload
 reload(mfun)
 
+def boolean_string(s):
+    if s not in ['False', 'True']:
+        raise ValueError('Not a valid boolean string')
+    return s == 'True' # note use of ==
+
 # get command line arguments
 import argparse
 parser = argparse.ArgumentParser()
@@ -32,6 +37,20 @@ parser.add_argument('-x', '--ex_name', nargs='?', type=str, default='lo6biom')
 parser.add_argument('-0', '--date_string0', nargs='?', type=str, default='2017.07.20')
 parser.add_argument('-1', '--date_string1', nargs='?', type=str, default='2017.07.22')
 parser.add_argument('-lt', '--list_type', nargs='?', type=str, default='hourly')
+
+parser.add_argument('-ff', '--from_file', default=False, type=boolean_string)
+
+# defaults
+sta_name = 'JdFmouth'
+lon_str = '-124.6'
+lat_str = '48.46'
+
+# mooring specific arguments
+parser.add_argument('-sn', '--sta_name', nargs='?', type=str, default=sta_name)
+parser.add_argument('-lon', '--lon_str', nargs='?', type=str, default=lon_str)
+parser.add_argument('-lat', '--lat_str', nargs='?', type=str, default=lat_str)
+
+
 args = parser.parse_args()
 
 # get list of history files to plot

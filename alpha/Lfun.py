@@ -171,12 +171,13 @@ def get_fn_list(list_type, Ldir, date_string0, date_string1, his_num=1):
             fn = (dir0 + f_string + '/low_passed.nc')
             fn_list.append(fn)
     elif list_type == 'daily':
-        # list of just the first history file over a date range
+        # list of history file 21 over a date range
+        # which is Noon Pacific Standard Time
         fn_list = []
         date_list = date_list_utility(dt0, dt1)
         for dl in date_list:
             f_string = 'f' + dl
-            fn = (dir0 + f_string + '/ocean_his_0001.nc')
+            fn = (dir0 + f_string + '/ocean_his_0021.nc')
             fn_list.append(fn)
     elif list_type == 'merhab':
         # a list of all but the first history file in a directory
