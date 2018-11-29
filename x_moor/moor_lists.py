@@ -52,4 +52,24 @@ def get_sta_dict(job_name):
         v3_list_rho = ['rho', 'u', 'v']
         v3_list_w = []
         
+    elif job_name == 'pelletier_1':
+        sta_dict = {
+            'NANOOS_ORCA_Carr_Inlet': (-122.730000,47.2800),
+            'NANOOS_ORCA_Hoodsport': (-123.112600,47.4218),
+            'NANOOS_ORCA_Point_Wells': (-122.397200,47.7612),
+            'NANOOS_ORCA_Hansville': (-122.627000,47.9073),
+            'NANOOS_ORCA_Twanoh': (-123.008300,47.3750),
+            'NANOOS_ORCA_Dabob_Bay': (-122.802900,47.8034),
+            'UW_Bellingham_Bay_Buoy': (-122.576500,48.7237),
+            'NANOOS_ChaBa_Buoy': (-124.950000,47.9700),
+            'NANOOS_ORCA_Duckabush': (-123.000000,47.5533),
+            'P12': (-123.108000,47.4253),
+            'P22': (-123.019000,48.2717),
+            'P28': (-122.454000,47.7034),
+            'P38': (-122.708000,47.2766),
+            'P4': (-122.553000,48.2422),
+            'P402': (-123.023000,47.3567),
+            'P8': (-122.605000,47.8967),
+        }
+        
     return sta_dict, v2_list, v3_list_rho, v3_list_w
