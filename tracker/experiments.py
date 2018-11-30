@@ -17,6 +17,11 @@ def make_ic(exp_name):
     if exp_name == 'jdf5':
         gtagex = 'cascadia1_base_lobio5'
         ic_name = 'jdf0'
+        
+    elif exp_name == 'lo0': # LiveOcean testing
+        gtagex = 'cas4_v2_lo6biom'
+        ic_name = 'ic1'
+        
     elif exp_name == 'jdf6':
         gtagex = 'cas3_v0_lo6m'
         ic_name = 'jdf0'
@@ -39,6 +44,10 @@ def make_ic(exp_name):
         gtagex = 'aestus1_A1_ae1'
         ic_name = 'est3'
         
+    elif exp_name == 'col3': # Bridget Ovall
+            gtagex = 'cas4_v2_lo6biom'
+            ic_name = 'test3'
+        
     # routines to set particle initial locations, all numpy arrays
     #
     # first create three vectors of initial locations
@@ -47,6 +56,14 @@ def make_ic(exp_name):
     # each lat, lon (expressed as fraction of depth -1 < pcs < 1)
     #
     if ic_name == 'hc0': # Hood Canal
+        lonvec = np.linspace(-122.65, -122.45, 30)
+        latvec = np.linspace(47.2, 47.35, 30)
+        lonmat, latmat = np.meshgrid(lonvec, latvec)
+        plon_vec = lonmat.flatten()
+        plat_vec = latmat.flatten()
+        pcs_vec = np.array([-.05])
+
+    if ic_name == 'ic1': # Tacoma Narrows region
         lonvec = np.linspace(-122.65, -122.45, 30)
         latvec = np.linspace(47.2, 47.35, 30)
         lonmat, latmat = np.meshgrid(lonvec, latvec)
@@ -93,6 +110,14 @@ def make_ic(exp_name):
         plon_vec = lonmat.flatten()
         plat_vec = latmat.flatten()
         pcs_vec = np.linspace(-.95, -.1, 5)
+        
+    elif ic_name == 'test3': # Bridget Ovall
+        lonvec = np.linspace(-122.502,-122.492,3)
+        latvec = np.linspace(47.485,47.491,3)
+        lonmat, latmat = np.meshgrid(lonvec, latvec)
+        plon_vec = lonmat.flatten()
+        plat_vec = latmat.flatten()
+        pcs_vec = np.linspace(-.95,-.1,3)
     
     # Create full output vectors (each has one value per point).  This
     # code takes each lat, lon location and then assigns it to NSP points

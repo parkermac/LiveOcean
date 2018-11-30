@@ -86,7 +86,7 @@ parser.add_argument('-turb', default=False, type=boolean_string) # include turbu
 parser.add_argument('-wnd', '--windage', default=0, type=float)
 
 # set the starting day (will be last day for rev=True)
-parser.add_argument('-ds', '--ds_first_day', default='2013.03.01', type=str)
+parser.add_argument('-ds', '--ds_first_day', default='2017.07.20', type=str)
 
 # You can make multiple releases using:
 # number_of_start_days > 1 & days_between_starts
