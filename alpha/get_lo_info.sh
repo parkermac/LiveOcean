@@ -65,7 +65,7 @@ elif [ $HOME == "/home/parker" ] && [[ $HOSTNAME == *"gaggle"* ]] ; then
   roms="/pmr1/parker/LiveOcean_roms/"
   which_matlab="/usr/local/bin/matlab"
   
-elif [ $HOME == "/usr/lusers/pmacc" ] ; then
+elif [ $HOME == "/usr/lusers/pmacc" ] || [ $HOME == "/usr/lusers/darrd" ] ; then
   lo_env='pm_mox'
   parent="/gscratch/macc/parker/"
   LO=$parent"LiveOcean/"

@@ -32,7 +32,7 @@ def get_cast(gridname, tag, ex_name, date_string, station, lon_str, lat_str):
     Ldir['lat_str'] = lat_str
     
     # make sure the output directory exists
-    outdir0 = Ldir['LOo'] + 'casts/'
+    outdir0 = Ldir['LOo'] + 'cast/'
     Lfun.make_dir(outdir0)
     outdir = outdir0 + Ldir['gtagex'] + '/'
     Lfun.make_dir(outdir)

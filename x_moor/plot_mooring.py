@@ -20,6 +20,7 @@ from importlib import reload
 reload(Lfun)
 
 auto_lims = True
+low_pass = True
 
 # set limits
 lim_dict = {'temp': (0, 20),
@@ -112,14 +113,14 @@ for vn in list_to_plot:
     
     ir, ic = zfun.get_irc(cc, NC)
     ax = axes[ir, ic]
-    if True: # raw
+    if low_pass == False: # raw
         if V[vn].ndim == 2:
             ax.plot(days, V[vn][:, ntop], '-r')
             ax.plot(days, V[vn][:, nmid],'-g')
             ax.plot(days, V[vn][:, nbot], '-b')
         elif V[vn].ndim == 1:
             ax.plot(days, V[vn])
-    else: # filtered (e.g. tidally_averaged)
+    elif low_pass == True: # filtered (e.g. tidally_averaged)
         if V[vn].ndim == 2:
             ax.plot(days, zfun.filt_godin(V[vn][:, ntop]), '-r')
             ax.plot(days, zfun.filt_godin(V[vn][:, nmid]),'-g')
