@@ -104,7 +104,7 @@ if (Ldir['run_type'] == 'forecast') and (planB == False):
     #     planB = True
        
 elif (Ldir['run_type'] == 'backfill') and (planB == False):
-    # make a list of files to use from the hocom1 archive
+    # make a list of files to use from the hycom1 archive
 
     # get a list of all available times
     h_in_dir = Ldir['data'] + 'hycom1/'

@@ -12,7 +12,7 @@ Only set up to work on mac.
 
 gridname='cas4'
 tag='v2'
-date_string = '2017.01.01'
+date_string = '2018.12.07'
 
 # setup
 
@@ -45,7 +45,7 @@ latp = dsg['lat_psi'][:]
 maskr = dsg['mask_rho'][:]
 dsg.close()
 
-indir = Ldir['LOo'] + Ldir['gtag'] +'/f' + date_string + '/ocn2/'
+indir = Ldir['LOo'] + Ldir['gtag'] +'/f' + date_string + '/ocn3/'
 in_fn = (indir + 'ocean_ini.nc')
 ds = nc.Dataset(in_fn)
 

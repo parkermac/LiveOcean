@@ -243,41 +243,38 @@ def checknan(fld):
 
 def extrap_nearest_to_masked(X, Y, fld, fld0=0):
     """
-    INPUT: fld is a 2D array on spatial grid X, Y        
+    INPUT: fld is a 2D array (np.ndarray or np.ma.MaskedArray) on spatial grid X, Y
     OUTPUT: a numpy array of the same size with no mask
     and no missing values.        
     If input is a masked array:        
         * If it is ALL masked then return an array filled with fld0.         
         * If it is PARTLY masked use nearest neighbor interpolation to
         fill missing values, and then return data.        
-        * If it is all unmasked then retun the data.    
+        * If it is all unmasked then return the data.    
     If input is not a masked array:        
         * Return the array.    
     """
     # first make sure nans are masked
-    fld = np.ma.masked_where(np.isnan(fld), fld)
+    if np.ma.is_masked(fld) == False:
+        fld = np.ma.masked_where(np.isnan(fld), fld)
         
-    if np.ma.is_masked(fld):
-        if fld.all() is np.ma.masked:
-            #print('  filling with ' + str(fld0))
-            fldf = fld0 * np.ones(fld.data.shape)
-            fldd = fldf.data
-            checknan(fldd)
-            return fldd
-        else:
-            # do the extrapolation using nearest neighbor
-            fldf = fld.copy() # initialize the "filled" field
-            xyorig = np.array((X[~fld.mask],Y[~fld.mask])).T
-            xynew = np.array((X[fld.mask],Y[fld.mask])).T
-            a = cKDTree(xyorig).query(xynew)
-            aa = a[1]
-            fldf[fld.mask] = fld[~fld.mask][aa]
-            fldd = fldf.data
-            checknan(fldd)
-            return fldd
+    if fld.all() is np.ma.masked:
+        #print('  filling with ' + str(fld0))
+        fldf = fld0 * np.ones(fld.data.shape)
+        fldd = fldf.data
+        checknan(fldd)
+        return fldd
     else:
-        checknan(fld)
-        return fld
+        # do the extrapolation using nearest neighbor
+        fldf = fld.copy() # initialize the "filled" field
+        xyorig = np.array((X[~fld.mask],Y[~fld.mask])).T
+        xynew = np.array((X[fld.mask],Y[fld.mask])).T
+        a = cKDTree(xyorig).query(xynew)
+        aa = a[1]
+        fldf[fld.mask] = fld[~fld.mask][aa]
+        fldd = fldf.data
+        checknan(fldd)
+        return fldd
             
 def get_extrapolated(in_fn, L, M, N, X, Y, lon, lat, z, Ldir, add_CTD=False):
     b = pickle.load(open(in_fn, 'rb'))
@@ -309,9 +306,9 @@ def get_extrapolated(in_fn, L, M, N, X, Y, lon, lat, z, Ldir, add_CTD=False):
     for vn in vn_list:
         v = b[vn]
         if vn == 't3d':
-            v0 = v.min()
+            v0 = np.nanmin(v)
         elif vn == 's3d':
-            v0 = v.max()   
+            v0 = np.nanmax(v)
         if vn in ['t3d', 's3d']:
             print(' -- extrapolating ' + vn)
             if add_CTD==False:

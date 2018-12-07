@@ -12,7 +12,7 @@ Only set up to work on mac.
 
 gridname='cas4'
 tag='v2'
-date_string = '2018.11.26'
+date_string = '2018.12.07'
 
 # setup
 
