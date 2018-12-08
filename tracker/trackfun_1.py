@@ -50,6 +50,12 @@ def get_tracks(fn_list, plon0, plat0, pcs0, TR, trim_loc=False):
         rot[counter] = ds.variables['ocean_time'][:].squeeze()
         counter += 1
         ds.close
+    
+    # This is an attempt to fix a bug that happens avery couple of weeks,
+    # one which I can't reliably reproduce!  In theory fn_list is sorted
+    # by the calling function, but maybe ...??
+    rot.sort()
+    
     delta_t = rot[1] - rot[0] # second between saves
 
     # this is how we track backwards in time

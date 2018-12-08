@@ -111,7 +111,7 @@ fn_list = Lfun.get_fn_list(list_type, Ldir,
     args.date_string0, args.date_string1, his_num=args.his_num)
 
 if (list_type == 'merhab') and (args.testing == True):
-    fn_list = fn_list[:4]
+    fn_list = fn_list[:10]
     
 if (list_type == 'forecast') and (args.testing == True):
     # list of all history files in a directory

@@ -1748,7 +1748,7 @@ def P_tracks_ps(in_dict):
     fn_list_full = fn_list.copy()
     
     if in_dict['testing'] == True:
-        fn_list_full = fn_list_full[:5]
+        fn_list_full = fn_list_full[:11]
 
     # then trim fn_list to end at the selected hour for this plot
     fn_list = fn_list[:fn_list.index(fn)+1]
@@ -1820,8 +1820,10 @@ def P_tracks_ps(in_dict):
     fs1 = 18
     vn = 'salt'
     vlims_fac = 1
-    if in_dict['auto_vlims']:
-        pinfo.vlims_dict[vn] = ()
+    # if in_dict['auto_vlims']:
+    #     pinfo.vlims_dict[vn] = ()
+    # override
+    pinfo.vlims_dict['salt'] = (28.5,33)
     
     # panel 2: do this first so it controls the color limits
     ax = fig.add_subplot(122)
