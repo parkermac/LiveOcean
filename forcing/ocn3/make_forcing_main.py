@@ -214,7 +214,9 @@ elif planB == True:
     #     print(t)
     ot[-1] += 86400
     #print('NEW')
-    for tname in ['ocean', 'salt', 'temp', 'v3d', 'v2d', 'zeta']:
+    for tname in ['ocean', 'salt', 'temp', 'v3d', 'v2d', 'zeta',
+        'NO3','phytoplankton', 'zooplankton', 'detritus', 'Ldetritus',
+        'CaCO3', 'oxygen', 'alkalinity', 'TIC']:
         ds[tname + '_time'][:] = ot
         #print(tname)
         #print(ds[tname + '_time'][:])
@@ -222,7 +224,7 @@ elif planB == True:
     
 nc_dir = Ldir['LOogf_f']
 
-if do_bio:
+if do_bio and (planB==False):
     G = zrfun.get_basic_info(Ldir['grid'] + 'grid.nc', only_G=True)
     Ofun_bio.add_bio(nc_dir, G, add_CTD=add_CTD)
 
