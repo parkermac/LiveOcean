@@ -78,30 +78,30 @@ if (Ldir['run_type'] == 'forecast') and (planB == False):
     Lfun.make_dir(h_out_dir, clean=True)
     print('** START getting time indices of forecast')
     
-#    try:
-    dt_list, iit_list = Ofun.get_time_indices(forecast_fn, Ldir)
-    print('** END getting time indices of forecast')
-    
-    #get the data and pack it in pickle files
-    if testing == True:
-        iit_list = [iit_list[0]]
+    try:
+        dt_list, iit_list = Ofun.get_time_indices(forecast_fn, Ldir)
+        print('** END getting time indices of forecast')
+
+        #get the data and pack it in pickle files
+        if testing == True:
+            iit_list = [iit_list[0]]
+
+        for iit in iit_list:
+            a = dict()
+            # get a dict of extractions at this time
+            a = Ofun.get_extraction(forecast_fn, iit)
+            dts = datetime.strftime(a['dt'], '%Y.%m.%d')
+            out_fn = h_out_dir + 'h' + dts + '.p'
+            pickle.dump(a, open(out_fn, 'wb'))
+
+        h_in_dir = h_out_dir
+        h_list0 = os.listdir(h_in_dir)
+        h_list0.sort()
+        h_list = [item for item in h_list0 if item[0] == 'h']
         
-    for iit in iit_list:
-        a = dict()
-        # get a dict of extractions at this time
-        a = Ofun.get_extraction(forecast_fn, iit)
-        dts = datetime.strftime(a['dt'], '%Y.%m.%d')
-        out_fn = h_out_dir + 'h' + dts + '.p'
-        pickle.dump(a, open(out_fn, 'wb'))
-            
-    h_in_dir = h_out_dir
-    h_list0 = os.listdir(h_in_dir)
-    h_list0.sort()
-    h_list = [item for item in h_list0 if item[0] == 'h']
-        
-    # except:
-    #     print('*** using planB ***')
-    #     planB = True
+    except:
+        print('*** using planB ***')
+        planB = True
        
 elif (Ldir['run_type'] == 'backfill') and (planB == False):
     # make a list of files to use from the hycom1 archive
