@@ -111,7 +111,7 @@ do
     maxcount=3
     sleeptime=1
   elif [ $lo_env == "pm_boiler" ] ; then
-    maxcount=240
+    maxcount=480
     sleeptime=60
   fi
 
