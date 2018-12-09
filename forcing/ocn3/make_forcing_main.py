@@ -214,10 +214,12 @@ elif planB == True:
     #     print(t)
     ot[-1] += 86400
     #print('NEW')
-    for tname in ['ocean', 'salt', 'temp', 'v3d', 'v2d', 'zeta',
-        'NO3','phytoplankton', 'zooplankton', 'detritus', 'Ldetritus',
-        'CaCO3', 'oxygen', 'alkalinity', 'TIC']:
+    for tname in ['ocean', 'salt', 'temp', 'v3d', 'v2d', 'zeta']:
         ds[tname + '_time'][:] = ot
+        
+    # for tname in []'NO3','phytoplankton', 'zooplankton', 'detritus', 'Ldetritus',
+    #     'CaCO3', 'oxygen', 'alkalinity', 'TIC']:
+    #     ds[tname + '_time'][:] = ot
         #print(tname)
         #print(ds[tname + '_time'][:])
     ds.close()
