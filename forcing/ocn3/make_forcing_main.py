@@ -219,13 +219,13 @@ elif planB == True:
         #print(tname)
         #print(ds[tname + '_time'][:])
     ds.close()
-
+    
+nc_dir = Ldir['LOogf_f']
 
 if do_bio:
     G = zrfun.get_basic_info(Ldir['grid'] + 'grid.nc', only_G=True)
     Ofun_bio.add_bio(nc_dir, G, add_CTD=add_CTD)
 
-nc_dir = Ldir['LOogf_f']
 Ofun_nc.make_ini_file(nc_dir)
 Ofun_nc.make_bry_file(nc_dir)
 
