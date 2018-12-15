@@ -21,12 +21,117 @@ import hfun
 
 import zfun
 import zrfun
+
+def get_data(this_dt, fn_out):
+    """"
+    Code to get hycom data using the new FMRC_best file.
+    """
+
+    import os
+    import netCDF4 as nc
+
+    from urllib.request import urlretrieve
+    from urllib.error import URLError
+    from socket import timeout
+    import time
+    from datetime import datetime, timedelta
+
+    testing = False
+
+    # specify output file
+    # get rid of the old version, if it exists
+    try:
+        os.remove(fn_out)
+    except OSError:
+        pass # assume error was because the file did not exist
+
+    # specify time limits
+    # get today's  date string in LO format
     
-def get_time_indices(fn, Ldir):  
-    # Get list of time indices.
+    #dstr00 = datetime.now().strftime('%Y.%m.%d')
+    dstr00 = this_dt.strftime('%Y.%m.%d')
     
+    print('Working on ' + dstr00)
+    # get time limits for forecast
+    dt00 = datetime.strptime(dstr00, '%Y.%m.%d')
+    dt0 = dt00 - timedelta(days=2)
+    if testing == True:
+        dt1 = dt00 - timedelta(days=1)
+    else:
+        dt1 = dt00 + timedelta(days=5)
+    # put them in ncss format
+    dstr0 = dt0.strftime('%Y-%m-%d-T00:00:00Z')
+    dstr1 = dt1.strftime('%Y-%m-%d-T00:00:00Z')
+    print('- dt0 = ' + dstr0)
+    print('- dt1 = ' + dstr1)
+    
+    # for future improvements
+    # get info about what datetime we want
+    # nd_f = Ldir['forecast_days']
+    # dt0s = Ldir['date_string']
+    # dt0 = datetime.strptime(dt0s, '%Y.%m.%d')
+    # # assume we need two days before dt0, and two days after dt0+nd_f
+    # # but note that this ASSUMES we are using a 5 day window to filter in time.
+    # dt_list = []
+    # iit_list = []
+    # dt_low = dt0 - timedelta(days=2)
+    # dt_high = dt0 + timedelta(days=(nd_f+2))
+
+    # specify spatial limits
+    # for future improvements
+    #aa = hfun.get_extraction_limits()
+    #aa = [-129, -121, 39, 51]
+    north = 51
+    south = 39
+    west = 231 #-129 + 360
+    east = 238 #-122 + 360
+
+    if testing == True:
+        var_list = 'surf_el'
+        #var_list = 'surf_el,salinity'
+    else:
+        var_list = 'surf_el,water_temp,salinity,water_u,water_v'
+
+    # create the request url
+    url = ('http://ncss.hycom.org/thredds/ncss/grid/GLBy0.08/expt_93.0/data/forecasts/FMRC_best.ncd'+
+        '?var='+var_list +
+        '&north='+str(north)+'&south='+str(south)+'&west='+str(west)+'&east='+str(east) +
+        '&time_start='+dstr0+'&time_end='+dstr1+'&timeStride=8' +
+        '&addLatLon=true&accept=netcdf4')
+
+    # get the data and save as a netcdf file
+    counter = 1
+    got_file = False
+    while (counter <= 3) and (got_file == False):
+        print('Attempting to get data, counter = ' + str(counter))
+        tt0 = time.time()
+        try:
+            (a,b) = urlretrieve(url,fn_out)
+            # a is the output file name
+            # b is a message you can see with b.as_string()
+        except URLError as e:
+            if hasattr(e, 'reason'):
+                print(' *We failed to reach a server.')
+                print(' -Reason: ', e.reason)
+            elif hasattr(e, 'code'):
+                print(' *The server couldn\'t fulfill the request.')
+                print(' -Error code: ', e.code)
+        except timeout:
+            print(' *Socket timed out')
+        else:
+            got_file = True
+            print(' Worked fine')
+        print(' -took %0.1f seconds' % (time.time() - tt0))
+        counter += 1
+
+    # check results
+    ds = nc.Dataset('test.nc')
+    print('\nVariables:')
+    for vn in ds.variables:
+        print('- '+vn)
+    print('Times:')
+    htime = ds['time'][:]
     # get time info for the forecast
-    ds = nc.Dataset(fn)
     t = ds['time'][:]
     tu = ds['time'].units
     # e.g. 'hours since 2018-11-20 12:00:00.000 UTC'
@@ -35,38 +140,19 @@ def get_time_indices(fn, Ldir):
     hmss = tu.split()[3]
     hms = hmss.split('.')[0]
     hycom_dt0 = datetime.strptime(ymd + ' ' + hms, '%Y-%m-%d %H:%M:%S')
-
     # make a list of datetimes that are in the forecast
     hycom_dt_list = [] # datetimes
     hycom_iit_list = [] # indices
     iit = 0
     for th in t: # assume t is sorted
         this_dt = hycom_dt0 + timedelta(th/24)
-        if this_dt.hour == 0: # save only daily
-            hycom_dt_list.append(this_dt)
-            hycom_iit_list.append(iit)
+        hycom_dt_list.append(this_dt)
+        print('- '+str(this_dt))
+        hycom_iit_list.append(iit)
         iit += 1
-
-    # get info about what datetime we want
-    nd_f = Ldir['forecast_days']    
-    dt0s = Ldir['date_string']
-    dt0 = datetime.strptime(dt0s, '%Y.%m.%d')
-    
-    # assume we need two days before dt0, and two days after dt0+nd_f
-    # but note that this ASSUMES we are using a 5 day window to filter in time.
-    dt_list = []
-    iit_list = []
-    dt_low = dt0 - timedelta(days=2)
-    dt_high = dt0 + timedelta(days=(nd_f+2))
-    ii = 0
-    for dt in hycom_dt_list:
-        if (dt>=dt_low) and (dt<=dt_high):
-            dt_list.append(dt)
-            iit_list.append(hycom_iit_list[ii])
-        ii += 1
-    return dt_list, iit_list
-
-def get_extraction(fn, iit):
+    ds.close()
+            
+def get_extraction_new(fn, iit):
     # initialize an output dict
     out_dict = dict()
     ds = nc.Dataset(fn)
@@ -95,19 +181,8 @@ def get_extraction(fn, iit):
     N = len(z)
         
     # get full coordinates (vectors for the plaid grid)
-    llon = ds.variables['lon'][:]
-    llat = ds.variables['lat'][:]    
-    # find indices of a sub region
-    aa = hfun.get_extraction_limits()
-    llon = llon - 360 # convert from 0:360 to -360:0 format
-    i0 = zfun.find_nearest_ind(llon, aa[0])
-    i1 = zfun.find_nearest_ind(llon, aa[1])
-    j0 = zfun.find_nearest_ind(llat, aa[2])
-    j1 = zfun.find_nearest_ind(llat, aa[3])
-    print(' i0='+str(i0) + ' i1='+str(i1) + ' j0='+str(j0) + ' j1='+str(j1))
-    # and just get the desired region (these are vectors, not matrices)
-    lon = llon[i0:i1]
-    lat = llat[j0:j1]
+    lon = ds.variables['lon'][:] - 360  # convert from 0:360 to -360:0 format
+    lat = ds.variables['lat'][:]    
     # and save them   
     out_dict['lon'] = lon
     out_dict['lat'] = lat
@@ -119,22 +194,22 @@ def get_extraction(fn, iit):
         # and pack bottom to top
         np.warnings.filterwarnings('ignore') # suppress warning related to nans in fields
         if var_name == 'surf_el':
-            ssh = ds['surf_el'][iit, j0:j1, i0:i1]
+            ssh = ds['surf_el'][iit, :, :]
             out_dict['ssh'] = ssh
         elif var_name == 'water_temp':
-            t3d = ds['water_temp'][iit, :, j0:j1, i0:i1]
+            t3d = ds['water_temp'][iit, :, :, :]
             t3d = t3d[::-1, :, :] # pack bottom to top
             out_dict['t3d'] = t3d
         elif var_name == 'salinity':
-            s3d = ds['salinity'][iit, :, j0:j1, i0:i1]
+            s3d = ds['salinity'][iit, :, :, :]
             s3d = s3d[::-1, :, :]
             out_dict['s3d'] = s3d
         elif var_name == 'water_u':
-            u3d = ds['water_u'][iit, :, j0:j1, i0:i1]
+            u3d = ds['water_u'][iit, :, :, :]
             u3d = u3d[::-1, :, :]
             out_dict['u3d'] = u3d
         elif var_name == 'water_v':
-            v3d = ds['water_v'][iit, :, j0:j1, i0:i1]
+            v3d = ds['water_v'][iit, :, :, :]
             v3d = v3d[::-1, :, :] # pack bottom to top
             out_dict['v3d'] = v3d
         print('  %0.2f sec to get %s' % ((time.time() - tt0), var_name))

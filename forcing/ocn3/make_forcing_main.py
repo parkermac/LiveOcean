@@ -56,8 +56,6 @@ reload(Ofun_bio)
 
 start_time = datetime.now()
 
-forecast_fn = 'http://tds.hycom.org/thredds/dodsC/GLBu0.08/expt_93.0/data/forecasts/FMRC_best.ncd'
-
 # defaults
 planB = False
 add_CTD = False
@@ -76,20 +74,19 @@ if (Ldir['run_type'] == 'forecast') and (planB == False):
     
     h_out_dir = Ldir['LOogf_fd']
     Lfun.make_dir(h_out_dir, clean=True)
-    print('** START getting time indices of forecast')
     
     try:
-        dt_list, iit_list = Ofun.get_time_indices(forecast_fn, Ldir)
-        print('** END getting time indices of forecast')
-
-        #get the data and pack it in pickle files
-        if testing == True:
-            iit_list = [iit_list[0]]
-
-        for iit in iit_list:
+        data_fn_out =  h_out_dir + 'data.nc'
+        Ofun.get_data(this_dt, data_fn_out)
+        
+        ds = nc.Dataset(data_fn_out)
+        NT = len(ds['time'][:])
+        ds.close()
+        
+        for iit in range(NT):
             a = dict()
             # get a dict of extractions at this time
-            a = Ofun.get_extraction(forecast_fn, iit)
+            a = Ofun.get_extraction_new(data_fn_out, iit)
             dts = datetime.strftime(a['dt'], '%Y.%m.%d')
             out_fn = h_out_dir + 'h' + dts + '.p'
             pickle.dump(a, open(out_fn, 'wb'))
