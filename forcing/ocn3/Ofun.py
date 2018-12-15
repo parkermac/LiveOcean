@@ -125,7 +125,7 @@ def get_data(this_dt, fn_out):
         counter += 1
 
     # check results
-    ds = nc.Dataset('test.nc')
+    ds = nc.Dataset(fn_out)
     print('\nVariables:')
     for vn in ds.variables:
         print('- '+vn)
