@@ -53,10 +53,10 @@ def write_to_azure(out_fn, blob_service, containername, out_name):
 print(' - Creating wesite images for ' + Ldir['date_string'])
 os.chdir(Ldir['LO'] + 'plotting/')
 
-#P_list = ['P_3day', 'P_tracks_ps', 'P_willapa_oa2']
+P_list = ['P_3day', 'P_tracks_ps', 'P_willapa_oa2']
 #P_list = ['P_willapa_oa2']
 #P_list = ['P_tracks_ps']
-P_list = ['P_3day']
+#P_list = ['P_3day']
 for P_name in P_list:
     
     if P_name == 'P_tracks_ps':
