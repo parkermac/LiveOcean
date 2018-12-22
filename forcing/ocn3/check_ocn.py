@@ -12,7 +12,7 @@ Only set up to work on mac.
 
 gridname='cas4'
 tag='v2'
-date_string = '2018.12.15'
+date_string = '2018.12.22'
 
 # setup
 
@@ -40,9 +40,19 @@ import pickle
 
 grid_fn = Ldir['grid'] + 'grid.nc'
 dsg = nc.Dataset(grid_fn)
-lonp = dsg['lon_psi'][:]
-latp = dsg['lat_psi'][:]
+
+lonr = dsg['lon_rho'][:]
+latr = dsg['lat_rho'][:]
 maskr = dsg['mask_rho'][:]
+
+lonu = dsg['lon_u'][:]
+latu = dsg['lat_u'][:]
+masku = dsg['mask_u'][:]
+
+lonv = dsg['lon_v'][:]
+latv = dsg['lat_v'][:]
+maskv = dsg['mask_v'][:]
+
 dsg.close()
 
 indir = Ldir['LOo'] + Ldir['gtag'] +'/f' + date_string + '/ocn3/'
@@ -72,49 +82,80 @@ def set_box(ax):
     ax.set_xlim(-127.5, -122)
     ax.set_ylim(42.5,50.5)
 
-fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(13,7), squeeze=False)
+fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(15,7), squeeze=False)
 
-if False:
+vn = 'vbar' # roms variable name to plot
+cmap = 'rainbow' # default colormap
+
+if vn == 'salt':
     hvn = 's3d'
-    vn = 'salt'
     vmin = 15
     vmax = 34
-else:
+elif vn == 'temp':
     hvn = 't3d'
-    vn = 'temp'
     vmin = 5
     vmax = 12
+elif vn == 'zeta':
+    hvn = 'ssh'
+    vmin = .2
+    vmax = .5
+elif vn == 'ubar':
+    hvn = 'ubar'
+    vmin = -.5
+    vmax = .5
+elif vn == 'vbar':
+    hvn = 'vbar'
+    vmin = -.5
+    vmax = .5
 
+# extract variables to plot
+if vn in ['zeta', 'ubar', 'vbar']:
+    # 2D
+    vxfh = xfh[hvn][:,:]
+    try:
+        vfh = fh[hvn][:,:]
+    except KeyError: # no vbar in fh; it is created during extrapolation
+        vfh = 0 * vxfh
+    vroms = ds[vn][0, :, :]
+else:
+    # 3D
+    vfh = fh[hvn][-1,:,:]
+    vxfh = xfh[hvn][-1,:,:]
+    vroms = ds[vn][0, -1, :, :]
+    
 ax = axes[0,0]
-v = fh[hvn][-1,:,:]
-cs = ax.pcolormesh(lon, lat, v, cmap='rainbow', vmin=vmin, vmax=vmax)
+cs = ax.pcolormesh(lon, lat, vfh, cmap=cmap, vmin=vmin, vmax=vmax)
 pfun.dar(ax)
 pfun.add_coast(ax)
 set_box(ax)
 ax.set_title('HYCOM original: ' + hvn)
 
 ax = axes[0,1]
-v = xfh[hvn][-1,:,:]
-cs = ax.pcolormesh(lon, lat, v, cmap='rainbow', vmin=vmin, vmax=vmax)
+cs = ax.pcolormesh(lon, lat, vxfh, cmap=cmap, vmin=vmin, vmax=vmax)
 pfun.dar(ax)
 pfun.add_coast(ax)
 set_box(ax)
 ax.set_title('HYCOM extrapolated: ' + hvn)
 
-try:
-    ax = axes[0,2]
-    v = ds[vn][0, -1, :, :]
-    v[maskr==0] = np.nan
-    cs = ax.pcolormesh(lonp, latp, v[1:-1,1:-1], cmap='rainbow', vmin=vmin, vmax=vmax)
-    pfun.dar(ax)
-    pfun.add_coast(ax)
-    ax.text(.95, .05, date_string,
-        horizontalalignment='right', transform=ax.transAxes,
-        fontweight='bold')
-    set_box(ax)
-    ax.set_title('ROMS ' + Ldir['gtag'] + ': ' + vn)
-except:
-    pass
+ax = axes[0,2]
+
+if vn == 'ubar':
+    Lon = lonu; Lat = latu; Mask = masku
+elif vn == 'vbar':
+    Lon = lonv; Lat = latv; Mask = maskv
+else:
+    Lon = lonr; Lat = latr; Mask = maskr
+vroms[Mask==0] = np.nan
+
+cs = ax.pcolormesh(Lon, Lat, vroms, cmap=cmap, vmin=vmin, vmax=vmax)
+fig.colorbar(cs)
+pfun.dar(ax)
+pfun.add_coast(ax)
+ax.text(.95, .05, date_string,
+    horizontalalignment='right', transform=ax.transAxes,
+    fontweight='bold')
+set_box(ax)
+ax.set_title('ROMS ' + Ldir['gtag'] + ': ' + vn)
 
 plt.show()
 

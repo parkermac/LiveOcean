@@ -414,9 +414,14 @@ def get_extrapolated(in_fn, L, M, N, X, Y, lon, lat, z, Ldir, add_CTD=False):
     dz = np.nan * np.ones((N, 1, 1))
     dz[1:, 0, 0]= np.diff(z)
     dz[0, 0, 0] = dz[1, 0, 0]
-    dz3 = dz * np.ones_like(b['u3d']) # make dz a masked array
-    b['ubar'] = np.sum(b['u3d']*dz3, axis=0) / np.sum(dz3, axis=0)
-    b['vbar'] = np.sum(b['v3d']*dz3, axis=0) / np.sum(dz3, axis=0)
+    
+    # account for the fact that the new hycom fields do not show up masked
+    u3d = np.ma.masked_where(np.isnan(b['u3d']),b['u3d'])
+    v3d = np.ma.masked_where(np.isnan(b['v3d']),b['v3d'])
+    dz3 = dz * np.ones_like(u3d) # make dz a masked array
+    b['ubar'] = np.sum(u3d*dz3, axis=0) / np.sum(dz3, axis=0)
+    b['vbar'] = np.sum(v3d*dz3, axis=0) / np.sum(dz3, axis=0)
+    
     for vn in ['ubar', 'vbar']:
         v = b[vn]
         vv = v.copy()

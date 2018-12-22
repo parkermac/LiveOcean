@@ -16,7 +16,7 @@ on a specified day only.
 
 To run from the command line in LiveOcean/driver/:
     
-./driver_forcing1.sh -g cas4 -t v1 -f ocn2 -r backfill -0 20130101 -1 20130101
+./driver_forcing1.sh -g cas4 -t v1 -f ocn3 -r backfill -0 20130101 -1 20130101
 
 To test in python on mac:
 
