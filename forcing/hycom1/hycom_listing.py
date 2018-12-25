@@ -30,7 +30,7 @@ coords_dict = dict()
 
 for exnum in exnum_list:
     print('\nWorking on ' + exnum)
-    fn = 'http://beta.hycom.org/thredds/dodsC/GLBu0.08/expt_' + exnum  
+    fn = 'http://tds.hycom.org/thredds/dodsC/GLBu0.08/expt_' + exnum  
     ds = nc.Dataset(fn)
     
     coords = hfun.get_coordinates(ds)

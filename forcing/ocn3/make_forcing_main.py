@@ -139,14 +139,22 @@ elif (Ldir['run_type'] == 'backfill') and (planB == False):
 
 if planB == False:
     # process the hycom files
-
-    # copy in the coordinates (assume those from first file work)
-    this_h_dict = pickle.load(open(h_in_dir + h_list[0], 'rb'))
-    coord_dict = dict()
-    for vn in ['lon', 'lat', 'z']:
-        coord_dict[vn] = this_h_dict[vn]
-    c_out_dir = Ldir['LOogf_fd']
-    pickle.dump(coord_dict, open(c_out_dir + 'coord_dict.p', 'wb'))
+    
+    if Ldir['run_type'] == 'forecast':
+        # new forecast version
+        # copy in the coordinates (assume those from first file work)
+        this_h_dict = pickle.load(open(h_in_dir + h_list[0], 'rb'))
+        coord_dict = dict()
+        for vn in ['lon', 'lat', 'z']:
+            coord_dict[vn] = this_h_dict[vn]
+        c_out_dir = Ldir['LOogf_fd']
+        pickle.dump(coord_dict, open(c_out_dir + 'coord_dict.p', 'wb'))
+    elif Ldir['run_type'] == 'backfill':
+        # backfill
+        c_out_dir = Ldir['LOogf_fd']
+        coords_dict = pickle.load(open(h_in_dir + 'coords_dict.p', 'rb'))
+        coord_dict = coords_dict['91.2']
+        pickle.dump(coord_dict, open(c_out_dir + 'coord_dict.p', 'wb'))
 
     #%% filter in time
     fh_dir = Ldir['LOogf_fd']
@@ -200,25 +208,12 @@ elif planB == True:
     clm_yesterday = (Ldir['LOog'] + 'f' + ds_yesterday + '/'
         + Ldir['frc'] + '/' + 'ocean_clm.nc')
     clm_today = Ldir['LOogf_f'] + 'ocean_clm.nc'
-
-    #print(clm_yesterday)
-    #print(clm_today)
     shutil.copyfile(clm_yesterday, clm_today)
     ds = nc.Dataset(clm_today, 'a')
-    #print('OLD')
     ot = ds['ocean_time'][:]
-    # for t in ot:
-    #     print(t)
     ot[-1] += 86400
-    #print('NEW')
     for tname in ['ocean', 'salt', 'temp', 'v3d', 'v2d', 'zeta']:
         ds[tname + '_time'][:] = ot
-        
-    # for tname in []'NO3','phytoplankton', 'zooplankton', 'detritus', 'Ldetritus',
-    #     'CaCO3', 'oxygen', 'alkalinity', 'TIC']:
-    #     ds[tname + '_time'][:] = ot
-        #print(tname)
-        #print(ds[tname + '_time'][:])
     ds.close()
     
 nc_dir = Ldir['LOogf_f']

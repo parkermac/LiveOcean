@@ -34,6 +34,8 @@ if testing:
     exnum_list = ['91.2']
 else:
     #exnum_list = ['90.9', '91.0', '91.1', '91.2']
+    # no need to do all of them, because the archive is already as complete
+    # as it is going to be for them
     exnum_list = ['91.2']
 
 dt_list_new = []
@@ -42,8 +44,6 @@ for exnum in exnum_list:
     # open the Dataset for this exnum
     print('\nWorking on exnum ' + exnum)
     
-    # PM Edit 2018.01.02 to be consistent with forcing/ocn1/Ofun.py
-    #fn = 'http://beta.hycom.org/thredds/dodsC/GLBu0.08/expt_' + exnum  
     fn = 'http://tds.hycom.org/thredds/dodsC/GLBu0.08/expt_' + exnum  
     
     # get time and space coordinates for this exnum
