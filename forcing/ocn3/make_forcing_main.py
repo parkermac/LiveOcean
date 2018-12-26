@@ -16,14 +16,17 @@ on a specified day only.
 
 To run from the command line in LiveOcean/driver/:
     
-./driver_forcing1.sh -g cas4 -t v1 -f ocn3 -r backfill -0 20130101 -1 20130101
+./driver_forcing2.sh -g cas4 -t v2 -f ocn3 -r backfill -0 20170101 -1 20170101
 
 To test in python on mac:
 
-cd ~/Documents/LiveOcean/forcing/ocn2
+# standard backfill
+run make_forcing_main.py -g cas4 -t v2 -r backfill -d 2017.01.10
 
-(good for testing the new Ofun_CTD code)
+# backfill with Salish and coastal estuary IC's from CTD and other info
+run make_forcing_main.py -g cas4 -t v2 -r backfill -d 2017.01.01
 
+# today's forecast
 run make_forcing_main.py -g cas4 -t v2 -r forecast
 
 """
@@ -42,6 +45,7 @@ from datetime import datetime, timedelta
 import shutil
 import pickle
 import netCDF4 as nc
+import numpy as np
 
 import zrfun
 import Ofun
@@ -57,10 +61,9 @@ reload(Ofun_bio)
 start_time = datetime.now()
 
 # defaults
+testing = False
 planB = False
 add_CTD = False
-testing = False
-
 do_bio = True
 
 # *** automate when to set add_CTD to True ***
@@ -69,7 +72,7 @@ if this_dt == datetime(2017,1,1):
     print('WARNING: adding CTD data to extrapolation!!')
     add_CTD = True
 
-if (Ldir['run_type'] == 'forecast') and (planB == False):
+if (Ldir['run_type'] == 'forecast'):
     # this either gets new hycom files, or sets planB to True
     
     h_out_dir = Ldir['LOogf_fd']
@@ -77,7 +80,8 @@ if (Ldir['run_type'] == 'forecast') and (planB == False):
     
     try:
         data_fn_out =  h_out_dir + 'data.nc'
-        Ofun.get_data(this_dt, data_fn_out)
+        nd_f = np.ceil(Ldir['forecast_days'])
+        Ofun.get_data(this_dt, data_fn_out, nd_f)
         
         ds = nc.Dataset(data_fn_out)
         NT = len(ds['time'][:])
@@ -97,13 +101,14 @@ if (Ldir['run_type'] == 'forecast') and (planB == False):
         h_list = [item for item in h_list0 if item[0] == 'h']
         
     except:
-        print('*** using planB ***')
+        print('- error getting forecast files')
         planB = True
        
-elif (Ldir['run_type'] == 'backfill') and (planB == False):
-    # make a list of files to use from the hycom1 archive
-
-    # get a list of all available times
+elif (Ldir['run_type'] == 'backfill'):
+    # no planB here - we assume it works or we need ot know why it fails
+    
+    # Make a list of files to use from the hycom1 archive.
+    # first get a list of all available times
     h_in_dir = Ldir['data'] + 'hycom1/'
     h_list0 = os.listdir(h_in_dir)
     h_list0.sort()
@@ -149,6 +154,7 @@ if planB == False:
             coord_dict[vn] = this_h_dict[vn]
         c_out_dir = Ldir['LOogf_fd']
         pickle.dump(coord_dict, open(c_out_dir + 'coord_dict.p', 'wb'))
+        
     elif Ldir['run_type'] == 'backfill':
         # backfill
         c_out_dir = Ldir['LOogf_fd']
@@ -186,18 +192,19 @@ if planB == False:
     dt_list = []
     count = 0
     c_dict = dict()
-    for fn in aa:
-        print('-Interpolating ' + fn + ' to ROMS grid')
-        in_fn = fh_dir + fn
-        b = pickle.load(open(in_fn, 'rb'))
-        dt_list.append(b['dt'])
-        c = Ofun.get_interpolated(G, S, b, lon, lat, z, N)
-        c_dict[count] = c
-        count += 1
-
-    #%% Write to ROMS forcing files
-    nc_dir = Ldir['LOogf_f']
-    Ofun_nc.make_clm_file(Ldir, nc_dir, fh_dir, c_dict, dt_list, S, G)
+    
+    if testing == False: # this is a slow step, so omit for testing
+        for fn in aa:
+            print('-Interpolating ' + fn + ' to ROMS grid')
+            in_fn = fh_dir + fn
+            b = pickle.load(open(in_fn, 'rb'))
+            dt_list.append(b['dt'])
+            c = Ofun.get_interpolated(G, S, b, lon, lat, z, N)
+            c_dict[count] = c
+            count += 1
+        #%% Write to ROMS forcing files
+        nc_dir = Ldir['LOogf_f']
+        Ofun_nc.make_clm_file(Ldir, nc_dir, fh_dir, c_dict, dt_list, S, G)
 
 elif planB == True:
     print('**** Using planB ****')
@@ -215,15 +222,6 @@ elif planB == True:
     for tname in ['ocean', 'salt', 'temp', 'v3d', 'v2d', 'zeta']:
         ds[tname + '_time'][:] = ot
     ds.close()
-    
-nc_dir = Ldir['LOogf_f']
-
-if do_bio and (planB==False):
-    G = zrfun.get_basic_info(Ldir['grid'] + 'grid.nc', only_G=True)
-    Ofun_bio.add_bio(nc_dir, G, add_CTD=add_CTD)
-
-Ofun_nc.make_ini_file(nc_dir)
-Ofun_nc.make_bry_file(nc_dir)
 
 #%% prepare for finale
 import collections
@@ -235,22 +233,29 @@ result_dict['end_time'] = end_time.strftime(time_format)
 dt_sec = (end_time - start_time).seconds
 result_dict['total_seconds'] = str(dt_sec)
 
-ds = nc.Dataset(nc_dir + 'ocean_clm.nc')
-ot = ds['ocean_time'][:]
-ds.close()
-dt0 = Lfun.modtime_to_datetime(ot[0])
-dt1 = Lfun.modtime_to_datetime(ot[-1])
-
-result_dict['var_start_time'] = dt0.strftime(time_format)
-result_dict['var_end_time'] = dt1.strftime(time_format)
-
-nc_list = ['ocean_clm.nc', 'ocean_ini.nc', 'ocean_bry.nc']
-result_dict['result'] = 'success'
-for fn in nc_list:
-    if os.path.isfile(nc_dir + fn):
-        pass
-    else:
-       result_dict['result'] = 'fail'
+if testing == False:
+    nc_dir = Ldir['LOogf_f']
+    if do_bio and (planB==False):
+        G = zrfun.get_basic_info(Ldir['grid'] + 'grid.nc', only_G=True)
+        Ofun_bio.add_bio(nc_dir, G, add_CTD=add_CTD)
+    Ofun_nc.make_ini_file(nc_dir)
+    Ofun_nc.make_bry_file(nc_dir)
+    ds = nc.Dataset(nc_dir + 'ocean_clm.nc')
+    ot = ds['ocean_time'][:]
+    ds.close()
+    dt0 = Lfun.modtime_to_datetime(ot[0])
+    dt1 = Lfun.modtime_to_datetime(ot[-1])
+    result_dict['var_start_time'] = dt0.strftime(time_format)
+    result_dict['var_end_time'] = dt1.strftime(time_format)
+    nc_list = ['ocean_clm.nc', 'ocean_ini.nc', 'ocean_bry.nc']
+    result_dict['result'] = 'success'
+    for fn in nc_list:
+        if os.path.isfile(nc_dir + fn):
+            pass
+        else:
+           result_dict['result'] = 'fail'
+else:
+    result_dict['result'] = 'testing'
 
 #%% ************** END CASE-SPECIFIC CODE *****************
 

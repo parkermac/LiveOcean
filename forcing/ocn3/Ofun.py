@@ -22,7 +22,7 @@ import hfun
 import zfun
 import zrfun
 
-def get_data(this_dt, fn_out):
+def get_data(this_dt, fn_out, nd_f):
     """"
     Code to get hycom data using the new FMRC_best file.
     """
@@ -58,37 +58,22 @@ def get_data(this_dt, fn_out):
     if testing == True:
         dt1 = dt00 - timedelta(days=1)
     else:
-        dt1 = dt00 + timedelta(days=5)
+        dt1 = dt00 + timedelta(days=int(nd_f) + 2)
     # put them in ncss format
     dstr0 = dt0.strftime('%Y-%m-%d-T00:00:00Z')
     dstr1 = dt1.strftime('%Y-%m-%d-T00:00:00Z')
     print('- dt0 = ' + dstr0)
     print('- dt1 = ' + dstr1)
     
-    # for future improvements
-    # get info about what datetime we want
-    # nd_f = Ldir['forecast_days']
-    # dt0s = Ldir['date_string']
-    # dt0 = datetime.strptime(dt0s, '%Y.%m.%d')
-    # # assume we need two days before dt0, and two days after dt0+nd_f
-    # # but note that this ASSUMES we are using a 5 day window to filter in time.
-    # dt_list = []
-    # iit_list = []
-    # dt_low = dt0 - timedelta(days=2)
-    # dt_high = dt0 + timedelta(days=(nd_f+2))
-
     # specify spatial limits
-    # for future improvements
-    #aa = hfun.get_extraction_limits()
-    #aa = [-129, -121, 39, 51]
-    north = 51
-    south = 39
-    west = 231 #-129 + 360
-    east = 238 #-122 + 360
+    aa = hfun.get_extraction_limits()
+    north = aa[3]
+    south = aa[2]
+    west = aa[0] + 360
+    east = aa[1] + 360
 
     if testing == True:
         var_list = 'surf_el'
-        #var_list = 'surf_el,salinity'
     else:
         var_list = 'surf_el,water_temp,salinity,water_u,water_v'
 
@@ -212,7 +197,7 @@ def get_extraction_new(fn, iit):
             v3d = ds['water_v'][iit, :, :, :]
             v3d = v3d[::-1, :, :] # pack bottom to top
             out_dict['v3d'] = v3d
-        print('  %0.2f sec to get %s' % ((time.time() - tt0), var_name))
+        # print('  %0.2f sec to get %s' % ((time.time() - tt0), var_name))
     ds.close()
     
     return out_dict # the keys of this dictionary are separate variables

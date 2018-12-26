@@ -24,11 +24,6 @@ def get_casts(Ldir):
     year = this_dt.year
     month = this_dt.month
     
-    # # +++ load ecology CTD cast information +++
-    # dir0 = Ldir['parent'] + 'ptools_data/ecology/'
-    # # load processed station info and data
-    # sta_df = pd.read_pickle(dir0 + 'sta_df.p')
-    
     # +++ load ecology CTD cast data +++
     dir0 = Ldir['parent'] + 'ptools_data/ecology/'
     # load processed station info and data
@@ -37,19 +32,17 @@ def get_casts(Ldir):
     dir1 = Ldir['parent'] + 'ptools_data/canada/'
     # load processed station info and data
     sta_df_ca = pd.read_pickle(dir1 + 'sta_df.p')
-    sta_df = pd.concat((sta_df, sta_df_ca))
+    sta_df = pd.concat((sta_df, sta_df_ca), sort=False)
     year = 2017
     Casts = pd.read_pickle(dir0 + 'Casts_' + str(year) + '.p')
     Casts_ca = pd.read_pickle(dir1 + 'Casts_' + str(year) + '.p')
-    Casts = pd.concat((Casts, Casts_ca))
+    Casts = pd.concat((Casts, Casts_ca), sort=False)
 
     # limit the stations used, if desired
     sta_list = [s for s in sta_df.index]# if ('WPA' not in s) and ('GYS' not in s)]
     # keep only certain columns
     sta_df = sta_df.loc[sta_list,['Max_Depth', 'Latitude', 'Longitude']]
     #
-    # # +++ load the Ecology cast data +++
-    # Casts = pd.read_pickle(dir0 + 'Casts_' + str(year) + '.p')
 
     # start a dict to store one cast per station (it is has data in the year)
     Cast_dict = dict()
@@ -147,27 +140,29 @@ def get_orig(Cast_dict, sta_df, X, Y, fld, lon, lat, zz, vn):
     return xyorig, fldorig
     
 def extrap_nearest_to_masked_CTD(X,Y,fld,xyorig=[],fldorig=[],fld0=0):
-    if np.ma.is_masked(fld):
-        if fld.all() is np.ma.masked:
-            print('  - Ofun_CTD.extrap_nearest_to_masked_CTD: filling with ' + str(fld0))
-            fldf = fld0 * np.ones(fld.data.shape)
-            fldd = fldf.data
-            Ofun.checknan(fldd)
-            return fldd
-        else:
-            fldf = fld.copy()
-            # array of the missing points that we want to fill
-            xynew = np.array((X[fld.mask],Y[fld.mask])).T
-            # array of indices for points nearest to the missing points
-            a = cKDTree(xyorig).query(xynew)
-            aa = a[1]
-
-            # use those indices to fill in using the good data
-            fldf[fld.mask] = fldorig[aa]
-                
-            fldd = fldf.data
-            Ofun.checknan(fldd)
-            return fldd
+    
+    # first make sure nans are masked
+    if np.ma.is_masked(fld) == False:
+        fld = np.ma.masked_where(np.isnan(fld), fld)
+    
+    if fld.all() is np.ma.masked:
+        print('  - Ofun_CTD.extrap_nearest_to_masked_CTD: filling with '
+            + str(fld0))
+        fldf = fld0 * np.ones(fld.data.shape)
+        fldd = fldf.data
+        Ofun.checknan(fldd)
+        return fldd
     else:
-        Ofun.checknan(fld)
-        return fld
+        fldf = fld.copy()
+        # array of the missing points that we want to fill
+        xynew = np.array((X[fld.mask],Y[fld.mask])).T
+        # array of indices for points nearest to the missing points
+        a = cKDTree(xyorig).query(xynew)
+        aa = a[1]
+
+        # use those indices to fill in using the good data
+        fldf[fld.mask] = fldorig[aa]
+            
+        fldd = fldf.data
+        Ofun.checknan(fldd)
+        return fldd
