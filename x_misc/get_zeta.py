@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Extract zeta time series from regions of the hycom forcing.  The goal is to develop background information in support of an improved open boundary condition in the Northern Strait of Georgia.
+Extract zeta time series from regions of the hycom forcing.
+The goal is to develop background information in support of an
+improved open boundary condition in the Northern Strait of Georgia.
 
-Note that Days 200-250 are a fairly stable time to explore a solution (2017.07.20 to 2017.09.08).  This is also a time period where DT was generally long (0 or 1 blowups).
+Note that Days 200-250 are a fairly stable time to explore a solution
+(2017.07.20 to 2017.09.08).  This is also a time period where
+DT was generally long (0 or 1 blowups).
 
 """
 
@@ -43,7 +47,7 @@ while mdt <= dt1:
     mdt = mdt + timedelta(days=1)
 
 # extractions
-zdf = pd.DataFrame(columns=['za', 'zb'])
+zdf = pd.DataFrame(columns=['z_jdf', 'z_sog'])
 
 print('== looping over dates ==')
 # loop over dates
@@ -81,16 +85,16 @@ for mds in mds_list:
         # (a) Mouth of Strait of Juan de Fuca
         i0, i1, fr = zfun.get_interpolant(np.array([-124.7, -124.5]), lon, extrap_nan=False)
         j0, j1, fr = zfun.get_interpolant(np.array([48.4, 48.6]), lat, extrap_nan=False)
-        zeta_a = zeta[j0[0]:j1[1]+1, i0[0]:i1[1]+1]
+        zeta_jdf = zeta[j0[0]:j1[1]+1, i0[0]:i1[1]+1]
         #
         # (b) Northern Strait of Georgia
         i0, i1, fr = zfun.get_interpolant(np.array([-125.5, -124.5]), lon, extrap_nan=False)
-        j0, j1, fr = zfun.get_interpolant(np.array([50.0, 50.3]), lat, extrap_nan=False)
-        zeta_b = zeta[j0[0]:j1[1]+1, i0[0]:i1[1]+1]
+        j0, j1, fr = zfun.get_interpolant(np.array([50.25, 50.45]), lat, extrap_nan=False)
+        zeta_sog = zeta[j0[0]:j1[1]+1, i0[0]:i1[1]+1]
         
         mdt = datetime.strptime(mds,'%Y.%m.%d')
-        zdf.loc[mdt, 'za'] = zeta_a.mean()
-        zdf.loc[mdt, 'zb'] = zeta_b.mean()
+        zdf.loc[mdt, 'z_jdf'] = zeta_jdf.mean()
+        zdf.loc[mdt, 'z_sog'] = zeta_sog.mean()
         
 # save output
 outdir = Ldir['LOo'] + 'misc/'
