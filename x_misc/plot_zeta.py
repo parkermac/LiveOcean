@@ -20,7 +20,7 @@ indir = Ldir['LOo'] + 'misc/'
 fn = indir + 'zeta_df.p'
 zdf = pd.read_pickle(fn)
 
-zdf['dz'] = zdf['zb'] - zdf['za']
+zdf['dz'] = zdf['z_sog'] - zdf['z_jdf']
 
 # plot results
 plt.close('all')

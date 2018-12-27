@@ -47,7 +47,7 @@ while mdt <= dt1:
     mdt = mdt + timedelta(days=1)
 
 # extractions
-zdf = pd.DataFrame(columns=['z_jdf', 'z_sog'])
+zdf = pd.DataFrame(columns=['z_jdf', 'z_sog', 'z_off'])
 
 print('== looping over dates ==')
 # loop over dates
@@ -91,10 +91,16 @@ for mds in mds_list:
         i0, i1, fr = zfun.get_interpolant(np.array([-125.5, -124.5]), lon, extrap_nan=False)
         j0, j1, fr = zfun.get_interpolant(np.array([50.25, 50.45]), lat, extrap_nan=False)
         zeta_sog = zeta[j0[0]:j1[1]+1, i0[0]:i1[1]+1]
+        #
+        # (c) Offshore
+        i0, i1, fr = zfun.get_interpolant(np.array([-127, -126]), lon, extrap_nan=False)
+        j0, j1, fr = zfun.get_interpolant(np.array([46, 47]), lat, extrap_nan=False)
+        zeta_off = zeta[j0[0]:j1[1]+1, i0[0]:i1[1]+1]
         
         mdt = datetime.strptime(mds,'%Y.%m.%d')
         zdf.loc[mdt, 'z_jdf'] = zeta_jdf.mean()
         zdf.loc[mdt, 'z_sog'] = zeta_sog.mean()
+        zdf.loc[mdt, 'z_off'] = zeta_off.mean()
         
 # save output
 outdir = Ldir['LOo'] + 'misc/'
