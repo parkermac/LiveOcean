@@ -336,7 +336,7 @@ def extrap_nearest_to_masked(X, Y, fld, fld0=0):
         checknan(fldd)
         return fldd
             
-def get_extrapolated(in_fn, L, M, N, X, Y, lon, lat, z, Ldir, add_CTD=False):
+def get_extrapolated(in_fn, L, M, N, X, Y, lon, lat, z, Ldir, add_CTD=False, fix_NSoG=False):
     b = pickle.load(open(in_fn, 'rb'))
     vn_list = list(b.keys())    
     # check that things are the expected shape
@@ -359,6 +359,19 @@ def get_extrapolated(in_fn, L, M, N, X, Y, lon, lat, z, Ldir, add_CTD=False):
     # extrapolate ssh
     vn = 'ssh'
     v = b[vn]
+    if fix_NSoG:
+        print(' ^^ Fixing NSoG ^^')
+        # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        # (a) Mouth of Strait of Juan de Fuca
+        i0, i1, fr = zfun.get_interpolant(np.array([-124.7, -124.5]), lon, extrap_nan=False)
+        j0, j1, fr = zfun.get_interpolant(np.array([48.4, 48.6]), lat, extrap_nan=False)
+        zeta_jdf = v[j0[0]:j1[1]+1, i0[0]:i1[1]+1]
+        #
+        # (b) Northern Strait of Georgia
+        i0, i1, fr = zfun.get_interpolant(np.array([-125.5, -124.5]), lon, extrap_nan=False)
+        j0, j1, fr = zfun.get_interpolant(np.array([50.15, 50.45]), lat, extrap_nan=False)
+        v[j0[0]:j1[1]+1, i0[0]:i1[1]+1] = np.nanmean(zeta_jdf) + 0.1
+        # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     vv = extrap_nearest_to_masked(X, Y, v)
     V[vn] = vv
     vn_list.remove('ssh')    

@@ -65,12 +65,17 @@ testing = False
 planB = False
 add_CTD = False
 do_bio = True
+fix_NSoG = False
 
 # *** automate when to set add_CTD to True ***
 this_dt = datetime.strptime(Ldir['date_string'], '%Y.%m.%d')
 if this_dt == datetime(2017,1,1):
     print('WARNING: adding CTD data to extrapolation!!')
     add_CTD = True
+    
+# *** automate fixing of NSoG ***
+if Ldir['run_type'] == 'backfill':
+    fix_NSoG = True
 
 if (Ldir['run_type'] == 'forecast'):
     # this either gets new hycom files, or sets planB to True
@@ -105,7 +110,7 @@ if (Ldir['run_type'] == 'forecast'):
         planB = True
        
 elif (Ldir['run_type'] == 'backfill'):
-    # no planB here - we assume it works or we need ot know why it fails
+    # no planB here - we assume it works or we need to know why it fails
     
     # Make a list of files to use from the hycom1 archive.
     # first get a list of all available times
@@ -174,7 +179,8 @@ if planB == False:
     for fn in aa:
         print('-Extrapolating ' + fn)
         in_fn = fh_dir + fn
-        V = Ofun.get_extrapolated(in_fn, L, M, N, X, Y, lon, lat, z, Ldir, add_CTD=add_CTD)
+        V = Ofun.get_extrapolated(in_fn, L, M, N, X, Y, lon, lat, z, Ldir,
+            add_CTD=add_CTD, fix_NSoG=fix_NSoG)
         pickle.dump(V, open(fh_dir + 'x' + fn, 'wb'))
 
     # and interpolate to ROMS format

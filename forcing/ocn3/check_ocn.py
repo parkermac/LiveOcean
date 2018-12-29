@@ -13,7 +13,7 @@ Only set up to work on mac.
 gridname='cas4'
 tag='v2'
 #date_string = '2018.12.25'
-date_string = '2017.01.01'
+date_string = '2017.01.10'
 
 # setup
 
@@ -85,7 +85,7 @@ def set_box(ax):
 
 fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(15,7), squeeze=False)
 
-vn = 'vbar' # roms variable name to plot
+vn = 'zeta' # roms variable name to plot
 cmap = 'rainbow' # default colormap
 
 if vn == 'salt':
@@ -98,8 +98,8 @@ elif vn == 'temp':
     vmax = 12
 elif vn == 'zeta':
     hvn = 'ssh'
-    vmin = .2
-    vmax = .5
+    vmin = 0
+    vmax = .4
 elif vn == 'ubar':
     hvn = 'ubar'
     vmin = -.5
