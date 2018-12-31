@@ -77,8 +77,8 @@ sect_df = tef_fun.get_sect_df()
 sect_info = dict()
 
 # select which sections to extract
-if False: # limited list
-    sect_list = [item for item in sect_df.index if item in ['shelf_45','shelf_46','shelf_47']]
+if True: # limited list
+    sect_list = [item for item in sect_df.index if item in ['sog4']]
 else: # full list
     sect_list = [item for item in sect_df.index]
 
