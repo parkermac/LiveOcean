@@ -85,7 +85,7 @@ def set_box(ax):
 
 fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(15,7), squeeze=False)
 
-vn = 'zeta' # roms variable name to plot
+vn = 'salt' # roms variable name to plot
 cmap = 'rainbow' # default colormap
 
 if vn == 'salt':

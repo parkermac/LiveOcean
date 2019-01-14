@@ -24,23 +24,26 @@ Ldir = Lfun.Lstart()
 
 indir0 = Ldir['LOo'] + 'tef/'
 # choose the tef extraction to process
-item = Lfun.choose_item(indir0)
+item = Lfun.choose_item(indir00)
 indir = indir0 + item + '/'
 
-LList_raw = os.listdir(indir)
+LList_raw = os.listdir(indir + 'extractions/')
 LList_raw.sort()
 
 if True: # process all .nc files
     LList = [item for item in LList_raw if ('.nc' in item)]
 else: # override
     LList = ['ai1.nc']
+    
+outdir = indir + 'processed/'
+Lfun.make_dir(outdir)
 
 for tef_file in LList:
     print(tef_file)
-    fn = indir + tef_file
+    fn = outdir + tef_file
 
     # name output file
-    out_fn = indir + tef_file.replace('.nc','.p')
+    out_fn = outdir + tef_file.replace('.nc','.p')
     # get rid of the old version, if it exists
     try:
         os.remove(out_fn)

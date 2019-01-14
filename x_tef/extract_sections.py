@@ -48,13 +48,15 @@ Ldir['date_string0'] = args.date_string0
 Ldir['date_string1'] = args.date_string1
 
 # make sure the output directory exists
-outdir00 = Ldir['LOo']
+outdir000 = Ldir['LOo']
+Lfun.make_dir(outdir000)
+outdir00 = outdir000 + 'tef/'
 Lfun.make_dir(outdir00)
-outdir0 = outdir00 + 'tef/'
-Lfun.make_dir(outdir0)
-outdir = (outdir0 + Ldir['gtagex'] + '_' + Ldir['date_string0']
+outdir0 = (outdir00 + Ldir['gtagex'] + '_' + Ldir['date_string0']
         + '_' + Ldir['date_string1'] + '/')
-Lfun.make_dir(outdir, clean=False)
+Lfun.make_dir(outdir0)
+outdir = outdir0 + 'extractions/'
+Lfun.make_dir(outdir)
 
 dt0 = datetime.strptime(args.date_string0, '%Y.%m.%d')
 dt1 = datetime.strptime(args.date_string1, '%Y.%m.%d')

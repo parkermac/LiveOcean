@@ -36,7 +36,7 @@ indir0 = Ldir['LOo'] + 'tef/'
 # choose the tef extraction to plot
 item = Lfun.choose_item(indir0)
 indir = indir0 + item + '/'
-if False:
+if True:
     item = Lfun.choose_item(indir, tag='.nc')
 else:
     item = 'ai1.nc'
@@ -94,6 +94,8 @@ salt = ds['salt'][:]
 # set time limits for plotting
 daylo = 100
 dayhi = 150
+# daylo = 5
+# dayhi = 10
 hourlo = daylo*24
 hourhi = dayhi*24
 
