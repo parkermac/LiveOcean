@@ -1157,6 +1157,178 @@ def P_superplot(in_dict):
     else:
         plt.show()    
 
+def P_superplot2(in_dict):
+    # Plot phytoplankton maps and section, with forcing time-series.
+    # Super clean design.  Simpler than P_superplot.
+
+    vn = 'phytoplankton'
+    vlims = (0, 40)
+    cmap = 'viridis'
+    sect_color = 'orange'
+    up_color = 'gray'
+    down_color = 'gray'
+    now_color = 'brown'
+    fs = 16 # fontsize
+    aa = [-123.3, -122.1, 47.01, 48.4]
+
+    # get model fields
+    fn = in_dict['fn']
+    ds = nc.Dataset(fn)
+
+    # get forcing fields
+    ffn = Ldir['LOo'] + 'superplot/forcing_cas4_v2_lo6biom_2017.p'
+    fdf = pd.read_pickle(ffn)
+    fdf['yearday'] = fdf.index.dayofyear - 0.5 # .5 to 364.5
+
+    # get section
+    G, S, T = zrfun.get_basic_info(in_dict['fn'])
+    # read in a section (or list of sections)
+    tracks_path = Ldir['data'] + 'tracks_new/'
+    tracks = ['Line_ps_main_v0.p']
+    zdeep = -250
+    xx = np.array([])
+    yy = np.array([])
+    for track in tracks:
+        track_fn = tracks_path + track
+        # get the track to interpolate onto
+        pdict = pickle.load(open(track_fn, 'rb'))
+        xx = np.concatenate((xx,pdict['lon_poly']))
+        yy = np.concatenate((yy,pdict['lat_poly']))
+    for ii in range(len(xx)-1):
+        x0 = xx[ii]
+        x1 = xx[ii+1]
+        y0 = yy[ii]
+        y1 = yy[ii+1]
+        nn = 20
+        if ii == 0:
+            x = np.linspace(x0, x1, nn)
+            y = np.linspace(y0,y1, nn)
+        else:
+            x = np.concatenate((x, np.linspace(x0, x1, nn)[1:]))
+            y = np.concatenate((y, np.linspace(y0, y1, nn)[1:]))
+    v2, v3, dist, idist0 = pfun.get_section(ds, vn, x, y, in_dict)
+
+    # PLOTTING
+    fig = plt.figure(figsize=(17,9))
+
+    # Full map
+    ax = fig.add_subplot(131)
+    lon = ds['lon_psi'][:]
+    lat = ds['lat_psi'][:]
+    v =ds[vn][0, -1, 1:-1, 1:-1]
+    fac=pinfo.fac_dict[vn]
+    vv = fac * v
+    vv[:, :6] = np.nan
+    vv[:6, :] = np.nan
+    cs = ax.pcolormesh(lon, lat, vv, vmin=vlims[0], vmax=vlims[1], cmap=cmap)
+    pfun.add_coast(ax)
+    ax.axis(pfun.get_aa(ds))
+    pfun.dar(ax)
+    ax.set_axis_off()
+    # add a box for the subplot
+    pfun.draw_box(ax, aa, color=sect_color, alpha=1, linewidth=5, inset=.01)
+    # labels
+    ax.text(.03, .02, 'LiveOcean\nPhytoplankton\n'
+        + datetime.strftime(T['tm'], '%Y'), fontsize=fs, color='w',
+        transform=ax.transAxes, horizontalalignment='left',
+        fontweight='bold')
+
+    # PS map
+    ax =  plt.subplot2grid((3,3), (1,2), rowspan=2)
+    cs = ax.pcolormesh(lon, lat, vv, vmin=vlims[0], vmax=vlims[1],
+        cmap=cmap)
+    pfun.add_coast(ax)
+    ax.axis(aa)
+    pfun.dar(ax)
+    pfun.draw_box(ax, aa, color=sect_color, alpha=1, linewidth=5, inset=.01)
+    ax.set_axis_off()
+    # add section track
+    n_ai = int(len(x)/6)
+    n_tn = int(4.5*len(x)/7)
+    ax.plot(x, y, linestyle=':', color=sect_color, linewidth=3)
+    ax.plot(x[n_ai], y[n_ai], marker='*', color=sect_color, markersize=18)
+    ax.plot(x[n_tn], y[n_tn], marker='o', color=sect_color, markersize=14)
+
+    # Section
+    ax =  plt.subplot2grid((3,3), (0,1), colspan=2)
+    ax.plot(dist, v2['zeta']+5, linestyle=':', color=sect_color, linewidth=3)
+    ax.plot(dist[n_ai], v2['zeta'][n_ai] + 5, marker='*', color=sect_color, markersize=18)
+    ax.plot(dist[n_tn], v2['zeta'][n_tn] + 5, marker='o', color=sect_color, markersize=14)
+    ax.set_xlim(dist.min(), dist.max())
+    ax.set_ylim(zdeep, 30)
+    sf = pinfo.fac_dict[vn] * v3['sectvarf']
+    # plot section
+    cs = ax.pcolormesh(v3['distf'], v3['zrf'], sf,
+                       vmin=0, vmax=15, cmap=cmap)
+    # labels
+    ax.text(1, .2, 'Puget Sound Section', fontsize=fs, color=sect_color,
+        transform=ax.transAxes, horizontalalignment='right', fontweight='bold')
+    ax.set_axis_off()
+
+    # get the day
+    tm = T['tm'] # datetime
+    TM = datetime(tm.year, tm.month, tm.day)
+    # get yearday
+    yearday = fdf['yearday'].values
+    this_yd = fdf.loc[TM, 'yearday']
+
+    
+    # Wind
+    alpha=1
+    ax =  plt.subplot2grid((3,3), (1,1), rowspan=2)
+    #ax = fig.add_subplot(336)
+    w = fdf['8-day NS Wind Stress (Pa)'].values
+    wp = w.copy()
+    wp[w<0] = np.nan
+    wm = w.copy()
+    wm[w>0] = np.nan
+    tt = np.arange(len(w))
+    ax.fill_between(yearday, wp, y2=0*w, color=down_color, alpha=alpha)
+    ax.fill_between(yearday, wm, y2=0*w, color=up_color, alpha=alpha)
+    # time marker
+    ax.plot(this_yd, fdf.loc[TM,'8-day NS Wind Stress (Pa)'],
+        marker='o', color=now_color, markersize=14)
+    # labels
+    ax.text(0, .85, 'Wind from South:\nDecreases Nutrients at Coast', transform=ax.transAxes,
+        color=down_color, alpha=alpha, fontsize=fs, fontweight='bold')
+    ax.text(0, .25, 'Wind from North:\nBrings Nutrients to Surface at Coast', transform=ax.transAxes,
+        color=up_color, alpha=alpha, fontsize=fs, fontweight='bold', verticalalignment='bottom')
+    # limits
+    ax.set_xlim(0,365)
+    ax.set_ylim(-.2, .25)
+    ax.set_axis_off()
+
+    # Time Axis
+    clist = ['gray', 'gray', 'gray', 'gray']
+    if tm.month in [1, 2, 3]:
+        clist[0] = now_color
+    if tm.month in [4, 5, 6]:
+        clist[1] = now_color
+    if tm.month in [7, 8, 9]:
+        clist[2] = now_color
+    if tm.month in [10, 11, 12]:
+        clist[3] = now_color
+    ypos = .1
+    tfs = fs + 4
+    ax.text(0, ypos, 'WINTER', transform=ax.transAxes, color=clist[0],
+        fontsize=tfs, horizontalalignment='left', fontweight='bold')
+    ax.text(.39, ypos, 'SPRING', transform=ax.transAxes, color=clist[1],
+        fontsize=tfs, horizontalalignment='center', fontweight='bold')
+    ax.text(.67, ypos, 'SUMMER', transform=ax.transAxes, color=clist[2],
+        fontsize=tfs, horizontalalignment='center', fontweight='bold')
+    ax.text(1, ypos, 'FALL', transform=ax.transAxes, color=clist[3],
+        fontsize=tfs, horizontalalignment='right', fontweight='bold')
+    
+    fig.tight_layout()
+    
+    # FINISH
+    ds.close()
+    if len(in_dict['fn_out']) > 0:
+        plt.savefig(in_dict['fn_out'])
+        plt.close()
+    else:
+        plt.show()
+
 def P_sect_hc(in_dict):
     # plots a map and a section (distance, z)
     
