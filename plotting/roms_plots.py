@@ -35,6 +35,7 @@ import netCDF4 as nc
 import matplotlib.pyplot as plt
 import pickle
 from datetime import datetime, timedelta
+import pandas as pd
 
 def P_basic(in_dict):
 
@@ -945,24 +946,8 @@ def P_sect2(in_dict):
         plt.show()
 
 def P_superplot(in_dict):
-    import zrfun
-    import zfun
-
-    #from importlib import reload
-
-    # pth = os.path.abspath('../plotting')
-    # if pth not in sys.path:
-    #     sys.path.append(pth)
-    # import pfun
-    # reload(pfun)
-    # import pinfo
-
-    import numpy as np
-    import pandas as pd
-    import pickle
-    import netCDF4 as nc
-    from datetime import datetime, timedelta
-    #import matplotlib.pyplot as plt
+    # Plot phytoplankton maps and section, with forcing time-series.
+    # Super clean design.
 
     vn = 'phytoplankton'
     vlims = (0, 40)
@@ -970,9 +955,6 @@ def P_superplot(in_dict):
 
     # get model fields
     fn = in_dict['fn']
-    # fn = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/f2017.07.20/ocean_his_0001.nc'
-    # in_dict = dict()
-    # in_dict['fn'] = fn
     ds = nc.Dataset(fn)
 
     # get forcing fields
@@ -980,12 +962,10 @@ def P_superplot(in_dict):
     fdf = pd.read_pickle(ffn)
     fdf['yearday'] = fdf.index.dayofyear - 0.5 # .5 to 364.5
 
-
     # get section
     G, S, T = zrfun.get_basic_info(in_dict['fn'])
     # read in a section (or list of sections)
     tracks_path = Ldir['data'] + 'tracks_new/'
-    #tracks = ['Line_jdf_v0.p', 'Line_ps_main_v0.p']
     tracks = ['Line_ps_main_v0.p']
     zdeep = -300
     xx = np.array([])
@@ -1011,12 +991,10 @@ def P_superplot(in_dict):
     v2, v3, dist, idist0 = pfun.get_section(ds, vn, x, y, in_dict)
 
     # PLOTTING
-
-    plt.close('all')
     fig = plt.figure(figsize=(17,9))
     fs = 18 # fontsize
 
-    # map field
+    # Full map
     ax = fig.add_subplot(131)
     lon = ds['lon_psi'][:]
     lat = ds['lat_psi'][:]
@@ -1033,19 +1011,14 @@ def P_superplot(in_dict):
     # add a box for the subplot
     aa = [-123.5, -122.1, 47.03, 48.8]
     pfun.draw_box(ax, aa, color='c', alpha=.5, linewidth=5, inset=.01)
-
+    # labels
     ax.text(.95, .07, 'LiveOcean\nPHYTOPLANKTON\n'
-        + datetime.strftime(T['tm'], '%m/%d/%Y'), fontsize=fs, color='k',
+        + datetime.strftime(T['tm'], '%Y'), fontsize=fs, color='k',
         transform=ax.transAxes, horizontalalignment='center',
         fontweight='bold')
 
     # PS map
-    # map field
-    #ax =  plt.subplot2grid((3,3), (1,2), rowspan=2)
     ax = fig.add_subplot(132)
-    # lon = ds['lon_psi'][:]
-    # lat = ds['lat_psi'][:]
-    # v =ds[vn][0, -1, 1:-1, 1:-1]
     lon = ds['lon_rho'][:]
     lat = ds['lat_rho'][:]
     v =ds[vn][0, -1, :, :]
@@ -1063,48 +1036,46 @@ def P_superplot(in_dict):
     # add section track
     ax.plot(x, y, linestyle=':', color='violet', linewidth=3)
 
-
-    # section
+    # Section
     ax =  fig.add_subplot(433)
-    #ax.plot(dist, v2['zbot'], ':k', linewidth=2)
     ax.plot(dist, v2['zeta']+5, linestyle=':', color='violet', linewidth=3)
     ax.set_xlim(dist.min(), dist.max())
     ax.set_ylim(zdeep, 10)
     sf = pinfo.fac_dict[vn] * v3['sectvarf']
     # plot section
     cs = ax.pcolormesh(v3['distf'], v3['zrf'], sf,
-                       vmin=vlims[0], vmax=vlims[1], cmap=cmap)
-    ax.set_axis_off()
+                       vmin=0, vmax=20, cmap=cmap)
+    # labels
     ax.text(0, 0, 'SECTION\nPuget Sound', fontsize=fs, color='b',
         transform=ax.transAxes)
-
-    fig.tight_layout()
-    plt.show()
+    ax.set_axis_off()
 
     # get the day
     tm = T['tm'] # datetime
     TM = datetime(tm.year, tm.month, tm.day)
-
     # get yearday
     yearday = fdf['yearday'].values
     this_yd = fdf.loc[TM, 'yearday']
 
     # Tides
+    alpha = .4
     ax = fig.add_subplot(436)
     ax.plot(yearday, fdf['RMS Tide Height (m)'].values, '-k',
-        lw=3, alpha=.4)
+        lw=3, alpha=alpha)
+    # time marker
     ax.plot(this_yd, fdf.loc[TM, 'RMS Tide Height (m)'],
         marker='o', color='r', markersize=7)
+    # labels
+    ax.text(1, .05, 'NEAP TIDES', transform=ax.transAxes,
+        alpha=alpha, fontsize=fs, horizontalalignment='right')
+    ax.text(1, .85, 'SPRING TIDES', transform=ax.transAxes,
+        alpha=alpha, fontsize=fs, horizontalalignment='right')
+    # limits
     ax.set_xlim(0,365)
     ax.set_ylim(.4, 1.7)
     ax.set_axis_off()
-    ax.text(1, .05, 'NEAP TIDES', transform=ax.transAxes,
-        alpha=.4, fontsize=fs, horizontalalignment='right')
-    ax.text(1, .85, 'SPRING TIDES', transform=ax.transAxes,
-        alpha=.4, fontsize=fs, horizontalalignment='right')
-
-
-    # wind
+    
+    # Wind
     alpha=.5
     ax = fig.add_subplot(439)
     w = fdf['8-day NS Wind Stress (Pa)'].values
@@ -1115,58 +1086,68 @@ def P_superplot(in_dict):
     tt = np.arange(len(w))
     ax.fill_between(yearday, wp, y2=0*w, color='g', alpha=alpha)
     ax.fill_between(yearday, wm, y2=0*w, color='b', alpha=alpha)
+    # time marker
     ax.plot(this_yd, fdf.loc[TM,'8-day NS Wind Stress (Pa)'],
         marker='o', color='r', markersize=7)
-    ax.set_axis_off()
-    ax.set_xlim(0,365)
-    ax.set_ylim(-.15, .25)
+    # labels
     ax.text(0, .85, 'DOWNWELLING WIND', transform=ax.transAxes,
         color='g', alpha=alpha, fontsize=fs)
     ax.text(0, .05, 'UPWELLING WIND', transform=ax.transAxes,
         color='b', alpha=alpha, fontsize=fs)
-
+    # limits
+    ax.set_xlim(0,365)
+    ax.set_ylim(-.15, .25)
+    ax.set_axis_off()
 
     # Rivers
+    alpha = .6
     cr = fdf['Columbia R. Flow (1000 m3/s)'].values
     fr = fdf['Fraser R. Flow (1000 m3/s)'].values
     sr = fdf['Skagit R. Flow (1000 m3/s)'].values
     this_yd = fdf.loc[TM, 'yearday']
     ax = fig.add_subplot(4,3,12)
-    # lw = 3
-    # ax.plot(yearday, cr, color='orange', lw=lw)
-    # ax.plot(yearday, fr, color='violet', lw=lw)
-    # ax.plot(yearday, sr, color='brown', lw=lw)
-    alpha = .6
     ax.fill_between(yearday, cr, 0*yearday, color='orange', alpha=alpha)
     ax.fill_between(yearday, fr, 0*yearday, color='violet', alpha=alpha)
     ax.fill_between(yearday, sr, 0*yearday, color='brown', alpha=alpha)
-
+    # time markers
     ax.plot(this_yd, fdf.loc[TM, 'Columbia R. Flow (1000 m3/s)'],
         marker='o', color='r', markersize=7)
     ax.plot(this_yd, fdf.loc[TM, 'Fraser R. Flow (1000 m3/s)'],
         marker='o', color='r', markersize=7)
     ax.plot(this_yd, fdf.loc[TM, 'Skagit R. Flow (1000 m3/s)'],
         marker='o', color='r', markersize=7)
-    
+    # labels
     ax.text(.8, .85, 'Columbia River', transform=ax.transAxes,
         color='orange', fontsize=fs, horizontalalignment='right', alpha=alpha)
     ax.text(.8, .70, 'Fraser River', transform=ax.transAxes,
         color='violet', fontsize=fs, horizontalalignment='right', alpha=alpha)
     ax.text(.8, .55, 'Skagit River', transform=ax.transAxes,
         color='brown', fontsize=fs, horizontalalignment='right', alpha=alpha)
-
+    # limits
+    ax.set_xlim(0,365)    
+    ax.set_ylim(-5,20)
     ax.set_axis_off()
     
-    #ax.set_xlabel('Yearday 2017')
-    ax.set_xlim(0,365)    
-    ax.set_ylim(0,20)
-
-    # Hide the right and top spines
-    ax.spines['right'].set_visible(False)
-    ax.spines['top'].set_visible(False)
-    # Only show ticks on the left and bottom spines
-    ax.yaxis.set_ticks_position('left')
-    ax.xaxis.set_ticks_position('bottom')
+    # Time Axis
+    clist = ['gray', 'gray', 'gray', 'gray']
+    if tm.month in [1, 2, 3]:
+        clist[0] = 'r'
+    if tm.month in [4, 5, 6]:
+        clist[1] = 'r'
+    if tm.month in [7, 8, 9]:
+        clist[2] = 'r'
+    if tm.month in [10, 11, 12]:
+        clist[3] = 'r'
+    ax.text(0, 0, 'WINTER', transform=ax.transAxes, color=clist[0],
+        fontsize=fs, horizontalalignment='left', style='italic')
+    ax.text(.4, 0, 'SPRING', transform=ax.transAxes, color=clist[1],
+        fontsize=fs, horizontalalignment='center', style='italic')
+    ax.text(.7, 0, 'SUMMER', transform=ax.transAxes, color=clist[2],
+        fontsize=fs, horizontalalignment='center', style='italic')
+    ax.text(1, 0, 'FALL', transform=ax.transAxes, color=clist[3],
+        fontsize=fs, horizontalalignment='right', style='italic')
+    
+    fig.tight_layout()
     
     # FINISH
     ds.close()
@@ -1174,8 +1155,7 @@ def P_superplot(in_dict):
         plt.savefig(in_dict['fn_out'])
         plt.close()
     else:
-        plt.show()
-    
+        plt.show()    
 
 def P_sect_hc(in_dict):
     # plots a map and a section (distance, z)

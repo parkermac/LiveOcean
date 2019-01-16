@@ -66,7 +66,7 @@ Ldir['gtagex'] = Ldir['gtag'] + '_' + args.ex_name
 if len(args.list_type) == 0:
     print(30*'*' + ' pan_plot ' + 30*'*')
     print('\n%s\n' % '** Choose List type (return for snapshot) **')
-    lt_list = ['snapshot', 'low_passed', 'daily', 'hourly ', 'forecast',
+    lt_list = ['snapshot', 'low_passed', 'daily', 'daily4', 'hourly ', 'forecast',
                'merhab', 'allhours']
     Nlt = len(lt_list)
     lt_dict = dict(zip(range(Nlt), lt_list))
