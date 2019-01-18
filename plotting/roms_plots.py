@@ -949,8 +949,10 @@ def P_superplot(in_dict):
     # Plot phytoplankton maps and section, with forcing time-series.
     # Super clean design.
 
-    vn = 'phytoplankton'
-    vlims = (0, 40)
+    vn = 'salt'
+    vlims = (28.5, 33) # full map
+    vlims2 = (22, 31) # PS map
+    vlims3 = (29, 32) # PS section
     cmap = 'jet'
 
     # get model fields
@@ -991,7 +993,7 @@ def P_superplot(in_dict):
     v2, v3, dist, idist0 = pfun.get_section(ds, vn, x, y, in_dict)
 
     # PLOTTING
-    fig = plt.figure(figsize=(17,9))
+    fig = plt.figure(figsize=(14,8))
     fs = 18 # fontsize
 
     # Full map
@@ -1012,22 +1014,16 @@ def P_superplot(in_dict):
     aa = [-123.5, -122.1, 47.03, 48.8]
     pfun.draw_box(ax, aa, color='c', alpha=.5, linewidth=5, inset=.01)
     # labels
-    ax.text(.95, .07, 'LiveOcean\nPHYTOPLANKTON\n'
+    ax.text(.95, .07, 'LiveOcean\nSalinity\n'
         + datetime.strftime(T['tm'], '%Y'), fontsize=fs, color='k',
         transform=ax.transAxes, horizontalalignment='center',
         fontweight='bold')
 
     # PS map
     ax = fig.add_subplot(132)
-    lon = ds['lon_rho'][:]
-    lat = ds['lat_rho'][:]
-    v =ds[vn][0, -1, :, :]
-    fac=pinfo.fac_dict[vn]
-    vv = fac * v
-    vv[:, :6] = np.nan
-    vv[:6, :] = np.nan
-    cs = ax.pcolormesh(lon, lat, vv, vmin=vlims[0], vmax=vlims[1],
-        cmap=cmap, shading='gouraud')
+    cs = ax.pcolormesh(lon, lat, vv, vmin=vlims2[0], vmax=vlims2[1],
+        cmap=cmap)
+    #fig.colorbar(cs)
     pfun.add_coast(ax)
     ax.axis(aa)
     pfun.dar(ax)
@@ -1044,7 +1040,8 @@ def P_superplot(in_dict):
     sf = pinfo.fac_dict[vn] * v3['sectvarf']
     # plot section
     cs = ax.pcolormesh(v3['distf'], v3['zrf'], sf,
-                       vmin=0, vmax=20, cmap=cmap)
+                       vmin=vlims3[0], vmax=vlims3[1], cmap=cmap)
+    #fig.colorbar(cs)
     # labels
     ax.text(0, 0, 'SECTION\nPuget Sound', fontsize=fs, color='b',
         transform=ax.transAxes)

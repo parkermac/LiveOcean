@@ -13,7 +13,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 Ldir = Lfun.Lstart()
-indir = Ldir['LOo'] + 'extract/'
+indir = Ldir['LOo'] + 'misc/'
 
 # choose the mooring extraction to plot
 print('\n%s\n' % '** Choose dt_log file to plot **')

@@ -59,7 +59,7 @@ D1=$[10#$y1*10000 + 10#$m1*100 + 10#$d1]
 gtag=$gridname"_"$tag
 gtagex=$gtag"_"$ex_name
 
-out_fn=$LOo"extract/dt_log_"$gtagex".txt"
+out_fn=$LOo"misc/dt_log_"$gtagex".txt"
 
 echo "Date,DT" > $out_fn
 
