@@ -21,7 +21,7 @@ import zrfun
 import zfun
 
 Ldir = Lfun.Lstart('cas4', 'v2')
-fnr = 'cas4_v2_2017.01.01_2017.12.31.p'
+fnr = 'cas4_v2_2017.01.01_2018.12.31.p'
 fn = Ldir['LOo'] + 'river/' + fnr
 df = pd.read_pickle(fn)
 

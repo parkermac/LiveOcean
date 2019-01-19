@@ -993,7 +993,7 @@ def P_superplot(in_dict):
     v2, v3, dist, idist0 = pfun.get_section(ds, vn, x, y, in_dict)
 
     # PLOTTING
-    fig = plt.figure(figsize=(14,8))
+    fig = plt.figure(figsize=(17,9))
     fs = 18 # fontsize
 
     # Full map
@@ -1030,13 +1030,24 @@ def P_superplot(in_dict):
     pfun.draw_box(ax, aa, color='c', alpha=.5, linewidth=5, inset=.01)
     ax.set_axis_off()
     # add section track
-    ax.plot(x, y, linestyle=':', color='violet', linewidth=3)
-
+    sect_color = 'violet'
+    n_ai = int(len(x)/6)
+    n_tn = int(4.5*len(x)/7)
+    ax.plot(x, y, linestyle='--', color='k', linewidth=2)
+    ax.plot(x[n_ai], y[n_ai], marker='*', color=sect_color, markersize=14,
+        markeredgecolor='k')
+    ax.plot(x[n_tn], y[n_tn], marker='o', color=sect_color, markersize=10,
+        markeredgecolor='k')
+    
     # Section
     ax =  fig.add_subplot(433)
-    ax.plot(dist, v2['zeta']+5, linestyle=':', color='violet', linewidth=3)
+    ax.plot(dist, v2['zeta']+5, linestyle='--', color='k', linewidth=2)
+    ax.plot(dist[n_ai], v2['zeta'][n_ai] + 5, marker='*', color=sect_color,
+        markersize=14, markeredgecolor='k')
+    ax.plot(dist[n_tn], v2['zeta'][n_tn] + 5, marker='o', color=sect_color,
+        markersize=10, markeredgecolor='k')
     ax.set_xlim(dist.min(), dist.max())
-    ax.set_ylim(zdeep, 10)
+    ax.set_ylim(zdeep, 25)
     sf = pinfo.fac_dict[vn] * v3['sectvarf']
     # plot section
     cs = ax.pcolormesh(v3['distf'], v3['zrf'], sf,
@@ -1114,11 +1125,11 @@ def P_superplot(in_dict):
     ax.plot(this_yd, fdf.loc[TM, 'Skagit R. Flow (1000 m3/s)'],
         marker='o', color='r', markersize=7)
     # labels
-    ax.text(.8, .85, 'Columbia River', transform=ax.transAxes,
+    ax.text(.9, .85, 'Columbia River', transform=ax.transAxes,
         color='orange', fontsize=fs, horizontalalignment='right', alpha=alpha)
-    ax.text(.8, .70, 'Fraser River', transform=ax.transAxes,
+    ax.text(.9, .70, 'Fraser River', transform=ax.transAxes,
         color='violet', fontsize=fs, horizontalalignment='right', alpha=alpha)
-    ax.text(.8, .55, 'Skagit River', transform=ax.transAxes,
+    ax.text(.9, .55, 'Skagit River', transform=ax.transAxes,
         color='brown', fontsize=fs, horizontalalignment='right', alpha=alpha)
     # limits
     ax.set_xlim(0,365)    
@@ -1139,7 +1150,7 @@ def P_superplot(in_dict):
         fontsize=fs, horizontalalignment='left', style='italic')
     ax.text(.4, 0, 'SPRING', transform=ax.transAxes, color=clist[1],
         fontsize=fs, horizontalalignment='center', style='italic')
-    ax.text(.7, 0, 'SUMMER', transform=ax.transAxes, color=clist[2],
+    ax.text(.68, 0, 'SUMMER', transform=ax.transAxes, color=clist[2],
         fontsize=fs, horizontalalignment='center', style='italic')
     ax.text(1, 0, 'FALL', transform=ax.transAxes, color=clist[3],
         fontsize=fs, horizontalalignment='right', style='italic')
@@ -1159,7 +1170,7 @@ def P_superplot2(in_dict):
     # Super clean design.  Simpler than P_superplot.
 
     vn = 'phytoplankton'
-    vlims = (0, 40)
+    vlims = (0, 20)
     cmap = 'viridis'
     sect_color = 'orange'
     up_color = 'gray'
@@ -1243,20 +1254,24 @@ def P_superplot2(in_dict):
     n_ai = int(len(x)/6)
     n_tn = int(4.5*len(x)/7)
     ax.plot(x, y, linestyle=':', color=sect_color, linewidth=3)
-    ax.plot(x[n_ai], y[n_ai], marker='*', color=sect_color, markersize=18)
-    ax.plot(x[n_tn], y[n_tn], marker='o', color=sect_color, markersize=14)
+    ax.plot(x[n_ai], y[n_ai], marker='*', color=sect_color, markersize=14,
+        markeredgecolor='k')
+    ax.plot(x[n_tn], y[n_tn], marker='o', color=sect_color, markersize=10,
+        markeredgecolor='k')
 
     # Section
     ax =  plt.subplot2grid((3,3), (0,1), colspan=2)
     ax.plot(dist, v2['zeta']+5, linestyle=':', color=sect_color, linewidth=3)
-    ax.plot(dist[n_ai], v2['zeta'][n_ai] + 5, marker='*', color=sect_color, markersize=18)
-    ax.plot(dist[n_tn], v2['zeta'][n_tn] + 5, marker='o', color=sect_color, markersize=14)
+    ax.plot(dist[n_ai], v2['zeta'][n_ai] + 5, marker='*', color=sect_color,
+        markersize=14, markeredgecolor='k')
+    ax.plot(dist[n_tn], v2['zeta'][n_tn] + 5, marker='o', color=sect_color,
+        markersize=10, markeredgecolor='k')
     ax.set_xlim(dist.min(), dist.max())
     ax.set_ylim(zdeep, 30)
     sf = pinfo.fac_dict[vn] * v3['sectvarf']
     # plot section
     cs = ax.pcolormesh(v3['distf'], v3['zrf'], sf,
-                       vmin=0, vmax=15, cmap=cmap)
+                       vmin=0, vmax=20, cmap=cmap)
     # labels
     ax.text(1, .2, 'Puget Sound Section', fontsize=fs, color=sect_color,
         transform=ax.transAxes, horizontalalignment='right', fontweight='bold')
