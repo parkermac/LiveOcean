@@ -246,10 +246,21 @@ def write_to_nc(out_fn, S, df, qt_df_dict, dt_ind):
     v_var = foo.createVariable('river_Vshape', float, ('s_rho', 'river'))
     count = 0
     for rn in df.index:
-        # copied from old matlab code, and simplified
-        #   %linear decay from surface value to 0, fixed by sng 7/2011
-        v_var[:, count] = np.linspace(0,2/N,N)
-        count += 1
+        if False:
+            # copied from old matlab code, and simplified
+            #   %linear decay from surface value to 0, fixed by sng 7/2011
+            v_var[:, count] = np.linspace(0,2/N,N)
+            count += 1
+        else:
+            # new version 2019.01.20 PM, because the one above put
+            # too much transport in the thin upper layers, which
+            # caused VERY high velocities - and may have been the source
+            # of blowups.
+            csw = S['Cs_w']
+            dcsw = np.diff(csw)
+            v_var[:, count] = dcsw
+            count += 1
+            # should end up with velocity constant over depth
     v_var.long_name = 'river runoff mass transport vertical profile'
     v_var.requires = "must sum to 1 over s_rho"
 
