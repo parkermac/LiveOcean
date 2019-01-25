@@ -118,7 +118,8 @@ def get_z(h, zeta, S, only_rho=False, only_w=False):
         if S['hc'] == 0: # if hc = 0 the transform is simpler (and faster)
             z_rho = H_r*Cs_r + Zeta_r + Zeta_r*Cs_r
         elif S['hc'] != 0: # need to calculate a few more useful arrays
-            sr = S['s_rho']
+            #sr = S['s_rho']
+            sr = S['sc_r'] # PM edit 2019.01.24
             srr = sr.reshape(N, 1, 1).copy()
             S_rho = np.tile(srr, [1, M, L])
             Hc_r = np.tile(S['hc'], [N, M, L])
@@ -141,7 +142,8 @@ def get_z(h, zeta, S, only_rho=False, only_w=False):
         if S['hc'] == 0: # if hc = 0 the transform is simpler (and faster)
             z_w = H_w*Cs_w + Zeta_w + Zeta_w*Cs_w
         elif S['hc'] != 0: # need to calculate a few more useful arrays
-            sw = S['s_w']
+            #sw = S['s_w']
+            sw = S['sc_w'] # PM edit 2019.01.24
             sww = sw.reshape(N+1, 1, 1).copy()
             S_w = np.tile(sww, [1, M, L])    #
             Hc_w = np.tile(S['hc'], [N+1, M, L])
@@ -220,6 +222,9 @@ def get_S(S_info_dict):
     # edited by SNG March 2011 to include all of the current available ROMS
     # stretching functions, 1-4 see:
     # https://www.myroms.org/wiki/index.php/Vertical_S-coordinate#Vertical_Stretching_Functions
+    
+    Note 2019.10.21 PM: neither hc nor tcline appear to be used in these functions!
+    Are they used somehow inside of ROMS?
     """
     S = dict()
     for item in S_info_dict.keys():

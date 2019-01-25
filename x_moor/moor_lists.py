@@ -72,4 +72,24 @@ def get_sta_dict(job_name):
             'P8': (-122.605000,47.8967),
         }
         
+    elif job_name == 'erika_1':
+        sta_dict = {
+        'heinBankBuoy': (-123.165000, 48.334000),
+        'portWilliamsBuoy': (-122.406100, 47.537200),
+        'offshore': (-126.426364, 47.595087),
+        'jdfStraitEntrance': (-124.788896, 48.473260),
+        'hoodCanalSouth': (-122.762032, 47.716531),
+        'hoodCanalNorth': (-122.603685, 47.871478),
+        'hoodsportBuoy': (-123.112600, 47.421800),
+        'deceptionPassEast': (-122.599176, 48.414963),
+        'deceptionPassWest': (-122.688143, 48.400888),
+        'bellinghamBayBuoySite': (-122.576500, 48.723700),
+        'saratogaPassage': (-122.552402, 48.156914),
+        'admiraltyNorth': (-122.851869, 48.196848),
+        'admiraltySouth': (-122.656958, 48.094407),
+        'bellinghamBaySouth': (-122.541997, 48.639757),
+        'seattle': (-122.455031, 47.559993),
+        'jdfStraitMiddle': (-123.803274, 48.246187)
+        }
+        
     return sta_dict, v2_list, v3_list_rho, v3_list_w
