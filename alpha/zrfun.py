@@ -223,8 +223,6 @@ def get_S(S_info_dict):
     # stretching functions, 1-4 see:
     # https://www.myroms.org/wiki/index.php/Vertical_S-coordinate#Vertical_Stretching_Functions
     
-    Note 2019.10.21 PM: neither hc nor tcline appear to be used in these functions!
-    Are they used somehow inside of ROMS?
     """
     S = dict()
     for item in S_info_dict.keys():
@@ -240,7 +238,7 @@ def get_S(S_info_dict):
     tcline = S['tcline']
     theta_s = S['theta_s']
     theta_b = S['theta_b']
-    hmin = 3 # a placeholder since I don't plan to use this.
+    hmin = 3 # a placeholder, used only for Vtransform = 1.
     if Vtransform == 1:
         hc = min(hmin,tcline)
     elif Vtransform == 2:

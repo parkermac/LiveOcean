@@ -49,7 +49,7 @@ if False: # plot all .p files
     Lfun.make_dir(out_dir)
 else: # override
     save_fig = False
-    LList = [item for item in LList if 'hc1' in item]
+    LList = [item for item in LList if 'sog4' in item]
 
 plt.close('all')
 
