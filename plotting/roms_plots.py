@@ -76,6 +76,58 @@ def P_basic(in_dict):
         plt.close()
     else:
         plt.show()
+        
+def P_ths(in_dict):
+    # Plot property-property plots, like theta vs. s
+
+    # START
+    fig = plt.figure(figsize=(12,8)) # (16,12) or pinfo.figsize for default
+    ds = nc.Dataset(in_dict['fn'])
+
+    # PLOT CODE
+    
+    # make a potential density field
+    import seawater as sw
+    s0 = 27; s1 = 35
+    th0 = 4; th1 = 20
+    SS, TH = np.meshgrid(np.linspace(s0, s1, 50), np.linspace(th0, th1, 50))
+    SIG = sw.dens0(SS, TH) - 1000
+    
+    S = zrfun.get_basic_info(in_dict['fn'], only_S=True)
+    h = ds['h'][:]
+    z = zrfun.get_z(h, 0*h, S, only_rho=True)
+    
+    s = ds['salt'][:].squeeze()
+    th = ds['temp'][:].squeeze()
+    
+    ax = fig.add_subplot(111)
+    ax.set_xlabel('Salinity')
+    ax.set_ylabel('Theta (deg C)')
+    ax.contour(SS, TH, SIG, 20)
+    
+    nsub = 500
+    alpha = .1
+    
+    mask = z > -10
+    ax.plot(s[mask][::nsub], th[mask][::nsub], '.r', alpha=alpha)
+    
+    mask = (z < -10) & (z > -200)
+    ax.plot(s[mask][::nsub], th[mask][::nsub], '.g', alpha=alpha)
+    
+    mask = z < -200
+    ax.plot(s[mask][::nsub], th[mask][::nsub], '.b', alpha=alpha)
+    
+    ax.set_xlim(s0, s1)
+    ax.set_ylim(th0, th1)
+    
+    
+    # FINISH
+    ds.close()
+    if len(in_dict['fn_out']) > 0:
+        plt.savefig(in_dict['fn_out'])
+        plt.close()
+    else:
+        plt.show()
 
 def P_splash(in_dict):
     # pretty picture for use in Google Earth
@@ -878,10 +930,12 @@ def P_sect2(in_dict):
 
     # PLOTTING
     #vn_list = ['NO3', 'phytoplankton']
+    #vn_list = ['NO3', 'oxygen']
     vn_list = ['PH', 'ARAG']
     # override colors
     pinfo.vlims_dict['NO3'] = (0,40)
     pinfo.vlims_dict['phytoplankton'] = (0,20)
+    pinfo.vlims_dict['oxygen'] = (0,8)
     pinfo.vlims_dict['PH'] = (7, 8)
     pinfo.vlims_dict['ARAG'] = (0, 3)
     counter = 0
@@ -2282,6 +2336,119 @@ def P_tracks_ps(in_dict):
         plt.close()
     else:
         plt.show()
+        
+def P_tracks_ps_debug(in_dict):
+    # Figure out why P_tracks_ps sometimes gets ot = 0 in hour 0.
+    
+    # START
+
+    # TRACKS
+    import os
+    import sys
+    pth = os.path.abspath('../tracker')
+    if pth not in sys.path:
+        sys.path.append(pth)
+    import trackfun_1 as tf1
+    import pickle
+    fn = in_dict['fn']
+    gtagex = fn.split('/')[-3]
+    gtx_list = gtagex.split('_')
+    import Lfun
+    Ldir = Lfun.Lstart(gtx_list[0], gtx_list[1])
+    # make a list of history files in this folder,
+    in_dir = fn[:fn.rindex('/')+1]
+    fn_list_raw = os.listdir(in_dir)
+    fn_list = []
+    for item in fn_list_raw:
+        if 'ocean_his' in item:
+            fn_list.append(in_dir + item)
+    fn_list.sort()
+    
+            
+    # save the full list to use with the tracking code 
+    fn_list_full = fn_list.copy()
+    
+    if in_dict['testing'] == True:
+        fn_list_full = fn_list_full[:2]
+
+    # then trim fn_list to end at the selected hour for this plot
+    fn_list = fn_list[:fn_list.index(fn)+1]
+    
+    # and use the CURRENT file for the map field overlay
+    ds = nc.Dataset(in_dict['fn'])
+    
+    if len(fn_list) == 2:
+        # only do the tracking at the start
+
+        # Specific release locations
+        rloc_dict = {'Seattle': (-122.36, 47.6),
+                    'Tacoma': (-122.44, 47.285)}
+        count = 0
+        rnp = 1000
+        for rloc in rloc_dict:
+            rx = rloc_dict[rloc][0]
+            ry = rloc_dict[rloc][1]
+            #print('%s %0.3f %0.3f' % (rloc, rx, ry))
+            px00 = rx + 0.01*np.random.randn(rnp)
+            py00 = ry + 0.01*np.random.randn(rnp)
+            if count == 0:
+                plon00 = px00.copy()
+                plat00 = py00.copy()
+            else:
+                plon00 = np.concatenate((plon00, px00.copy()))
+                plat00 = np.concatenate((plat00, py00.copy()))
+            count += 1
+        #
+        pcs00 = np.array([-.05])
+        # make the full IC vectors, which will have equal length
+        # (one value for each particle)
+        NSP = len(pcs00)
+        NXYP = len(plon00)
+        plon0 = plon00.reshape(NXYP,1) * np.ones((NXYP,NSP))
+        plat0 = plat00.reshape(NXYP,1) * np.ones((NXYP,NSP))
+        pcs0 = np.ones((NXYP,NSP)) * pcs00.reshape(1,NSP)
+        plon0 = plon0.flatten()
+        plat0 = plat0.flatten()
+        pcs0 = pcs0.flatten()
+        # DO THE TRACKING
+        import time
+        tt0 = time.time()
+        # NOTE: we use at least ndiv=12 to get advection right in places
+        # like Tacoma Narrows, but we reduce it for testing.
+        if (Ldir['lo_env'] == 'pm_mac') or (in_dict['testing'] == True):
+            ndiv = 1
+            #print('** using ndiv = 1 **')
+        else:
+            ndiv = 12
+        TR = {'3d': False, 'rev': False, 'turb': False,
+            'ndiv': ndiv, 'windage': 0}
+        P = tf1.get_tracks(fn_list_full, plon0, plat0, pcs0, TR,
+                           trim_loc=True)
+        #print('  took %0.1f seconds' % (time.time() - tt0))
+        # and store the output
+        fo = in_dict['fn_out']
+        out_dir = fo[:fo.rindex('/')+1]
+        out_fn = out_dir + 'tracks.p'
+        pickle.dump(P, open(out_fn, 'wb'))
+        
+        #print('\nLooking at P')
+        rot = P['ot']
+        if rot[0] == 0:
+            print('Error Found!')
+            time_dt = Lfun.modtime_to_datetime(item)
+            print('%s %s' % (str(item),str(time_dt)))
+            sys.exit()
+        
+        # x = P['lon']
+        # for item in x[:,0]:
+        #     print('x = %0.4f' % (item))
+        # print('')
+        
+    else:
+        #print('len(fn_list) = %d' % (len(fn_list)))
+        sys.exit()
+
+
 
 
 

@@ -147,7 +147,7 @@ elif len(fn_list) > 1:
         nouts = ('0000' + str(jj))[-4:]
         outname = 'plot_' + nouts + '.png'
         outfile = outdir + outname
-        print('Plotting ' + fn)
+        #print('Plotting ' + fn)
         in_dict['fn'] = fn
         in_dict['fn_out'] = outfile
         whichplot(in_dict)

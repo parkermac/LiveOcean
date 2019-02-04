@@ -65,7 +65,7 @@ testing = False
 planB = False
 add_CTD = False
 do_bio = True
-fix_NSoG = False
+fix_NSoG = True # always True in this version
 
 # *** automate when to set add_CTD to True ***
 this_dt = datetime.strptime(Ldir['date_string'], '%Y.%m.%d')
@@ -73,10 +73,6 @@ if this_dt == datetime(2017,1,1):
     print('WARNING: adding CTD data to extrapolation!!')
     add_CTD = True
     
-# *** automate fixing of NSoG ***
-# if Ldir['run_type'] == 'backfill':
-#     fix_NSoG = True
-
 if (Ldir['run_type'] == 'forecast'):
     # this either gets new hycom files, or sets planB to True
     
@@ -243,7 +239,7 @@ if testing == False:
     nc_dir = Ldir['LOogf_f']
     if do_bio and (planB==False):
         G = zrfun.get_basic_info(Ldir['grid'] + 'grid.nc', only_G=True)
-        Ofun_bio.add_bio(nc_dir, G, add_CTD=add_CTD)
+        Ofun_bio.add_bio(nc_dir, G, add_CTD=add_CTD, fix_NSoG=fix_NSoG)
     Ofun_nc.make_ini_file(nc_dir)
     Ofun_nc.make_bry_file(nc_dir)
     ds = nc.Dataset(nc_dir + 'ocean_clm.nc')
