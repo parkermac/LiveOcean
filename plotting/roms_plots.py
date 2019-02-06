@@ -957,7 +957,8 @@ def P_sect2(in_dict):
         if counter == 1:
             ax.set_xlabel('Longitude')
         # add section track
-        ax.plot(x, y, '-r', linewidth=2)
+        ax.plot(x, y, '-w', linewidth=2)
+        ax.plot(x, y, '-k', linewidth=.5)
         ax.plot(x[idist0], y[idist0], 'or', markersize=5, markerfacecolor='w',
             markeredgecolor='r', markeredgewidth=2)
         #
