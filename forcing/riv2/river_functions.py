@@ -98,9 +98,17 @@ def get_qt(df, dt_ind, yd_ind, Ldir, dt1, days):
                 elif pd.notnull(rs.ec):
                     riv.get_ec_data(days)
                     if not riv.qt.empty:
-                        qt_df['ec'] = riv.qt.ix[dt_ind]
-                        qt_df['final'] = qt_df['ec']
-                        print(' filled from ec')
+                        # New 2019.02.14 to catch instances when
+                        # we ask for data that is not in the last 18 months
+                        # and the EC default is to return the most recent data
+                        dt0_actual = riv.qt.index[0]
+                        dt0_requested = days[0]
+                        if np.abs((dt0_actual - dt0_requested).days) >= 1:
+                            print(' request was out of range for ec')
+                        else:
+                            qt_df['ec'] = riv.qt.ix[dt_ind]
+                            qt_df['final'] = qt_df['ec']
+                            print(' filled from ec')
         except FileNotFoundError:
             # needed for analytical cases
             pass

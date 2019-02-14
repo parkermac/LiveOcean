@@ -5,6 +5,8 @@ test command:
 
 run make_forcing_main.py -g cas4 -t v1 -r backfill -d 2013.01.01
 
+run make_forcing_main.py -g cas5 -t v3 -r backfill -d 2017.01.01
+
 """
 
 import os
@@ -59,7 +61,7 @@ df = rivfun.get_tc_rn(df)
 # get the flow and temperature data for these days
 qt_df_dict = rivfun.get_qt(df, dt_ind, yd_ind, Ldir, dt1, days)
 
-#%% get dist S
+#%% get dict S
 S_info_dict = Lfun.csv_to_dict(Ldir['grid'] + 'S_COORDINATE_INFO.csv')
 S = zrfun.get_S(S_info_dict)
 
