@@ -178,7 +178,7 @@ class River:
     def get_ec_data_historical(self, year):
         # gets Environment Canada data, using code cribbed from:
         #https://bitbucket.org/douglatornell/ecget/src/
-        # NOTE: this will get data up through the end of 2015.
+        # NOTE: this will get data up through the end of 2016.
         import requests
         import bs4
         try:

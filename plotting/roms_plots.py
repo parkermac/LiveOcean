@@ -2338,6 +2338,188 @@ def P_tracks_ps(in_dict):
     else:
         plt.show()
         
+def P_tracks_fhl(in_dict):
+    # Use trackfun_1 to create surface drifter tracks for FHL.
+    # It automatically makes tracks for as long as there are
+    # hours in the folder.
+    
+    # START
+    fig = plt.figure(figsize=(16,12))#(10,12))
+
+    # TRACKS
+    import os
+    import sys
+    pth = os.path.abspath('../tracker')
+    if pth not in sys.path:
+        sys.path.append(pth)
+    import trackfun_1 as tf1
+    import pickle
+    fn = in_dict['fn']
+    gtagex = fn.split('/')[-3]
+    gtx_list = gtagex.split('_')
+    import Lfun
+    Ldir = Lfun.Lstart(gtx_list[0], gtx_list[1])
+    # make a list of history files in this folder,
+    in_dir = fn[:fn.rindex('/')+1]
+    fn_list_raw = os.listdir(in_dir)
+    fn_list = []
+    for item in fn_list_raw:
+        if 'ocean_his' in item:
+            fn_list.append(in_dir + item)
+    fn_list.sort()
+    
+            
+    # save the full list to use with the tracking code 
+    fn_list_full = fn_list.copy()
+    
+    if in_dict['testing'] == True:
+        fn_list_full = fn_list_full[:11]
+
+    # then trim fn_list to end at the selected hour for this plot
+    fn_list = fn_list[:fn_list.index(fn)+1]
+    
+    # and use the CURRENT file for the map field overlay
+    ds = nc.Dataset(in_dict['fn'])
+    
+    if len(fn_list) == 2:
+        # only do the tracking at the start
+
+        # Specific release locations
+        rloc_dict = {'FHL': (-123.0, 48.545)}
+        count = 0
+        rnp = 1000
+        for rloc in rloc_dict:
+            rx = rloc_dict[rloc][0]
+            ry = rloc_dict[rloc][1]
+            #print('%s %0.3f %0.3f' % (rloc, rx, ry))
+            px00 = rx + 0.01*np.random.randn(rnp)
+            py00 = ry + 0.01*np.random.randn(rnp)
+            if count == 0:
+                plon00 = px00.copy()
+                plat00 = py00.copy()
+            else:
+                plon00 = np.concatenate((plon00, px00.copy()))
+                plat00 = np.concatenate((plat00, py00.copy()))
+            count += 1
+        #
+        pcs00 = np.array([-.05])
+        # make the full IC vectors, which will have equal length
+        # (one value for each particle)
+        NSP = len(pcs00)
+        NXYP = len(plon00)
+        plon0 = plon00.reshape(NXYP,1) * np.ones((NXYP,NSP))
+        plat0 = plat00.reshape(NXYP,1) * np.ones((NXYP,NSP))
+        pcs0 = np.ones((NXYP,NSP)) * pcs00.reshape(1,NSP)
+        plon0 = plon0.flatten()
+        plat0 = plat0.flatten()
+        pcs0 = pcs0.flatten()
+        # DO THE TRACKING
+        import time
+        tt0 = time.time()
+        # NOTE: we use at least ndiv=12 to get advection right in places
+        # like Tacoma Narrows, but we reduce it for testing.
+        if (in_dict['testing'] == True):
+            ndiv = 1
+            print('** using ndiv = 1 **')
+        else:
+            ndiv = 12
+        TR = {'3d': False, 'rev': False, 'turb': False,
+            'ndiv': ndiv, 'windage': 0}
+        P = tf1.get_tracks(fn_list_full, plon0, plat0, pcs0, TR,
+                           trim_loc=True)
+        print('  took %0.1f seconds' % (time.time() - tt0))
+        # and store the output
+        fo = in_dict['fn_out']
+        out_dir = fo[:fo.rindex('/')+1]
+        out_fn = out_dir + 'tracks.p'
+        pickle.dump(P, open(out_fn, 'wb'))
+    else:
+        # load the output on all subsequent days
+        fo = in_dict['fn_out']
+        out_dir = fo[:fo.rindex('/')+1]
+        out_fn = out_dir + 'tracks.p'
+        P = pickle.load(open(out_fn, 'rb'))
+
+    # PLOT CODE
+    fs1 = 18
+    vn = 'salt'
+    vlims_fac = 1
+    # if in_dict['auto_vlims']:
+    #     pinfo.vlims_dict[vn] = ()
+    # override
+    pinfo.vlims_dict['salt'] = (23,33)
+    
+    # panel 2: do this first so it controls the color limits
+    ax = fig.add_subplot(122)
+    aa = [-123.5, -122.2, 47.8, 49.3]
+    cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict,
+            cmap=pinfo.cmap_dict[vn], fac=pinfo.fac_dict[vn],
+            alpha=1, aa=aa, vlims_fac=vlims_fac)
+    # # Inset colorbar
+    # from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+    # cbaxes = inset_axes(ax, width="4%", height="40%", loc=7, borderpad=1)
+    # cb = fig.colorbar(cs, cax=cbaxes, orientation='vertical')
+    # cb.ax.tick_params(labelsize=fs1-2)
+    pfun.add_coast(ax)
+    ax.axis(aa)
+    pfun.dar(ax)
+    #pfun.draw_box(ax, aa, color='c', alpha=.5, linewidth=3, inset=.01)
+    ax.set_xlabel('Longitude', fontsize=fs1)
+    ax.set_ylabel('Latitude', fontsize=fs1)
+    nhour = 12
+    tstr = ('San Juan Islands: Surface ' + pinfo.tstr_dict[vn] +
+            ' (' + str(pinfo.vlims_dict[vn][0]) + '-' + str(pinfo.vlims_dict[vn][1]) + ')' +
+            ' and ' + str(nhour) + ' hour Tracks')
+    ax.set_title(tstr, fontsize=fs1)
+    ax.tick_params(axis = 'both', which = 'major', labelsize = fs1-2)
+    # add the tracks
+    t_lw = .5
+    c_end = 'k'; s_end = 1
+    ntt = len(fn_list) -1
+    ntt0 = ntt-nhour
+    if ntt0<0:
+        ntt0 = 0
+    ax.plot(P['lon'][ntt0:ntt+1,:], P['lat'][ntt0:ntt+1,:], '-k', linewidth=t_lw)
+    ax.plot(P['lon'][ntt,:],P['lat'][ntt,:],'o'+c_end,
+            markersize=s_end, alpha = 1, markeredgecolor='k')
+    
+    # panel 1
+    ax = fig.add_subplot(121)
+    # override
+    pinfo.vlims_dict['salt'] = (28.5,33)
+    cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict,
+            cmap=pinfo.cmap_dict[vn], fac=pinfo.fac_dict[vn])
+    # # Inset colorbar
+    # from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+    # cbaxes = inset_axes(ax, width="4%", height="40%", loc=7, borderpad=1)
+    # cb = fig.colorbar(cs, cax=cbaxes, orientation='vertical')
+    # cb.ax.tick_params(labelsize=fs1-2)
+    pfun.add_bathy_contours(ax, ds, txt=True)
+    pfun.add_coast(ax)
+    ax.axis(pfun.get_aa(ds))
+    pfun.dar(ax)
+    pfun.draw_box(ax, aa, color='c', alpha=.5, linewidth=3, inset=.01)
+    ax.set_title('Full Domain: Surface %s %s (%s-%s)' % (pinfo.tstr_dict[vn],
+        pinfo.units_dict[vn],str(pinfo.vlims_dict[vn][0]),str(pinfo.vlims_dict[vn][1])),
+        fontsize=fs1)
+    ax.set_xlabel('Longitude', fontsize=fs1)
+    ax.set_ylabel('Latitude', fontsize=fs1)
+    pfun.add_info(ax, in_dict['fn'], fs=fs1)
+    pfun.add_windstress_flower(ax, ds, fs=fs1-2)
+    ax.tick_params(axis = 'both', which = 'major', labelsize = fs1-2)
+        
+
+    #
+    fig.tight_layout()
+
+    # FINISH
+    ds.close()
+    if len(in_dict['fn_out']) > 0:
+        plt.savefig(in_dict['fn_out'])
+        plt.close()
+    else:
+        plt.show()
+        
 def P_tracks_ps_debug(in_dict):
     # Figure out why P_tracks_ps sometimes gets ot = 0 in hour 0.
     

@@ -26,11 +26,22 @@ fn = Ldir['LOo'] + 'river/' + fnr
 df = pd.read_pickle(fn)
 
 # get climatology
-df_clim = pd.DataFrame(index=df.index, columns=df.columns)
-for riv_name in df.columns:
+dfi = df.index
+
+#cols = ['skokomish']
+cols = df.columns
+
+df_clim = pd.DataFrame(index=dfi, columns=cols)
+y0 = dfi[0].year
+y1 = dfi[-1].year
+for riv_name in cols:
     clm_fn = Ldir['data'] + 'rivers/Data_clim/' + riv_name + '.csv'
     dfc = pd.read_csv(clm_fn, header=None, index_col=0, names=['Qr'])
-    df_clim[riv_name] = dfc.loc[:,'Qr'].values
+    for yr in range(y0, y1+1):
+        mask = dfi.year==yr
+        d0 = dfi[mask][0].dayofyear
+        d1 = dfi[mask][-1].dayofyear
+        df_clim.loc[dfi[mask], riv_name] = dfc.loc[d0:d1,'Qr'].values
 
 rind = df.index
 dt0 = rind[0]
