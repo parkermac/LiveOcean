@@ -203,6 +203,7 @@ def add_velocity_vectors(ax, ds, fn, v_scl=3, v_leglen=0.5, nngrid=80, zlev='top
         transform=ax.transAxes)
     ax.text(xc+.05, yc, str(v_leglen) + ' $ms^{-1}$',
         horizontalalignment='left', transform=ax.transAxes)
+    # note: I could also use plt.quiverkey() 
 
 def add_velocity_streams(ax, ds, fn, nngrid=80, zlev=0):
     # slower than adding quivers, but informative in a different way

@@ -2053,7 +2053,7 @@ def P_tracks_full(in_dict):
 
     if len(fn_list) == 2:
         # only do the tracking at the start
-        nyp = 40
+        nyp = 70
         x0 = -127.1
         x1 = -122
         y0 = 42.3
@@ -2063,6 +2063,11 @@ def P_tracks_full(in_dict):
         lonvec = np.linspace(x0, x1, (nyp * xyRatio).astype(int))
         latvec = np.linspace(y0, y1, nyp)
         lonmat, latmat = np.meshgrid(lonvec, latvec)
+        # 2019.03.11 limit to shallow water
+        hh = zfun.interp2(lonmat, latmat, G['lon_rho'], G['lat_rho'], G['h'])
+        hmask = hh <= 400
+        lonmat = lonmat[hmask]
+        latmat = latmat[hmask]
         #
         plon00 = lonmat.flatten()
         plat00 = latmat.flatten()
@@ -2077,6 +2082,7 @@ def P_tracks_full(in_dict):
         plon0 = plon0.flatten()
         plat0 = plat0.flatten()
         pcs0 = pcs0.flatten()
+        
         # DO THE TRACKING
         import time
         tt0 = time.time()

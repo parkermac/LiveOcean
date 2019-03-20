@@ -17,3 +17,7 @@ Output: A NetCDF file of the extracted mooring, typically packed as varname(time
 
 ======================================================================
 * add_C_vars.py: will add PH and ARAG to a user-selected mooring extraction.
+
+======================================================================
+* add_C_vars_multifile.py: will add PH and ARAG to  all the mooring extractions
+in a user-selected directory.
