@@ -90,31 +90,7 @@ def get_qt(df, dt_ind, yd_ind, Ldir, dt1, days):
                         qt_df['final'] = qt_df['nws']
                         print(' filled from nws forecast')
                 elif pd.notnull(rs.usgs):
-                    # +++ new code 2019.03.19 to deal with Skokomish +++
-                    if (rn == 'skokomish'):
-                        print('+++ combining to form Skokomish River +++')
-                        # South Fork
-                        rs1 = rs.copy()
-                        rs1.usgs = 12060500
-                        rs1.ratio=1.4417
-                        riv1 = river_class.River(rn, rs1)
-                        if pd.notnull(rs.usgs):
-                            riv1.get_usgs_data(days)
-                            riv1.print_info()
-                            sys.stdout.flush()
-                        # North Fork
-                        rs2 = rs.copy()
-                        rs2.usgs = 12059500
-                        rs2.ratio=1.0
-                        riv2 = river_class.River(rn, rs2)
-                        if pd.notnull(rs.usgs):
-                            riv2.get_usgs_data(days)
-                            riv2.print_info()
-                            sys.stdout.flush()
-                        riv.qt = riv1.qt + riv2.qt
-                    # ++++++++++++++++++++++++++++++++++++++++++++++++++
-                    else:
-                        riv.get_usgs_data(days)
+                    riv.get_usgs_data(days)
                     if not riv.qt.empty:
                         qt_df['usgs'] = riv.qt.ix[dt_ind]
                         qt_df['final'] = qt_df['usgs']

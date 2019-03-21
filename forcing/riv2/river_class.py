@@ -39,8 +39,35 @@ class River:
         for att in self.att_list:
             print(att + ' = ' + str(getattr(self,att)))
         print(50*'-')
-
+        
     def get_usgs_data(self, days):
+        # this deals with rivers that need gauge combinations
+        if self.name == 'skokomish':
+            print('+++ combining to form Skokomish River +++')
+            self.usgs_code = 12060500
+            self.scale_factor = 1.4417
+            self.get_usgs_data_sub(days)
+            qt1 = self.qt.copy()
+            self.usgs_code = 12059500
+            self.scale_factor = 1.0
+            self.get_usgs_data_sub(days)
+            qt2 = self.qt.copy()
+            self.qt = qt1 + qt2
+        elif self.name == 'hamma':
+            print('+++ combining to form Hamma Hamma River +++')
+            self.usgs_code = 12060500
+            self.scale_factor = 1.4417
+            self.get_usgs_data_sub(days)
+            qt1 = self.qt.copy()
+            self.usgs_code = 12059500
+            self.scale_factor = 1.0
+            self.get_usgs_data_sub(days)
+            qt2 = self.qt.copy()
+            self.qt = 0.4125 * (qt1 + qt2)
+        else:
+            self.get_usgs_data_sub(days)
+
+    def get_usgs_data_sub(self, days):
         # This gets USGS data for a past time period specfied by
         # the tuple of datetimes "days".  If "days" is empty
         # then we get the most recent 6 days.
@@ -169,8 +196,17 @@ class River:
             #self.fix_units() # not needed
             self.qt = float(self.scale_factor) * self.qt
             self.qt = self.qt.resample('D', label='right', loffset='-12h').mean()
-            self.got_data = True
-            self.memo = 'success'
+            # NEW 2019.03.20 to deal with the problem that when you request date from
+            # before 18 months ago it gives the most recent data instead.
+            dt0_actual = self.qt.index[0]
+            dt0_requested = days[0]
+            import numpy as np
+            if np.abs((dt0_actual - dt0_requested).days) >= 1:
+                memo = 'That date range was not available'
+                qt = ''
+            else:
+                self.got_data = True
+                self.memo = 'success'
         except:
             self.memo = 'problem parsing data from soup'
         self.memo = (self.memo + ' EC')

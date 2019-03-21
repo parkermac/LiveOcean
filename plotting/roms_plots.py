@@ -1001,7 +1001,7 @@ def P_sect2(in_dict):
         plt.show()
 
 def P_superplot(in_dict):
-    # Plot phytoplankton maps and section, with forcing time-series.
+    # Plot salinity maps and section, with forcing time-series.
     # Super clean design.
 
     vn = 'salt'
