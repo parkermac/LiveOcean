@@ -24,26 +24,25 @@ def intro():
     import Lfun
 
     # set defaults
-    gridname = 'cascadia1'
-    tag = 'base'
-    run_type = 'forecast'  # backfill or forecast
+    gridname = 'cas4'
+    tag = 'v2'
+    ex_name = 'lo6biom'
     start_type = 'continuation'  # new or continuation
-    # Example of date_string is 2015.09.19
-    date_string = datetime.now().strftime(format='%Y.%m.%d')
-    ex_name = 'lobio5'
+    run_type = 'backfill'  # backfill or forecast
+    date_string = datetime.now().strftime(format='%Y.%m.%d') # e.g. 2019.03.21
 
     # optional command line arguments, can be input in any order
     parser = argparse.ArgumentParser()
-    parser.add_argument('-g', '--gridname', nargs='?', const=gridname, type=str, default=gridname)
-    parser.add_argument('-t', '--tag', nargs='?', const=tag, type=str, default=tag)
-    parser.add_argument('-f', '--frc', nargs='?', const=frc, type=str, default=frc)
-    parser.add_argument('-r', '--run_type', nargs='?', const=run_type, type=str, default=run_type)
-    parser.add_argument('-s', '--start_type', nargs='?', const=start_type, type=str, default=start_type)
-    parser.add_argument('-d', '--date_string', nargs='?', const=date_string, type=str, default=date_string)
-    parser.add_argument('-x', '--ex_name', nargs='?', const=ex_name, type=str, default=ex_name)
+    parser.add_argument('-g', '--gridname', nargs='?', type=str, default=gridname)
+    parser.add_argument('-t', '--tag', nargs='?', type=str, default=tag)
+    parser.add_argument('-f', '--frc', nargs='?', type=str, default=frc)
+    parser.add_argument('-r', '--run_type', nargs='?', type=str, default=run_type)
+    parser.add_argument('-s', '--start_type', nargs='?', type=str, default=start_type)
+    parser.add_argument('-d', '--date_string', nargs='?', type=str, default=date_string)
+    parser.add_argument('-x', '--ex_name', nargs='?', type=str, default=ex_name)
     # only used by make_dot_in.py
-    parser.add_argument('-np', '--np_num', nargs='?', const=ex_name, type=int, default=72)
-    parser.add_argument('-bu', '--blow_ups', nargs='?', const=ex_name, type=int, default=0)
+    parser.add_argument('-np', '--np_num', nargs='?', type=int, default=196)
+    parser.add_argument('-bu', '--blow_ups', nargs='?', type=int, default=0)
     args = parser.parse_args()
 
     # get the dict Ldir
