@@ -6,8 +6,15 @@
 # Designed to be run from MOX
 # and depends on other drivers having been run first on BOILER
 #
-# It improves on driver_roms3mox.sh by using the new function
-# two_days_before() to set which files to delete
+# Designed to allow more flexible command line specification, and
+# less information buried in the makefile programs.  This is about the
+# -np and -N flags which specify the total number of cores, and the
+# cores per node.  For the current mox environment, acceptable choices are
+# -np 64 -N 32
+#   or
+# -np 196 -N 28
+# i.e. np has to be an even multiple of N, and N has to be <= the number
+# of nodes of that size that I own.
 
 # run the code to put the environment into a csv
 if [ -e ../alpha/user_get_lo_info.sh ] ; then
@@ -24,25 +31,23 @@ done < ../alpha/lo_info.csv
 
 . $LO"driver/common.lib"
 
-# Set number of cores to use.
-np_num=196
-
 # USE COMMAND LINE OPTIONS
 #
-# -g name of the grid [cascadia1, ...]
-# -t name of the forcing tag [base, ...]
-# -x name of the ROMS executable to use
+# -g name of the grid [cas5]
+# -t name of the forcing tag [v3]
+# -x name of the ROMS executable to use [lo8]
+# -np number of cores to use [196 for N=28, 64 for N=32]
+# -N cores per node [28 or 32 on mox]
 # -s new or continuation
 # -r forecast or backfill
 #  if backfill, then you must provide two more arguments:
 # -0 start date: yyyymmdd
 # -1 end date: yyyymmdd
 #
-# example call to do backfill, with a cold start:
-# ./driver_roms3mox.sh -g cas4 -t v2 -x lo6biom -s new -r backfill -0 20140101 -1 20140103
-#
-# example call to do forecast:
-# ./driver_roms3mox.sh -g cas4 -t v2 -x lo6biom -s continuation -r forecast
+# example calls:
+# ./driver_roms_mox.sh -g cas4 -t v2 -x lo6biom -np 64 -N 32 -s continuation -r forecast
+# ./driver_roms_mox.sh -g cas5 -t v3 -x lo8 -np 196 -N 28 -s new -r backfill -0 20170101 -1 20170101
+# ./driver_roms_mox.sh -g cas5 -t v3 -x lo8 -np 196 -N 28 -s continuation -r backfill -0 20170102 -1 20170131
 
 while [ "$1" != "" ]; do
   case $1 in
@@ -54,6 +59,12 @@ while [ "$1" != "" ]; do
       ;;
     -x | --ex_name )  shift
       ex_name=$1
+      ;;
+    -np | --np_num )  shift
+      np_num=$1
+      ;;
+    -N | --cores_per_node )  shift
+      cores_per_node=$1
       ;;
     -s | --start_type )  shift
       start_type=$1
@@ -113,7 +124,7 @@ do
   two_days_before $y $m $d
   DDP=${DPP:0:4}.${DPP:4:2}.${DPP:6:2}
   f_string_previous="f"$DDP
-  echo "TESTING: f_string = "$f_string", f_string_previous="$f_string_previous
+  # echo "TESTING: f_string = "$f_string", f_string_previous="$f_string_previous
 
   # Run make_dot_in.py, which creates an empty f_string directory,
   # and then cd to where the ROMS executable lives.
@@ -129,7 +140,7 @@ do
   fi
 
   if [ $D == $D0 ] && [ $start_type == "new" ] ; then
-    python ./make_dot_in.py -g $gridname -t $tag -s $start_type -r $run_type -d $DD -x $ex_name -np $np_num -bu $blow_ups
+    python ./make_dot_in.py -g $gridname -t $tag -s new -r $run_type -d $DD -x $ex_name -np $np_num -bu $blow_ups
     sleep 30
     cd $roms"makefiles/"$ex_name
   else
@@ -140,7 +151,8 @@ do
 
   # run ROMS
   if [ $lo_env == "pm_mac" ] ; then # testing
-    echo "placeholder for something useful"
+    python make_back_batch.py -xp $Rf -np $np_num -N $cores_per_node -x $ex_name
+    echo " -- just testing --"
     keep_going=1
     
   elif [ $lo_env == "pm_mox" ] ; then
@@ -158,7 +170,7 @@ do
     
     # 2. Run ROMS
     
-    python make_back_batch.py -xp $Rf -npn $np_num
+    python make_back_batch.py -xp $Rf -np $np_num -N $cores_per_node -x $ex_name
 
     sbatch -p macc -A macc lo_back_batch.sh &
     
