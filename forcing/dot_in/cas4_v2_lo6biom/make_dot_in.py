@@ -74,9 +74,12 @@ tide_dir = 'tide1/' # which tide forcing files to use
 # DERIVED VALUES
 
 if multi_core:
-    if Ldir['np_num'] == 72:
-        ntilei = '6' # number of tiles in I-direction (6)
-        ntilej = '12' # number of tiles in J-direction (12)
+    if Ldir['np_num'] == 64: # for new mox nodes 2*32=64 2019_02
+        ntilei = '8' # number of tiles in I-direction
+        ntilej = '8' # number of tiles in J-direction
+    elif Ldir['np_num'] == 72:
+        ntilei = '6' # number of tiles in I-direction
+        ntilej = '12' # number of tiles in J-direction
     elif Ldir['np_num'] == 144:
         ntilei = '8' # number of tiles in I-direction (6)
         ntilej = '18' # number of tiles in J-direction (12)
