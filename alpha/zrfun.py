@@ -118,8 +118,7 @@ def get_z(h, zeta, S, only_rho=False, only_w=False):
         if S['hc'] == 0: # if hc = 0 the transform is simpler (and faster)
             z_rho = H_r*Cs_r + Zeta_r + Zeta_r*Cs_r
         elif S['hc'] != 0: # need to calculate a few more useful arrays
-            #sr = S['s_rho']
-            sr = S['sc_r'] # PM edit 2019.01.24
+            sr = S['s_rho'] # PM edit 2019.01.24
             srr = sr.reshape(N, 1, 1).copy()
             S_rho = np.tile(srr, [1, M, L])
             Hc_r = np.tile(S['hc'], [N, M, L])
@@ -143,7 +142,7 @@ def get_z(h, zeta, S, only_rho=False, only_w=False):
             z_w = H_w*Cs_w + Zeta_w + Zeta_w*Cs_w
         elif S['hc'] != 0: # need to calculate a few more useful arrays
             #sw = S['s_w']
-            sw = S['sc_w'] # PM edit 2019.01.24
+            sw = S['s_w'] # PM edit 2019.01.24
             sww = sw.reshape(N+1, 1, 1).copy()
             S_w = np.tile(sww, [1, M, L])    #
             Hc_w = np.tile(S['hc'], [N+1, M, L])
@@ -244,56 +243,56 @@ def get_S(S_info_dict):
     elif Vtransform == 2:
         hc = tcline
     S['hc'] = hc
-    sc_r = (np.linspace(-(N-1), 0, N) - 0.5)/N
-    sc_w = np.linspace(-N, 0, N+1)/N
-    S['sc_r'] = sc_r
-    S['sc_w'] = sc_w
+    s_rho = (np.linspace(-(N-1), 0, N) - 0.5)/N
+    s_w = np.linspace(-N, 0, N+1)/N
+    S['s_rho'] = s_rho
+    S['s_w'] = s_w
     if Vstretching == 1:
         if theta_s != 0:
             cff1 = 1/np.sinh(theta_s)
             cff2 = 0.5/np.tanh(0.5*theta_s)
-            Cs_r = ( (1-theta_b)*cff1*np.sinh(theta_s*sc_r)
-                    + theta_b*( cff2*np.tanh(theta_s*(sc_r + 0.5)) - 0.5 ) )
-            Cs_w = ( (1-theta_b)*cff1*np.sinh(theta_s*sc_w)
-                    + theta_b*( cff2*np.tanh(theta_s*(sc_w + 0.5)) - 0.5 ) )
+            Cs_r = ( (1-theta_b)*cff1*np.sinh(theta_s*s_rho)
+                    + theta_b*( cff2*np.tanh(theta_s*(s_rho + 0.5)) - 0.5 ) )
+            Cs_w = ( (1-theta_b)*cff1*np.sinh(theta_s*s_w)
+                    + theta_b*( cff2*np.tanh(theta_s*(s_w + 0.5)) - 0.5 ) )
         else:
-            Cs_r = sc_r
-            Cs_w = sc_w
+            Cs_r = s_rho
+            Cs_w = s_w
     elif Vstretching == 2:
         alpha = 1
         beta = 1
         if theta_s!=0 and theta_b!=0:
-            Csur = (1-np.cosh(theta_s*sc_r))/(np.cosh(theta_s)-1)
-            Cbot = ((np.sinh(theta_b*(sc_r+1)))/(np.sinh(theta_b)))-1
-            u = ((sc_r+1)**alpha)*(1+(alpha/beta)*(1-((sc_r+1)**beta)))
+            Csur = (1-np.cosh(theta_s*s_rho))/(np.cosh(theta_s)-1)
+            Cbot = ((np.sinh(theta_b*(s_rho+1)))/(np.sinh(theta_b)))-1
+            u = ((s_rho+1)**alpha)*(1+(alpha/beta)*(1-((s_rho+1)**beta)))
             Cs_r = u*Csur+(1-u)*Cbot
-            Csur_w = (1-np.cosh(theta_s*sc_w))/(np.cosh(theta_s)-1)
-            Cbot_w = ((np.sinh(theta_b*(sc_w+1)))/(np.sinh(theta_b)))-1
-            u_w = ((sc_w+1)**alpha)*(1+(alpha/beta)*(1-((sc_w+1)**beta)))
+            Csur_w = (1-np.cosh(theta_s*s_w))/(np.cosh(theta_s)-1)
+            Cbot_w = ((np.sinh(theta_b*(s_w+1)))/(np.sinh(theta_b)))-1
+            u_w = ((s_w+1)**alpha)*(1+(alpha/beta)*(1-((s_w+1)**beta)))
             Cs_w = u_w*Csur_w+(1-u_w)*Cbot_w
         else:
-            Cs_r = sc_r
-            Cs_w = sc_w
+            Cs_r = s_rho
+            Cs_w = s_w
     elif Vstretching == 3:
         # Geyer function for high bbl resolution in shallow applications
         gamma = 3
-        Csur = -(np.log(np.cosh(gamma*abs(sc_r)**theta_s)))/np.log(np.cosh(gamma))
-        Cbot = ((np.log(np.cosh(gamma*(sc_r+1)**theta_b)))/np.log(np.cosh(gamma)))-1
-        mu = 0.5*(1-np.tanh(gamma*(sc_r+0.5)))
+        Csur = -(np.log(np.cosh(gamma*abs(s_rho)**theta_s)))/np.log(np.cosh(gamma))
+        Cbot = ((np.log(np.cosh(gamma*(s_rho+1)**theta_b)))/np.log(np.cosh(gamma)))-1
+        mu = 0.5*(1-np.tanh(gamma*(s_rho+0.5)))
         Cs_r = mu*Cbot+(1-mu)*Csur
-        Csur_w = -(np.log(np.cosh(gamma*abs(sc_w)**theta_s)))/np.log(np.cosh(gamma))
-        Cbot_w = ((np.log(np.cosh(gamma*(sc_w+1)**theta_b)))/np.log(np.cosh(gamma)))-1
-        mu_w = 0.5*(1-np.tanh(gamma*(sc_w+0.5)))
+        Csur_w = -(np.log(np.cosh(gamma*abs(s_w)**theta_s)))/np.log(np.cosh(gamma))
+        Cbot_w = ((np.log(np.cosh(gamma*(s_w+1)**theta_b)))/np.log(np.cosh(gamma)))-1
+        mu_w = 0.5*(1-np.tanh(gamma*(s_w+0.5)))
         Cs_w = mu_w*Cbot_w+(1-mu_w)*Csur_w
     elif Vstretching == 4:
         # newest ROMS default as of March 2011 (theta_s between 0 and 10,
         # theta_b between 0 and 4)
         if theta_s>0:
-            Cs_r = (1-np.cosh(theta_s*sc_r))/(np.cosh(theta_s)-1)
-            Cs_w = (1-np.cosh(theta_s*sc_w))/(np.cosh(theta_s)-1)
+            Cs_r = (1-np.cosh(theta_s*s_rho))/(np.cosh(theta_s)-1)
+            Cs_w = (1-np.cosh(theta_s*s_w))/(np.cosh(theta_s)-1)
         elif theta_s<=0:
-            Cs_r = -(sc_r**2)
-            Cs_w = -(sc_w**2)
+            Cs_r = -(s_rho**2)
+            Cs_w = -(s_w**2)
         if theta_b > 0:
             Cs_r = (np.exp(theta_b*Cs_r)-1)/(1-np.exp(-theta_b))
             Cs_w = (np.exp(theta_b*Cs_w)-1)/(1-np.exp(-theta_b))
