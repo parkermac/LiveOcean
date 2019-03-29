@@ -23,7 +23,7 @@ from importlib import reload
 reload(tfl)
 
 indir0 = ('/Users/pm7/Documents/LiveOcean_output/tef/' +
-            'cas4_v2_lo6biom_2017.01.01_2017.12.31/')
+            'cas5_v3_lo8_2017.01.01_2017.06.20/')
             
 indir = indir0 + 'processed/'
 

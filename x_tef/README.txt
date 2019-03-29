@@ -2,11 +2,19 @@ README for the TEF code, Parker MacCready, 2018.09.19 and after
 
 Steps and notes
 
+0. Use ptools/pgrid/tef_section_maker.py to define sections, if needed.  This is a GUI where you define section endpoints (forced to be either perfectly EW or NS), name the section, and define which direction is "landward" (i.e. which way is positive transport).  You can define one or more sections in a session.  At the end, when you push DONE it produces screen output suitable for pasting into new oe existing lists in tef_fun.get_sect_df().
+
 1. Run extract_sections.py, which creates a NetCDF file for each section with arrays of hourly transport and tracer values on the section, arranged as (t, z, x-or-y).  Using command line arguments you can change the run and the day range.  You can edit the code by hand to just extract a subset of the sections.  The main list is defined in tef_fun.get_sect_df().  Typically this will be done on a remote machine, like boiler, although the defaults are designed to work with model output I have saved on my mac.
 
 NOTE: the actual tracer variables to be extracted are defined in tef_fun.start_netcdf.nc().  Not ideal to have it hidden so deep, but it is a convenient place to create the whole list if needed.
 
 2. Run process_sections.py, which organizes all the transports at each time into salinity bins.
+
+#. bulk_calc.py
+
+#. bulk_plot.py
+
+------------------
 
 3. Run plot_time_series.py to make plots of time series from each processed station.  You can edit the code to just look at a subset of the stations.
 

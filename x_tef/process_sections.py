@@ -24,7 +24,7 @@ Ldir = Lfun.Lstart()
 
 indir0 = Ldir['LOo'] + 'tef/'
 # choose the tef extraction to process
-item = Lfun.choose_item(indir00)
+item = Lfun.choose_item(indir0)
 indir = indir0 + item + '/'
 
 LList_raw = os.listdir(indir + 'extractions/')
@@ -40,7 +40,7 @@ Lfun.make_dir(outdir)
 
 for tef_file in LList:
     print(tef_file)
-    fn = outdir + tef_file
+    fn = indir + 'extractions/' + tef_file
 
     # name output file
     out_fn = outdir + tef_file.replace('.nc','.p')

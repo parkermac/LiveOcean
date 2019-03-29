@@ -19,7 +19,6 @@ def get_sect_df():
     # * landward is the sign to multipy the transport by to be landward (1 or -1)
     sect_df = pd.DataFrame(columns=['x0', 'x1', 'y0', 'y1', 'landward'])
     
-    
     # Juan de Fuca
     sect_df.loc['jdf1',:] = [-124.673, -124.673,   48.371,   48.632, 1]
     sect_df.loc['jdf2',:] = [-124.276, -124.276,   48.213,   48.542, 1]
@@ -31,7 +30,7 @@ def get_sect_df():
     sect_df.loc['sog2',:] = [-124.065, -123.073,   49.184,   49.184, 1]
     sect_df.loc['sog3',:] = [-124.223, -124.223,   49.220,   49.946, -1]
     sect_df.loc['sog4',:] = [-125.356, -124.556,   50.002,   50.002, 1]
-
+    sect_df.loc['sog5',:] = [-125.465, -124.936,   50.233,   50.233, 1]
     # San Juans
     sect_df.loc['sji1',:] = [-123.350, -122.451,   48.438,   48.438, 1]
     sect_df.loc['sji2',:] = [-123.449, -122.425,   48.681,   48.681, 1]
