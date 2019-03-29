@@ -80,7 +80,7 @@ sect_info = dict()
 
 # select which sections to extract
 if True: # limited list
-    sect_list = [item for item in sect_df.index if item in ['sog4']]
+    sect_list = [item for item in sect_df.index if item in ['sog5']]
 else: # full list
     sect_list = [item for item in sect_df.index]
 
