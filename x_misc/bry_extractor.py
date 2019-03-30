@@ -72,7 +72,7 @@ except OSError:
 
 # decide which ocn to use
 if Ldir['gtag'] == 'cas4_v2':
-    ocn = 'ocn3'
+    ocn = 'ocn2'
 elif Ldir['gtag'] == 'cas5_v3':
     ocn = 'ocn4'
     
