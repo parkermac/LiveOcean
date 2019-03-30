@@ -41,7 +41,7 @@ print(20*'=' + ' Processed Sections ' + 20*'=')
 print(*sect_list, sep=", ")
 print(61*'=')
 # select which sections to process
-my_choice = input('-- Input section to plot (e.g. sog5, or Return to process all): ')
+my_choice = input('-- Input section to plot (e.g. sog5, or Return to plot all): ')
 if len(my_choice)==0:
     # full list
     save_fig = True

@@ -69,12 +69,18 @@ try:
     os.remove(out_fn)
 except OSError:
     pass
+
+# decide which ocn to use
+if Ldir['gtag'] == 'cas4_v2':
+    ocn = 'ocn3'
+elif Ldir['gtag'] == 'cas5_v3':
+    ocn = 'ocn4'
     
 # initialize output vectors
 NT = len(date_list)
 zeta_north_ser = pd.Series()
 for date_str in date_list:
-    in_fn = Ldir['LOo'] + Ldir['gtag'] + '/f' + date_str + '/ocn3/ocean_bry.nc'
+    in_fn = Ldir['LOo'] + Ldir['gtag'] + '/f' + date_str + '/' + ocn + '/ocean_bry.nc'
     try:
         ds = nc.Dataset(in_fn)
         zeta_north = ds['zeta_north'][0,:].squeeze()
