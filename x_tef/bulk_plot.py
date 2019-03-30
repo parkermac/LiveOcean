@@ -21,31 +21,42 @@ import pickle
 from datetime import datetime, timedelta
 
 import tef_fun
+# get the DataFrame of all sections
+sect_df = tef_fun.get_sect_df()
 
 from warnings import filterwarnings
 filterwarnings('ignore') # skip some warning messages
 
-# get the DataFrame of all sections
-sect_df = tef_fun.get_sect_df()
-
-indir0 = ('/Users/pm7/Documents/LiveOcean_output/tef/' +
-            'cas5_v3_lo8_2017.01.01_2017.06.20/')
-            
+# choose input and organize output
+Ldir = Lfun.Lstart()
+indir0 = Ldir['LOo'] + 'tef/'
+# choose the tef extraction to process
+item = Lfun.choose_item(indir0)
+indir0 = indir0 + item + '/'
 indir = indir0 + 'bulk/'
-            
-outdir = indir0 + 'bulk_plots/'
-
-if True: # plot all bulk files
-    Lfun.make_dir(outdir, clean=True)
-    LList = [item for item in os.listdir(indir) if ('.p' in item)]
+sect_list_raw = os.listdir(indir)
+sect_list_raw.sort()
+sect_list = [item for item in sect_list_raw if ('.p' in item)]
+print(20*'=' + ' Processed Sections ' + 20*'=')
+print(*sect_list, sep=", ")
+print(61*'=')
+# select which sections to process
+my_choice = input('-- Input section to plot (e.g. sog5, or Return to process all): ')
+if len(my_choice)==0:
+    # full list
     save_fig = True
-else: # override
-    snp = Lfun.choose_item(indir, tag='.p')
-    Lfun.make_dir(outdir)
-    LList = [snp]
-    save_fig = False
+else: # single item
+    if (my_choice + '.p') in sect_list:
+        sect_list = [my_choice + '.p']
+        save_fig = False
+    else:
+        print('That section is not available')
+        sys.exit()
+outdir = indir0 + 'bulk_plots/'
+Lfun.make_dir(outdir)
             
-for snp in LList:
+#plt.close('all')
+for snp in sect_list:
     
     sn = snp.replace('.p','')
 
@@ -55,6 +66,7 @@ for snp in LList:
     ot = bulk['ot']
     qnet = bulk['qnet_lp'] # net volume transport
     fnet = bulk['fnet_lp'] # net tidal energy flux
+    ssh = bulk['ssh_lp'] # average SSH across the section, low-passed
     NT, NS = SS.shape
 
     # make vector and array times in days from start of the year
@@ -101,16 +113,16 @@ for snp in LList:
     QSout = np.nansum(QQm*SS, axis=1)
     Sout = QSout/Qout
     # and find net transport to compare with qnet (should be identical)
-    Qnet = np.nansum(QQ, axis=1)
+    # Qnet = np.nansum(QQ, axis=1)
+    # RESULT: it is identical
 
     # PLOTTING
-    plt.close('all')
-    fig = plt.figure(figsize=(14,7))
+    fig = plt.figure(figsize=(21,9))
     
     alpha = .5
 
     # Salinity vs. Time (size and color by Transport)
-    ax = plt.subplot2grid((2,3), (0,0), colspan=2)
+    ax = fig.add_subplot(2,3,1)
     Qscale = np.nanmean(np.abs(QQ))
     qf = 25
     ax.scatter(Time, SS, s=qf*np.abs(QQp/Qscale), c='r', alpha=alpha)
@@ -125,19 +137,21 @@ for snp in LList:
     # legend
     ax.scatter(.95, .2, s=qf, c='r', transform=ax.transAxes, alpha=alpha)
     ax.scatter(.95, .1, s=qf, c='b', transform=ax.transAxes, alpha=alpha)
-    ax.text(.94, .2, 'Positive Q %d $(m^{3}s^{-1})$' % int(Qscale), color='r', fontweight='bold',
+    ax.text(.94, .2, 'Positive Q %d (m3/s)' % int(Qscale), color='r', fontweight='bold',
         horizontalalignment='right', verticalalignment='center', transform=ax.transAxes)
-    ax.text(.94, .1, 'Negative Q %d $(m^{3}s^{-1})$' % int(Qscale), color='b', fontweight='bold',
+    ax.text(.94, .1, 'Negative Q %d (m3/s)' % int(Qscale), color='b', fontweight='bold',
         horizontalalignment='right', verticalalignment='center', transform=ax.transAxes)
-    # Tidal energy flux vs. Time as second y-axis
-    ax = ax.twinx()
-    ax.plot(td, fnet/1e9, '-g', linewidth=2)
-    ax.set_ylabel('Energy Flux (GW)', color='g', alpha=alpha)
-    ax.set_ylim(bottom=0)
-    ax.set_xlim(0,366)
+    ax.set_title(indir0.split('/')[-2])
+    
+    # # Tidal energy flux vs. Time as second y-axis
+    # ax = ax.twinx()
+    # ax.plot(td, fnet/1e9, '-g', linewidth=2)
+    # ax.set_ylabel('Energy Flux (GW)', color='g', alpha=alpha)
+    # ax.set_ylim(bottom=0)
+    # ax.set_xlim(0,366)
     
     # Tranport vs. Time
-    ax = plt.subplot2grid((2,3), (1,0), colspan=2)
+    ax = fig.add_subplot(2,3,4)
     ax.scatter(Time, QQp/1e3, s=qf*np.abs(QQp/Qscale), c='r', alpha=alpha)
     ax.scatter(Time, -QQm/1e3, s=qf*np.abs(QQm/Qscale), c='b', alpha=alpha)
     # add two-layer versions
@@ -146,16 +160,32 @@ for snp in LList:
     ax.set_ylim(bottom=0)
     ax.grid(True)
     ax.set_xlabel('Days from 1/1/' + str(dt[0].year))
-    ax.set_ylabel('|Q| $(10^{3} m^{3}s^{-1})$')
+    ax.set_ylabel('|Q| 1000 m3/s')
+    
     # Tidal energy flux vs. Time as second y-axis
-    ax = ax.twinx()
+    ax = fig.add_subplot(3,3,2)
     ax.plot(td, fnet/1e9, '-g', linewidth=2)
-    ax.set_ylabel('Energy Flux (GW)', color='g', alpha=alpha)
+    ax.set_ylabel('Energy Flux (GW)')
     ax.set_ylim(bottom=0)
     ax.set_xlim(0,366)
     
+    # Surface height
+    ax = fig.add_subplot(3,3,5)
+    ax.plot(td, ssh, '-b', linewidth=2)
+    ax.set_xlim(0,366)
+    ax.grid(True)
+    ax.set_ylabel('SSH (m)')
+    
+    # Volume flux
+    ax = fig.add_subplot(3,3,8)
+    ax.plot(td, qnet/1e3, '-c', linewidth=2)
+    ax.set_xlim(0,366)
+    ax.grid(True)
+    ax.set_xlabel('Days from 1/1/' + str(dt[0].year))
+    ax.set_ylabel('Qnet 1000 m3/s')
+    
     # Section location map
-    ax = fig.add_subplot(244)
+    ax = fig.add_subplot(1,3,3)
     ax.plot([x0, x1], [y0, y1], '-m', linewidth=3)
     ax.set_title(sn)
     pfun.add_coast(ax)
@@ -163,14 +193,6 @@ for snp in LList:
     aa = [x0-.7, x1+.7, y0-.5, y1+.5]
     ax.axis(aa)
     
-    # Test of volume flux consistency
-    ax = fig.add_subplot(248)
-    ax.plot(td, Qnet/1e3, '-c', td, qnet/1e3, '--m', linewidth=2)
-    ax.set_xlim(0,366)
-    ax.grid(True)
-    ax.set_xlabel('Days from 1/1/' + str(dt[0].year))
-    ax.set_ylabel('Qnet $(10^{3} m^{3}s^{-1})$')
-
 
     if save_fig:
         plt.savefig(outdir + sn + '.png')

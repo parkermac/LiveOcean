@@ -22,35 +22,42 @@ import tef_fun_lorenz as tfl
 from importlib import reload
 reload(tfl)
 
-indir0 = ('/Users/pm7/Documents/LiveOcean_output/tef/' +
-            'cas5_v3_lo8_2017.01.01_2017.06.20/')
-            
+# choose input and organize output
+Ldir = Lfun.Lstart()
+indir0 = Ldir['LOo'] + 'tef/'
+# choose the tef extraction to process
+item = Lfun.choose_item(indir0)
+indir0 = indir0 + item + '/'
 indir = indir0 + 'processed/'
-
+sect_list_raw = os.listdir(indir)
+sect_list_raw.sort()
+sect_list = [item for item in sect_list_raw if ('.p' in item)]
+print(20*'=' + ' Processed Sections ' + 20*'=')
+print(*sect_list, sep=", ")
+print(61*'=')
+# select which sections to process
+my_choice = input('-- Input section to process (e.g. sog5, or Return to process all): ')
+if len(my_choice)==0:
+    # full list
+    pass
+else: # single item
+    if (my_choice + '.p') in sect_list:
+        sect_list = [my_choice + '.p']
+    else:
+        print('That section is not available')
+        sys.exit()
 outdir = indir0 + 'bulk/'
+Lfun.make_dir(outdir)
 
 testing = False
-
-if testing == False:
-    if True: # process all .nc files
-        Lfun.make_dir(outdir, clean=True)
-        LList = [item for item in os.listdir(indir) if ('.p' in item)]
-    else: # override
-        snp = Lfun.choose_item(indir, tag='.p')
-        Lfun.make_dir(outdir)
-        LList = [snp]
-else:
-    Lfun.make_dir(outdir)
-    LList = ['ai3.p']
-    
-for snp in LList:
+for snp in sect_list:
     print('Working on ' + snp)
     out_fn = outdir + snp
 
     # load the data file
     tef_ex=pickle.load(open(indir + snp, 'rb'))
     # Notes on the data:
-    # data.keys() => dict_keys(['tef_q', 'tef_qs', 'sbins', 'ot', 'qnet', 'fnet'])
+    # data.keys() => dict_keys(['tef_q', 'tef_qs', 'sbins', 'ot', 'qnet', 'fnet', 'ssh'])
     # data['tef_q'].shape => (8761, 1000), so packed [hour, salinity bin]
     # sbins are packed low to high
     # ot is time in seconds from 1/1/1970
@@ -60,6 +67,7 @@ for snp in LList:
     tef_qs = tef_ex['tef_qs']
     qnet = tef_ex['qnet']
     fnet = tef_ex['fnet']
+    ssh = tef_ex['ssh']
 
     # low-pass
     if True:
@@ -68,6 +76,7 @@ for snp in LList:
         tef_qs_lp = zfun.filt_godin_mat(tef_qs)
         qnet_lp = zfun.filt_godin(qnet)
         fnet_lp = zfun.filt_godin(fnet)
+        ssh_lp = zfun.filt_godin(ssh)
         pad = 36
     else:
         # nday Hanning window
@@ -77,6 +86,7 @@ for snp in LList:
         tef_qs_lp = zfun.filt_hanning_mat(tef_qs, n=nfilt)
         qnet_lp = zfun.filt_hanning(qnet, n=nfilt)
         fnet_lp = zfun.filt_hanning(fnet, n=nfilt)
+        ssh_lp = zfun.filt_hanning(ssh, n=nfilt)
         pad = int(np.ceil(nfilt/2))
 
     # subsample and cut off nans
@@ -85,6 +95,7 @@ for snp in LList:
     ot = ot[pad:-(pad+1):24]
     qnet_lp = qnet_lp[pad:-(pad+1):24]
     fnet_lp = fnet_lp[pad:-(pad+1):24]
+    ssh_lp = ssh_lp[pad:-(pad+1):24]
 
     # get sizes and make sedges (the edges of sbins)
     DS=sbins[1]-sbins[0]
@@ -180,6 +191,7 @@ for snp in LList:
         bulk['ot'] = ot
         bulk['qnet_lp'] = qnet_lp
         bulk['fnet_lp'] = fnet_lp
+        bulk['ssh_lp'] = ssh_lp
         pickle.dump(bulk, open(out_fn, 'wb'))
     else:
         plt.show()

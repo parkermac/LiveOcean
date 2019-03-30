@@ -2,14 +2,6 @@
 Extract fields at a number of sections which may be used later for TEF analysis
 of transport and transport-weighted properties.
 
-Performance - for all sections (primary ones, not side channels) with just salt
-this takes about 1.5 minutes per day for cas4 on boiler, so about 10 hours for a year.
-
-To do a year of a shelf section (two variables, for Sam) in cascadia1_base_lobio5
-takes about an hour and a half on fjord.  So it should take 7.5 hours for 2013-2017,
-and about a full day for all three sections.  The fields are about 900 MB per section
-per year.
-
 """
 
 # setup
@@ -33,37 +25,54 @@ reload(tef_fun)
 import argparse
 parser = argparse.ArgumentParser()
 # standard arguments
-parser.add_argument('-g', '--gridname', nargs='?', type=str, default='cas5')
-parser.add_argument('-t', '--tag', nargs='?', type=str, default='v3')
-parser.add_argument('-x', '--ex_name', nargs='?', type=str, default='lo8')
-parser.add_argument('-0', '--date_string0', nargs='?', type=str, default='2017.01.01')
-parser.add_argument('-1', '--date_string1', nargs='?', type=str, default='2017.01.03')
+parser.add_argument('-g', '--gridname', nargs='?', type=str, default='cas4')
+parser.add_argument('-t', '--tag', nargs='?', type=str, default='v2')
+parser.add_argument('-x', '--ex_name', nargs='?', type=str, default='lo6biom')
+parser.add_argument('-0', '--date_string0', nargs='?', type=str, default='2017.07.20')
+parser.add_argument('-1', '--date_string1', nargs='?', type=str, default='2017.07.21')
 # section specific arguments
 args = parser.parse_args()
 
 # Get Ldir
 Ldir = Lfun.Lstart(args.gridname, args.tag)
 Ldir['gtagex'] = Ldir['gtag'] + '_' + args.ex_name
-Ldir['date_string0'] = args.date_string0
-Ldir['date_string1'] = args.date_string1
+# get time limits
+ds0 = args.date_string0; ds1 = args.date_string1
+Ldir['date_string0'] = ds0; Ldir['date_string1'] = ds1
+dt0 = datetime.strptime(ds0, '%Y.%m.%d'); dt1 = datetime.strptime(ds1, '%Y.%m.%d')
+ndays = (dt1-dt0).days + 1
 
-# make sure the output directory exists
+print('Working on:')
+print(Ldir['gtagex'] + '_' + ds0 + '_' + ds1 +'\n')
+
+# make sure the output directories exist
 outdir000 = Ldir['LOo']
 Lfun.make_dir(outdir000)
 outdir00 = outdir000 + 'tef/'
 Lfun.make_dir(outdir00)
-outdir0 = (outdir00 + Ldir['gtagex'] + '_' + Ldir['date_string0']
-        + '_' + Ldir['date_string1'] + '/')
+outdir0 = (outdir00 + Ldir['gtagex'] + '_' + ds0 + '_' + ds1 + '/')
 Lfun.make_dir(outdir0)
 outdir = outdir0 + 'extractions/'
 Lfun.make_dir(outdir)
 
-dt0 = datetime.strptime(args.date_string0, '%Y.%m.%d')
-dt1 = datetime.strptime(args.date_string1, '%Y.%m.%d')
-ndays = (dt1-dt0).days + 1
+# get the DataFrame of all sections
+sect_df = tef_fun.get_sect_df()
+# initialize a dictionary of info for each section
+sect_info = dict()
+# select which sections to extract
+my_choice = input('-- Input section to process (e.g. sog5, or Return to process all): ')
+if len(my_choice)==0:
+    # full list
+    sect_list = [item for item in sect_df.index]
+else: # single item
+    if my_choice in sect_df.index:
+        sect_list = [my_choice]
+    else:
+        print('That section is not available')
+        sys.exit()
 
 # get list of history files to process
-fn_list = Lfun.get_fn_list('hourly', Ldir, args.date_string0, args.date_string1)
+fn_list = Lfun.get_fn_list('hourly', Ldir, ds0, ds1)
 NT = len(fn_list)
 
 # get grid info
@@ -71,18 +80,6 @@ fn = fn_list[0]
 G = zrfun.get_basic_info(fn, only_G=True)
 S = zrfun.get_basic_info(fn, only_S=True)
 NZ = S['N']
-
-# get the DataFrame of all sections
-sect_df = tef_fun.get_sect_df()
-
-# initialize a dictionary of info for each section
-sect_info = dict()
-
-# select which sections to extract
-if True: # limited list
-    sect_list = [item for item in sect_df.index if item in ['sog5']]
-else: # full list
-    sect_list = [item for item in sect_df.index]
 
 print('\nGetting section definitions and indices')
 for sect_name in sect_list:

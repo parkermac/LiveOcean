@@ -99,9 +99,8 @@ elif args.layer_name == 'svar':
     vn_list_2d_uv_t = []
     vn_list_3d_uv_t = []
     vn_list_2d_custom = ['DA']
-
 else:
-    print('Unsupported list type')
+    print('Unsupported layer name')
     sys.exit()
     
 # make some things

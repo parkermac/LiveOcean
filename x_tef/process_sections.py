@@ -25,22 +25,33 @@ Ldir = Lfun.Lstart()
 indir0 = Ldir['LOo'] + 'tef/'
 # choose the tef extraction to process
 item = Lfun.choose_item(indir0)
-indir = indir0 + item + '/'
+indir0 = indir0 + item + '/'
+indir = indir0 + 'extractions/'
 
-LList_raw = os.listdir(indir + 'extractions/')
-LList_raw.sort()
-
-if True: # process all .nc files
-    LList = [item for item in LList_raw if ('.nc' in item)]
-else: # override
-    LList = ['ai1.nc']
+sect_list_raw = os.listdir(indir)
+sect_list_raw.sort()
+sect_list = [item for item in sect_list_raw if ('.nc' in item)]
+print(20*'=' + ' Extracted Sections ' + 20*'=')
+print(*sect_list, sep=", ")
+print(61*'=')
+# select which sections to process
+my_choice = input('-- Input section to process (e.g. sog5, or Return to process all): ')
+if len(my_choice)==0:
+    # full list
+    pass
+else: # single item
+    if (my_choice + '.nc') in sect_list:
+        sect_list = [my_choice + '.nc']
+    else:
+        print('That section is not available')
+        sys.exit()
     
-outdir = indir + 'processed/'
+outdir = indir0 + 'processed/'
 Lfun.make_dir(outdir)
 
-for tef_file in LList:
+for tef_file in sect_list:
     print(tef_file)
-    fn = indir + 'extractions/' + tef_file
+    fn = indir + tef_file
 
     # name output file
     out_fn = outdir + tef_file.replace('.nc','.p')
@@ -78,6 +89,7 @@ for tef_file in LList:
     # other variables
     qnet = np.zeros(NT)
     fnet = np.zeros(NT)
+    ssh = np.zeros(NT)
     g = 9.8
     rho = 1025
 
@@ -125,6 +137,7 @@ for tef_file in LList:
     tef_dict['ot'] = ot
     tef_dict['qnet'] = qnet
     tef_dict['fnet'] = fnet
+    tef_dict['ssh'] = np.mean(zeta, axis=1)
     pickle.dump(tef_dict, open(out_fn, 'wb'))
 
 
