@@ -13,9 +13,9 @@ from importlib import reload
 reload(cfun)
 
 # set defaults
-gridname = 'cas4'
-tag = 'v2'
-ex_name = 'lo6biom'
+gridname = 'cas5'
+tag = 'v3'
+ex_name = 'lo8'
 
 testing = False
 
@@ -28,7 +28,7 @@ import Lfun
 Ldir = Lfun.Lstart(gridname, tag)
 Ldir['gtagex'] = Ldir['gtag'] + '_' + ex_name
 
-data_source = 'woac'
+data_source = 'ecology'
 
 if data_source == 'ecology':
     # +++ load ecology CTD cast data +++

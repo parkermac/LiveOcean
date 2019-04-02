@@ -1,3 +1,16 @@
+This code is designed to make a backfill archive for the GOFS 3.1 version of HYCOM:
+
+The newer GOFS 3.1  goes back as Renanalysis to 1994, and as Analysis to the present.  What we use in forcing/ocn3 is "GLBy0.08 grid is 0.08 deg lon x 0.04 deg lat that covers 80S to 90N." so this is a different grid than GLBu, having twice the latitude resolution.
+
+Start here to see how to format request strings:
+https://ncss.hycom.org/thredds/ncss/grid/GLBy0.08/expt_93.0/dataset.html
+
+=====================================================================
+
+
+=====================================================================
+**** ALL FILES BELOW ARE OLD NOTES, FROM hycom1 *********************
+
 These files are for pulling in and processing backfill HYCOM data. Note that they are currently configured only to pull in the GLBu version of the output, which was turned off after 2018.11.20.  I have been running this on fjord so far, because it is the home for LiveOcean_data.  I guess in principle it would work from boiler as well, because it looks in the same place as fjord for _data.
 
 Since GLBu is no longer being added to, there should be no need to re-run the code in this folder (2018.12.25).
@@ -13,7 +26,7 @@ where the things like 91.2 are the various hycom experiments, each of which fill
 
 Output:
 LiveOcean_data/hycom1/h2016.12.25.p (for example; one for each day) a pickled dict containing:
-['v3d', 't3d', 'result', 'ssh', 'u3d', 's3d', 'dt'] where result is something like 'success' and dt is a datetime (at zero hour of the day, presumably UTC).  The dynamical variables are 2D or 3D arrays.  Importantly, they are MASKED ARRAYS and a lot of how I treat them later in ocn3 assumed this to be the case.  A problem that arose was that in the newer forecast fields (GLBy that I get using ncss - see forcing/ocn3) they show up as regular nd arryas with nans, not masked arrays.  This caused a lot of trouble.  All are packed in my standard way [z, y, x] or [y, x].  Velocities are m/s, ssh is m, salinity is psu, and temperature, t3d, is deg C in-situ temperature (we convert to potential temperature later, e.g. in forcing/ocn3, because this is what ROMS uses).
+['v3d', 't3d', 'result', 'ssh', 'u3d', 's3d', 'dt'] where result is something like 'success' and dt is a datetime (at zero hour of the day, presumably UTC).  The dynamical variables are 2D or 3D arrays.  Importantly, they are MASKED ARRAYS and a lot of how I treat them later in ocn3 assumed this to be the case.  A problem that arose was that in the newer forecast fields (GLBy that I get using ncss - see forcing/ocn3) they show up as regular nd arrays with nans, not masked arrays.  This caused a lot of trouble.  All are packed in my standard way [z, y, x] or [y, x].  Velocities are m/s, ssh is m, salinity is psu, and temperature, t3d, is deg C in-situ temperature (we convert to potential temperature later, e.g. in forcing/ocn3, because this is what ROMS uses).
 
 It takes about 30 sec per day on fjord.
 
