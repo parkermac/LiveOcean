@@ -84,15 +84,12 @@ class River:
         url_str = ('http://waterservices.usgs.gov/nwis/dv/'
             + '?format=waterml,1.1&sites=' + str(gage)
             + time_str + '&parameterCd=00060')
-        # Get the XML.
-        file = urllib.request.urlopen(url_str, timeout=10)
         try:
+            # Get the XML.
+            file = urllib.request.urlopen(url_str, timeout=10)
             tree = ET.parse(file)
             root = tree.getroot()
-        except:
-            self.memo = 'problem downloading XML'
-        # Extract the data from the XML.
-        try:
+            # Extract the data from the XML.
             flag = True
             # aa = '{http://www.cuahsi.org/waterML/1.1/}'
             rt = root.tag
@@ -113,7 +110,7 @@ class River:
             self.got_data = True
             self.memo = 'success'
         except:
-            self.memo = 'problem parsing data from XML'
+            self.memo = 'problem downloading or parsing data from XML'
         self.memo = (self.memo + ' USGS')
 
     def get_nws_data(self):
