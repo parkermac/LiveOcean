@@ -350,6 +350,58 @@ def P_basic_salish(in_dict):
         plt.close()
     else:
         plt.show()
+        
+def P_basic_colvos(in_dict):
+
+    # START
+    fig = plt.figure(figsize=(12,8)) # or pinfo.figsize for default
+    ds = nc.Dataset(in_dict['fn'])
+
+    # PLOT CODE
+    vn_list = ['salt', 'temp']
+    aa = [-122.6, -122.3, 47.35, 47.65]
+    ii = 1
+    for vn in vn_list:
+        if in_dict['auto_vlims']:
+            pinfo.vlims_dict[vn] = ()
+        ax = fig.add_subplot(1, len(vn_list), ii)
+        if vn == 'salt':
+            vlims_fac = .75
+        else:
+            vlims_fac = 2.5
+        cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict,
+                cmap=pinfo.cmap_dict[vn], fac=pinfo.fac_dict[vn],
+                aa=aa, vlims_fac=vlims_fac)
+        # Inset colorbar
+        from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+        cbaxes = inset_axes(ax, width="4%", height="40%", loc='upper right', borderpad=3) 
+        cb = fig.colorbar(cs, cax=cbaxes, orientation='vertical')
+        # cb.ax.tick_params(labelsize=fs1-2)
+        #fig.colorbar(cs)
+        pfun.add_coast(ax)
+        ax.axis(aa)
+        pfun.dar(ax)
+        ax.set_title('Surface %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
+        ax.set_xlabel('Longitude')
+        if ii == 1:
+            ax.set_ylabel('Latitude')
+            pfun.add_info(ax, in_dict['fn'])
+            # pfun.add_windstress_flower(ax, ds, t_scl=.6,
+            #     t_leglen=0.1, center=(.25, .3))
+        elif ii == 2:
+            pfun.add_velocity_vectors(ax, ds, in_dict['fn'],
+                v_scl=20, v_leglen=.5, nngrid=100, center=(.1, .1))
+            ax.set_yticklabels([])
+        ii += 1
+    fig.tight_layout()
+    
+    # FINISH
+    ds.close()
+    if len(in_dict['fn_out']) > 0:
+        plt.savefig(in_dict['fn_out'])
+        plt.close()
+    else:
+        plt.show()
     
 def P_debug(in_dict):
     # Focused on debugging
@@ -780,6 +832,60 @@ def P_layer(in_dict):
     else:
         plt.show()
 
+def P_layer_JdF_Eddy(in_dict):
+
+    # START
+    fig = plt.figure(figsize=(24,8))
+    ds = nc.Dataset(in_dict['fn'])
+
+    # PLOT CODE
+    aa = [-125.8, -124.2, 48, 49]
+    pinfo.vlims_dict['salt'] = (32,34)
+    pinfo.vlims_dict['temp'] = (6,10)
+    
+    vn_list = ['salt', 'temp']
+    z_level = -50
+    zfull = pfun.get_zfull(ds, in_dict['fn'], 'rho')
+    ii = 1
+    for vn in vn_list:
+        # if in_dict['auto_vlims']:
+        #     pinfo.vlims_dict[vn] = ()
+        ax = fig.add_subplot(1, len(vn_list), ii)
+        laym = pfun.get_laym(ds, zfull, ds['mask_rho'][:], vn, z_level)
+        v_scaled = pinfo.fac_dict[vn]*laym
+        vlims = pinfo.vlims_dict[vn]
+        if len(vlims) == 0:
+            vlims = pfun.auto_lims(v_scaled)
+            pinfo.vlims_dict[vn] = vlims
+        cs = ax.pcolormesh(ds['lon_psi'][:], ds['lat_psi'][:], v_scaled[1:-1,1:-1],
+                           vmin=vlims[0], vmax=vlims[1], cmap=pinfo.cmap_dict[vn])
+        cb = fig.colorbar(cs)
+        # cb.formatter.set_useOffset(False)
+        # cb.update_ticks()
+        pfun.add_coast(ax)
+        ax.axis(aa)
+        pfun.dar(ax)
+        ax.set_xlabel('Longitude')
+        ax.set_title('%s %s on Z = %d (m)' % (pinfo.tstr_dict[vn], pinfo.units_dict[vn], z_level))
+        if ii == 1:
+            pfun.add_bathy_contours(ax, ds, depth_levs = [50, 100, 200], txt=True)
+            pfun.add_info(ax, in_dict['fn'])
+            ax.set_ylabel('Latitude')
+            pfun.add_windstress_flower(ax, ds, t_scl=0.6, t_leglen=0.1, center=(.15,.75))
+        if ii == 2:
+            # pfun.add_velocity_vectors(ax, ds, in_dict['fn'], v_scl=5, v_leglen=0.2,
+            #                           nngrid=30, zlev=z_level)
+            pass
+        ii += 1
+
+    # FINISH
+    ds.close()
+    if len(in_dict['fn_out']) > 0:
+        plt.savefig(in_dict['fn_out'])
+        plt.close()
+    else:
+        plt.show()
+        
 def P_sect(in_dict):
     # plots a map and a section (distance, z)
     
