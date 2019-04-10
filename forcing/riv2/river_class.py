@@ -118,13 +118,11 @@ class River:
         url_str = ('http://www.nwrfc.noaa.gov/xml/xml.cgi?id=' +
                    self.nws_code +
                    '&pe=HG&dtype=b&numdays=10')
-        file = urllib.request.urlopen(url_str, timeout=10)
         try:
+            # get the XML
+            file = urllib.request.urlopen(url_str, timeout=10)
             tree = ET.parse(file)
             root = tree.getroot()
-        except:
-            self.memo = 'problem downloading XML'
-        try:
             flag = True
             # NOTE: you find this tag by looking at any instance of e0.tag
             #aa = '{http://www.nwrfc.noaa.gov/xml/schemas/2004/03/hydromet_data}'
@@ -149,7 +147,7 @@ class River:
             self.got_data = True
             self.memo = 'success'
         except:
-            self.memo = 'problem parsing data from XML'
+            self.memo = 'problem downloading or parsing data from XML'
         self.memo = (self.memo + ' NWS')
 
     def get_ec_data(self, days, timeout=10):
