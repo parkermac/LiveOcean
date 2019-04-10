@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from datetime import datetime
 import pickle
+import pandas as pd
 
 import os
 import sys
@@ -33,23 +34,22 @@ sect_df = tef_fun.get_sect_df()
 
 indir0 = Ldir['LOo'] + 'tef/'
 # choose the tef extraction to plot
-item = Lfun.choose_item(indir0)
-indir = indir0 + item + '/'
-item = Lfun.choose_item(indir, tag='.nc')
-fn = indir + item
+run_name = Lfun.choose_item(indir0)
+indir = indir0 + run_name + '/extractions/'
+sect_name_nc = Lfun.choose_item(indir, tag='.nc')
+fn = indir + sect_name_nc
 
-sect_name = item.replace('.nc','')
+sect_name = sect_name_nc.replace('.nc','')
 
 # set plotting parameters
-if False:
+if True:
     save_fig = True
-    out_dir = indir + 'plots/'
-    Lfun.make_dir(out_dir)
+    out_dir = indir0 + run_name + '/section_plots_' + sect_name + '/'
+    Lfun.make_dir(out_dir, clean=True)
 else:
     save_fig = False
 
 plt.close('all')
-fig = plt.figure(figsize=(13,8))
 
 # function for the section map
 aa = [-127.4, -122, 42, 50.3]
@@ -96,33 +96,49 @@ elif (x0!=x1) and (y0==y1):
     x0 = a[0]; x1 = a[1]
     xsect = lon
 
+# get time axis for indexing
+ot = ds['ocean_time'][:]
+dt = []
+for tt in ot:
+    dt.append(Lfun.modtime_to_datetime(tt))
+tind = np.arange(len(dt))
+dt_ser = pd.Series(index=dt, data=tind)
+
 # time variable fields
 q = ds['q'][:]
 salt = ds['salt'][:]
 
-# form time means
-qq = q.mean(axis=0)
-ss = salt.mean(axis=0)
+for mm in range(1,13):
+    dt_mo = dt_ser[dt_ser.index.month == mm]
+    it0 = dt_mo[0]
+    it1 = dt_mo[-1]
+    
+    # form time means
+    qq = q[it0:it1,:].mean(axis=0)
+    ss = salt[it0:it1,:].mean(axis=0)
 
-ax = fig.add_subplot(221)
-cs = ax.pcolormesh(xsect, z0, qq/da0, vmin=-.1, vmax=.1, cmap='bwr')
-fig.colorbar(cs)
-ax.text(0.05, 0.1, 'Positive is ' + dir_str, transform=ax.transAxes)
-ax.set_title('Mean Velocity (m/s)')
+    fig = plt.figure(figsize=(13,8))
+    
+    ax = fig.add_subplot(221)
+    cs = ax.pcolormesh(xsect, z0, qq/da0, vmin=-.1, vmax=.1, cmap='bwr')
+    fig.colorbar(cs)
+    ax.text(0.05, 0.1, 'Positive is ' + dir_str, transform=ax.transAxes)
+    ax.set_title('Mean Velocity (m/s) Month = ' + str(mm))
 
-ax = fig.add_subplot(223)
-cs = ax.pcolormesh(xsect, z0, ss, cmap='jet')
-fig.colorbar(cs)
-ax.set_title('Mean Salinity')
+    ax = fig.add_subplot(223)
+    cs = ax.pcolormesh(xsect, z0, ss, vmin = 33, vmax=34.5, cmap='rainbow')
+    fig.colorbar(cs)
+    ax.set_title('Mean Salinity')
 
-# add section location map
-ax = fig.add_subplot(122)
-plotit(ax, aa, sect_df, sect_name)
+    # add section location map
+    ax = fig.add_subplot(122)
+    plotit(ax, aa, sect_df, sect_name)
 
-if save_fig:
-    plt.savefig(out_dir + sect_name + '.png')
-    plt.close()
-else:
-    plt.show()
+    if save_fig:
+        nnnn = ('0000' + str(mm))[-4:]
+        plt.savefig(out_dir + 'plot_' + nnnn + '.png')
+        plt.close()
+    else:
+        plt.show()
     
 

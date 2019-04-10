@@ -43,6 +43,16 @@ Output: ptools_output/tef/[*]/bulk_plots/[sect name].p
 
 ------------------------------------------------------------------
 
+* plot_physical_section.py plots a user-selected section as time-averaged properties in x/y-z space, just like a standard Eulerian average.
+
+------------------------------------------------------------------
+
+------------------------------------------------------------------
+
+------------------------------------------------------------------
+
+
+
 Code below needs to be updated - not guaranteed to work.
 
 3. Run plot_time_series.py to make plots of time series from each processed station.  You can edit the code to just look at a subset of the stations.

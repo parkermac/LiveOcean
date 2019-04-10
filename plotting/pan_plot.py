@@ -33,6 +33,9 @@ from importlib import reload
 import Lfun
 import roms_plots; reload(roms_plots)
 
+import matplotlib.pyplot as plt
+plt.close('all')
+
 def boolean_string(s):
     if s not in ['False', 'True']:
         raise ValueError('Not a valid boolean string')
@@ -106,12 +109,19 @@ if plot_type == 'P_tracks_MERHAB':
         list_type = 'merhab'
         print('NOTE: Overriding chosen list_type and using merhab instead.')
 
+in_dict = dict()
+in_dict['auto_vlims'] = args.auto_vlims
+in_dict['testing'] = args.testing
+
 # get list of history files to plot
 fn_list = Lfun.get_fn_list(list_type, Ldir,
     args.date_string0, args.date_string1, his_num=args.his_num)
 
 if (list_type == 'merhab') and (args.testing == True):
-    fn_list = fn_list[:7]
+    fn_list = [fn_list[-1]] # just plot last day
+    outdir0 = Ldir['LOo'] + 'plots/'
+    outdir = outdir0 + list_type + '_' + plot_type + '_' + Ldir['gtagex'] + '/'
+    in_dict['outdir'] = outdir
     
 if (list_type == 'forecast') and (args.testing == True):
     # list of all history files in a directory
@@ -120,9 +130,6 @@ if (list_type == 'forecast') and (args.testing == True):
     fn_list = Lfun.fn_list_utility(dt0, dt0, Ldir, hourmax=hourmax)
     
 # PLOTTING
-in_dict = dict()
-in_dict['auto_vlims'] = args.auto_vlims
-in_dict['testing'] = args.testing
 
 if plot_type == 'P_3day':
     # special additions for this plot type

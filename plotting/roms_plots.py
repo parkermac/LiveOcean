@@ -2110,6 +2110,192 @@ def P_tracks_MERHAB(in_dict):
     else:
         plt.show()
 
+def P_merhab2(in_dict):
+
+    # START
+    fig = plt.figure(figsize=(14, 12))
+    ds = nc.Dataset(in_dict['fn'])
+
+    # TRACKS
+    import os
+    import sys
+    pth = os.path.abspath('../tracker')
+    if pth not in sys.path:
+        sys.path.append(pth)
+    import trackfun_1 as tf1
+    import pickle
+
+    fn = in_dict['fn']
+    gtagex = fn.split('/')[-3]
+    gtx_list = gtagex.split('_')
+    import Lfun
+    Ldir = Lfun.Lstart(gtx_list[0], gtx_list[1])
+    # make a list of history files in this folder,
+    in_dir = fn[:fn.rindex('/')+1]
+    fn_list_raw = os.listdir(in_dir)
+    fn_list = []
+    for item in fn_list_raw:
+        if 'ocean_his' in item:
+            fn_list.append(in_dir + item)
+    fn_list.sort()
+    # save the full list to use with the tracking code 
+    fn_list_full = fn_list.copy()
+    # and estimate the number of days,
+    ndays = round(len(fn_list_full)/24)
+    # then trim fn_list to end at the selected hour for this plot
+    fn_list = fn_list[:fn_list.index(fn)+1]
+    # and use the CURRENT file for the map field overlay
+    ds = nc.Dataset(in_dict['fn'])
+
+    G, S, T = zrfun.get_basic_info(in_dict['fn'])
+    T0 = zrfun.get_basic_info(fn_list[0], only_T=True)
+    
+    # Create initial positions for tracking
+    nyp = 7
+    x0 = -126; x1 = -125; y0 = 48; y1 = 49
+    clat_1 = np.cos(np.pi*(np.mean([y0, y1]))/180)
+    xyRatio = clat_1 * (x1 - x0) / (y1 - y0)
+    lonvec = np.linspace(x0, x1, (nyp * xyRatio).astype(int))
+    latvec = np.linspace(y0, y1, nyp)
+    lonmat_1, latmat_1 = np.meshgrid(lonvec, latvec)
+    #
+    x0 = -125; x1 = -124; y0 = 44; y1 = 45
+    clat_2 = np.cos(np.pi*(np.mean([y0, y1]))/180)
+    xyRatio = clat_2 * (x1 - x0) / (y1 - y0)
+    lonvec = np.linspace(x0, x1, (nyp * xyRatio).astype(int))
+    latvec = np.linspace(y0, y1, nyp)
+    lonmat_2, latmat_2 = np.meshgrid(lonvec, latvec)
+    lonmat = np.concatenate((lonmat_1.flatten(), lonmat_2.flatten()))
+    latmat = np.concatenate((latmat_1.flatten(), latmat_2.flatten()))
+    #
+    plon00 = lonmat.flatten(); plat00 = latmat.flatten()
+    pcs00 = np.array([-.05])
+
+    if (len(fn_list)==2) and (in_dict['testing']==False):
+        # only do the tracking at the start
+        NSP = len(pcs00)
+        NXYP = len(plon00)
+        plon0 = plon00.reshape(NXYP,1) * np.ones((NXYP,NSP))
+        plat0 = plat00.reshape(NXYP,1) * np.ones((NXYP,NSP))
+        pcs0 = np.ones((NXYP,NSP)) * pcs00.reshape(1,NSP)
+        plon0 = plon0.flatten()
+        plat0 = plat0.flatten()
+        pcs0 = pcs0.flatten()
+        # DO THE TRACKING
+        import time
+        tt0 = time.time()
+        ndiv = 1
+        print('** using ndiv = 1 **')
+        TR = {'3d': False, 'rev': False, 'turb': False,
+            'ndiv': ndiv, 'windage': 0}
+        P = tf1.get_tracks(fn_list_full, plon0, plat0, pcs0, TR,
+                           trim_loc=True)
+        print('  took %0.1f seconds' % (time.time() - tt0))
+        # and store the output
+        fo = in_dict['fn_out']
+        out_dir = fo[:fo.rindex('/')+1]
+        out_fn = out_dir + 'tracks.p'
+        pickle.dump(P, open(out_fn, 'wb'))
+    else:
+        # load the output on all subsequent days
+        if in_dict['testing'] == True:
+            outdir = in_dict['outdir']
+        else:
+            fo = in_dict['fn_out']
+            outdir = fo[:fo.rindex('/')+1]
+        out_fn = outdir + 'tracks.p'
+        P = pickle.load(open(out_fn, 'rb'))
+
+    # PLOT CODE
+    fs1 = 18
+    
+    # panel 1
+    ax = fig.add_subplot(121)
+    vn = 'salt'
+    vlims = (28.5,33)
+    pinfo.vlims_dict['salt'] = vlims
+    cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict,
+            cmap=pinfo.cmap_dict[vn], fac=pinfo.fac_dict[vn])
+    pfun.add_bathy_contours(ax, ds, txt=True)
+    pfun.add_coast(ax)
+    ax.axis(pfun.get_aa(ds))
+    pfun.dar(ax)
+    pfun.add_windstress_flower(ax, ds, fs=fs1-4)
+    ax.set_xlabel('Longitude', fontsize=fs1)
+    ax.set_ylabel('Latitude', fontsize=fs1)
+    tstr = ('Surface Salinity ['+str(vlims[0])+'-'+str(vlims[1])+']')
+    ax.set_title(tstr, fontsize=fs1)
+    # add info
+    pfun.add_info(ax, in_dict['fn'], fs=fs1)
+    # add the tracks
+    ntt = len(fn_list)
+    ax.plot(P['lon'][:,:], P['lat'][:,:], '-w', linewidth=2)
+    ax.tick_params(axis = 'both', which = 'major', labelsize = fs1-3)
+    ax.text(.05,.5, 'Three Day Tracks', color='w', fontsize=fs1-2, transform=ax.transAxes)
+    
+    #
+    ax1 = fig.add_subplot(222)
+    pad = .7
+    aa1 = [ -126 - pad/clat_1 - pad/3, -125 + pad/clat_1 - pad/3, 48 - pad, 49 + pad]
+    pfun.draw_box(ax, aa1, linestyle='-', color='c', alpha=1, linewidth=3)
+    pfun.draw_box(ax1, aa1, linestyle='-', color='c', alpha=1, linewidth=5, inset=.01)
+    pfun.add_coast(ax1)
+    ax1.axis(aa1)
+    pfun.dar(ax1)
+    # grid of initial positions
+    pnr, pnc = lonmat_1.shape
+    for jj in range(pnc):
+        ax1.plot([lonmat_1[0,jj],lonmat_1[-1,jj]],[latmat_1[0,jj],latmat_1[-1,jj]],'-c')
+    for ii in range(pnr):
+        ax1.plot([lonmat_1[ii,0],lonmat_1[ii,-1]],[latmat_1[ii,0],latmat_1[ii,-1]],'-c')
+    # add the tracks
+    for ii in range(ntt):
+        if ii > ntt-24:
+            mksz = (ii - ntt + 24)/2
+            mkco = 'red'
+        else:
+            mksz = 1
+            mkco = 'gray'
+        ax1.plot(P['lon'][ii,:], P['lat'][ii,:], 'o', color=mkco, markersize=mksz, alpha=.3)
+    ax1.tick_params(axis = 'both', which = 'major', labelsize = fs1-3)
+    ax1.text(.05,.05, 'Juan de Fuca Eddy\n24 Hour Tracks', color='r', fontsize=fs1-2, transform=ax1.transAxes)
+    
+    ax2 = fig.add_subplot(224)
+    aa2 = [ -125 - pad/clat_2 - pad/3, -124 + pad/clat_2 - pad/3, 44 - pad, 45 + pad]
+    pfun.draw_box(ax, aa2, linestyle='-', color='g', alpha=1, linewidth=3)
+    pfun.draw_box(ax2, aa2, linestyle='-', color='g', alpha=1, linewidth=5, inset=.01)
+    pfun.add_coast(ax2)
+    ax2.axis(aa2)
+    pfun.dar(ax2)    
+    # grid of initial positions
+    pnr, pnc = lonmat_2.shape
+    for jj in range(pnc):
+        ax2.plot([lonmat_2[0,jj],lonmat_2[-1,jj]],[latmat_2[0,jj],latmat_2[-1,jj]],'-g')
+    for ii in range(pnr):
+        ax2.plot([lonmat_2[ii,0],lonmat_2[ii,-1]],[latmat_2[ii,0],latmat_2[ii,-1]],'-g')
+    # add the tracks
+    for ii in range(ntt):
+        if ii > ntt-24:
+            mksz = (ii - ntt + 24)/2
+            mkco = 'red'
+        else:
+            mksz = 1
+            mkco = 'gray'
+        ax2.plot(P['lon'][ii,:], P['lat'][ii,:], 'o', color=mkco, markersize=mksz, alpha=.3)
+    ax2.tick_params(axis = 'both', which = 'major', labelsize = fs1-3)
+    ax2.text(.05,.05, 'Heceta Bank\n24 Hour Tracks', color='r', fontsize=fs1-2, transform=ax2.transAxes)
+        
+    #
+    fig.tight_layout()
+
+    # FINISH
+    ds.close()
+    if len(in_dict['fn_out']) > 0:
+        plt.savefig(in_dict['fn_out'])
+        plt.close()
+    else:
+        plt.show()
+
 def P_tracks_full(in_dict):
     # Use trackfun_1 to create surface drifter tracks for a full-domain plot.
     # It automatically makes tracks for as long as there are
@@ -2389,7 +2575,7 @@ def P_tracks_ps(in_dict):
     # override
     pinfo.vlims_dict['salt'] = (28.5,33)
     
-    # panel 2: do this first so it controls the color limits
+    # panel 2: do this first so it controls the color limits (obsolete, right?)
     ax = fig.add_subplot(122)
     aa = [-123.5, -122, 47, 48.5]
     cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict,
