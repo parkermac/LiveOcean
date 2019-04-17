@@ -12,8 +12,8 @@ om = A(:,31);
 PH = reshape(ph, size(a.salt));
 OM = reshape(om, size(a.salt));
 
-PH = real(PH);
-OM = real(OM);
+%PH = real(PH);
+%OM = real(OM);
 
 save([tempdir,'PH.mat'], 'PH');
 save([tempdir,'OM.mat'], 'OM');
