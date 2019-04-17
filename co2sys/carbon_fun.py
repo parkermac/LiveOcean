@@ -133,8 +133,9 @@ def get_layer(fn, NZ=-1, aa=[], print_info=False):
     depth = -z_rho[NZ, :, :].squeeze()
     pres = sw.pres(depth, lat)
     v_dict['pres'] = pres
-    temp = sw.ptmp(v_dict['salt'], v_dict['temp'], 0, v_dict['pres'])
-    v_dict['temp'] = temp
+    # assume potential temperature is close enough
+    # temp = sw.ptmp(v_dict['salt'], v_dict['temp'], 0, v_dict['pres'])
+    # v_dict['temp'] = temp
     
     # convert from umol/L to umol/kg using in situ dentity
     v_dict['alkalinity'] = 1000 * v_dict['alkalinity'] / (v_dict['rho'] + 1000)
