@@ -12,8 +12,8 @@ Only set up to work on mac.
 
 gridname='cas4'
 tag='v2'
-#date_string = '2018.12.25'
-date_string = '2017.01.10'
+date_string = '2018.12.25'
+#date_string = '2017.01.10'
 
 # setup
 
@@ -85,8 +85,8 @@ def set_box(ax):
 
 fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(15,7), squeeze=False)
 
-vn = 'salt' # roms variable name to plot
-cmap = 'rainbow' # default colormap
+vn = 'v' # roms variable name to plot
+cmap = 'bwr' # default colormap
 
 if vn == 'salt':
     hvn = 's3d'
@@ -106,6 +106,14 @@ elif vn == 'ubar':
     vmax = .5
 elif vn == 'vbar':
     hvn = 'vbar'
+    vmin = -.1
+    vmax = .1
+elif vn == 'u':
+    hvn = 'u3d'
+    vmin = -.5
+    vmax = .5
+elif vn == 'v':
+    hvn = 'v3d'
     vmin = -.5
     vmax = .5
 
@@ -140,9 +148,9 @@ ax.set_title('HYCOM extrapolated: ' + hvn)
 
 ax = axes[0,2]
 
-if vn == 'ubar':
+if vn in ['u', 'ubar']:
     Lon = lonu; Lat = latu; Mask = masku
-elif vn == 'vbar':
+elif vn in ['v', 'vbar']:
     Lon = lonv; Lat = latv; Mask = maskv
 else:
     Lon = lonr; Lat = latr; Mask = maskr

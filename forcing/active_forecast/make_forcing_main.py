@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """
 This is the main program for creating movies and images from a forecast
-roms_plots.P_willapa_oa()
 
 For testing on my mac run in ipython as
 
@@ -53,13 +52,13 @@ def write_to_azure(out_fn, blob_service, containername, out_name):
 print(' - Creating wesite images for ' + Ldir['date_string'])
 os.chdir(Ldir['LO'] + 'plotting/')
 
-P_list = ['P_3day', 'P_tracks_ps', 'P_willapa_oa2']
+P_list = ['P_3day', 'P_tracks_MERHAB', 'P_merhab2', 'P_tracks_ps', 'P_willapa_omega']
 #P_list = ['P_willapa_oa2']
 #P_list = ['P_tracks_ps']
 #P_list = ['P_3day']
 for P_name in P_list:
     
-    if P_name == 'P_tracks_ps':
+    if P_name in ['P_tracks_MERHAB', 'P_merhab2', 'P_tracks_ps']:
         lt = 'merhab'
     else:
         lt = 'forecast'

@@ -109,36 +109,42 @@ q = ds['q'][:]
 salt = ds['salt'][:]
 
 for mm in range(1,13):
-    dt_mo = dt_ser[dt_ser.index.month == mm]
-    it0 = dt_mo[0]
-    it1 = dt_mo[-1]
+    try:
+        dt_mo = dt_ser[dt_ser.index.month == mm]
+        it0 = dt_mo[0]
+        it1 = dt_mo[-1]
     
-    # form time means
-    qq = q[it0:it1,:].mean(axis=0)
-    ss = salt[it0:it1,:].mean(axis=0)
+        # form time means
+        qq = q[it0:it1,:].mean(axis=0)
+        ss = salt[it0:it1,:].mean(axis=0)
 
-    fig = plt.figure(figsize=(13,8))
+        fig = plt.figure(figsize=(13,8))
     
-    ax = fig.add_subplot(221)
-    cs = ax.pcolormesh(xsect, z0, qq/da0, vmin=-.1, vmax=.1, cmap='bwr')
-    fig.colorbar(cs)
-    ax.text(0.05, 0.1, 'Positive is ' + dir_str, transform=ax.transAxes)
-    ax.set_title('Mean Velocity (m/s) Month = ' + str(mm))
+        ax = fig.add_subplot(221)
+        cs = ax.pcolormesh(xsect, z0, qq/da0, vmin=-.1, vmax=.1, cmap='bwr')
+        fig.colorbar(cs)
+        ax.text(0.05, 0.1, 'Positive is ' + dir_str, transform=ax.transAxes)
+        ax.set_title('Mean Velocity (m/s) Month = ' + str(mm))
 
-    ax = fig.add_subplot(223)
-    cs = ax.pcolormesh(xsect, z0, ss, vmin = 33, vmax=34.5, cmap='rainbow')
-    fig.colorbar(cs)
-    ax.set_title('Mean Salinity')
+        ax = fig.add_subplot(223)
+        if 'shelf' in sect_name:
+            cs = ax.pcolormesh(xsect, z0, ss, vmin = 33, vmax=34.5, cmap='rainbow')
+        else:
+            cs = ax.pcolormesh(xsect, z0, ss, cmap='rainbow')
+        fig.colorbar(cs)
+        ax.set_title('Mean Salinity')
 
-    # add section location map
-    ax = fig.add_subplot(122)
-    plotit(ax, aa, sect_df, sect_name)
+        # add section location map
+        ax = fig.add_subplot(122)
+        plotit(ax, aa, sect_df, sect_name)
 
-    if save_fig:
-        nnnn = ('0000' + str(mm))[-4:]
-        plt.savefig(out_dir + 'plot_' + nnnn + '.png')
-        plt.close()
-    else:
-        plt.show()
+        if save_fig:
+            nnnn = ('0000' + str(mm))[-4:]
+            plt.savefig(out_dir + 'plot_' + nnnn + '.png')
+            plt.close()
+        else:
+            plt.show()
+    except IndexError:
+        pass
     
 

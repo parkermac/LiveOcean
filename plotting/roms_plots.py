@@ -592,44 +592,103 @@ def P_pH_Arag(in_dict):
         plt.close()
     else:
         plt.show()
+
+def P_willapa_omega(in_dict):
+    # plots a movie of bottom and top Omega_arag
+    # for Willapa Bay, running co2sys/CO2SYS.m as needed.
+    # PERFORMANCE: calculating carbon variables for the
+    # Willapa region for all 73 saves in a forecast
+    # takes about 1 minute 20 seconds for each of the
+    # two layers.  Nice.
+    
+    # CO2SYS
+    import os
+    import sys
+    pth = os.path.abspath('../co2sys')
+    if pth not in sys.path:
+        sys.path.append(pth)
+    import carbon_fun as cfun
+    reload(cfun)
+    
+    # specify a geographic region (aa=[] for full region)
+    aa = [-124.4, -123.6, 46, 47.2] # Willapa Bay OA2 plot
+    
+    if 'ocean_his_0001.nc' in in_dict['fn']:
+        # make a list of all history files in the directory
+        in_dir = '/'.join(in_dict['fn'].split('/')[:-1])
+        fn_list = os.listdir(in_dir)
+        fn_list = [ (in_dir + '/' + item) for item in fn_list if 'ocean_his' in item]
+        fn_list.sort()
         
-def P_willapa_oa(in_dict):
+        if in_dict['testing'] == True:
+            fn_list = fn_list[:4]
+    
+        NZ = 0
+        vv_dict, plon, plat = cfun.get_multi_layers(fn_list, NZ, aa)
+        tempdir0 = Ldir['LOo'] + 'co2sys/'
+        Lfun.make_dir(tempdir0)
+        tempdir = tempdir0 + 'temp_bot/'
+        Lfun.make_dir(tempdir, clean=True)
+        cfun.make_carbon(vv_dict, tempdir, print_info=True)
+        junk, OM_bot = cfun.get_carbon(tempdir)
+        
+        NZ = -1
+        vv_dict, plon, plat = cfun.get_multi_layers(fn_list, NZ, aa)
+        tempdir0 = Ldir['LOo'] + 'co2sys/'
+        Lfun.make_dir(tempdir0)
+        tempdir = tempdir0 + 'temp_top/'
+        Lfun.make_dir(tempdir, clean=True)
+        cfun.make_carbon(vv_dict, tempdir, print_info=True)
+        junk, OM_top = cfun.get_carbon(tempdir)
+        pickle.dump((plon, plat), open(tempdir + 'lonlat.p', 'wb'))
+        
+    else:
+        # just load the output on all subsequent days
+        tempdir0 = Ldir['LOo'] + 'co2sys/'
+        junk, OM_bot = cfun.get_carbon(tempdir0 + 'temp_bot/')
+        junk, OM_top = cfun.get_carbon(tempdir0 + 'temp_top/')
+        plon, plat = pickle.load(open(tempdir0 + 'temp_top/lonlat.p', 'rb'))
 
     # START
     fig = plt.figure(figsize=(12,9))
     ds = nc.Dataset(in_dict['fn'])
     
-    # ** override colormaps and limits
-    pinfo.vlims_dict['PH'] = (7, 8.5)
-    pinfo.cmap_dict['PH'] = 'Spectral'
-    pinfo.vlims_dict['ARAG'] = (0,3)
-    pinfo.cmap_dict['ARAG'] = 'coolwarm_r'
-    # **
-
     # PLOT CODE
     fs = 18
-    aa = [-124.4, -123.6, 46, 47.2]
-    vn_list = ['PH', 'ARAG']
-    ii = 1
-    for vn in vn_list:
-        ax = fig.add_subplot(1, len(vn_list), ii)
-        cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict, slev=0,
-                cmap=pinfo.cmap_dict[vn], fac=pinfo.fac_dict[vn])
-        cb = fig.colorbar(cs)
-        cb.ax.tick_params(labelsize=fs-2)
+    
+    # determine time
+    his = in_dict['fn'].split('/')[-1]
+    hisnum = int(his[-7:-3])
+    
+    for ii in range(2):
+        if ii==0:
+            OM = OM_bot[hisnum-1, 1:-1, 1:-1]
+        elif ii==1:
+            OM = OM_top[hisnum-1, 1:-1, 1:-1]
+    
+        ax = fig.add_subplot(1, 2, ii+1)
+        cs = ax.pcolormesh(plon, plat, OM, vmin=0, vmax=3, cmap='coolwarm_r')
         pfun.add_coast(ax)
         ax.axis(aa)
         pfun.dar(ax)
-        ax.set_title('Bottom %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]),
-            fontsize=fs)
         ax.set_xlabel('Longitude', fontsize=fs)
-        if ii == 1:
+        if ii == 0:
+            pfun.add_bathy_contours(ax, ds, depth_levs=[10, 20, 30], txt=True)
+            ax.set_title('Bottom Omega',
+                fontsize=fs)
             ax.set_ylabel('Latitude', fontsize=fs)
             pfun.add_info(ax, in_dict['fn'], fs=fs)
-        elif ii == 2:
+        elif ii == 1:
+            cb = fig.colorbar(cs)
+            cb.ax.tick_params(labelsize=fs-2)
+            ax.set_title('Surface Omega',
+                fontsize=fs)
             ax.set_yticklabels('')
+            ax.text(-123.9, 46.85, 'Grays\nHarbor', fontsize=fs-2, style='italic')
+            ax.text(-123.86, 46.58, 'Willapa\nBay', fontsize=fs-2, style='italic')
+            ax.text(-123.9, 46.04, 'Columbia\nRiver', fontsize=fs-2, style='italic')
         ax.tick_params(labelsize=fs-2)
-        ii += 1
+
     fig.tight_layout()
         
     # FINISH

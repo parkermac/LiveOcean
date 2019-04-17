@@ -44,7 +44,7 @@ for tt in range(NT):
 plt.close('all')
 fig = plt.figure(figsize=(16,8))
 ax = fig.add_subplot(111)
-cs = ax.pcolormesh(xp,yp,zr[1:-1,1:-1], vmin=0, vmax=.15)
+cs = ax.pcolormesh(xp,yp,zr[1:-1,1:-1], vmin=.13, vmax=.2)
 fig.colorbar(cs)
 pfun.dar(ax)
 plt.show()

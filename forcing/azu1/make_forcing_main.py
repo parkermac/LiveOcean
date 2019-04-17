@@ -45,7 +45,7 @@ blob_service.set_container_acl(containername, public_access=PublicAccess.Contain
 # input directory
 in_dir = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/' + f_string + '/'
 # output files
-out_list = ['ocean_surface.nc', 'low_passed_UBC.nc', 'movie.mp4', 'plot_0070.png']
+out_list = ['ocean_surface.nc', 'low_passed_UBC.nc']
 
 def write_to_azure(out_fn, blob_service, containername, outname):
     # write it to Azure

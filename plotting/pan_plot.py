@@ -116,6 +116,9 @@ in_dict['testing'] = args.testing
 # get list of history files to plot
 fn_list = Lfun.get_fn_list(list_type, Ldir,
     args.date_string0, args.date_string1, his_num=args.his_num)
+    
+if (list_type == 'allhours') and (args.testing == True):
+    fn_list = fn_list[:4]
 
 if (list_type == 'merhab') and (args.testing == True):
     fn_list = [fn_list[-1]] # just plot last day
@@ -128,7 +131,7 @@ if (list_type == 'forecast') and (args.testing == True):
     hourmax = 4 #Ldir['forecast_days'] * 24
     dt0 = datetime.strptime(args.date_string0, '%Y.%m.%d')
     fn_list = Lfun.fn_list_utility(dt0, dt0, Ldir, hourmax=hourmax)
-    
+        
 # PLOTTING
 
 if plot_type == 'P_3day':
