@@ -124,4 +124,10 @@ def get_sta_dict(job_name):
             'CE04OSBP': (-124.954000,44.369500),
         }
         
+    elif job_name == 'lynch_cove':
+        sta_dict = {
+            'lynch_west': (-123.087, 47.367),
+            'lynch_east': (-122.921, 47.4029),
+        }
+        
     return sta_dict, v2_list, v3_list_rho, v3_list_w
