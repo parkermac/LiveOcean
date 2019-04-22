@@ -1,97 +1,80 @@
 """
-Extract and save data from a sequence of hycom past days.
-
-At home this takes 70-80 seconds per day.
+Extract and save extracted fields from a sequence of hycom past days.
 
 """
 
 # setup
 import os
 import sys
-alp = os.path.abspath('../../alpha')
-if alp not in sys.path:
-    sys.path.append(alp)
+pth = os.path.abspath('../../alpha')
+if pth not in sys.path:
+    sys.path.append(pth)
 import Lfun
 Ldir = Lfun.Lstart()
 
-from importlib import reload
+import pickle
+import netCDF4 as nc
+from datetime import datetime, timedelta
+
 import hfun
+from importlib import reload
 reload(hfun)
 
-import netCDF4 as nc
-import pickle
+# optional command line input
+def boolean_string(s):
+    if s not in ['False', 'True']:
+        raise ValueError('Not a valid boolean string')
+    return s == 'True' # note use of ==
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument('-force', '--force_overwrite', nargs='?', default=False, type=boolean_string)
+parser.add_argument('-test', '--testing', nargs='?', default=False, type=boolean_string)
+args = parser.parse_args()
+force_overwrite = args.force_overwrite
+testing = args.testing
 
-# specify the output directory
-out_dir = Ldir['data'] + 'hycom2/'
-Lfun.make_dir(out_dir, clean=False)
-
-if Ldir['lo_env'] == 'pm_mac': # mac version
-    testing = True
-else: # regular version
-    testing = False
+# initial experiment list
+h_list = list(hfun.hy_dict.keys())
+h_list.sort()
 
 if testing:
-    exnum_list = ['91.2']
+    h_list = h_list[-2:]
+    
+if testing:
+    var_list = 'surf_el'
 else:
-    #exnum_list = ['90.9', '91.0', '91.1', '91.2']
-    # no need to do all of them, because the archive is already as complete
-    # as it is going to be for them
-    exnum_list = ['91.2']
+    var_list = 'surf_el,water_temp,salinity,water_u,water_v'
 
-dt_list_new = []
+# specify output directory
+out_dir0 = Ldir['data'] + 'hycom2/'
+dt_dir = out_dir0 + 'dt_lists/'
 
-for exnum in exnum_list:
-    # open the Dataset for this exnum
-    print('\nWorking on exnum ' + exnum)
+f = open(out_dir0 + 'log.txt', 'w+')
+
+# loop over all days in all lists
+for hy in h_list:
+    print('\n** Working on ' + hy + ' **')
+    f.write('\n\n** Working on ' + hy + ' **')
     
-    fn = 'http://tds.hycom.org/thredds/dodsC/GLBu0.08/expt_' + exnum  
+    out_dir = out_dir0 + hy + '/'
+    Lfun.make_dir(out_dir)
     
-    # get time and space coordinates for this exnum
-    ds = nc.Dataset(fn)
-    coords = hfun.get_coordinates(ds)    
-    dt_list = hfun.get_dt_list(ds)
-    ds.close()
+    dt_list = pickle.load(open(dt_dir + hy + '.p', 'rb'))
     
-    # Limiting downloads when testing; counter only increments
-    # when we actually save a new, valid file.
-    counter = 0 
     if testing:
-        maxcount = 1 # the code will get this many good files
-    else:
-        maxcount = len(dt_list)
-    
-    for nt in range(len(dt_list)):
-    
-        # name the file based on date
-        dt = dt_list[nt]
-        dts = dt.strftime('%Y.%m.%d')
-        print('\n  working on %s' % dts)
-        sys.stdout.flush()
-        out_name = 'h' + dts + '.p'
-        out_fn = out_dir + out_name
+        dt_list = dt_list[:2]
         
-        # Check to see if file exists.
-        # (we could also do this -faster?- by comparing to a directory listing)
-        if os.path.exists(out_fn)== True:
-            print('  file exists for this day')
-            sys.stdout.flush()
-            # and in this case we don't replace it
-        else:
-            if counter < maxcount:
-                # get the data
-                ds = nc.Dataset(fn)
-                out_dict = hfun.get_hycom_day(ds, nt, coords)
-                ds.close()
-                # and if it is valid, write it to a file
-                if out_dict['result'] == 'success':
-                    out_dict['dt'] = dt
-                    print('  writing ' + out_name)
-                    sys.stdout.flush()
-                    pickle.dump(out_dict, open(out_fn, 'wb'))
-                    dt_list_new.append(dt)
-                    counter+=1
-            else:
-                print('  reached maximum file number')
-                sys.stdout.flush()
-                break
-    
+    for dt in dt_list:
+        print(' - ' + datetime.strftime(dt, '%Y.%m.%d'))
+        
+        out_fn = out_dir + 'h' + datetime.strftime(dt, '%Y.%m.%d') + '.nc'
+        
+        if os.path.isfile(out_fn):
+            if force_overwrite:
+                os.remove(out_fn)
+                
+        if not os.path.isfile(out_fn):
+            result = hfun.get_extraction(hy, dt, out_fn, var_list)
+            f.write('\n ' + datetime.strftime(dt, '%Y.%m.%d') + ' ' + result)
+            
+f.close()

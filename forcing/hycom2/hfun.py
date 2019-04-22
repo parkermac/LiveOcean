@@ -1,131 +1,80 @@
 """
-Functions to use with the new HYCOM backfill code.
+Functions to use with HYCOM extractions.
 
 """
 
-# setup
-import os
-import sys
-alp = os.path.abspath('../../alpha')
-if alp not in sys.path:
-    sys.path.append(alp)
-import zfun
-
 import time
-from datetime import datetime, timedelta
+from urllib.request import urlretrieve
+from urllib.error import URLError
+from socket import timeout
 
-def get_extraction_limits():
-    # specify the sub region of hycom to extract
-    aa = [-129, -121, 39, 51]
-    return aa
+# specify the various experiments we will use
+hy_dict = {
+    'hy1': ('GLBu0.08', '90.9'), # daily output
+    'hy2': ('GLBu0.08', '91.0'), # daily output
+    'hy3': ('GLBu0.08', '91.1'), # daily output
+    'hy4': ('GLBu0.08', '91.2'), # daily output
+    'hy5': ('GLBu0.08', '93.0'), # 3 hour output
+    'hy6': ('GLBy0.08', '93.0'), # 3 hour output and finer grid
+    }
 
-def get_dt_list(ds):
-    # get the time in a meaningful format
-    t_hycom = ds.variables['time'][:].squeeze()    
-    # tu = ds.variables['time'].units
-    # print(' time units = ' + tu)
-    # should be 'hours since 2000-01-01 00:00:00'
-    t_origin = ds.variables['time'].time_origin
-    dt00 = datetime.strptime(t_origin, '%Y-%m-%d %H:%M:%S')    
-    # check the time reference
-    if dt00 != datetime(2000,1,1,0,0,0):
-        print('Warning: Unexpected time reference!')
-        sys.stdout.flush()            
-    dt_list = [] # make a list of datetime_values
-    for tt in t_hycom:
-        if tt/24 != int(tt/24):
-            print('Warning: non-integer day!')
-            sys.stdout.flush()
-        dt_list.append(dt00 + timedelta(days=tt/24))
-    return dt_list
-
-def get_coordinates(ds):
-    """
-    Get lat, lon vectors, related indices, and z from the
-    Dataset for a hycom archive.
-    """
-    # create z from the depth
-    depth = ds.variables['depth'][:]
-    # and pack bottom to top
-    z = -depth[::-1]
+# specify the sub region of hycom to extract
+aa = [-131, -121, 39, 53]
     
-    # get full coordinates (vectors for the plaid grid)
-    llon = ds.variables['lon'][:]
-    llat = ds.variables['lat'][:]
+def get_backfill_url(hy, dt, var_list):
     
-    # find indices of a sub region
-    aa = get_extraction_limits()
-    llon = llon - 360 # convert from 0:360 to -360:0 format
-    i0 = zfun.find_nearest_ind(llon, aa[0])
-    i1 = zfun.find_nearest_ind(llon, aa[1])
-    j0 = zfun.find_nearest_ind(llat, aa[2])
-    j1 = zfun.find_nearest_ind(llat, aa[3])
+    dstr0 = dt.strftime('%Y-%m-%d-T00:00:00Z')
     
-    # and just get the desired region (these are vectors, not matrices)
-    lon = llon[i0:i1]
-    lat = llat[j0:j1]
+    glb = hy_dict[hy][0]
+    exnum = hy_dict[hy][1]
     
-    coords = dict()
-    coords['z'] = z
-    coords['lon'] = lon
-    coords['lat'] =lat
-    coords['i0'] = i0
-    coords['i1'] = i1
-    coords['j0'] = j0
-    coords['j1'] = j1
+    # specify spatial limits
+    north = aa[3]
+    south = aa[2]
+    west = aa[0] + 360
+    east = aa[1] + 360
     
-    return coords
-    
-def get_hycom_day(ds, nt, coords):
-    """
-    Extract the fields for a single day.
-    """
-    
-    i0 = coords['i0']
-    i1 = coords['i1']
-    j0 = coords['j0']
-    j1 = coords['j1']
-    
-    N = len(coords['z'])
-           
-    # initialize an output dict
-    out_dict = dict()
-               
-    tt0 = time.time() # start a timer
-           
-    # Get the variables, renaming to be consistent with what we want,
-    # and re-pack bottom to top
-
-    ssh = ds.variables['surf_el'][nt, j0:j1, i0:i1].squeeze()    
-    # test to see if we have good data at this time by looking
-    # to see if ssh is all masked
-    if ssh.mask.sum() == ssh.size:
-        print('  No good data')
-        sys.stdout.flush()
-        out_dict['result'] = 'failure'
-        return out_dict # and exit the function early
+    url = ('http://ncss.hycom.org/thredds/ncss/' + glb + '/expt_' + exnum + 
+        '?var='+var_list +
+        '&north='+str(north)+'&south='+str(south)+'&west='+str(west)+'&east='+str(east) +
+        '&disableProjSubset=on&horizStride=1' +
+        '&time_start='+dstr0+'&time_end='+dstr0+'&timeStride=8' +
+        '&vertCoord=&addLatLon=true&accept=netcdf4')
         
+    return url
+    
+def get_extraction(hy, dt, out_fn, var_list):
+    
+    url = get_backfill_url(hy, dt, var_list)
+    
+    # get the data and save as a netcdf file
+    counter = 1
+    got_file = False
+    while (counter <= 3) and (got_file == False):
+        print('  Attempting to get data, counter = ' + str(counter))
+        tt0 = time.time()
+        try:
+            (a,b) = urlretrieve(url, out_fn)
+            # a is the output file name
+            # b is a message you can see with b.as_string()
+        except URLError as ee:
+            if hasattr(ee, 'reason'):
+                print('  *We failed to reach a server.')
+                print('  -Reason: ', ee.reason)
+            elif hasattr(ee, 'code'):
+                print('  *The server could not fulfill the request.')
+                print('  -Error code: ', ee.code)
+        except timeout:
+            print('  *Socket timed out')
+        else:
+            got_file = True
+            print('  Worked fine')
+        print('  took %0.1f seconds' % (time.time() - tt0))
+        counter += 1
+        
+    if got_file:
+        result = 'success'
     else:
-        # get and store all the fields
-        out_dict['ssh'] = ssh
-    
-        t3d = ds.variables['water_temp'][nt, 0:N, j0:j1, i0:i1].squeeze()
-        t3d = t3d[::-1, :, :]
-        out_dict['t3d'] = t3d
-
-        s3d = ds.variables['salinity'][nt, 0:N, j0:j1, i0:i1].squeeze()
-        s3d = s3d[::-1, :, :]
-        out_dict['s3d'] = s3d
-
-        u3d = ds.variables['water_u'][nt, 0:N, j0:j1, i0:i1].squeeze()
-        u3d = u3d[::-1, :, :]
-        out_dict['u3d'] = u3d
-
-        v3d = ds.variables['water_v'][nt, 0:N, j0:j1, i0:i1].squeeze()
-        v3d = v3d[::-1, :, :]
-        out_dict['v3d'] = v3d
+        result = 'fail'
         
-        out_dict['result'] = 'success'              
-        print('  %d sec to get all variables' % (int(time.time() - tt0)))
-        sys.stdout.flush()          
-        return out_dict
+    return result

@@ -20,7 +20,7 @@ from importlib import reload
 reload(Lfun)
 
 auto_lims = True
-low_pass = True
+low_pass = False
 
 # set limits
 lim_dict = {'temp': (0, 20),

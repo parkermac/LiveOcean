@@ -1,6 +1,8 @@
 These files are for pulling in and processing backfill HYCOM data. Note that they are currently configured only to pull in the GLBu version of the output, which was turned off after 2018.11.20.  I have been running this on fjord so far, because it is the home for LiveOcean_data.  I guess in principle it would work from boiler as well, because it looks in the same place as fjord for _data.
 
 Since GLBu is no longer being added to, there should be no need to re-run the code in this folder (2018.12.25).
+	... but ...
+** UPDATE 2019.04.21 I think that by using expt_93.0 we can get to 2018.12.08, giving some overlap with the newer format used in hycom2. **
 
 NOTE: need to figure out how to deal with backfill for the newer GLBy format.
 
