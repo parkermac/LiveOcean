@@ -14,7 +14,7 @@ import seawater
 
 import Ofun_CTD
 
-hpth = os.path.abspath('../hycom1/')
+hpth = os.path.abspath('../hycom2/')
 if hpth not in sys.path:
     sys.path.append(hpth)
 import hfun
