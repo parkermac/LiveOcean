@@ -2,7 +2,7 @@ This code is designed to make a backfill archive for the GOFS 3.0 and 3.1 versio
 
 A typical workflow would consist of two steps, from the linux command line:
 
-(1) python get_dt_lists.py (-a True to remake all of them)
+(1) python get_dt_lists.py -a True (the first time, and then drop the flag after that)
 
 (2) python get_hycom_days.py > log_days & (-test True to test, and -force to ensure new files, e.g. after testing) and otherwise the default is only to get the new files that are not already there.
 

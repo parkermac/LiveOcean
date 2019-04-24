@@ -2,7 +2,7 @@ These programs create the ocean files used to force a roms run, typically for a 
 
 It has been substantially recoded from previous versions to use the new hycom FMRC_best format of the forecast files.
 
-Issue: since the old format (files in LiveOcean_data/hycom1) ended on 11/20/2018 we don't yet have a method for making archived backfill after that.  Also, the new format has a different grid (twice the lat resolution).  The new version does make the same sort of h[].p files in Data, so perhaps we can use these.
+For backfill it will use files of similar format, available from late 2012 to the present, created by the code in hycom2.
 
 ===============================================================================
 * make_forcing_main.py is the main driver, similar in basic construction and usage to all the code of the same name in other forcing folders (e.g. riv2, tide1, atm).
@@ -21,7 +21,7 @@ Output: LiveOcean_output/[gtag]/[f_string]/ocn4/...
 
 Notes:
 - If something goes wrong with getting the data for a forecast, then it uses "planB" in which the ocean_clm.nc file is copied from the day before, and one day is added to its last time.
-- in backfill mode it copies the h[].p files from LiveOcean_data/hycom1.  Currently no planB for this operation.
+- in backfill mode it uses the archives files , e.g., LiveOcean_data/hycom2/hy6/h2019.01.01.nc.  Currently no planB for this operation.
 
 Modules:
 - Ofun.py: the main workhorse functions to get data, filter in time, and extrapolate

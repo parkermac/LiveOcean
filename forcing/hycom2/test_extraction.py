@@ -35,7 +35,7 @@ testing = True # limit requested variables
 
 # ******************************************
 
-aa = hfun.get_extraction_limits()
+aa = hfun.aa
 
 # specify output file
 # get rid of the old version, if it exists

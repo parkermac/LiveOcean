@@ -13,7 +13,7 @@ import netCDF4 as nc
 import numpy as np
 import Lfun
 
-ncformat = 'NETCDF3_64BIT_OFFSET' # NETCDF3_CLASSIC'
+ncformat = 'NETCDF3_64BIT_OFFSET'
 
 def make_clm_file(Ldir, nc_dir, fh_dir, c_dict, dt_list, S, G):
     # name output file

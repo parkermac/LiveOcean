@@ -7,9 +7,9 @@ import numpy as np
 import matplotlib.path as mpath
 import zfun
 
-ncformat = 'NETCDF3_64BIT_OFFSET' # NETCDF3_CLASSIC'
+ncformat = 'NETCDF3_64BIT_OFFSET'
 
-def add_bio(nc_dir, G, add_CTD=False, fix_NSoG=False):
+def add_bio(nc_dir, G, add_CTD=False):
     print('-Writing bio variables to ocean_clm.nc')
     # name output file
     clm_fn = nc_dir + 'ocean_clm.nc'
@@ -34,35 +34,8 @@ def add_bio(nc_dir, G, add_CTD=False, fix_NSoG=False):
         vv.time = 'salt_time'
         V = create_bio_var(salt, vn)
         print(str(V.shape))
-        
         if add_CTD:
             V = salish_fields(V, vn, G)
-            
-        if fix_NSoG:
-            print(' ^^ Fixing NSoG bio variables ^^')
-            fix_it = True
-            # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-            if vn == 'NO3':
-                nsogval = 25
-            elif vn == 'oxygen':
-                nsogval = 250
-            elif vn == 'alkalinity':
-                nsogval = 2000
-            elif vn == 'TIC':
-                nsogval = 1923
-            else:
-                print('  --- nsogval not set for: ' + vn)
-                fix_it = False
-            if fix_it:
-                print('  --- fixing nsog for: ' + vn)
-                # Northern Strait of Georgia
-                lon = G['lon_rho'][0,:]
-                lat = G['lat_rho'][:,0]
-                i0, i1, fr = zfun.get_interpolant(np.array([-125.5, -124.5]), lon, extrap_nan=False)
-                j0, j1, fr = zfun.get_interpolant(np.array([50.15, 50.45]), lat, extrap_nan=False)
-                V[:, :, j0[0]:j1[1]+1, i0[0]:i1[1]+1] = nsogval
-                # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-            
         vv[:] = V
         foo.close()
         
@@ -106,7 +79,6 @@ def salish_fields(V, vn, G):
                 V[tt, nn, :, :] = lay
             else:
                 pass
-            
         
     return V
 
