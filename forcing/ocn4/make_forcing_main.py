@@ -135,15 +135,24 @@ elif (Ldir['run_type'] == 'backfill'):
     hy_list = list(hfun.hy_dict.keys())
     hy_list.sort()
     
+    # create a list of daily HYCOM NetCDF files in the archive
     hy_in_dir = Ldir['data'] + 'hycom2/'
-    
-    hnc_list = [] # list of daily HYCOM NetCDF files in the archive
+    hnc_list = []
     for hy in hy_list:
         in_dir = hy_in_dir + hy + '/'
         hnc_list0 = os.listdir(in_dir)
         hnc_list1 = [in_dir + item for item in hnc_list0 if '.nc' in item]
         hnc_list += hnc_list1
     hnc_list.sort()
+    
+    # remove repeated days
+    seen = []
+    hnc_list_unique = []
+    for hnc in hnc_list:
+        dd = hnc.split('/')[-1]
+        if dd not in seen:
+            seen.append(dd)
+            hnc_list_unique.append(hnc)
         
     # then find the index of the start of the current day
     # but if it is missing search for the most recent past one that exists
@@ -156,7 +165,7 @@ elif (Ldir['run_type'] == 'backfill'):
         dt_next = dt_now - timedelta(days=counter)
         dts_next = datetime.strftime(dt_next, '%Y.%m.%d')
         try:
-            it00 = [i for i, s in enumerate(hnc_list) if dts_next in s]
+            it00 = [i for i, s in enumerate(hnc_list_unique) if dts_next in s]
             it0 = it00[0]
             # note that "index" returns the index of the first match
             keep_looking = False
