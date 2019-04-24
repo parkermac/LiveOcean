@@ -128,6 +128,8 @@ elif (Ldir['run_type'] == 'backfill'):
     if hpth not in sys.path:
         sys.path.append(hpth)
     import hfun
+    from importlib import reload
+    reload(hfun)
     
     # initial experiment list
     hy_list = list(hfun.hy_dict.keys())
