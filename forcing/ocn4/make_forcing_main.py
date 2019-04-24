@@ -153,7 +153,7 @@ elif (Ldir['run_type'] == 'backfill'):
         dt_next = dt_now - timedelta(days=counter)
         dts_next = datetime.strftime(dt_next, '%Y.%m.%d')
         try:
-            it0 = hnc_list.index('h' + dts_next + '.nc'
+            it0 = hnc_list.index('h' + dts_next + '.nc')
             # note that "index" returns the index of the first match
             keep_looking = False
             if counter > 0:
