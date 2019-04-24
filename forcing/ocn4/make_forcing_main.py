@@ -141,7 +141,7 @@ elif (Ldir['run_type'] == 'backfill'):
     for hy in hy_list:
         hnc_list0 = os.listdir(hy_in_dir + hy)
         hnc_list1 = [item for item in hnc_list0 if '.nc' in item]
-        hnc_list.append(hnc_list1)
+        hnc_list += hnc_list1
     hnc_list.sort()
         
     # then find the index of the start of the current day
