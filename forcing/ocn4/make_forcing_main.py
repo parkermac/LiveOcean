@@ -180,7 +180,7 @@ elif (Ldir['run_type'] == 'backfill'):
         it_list = range(it0-2, it0+4)
         hnc_short_list = []
         for it in it_list:
-            fn = hnc_list[it]
+            fn = hnc_list_unique[it]
             hnc_short_list.append(fn)
     # note that we don't actually write any of the files, because
     # they already exist in LiveOcean_data/hycom1/
