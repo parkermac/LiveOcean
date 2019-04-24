@@ -147,12 +147,12 @@ elif (Ldir['run_type'] == 'backfill'):
     
     # remove repeated days
     seen = []
-    hnc_list_unique = []
+    hnc_unique_list = []
     for hnc in hnc_list:
         dd = hnc.split('/')[-1]
         if dd not in seen:
             seen.append(dd)
-            hnc_list_unique.append(hnc)
+            hnc_unique_list.append(hnc)
         
     # then find the index of the start of the current day
     # but if it is missing search for the most recent past one that exists
@@ -165,8 +165,13 @@ elif (Ldir['run_type'] == 'backfill'):
         dt_next = dt_now - timedelta(days=counter)
         dts_next = datetime.strftime(dt_next, '%Y.%m.%d')
         try:
-            it00 = [i for i, s in enumerate(hnc_list_unique) if dts_next in s]
-            it0 = it00[0]
+            it00 = [i for i, s in enumerate(hnc_unique_list) if dts_next in s]
+            # hack to deal with the fact that the grid changes between hy5 and hy6
+            overlap_list = [datetime(2018,12,7), datetime(2018,12,8), datetime(2018,12,9)]
+            if (dt_next in overlap_list) and (len(it00)>1):
+                it0 = it00[1]
+            else:
+                it0 = it00[0]
             # note that "index" returns the index of the first match
             keep_looking = False
             if counter > 0:
@@ -180,7 +185,7 @@ elif (Ldir['run_type'] == 'backfill'):
         it_list = range(it0-2, it0+4)
         hnc_short_list = []
         for it in it_list:
-            fn = hnc_list_unique[it]
+            fn = hnc_unique_list[it]
             hnc_short_list.append(fn)
     # note that we don't actually write any of the files, because
     # they already exist in LiveOcean_data/hycom1/
