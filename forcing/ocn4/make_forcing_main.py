@@ -141,7 +141,7 @@ elif (Ldir['run_type'] == 'backfill'):
     for hy in hy_list:
         in_dir = hy_in_dir + hy + '/'
         hnc_list0 = os.listdir(in_dir)
-        hnc_list1 = [indir + item for item in hnc_list0 if '.nc' in item]
+        hnc_list1 = [in_dir + item for item in hnc_list0 if '.nc' in item]
         hnc_list += hnc_list1
     hnc_list.sort()
         
