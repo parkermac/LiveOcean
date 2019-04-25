@@ -136,8 +136,70 @@ def get_data(this_dt, fn_out, nd_f):
         hycom_iit_list.append(iit)
         iit += 1
     ds.close()
+
+def get_hnc_short_list(this_dt, Ldir):
+    # initial experiment list
+    hy_list = list(hfun.hy_dict.keys())
+    hy_list.sort()
+    # only use part of hy_list, splitting based on the change of gridsize
+    # between hy5 and hy6
+    ihy_split = hy_list.index('hy6')
+    if this_dt <= datetime(2018,12,6):
+        hy_list = hy_list[:ihy_split]
+    elif this_dt >= datetime(2018,12,7):
+        hy_list = hy_list[ihy_split:]
+    # create a list of daily HYCOM NetCDF files in the archive
+    hy_in_dir = Ldir['data'] + 'hycom2/'
+    hnc_list = []
+    for hy in hy_list:
+        in_dir = hy_in_dir + hy + '/'
+        hnc_list0 = os.listdir(in_dir)
+        hnc_list1 = [in_dir + item for item in hnc_list0 if '.nc' in item]
+        hnc_list1.sort()
+        hnc_list += hnc_list1
+    # remove repeated days
+    seen = []
+    hnc_unique_list = []
+    for hnc in hnc_list:
+        dd = hnc.split('/')[-1]
+        if dd not in seen:
+            seen.append(dd)
+            hnc_unique_list.append(hnc)
+    # then find the index of the start of the current day
+    # but if it is missing search for the most recent past one that exists
+    keep_looking = True
+    dt_now = this_dt#datetime.strptime(Ldir['date_string'], '%Y.%m.%d')
+    it0 = None
+    counter = 0
+    maxcount = 100 # this handles the biggest gap we have
+    while keep_looking and counter < maxcount:
+        dt_next = dt_now - timedelta(days=counter)
+        dts_next = datetime.strftime(dt_next, '%Y.%m.%d')
+        try:
+            it0 = [i for i, s in enumerate(hnc_unique_list) if dts_next in s]
+            it0 = it0[0]
+            # note that "index" returns the index of the first match
+            keep_looking = False
+            if counter > 0:
+                print('Warning: Needed %d iterations' % (counter))
+        except ValueError:
+            counter += 1
+    # save the list of files
+    if it0 == None:
+        print('ERROR: no valid files found at nearby times')
+    else:
+        it_list = range(it0-2, it0+4)
+        hnc_short_list = []
+        for it in it_list:
+            if it < 0:
+                print('ERROR: Requested time is out of range of the list')
+                sys.exit()
+            fn = hnc_unique_list[it]
+            hnc_short_list.append(fn)
             
-def get_extraction_new(fn, iit):
+    return hnc_short_list
+
+def convert_extraction(fn, iit):
     # initialize an output dict
     out_dict = dict()
     ds = nc.Dataset(fn)
