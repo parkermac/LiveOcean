@@ -65,7 +65,7 @@ reload(Ofun_bio)
 start_time = datetime.now()
 
 # defaults
-testing = True
+testing = False
 planB = False
 add_CTD = False
 do_bio = False
