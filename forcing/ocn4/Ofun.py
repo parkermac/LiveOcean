@@ -178,11 +178,10 @@ def get_hnc_short_list(this_dt, Ldir):
         try:
             it0 = [i for i, s in enumerate(hnc_unique_list) if dts_next in s]
             it0 = it0[0]
-            # note that "index" returns the index of the first match
             keep_looking = False
             if counter > 0:
                 print('Warning: Needed %d iterations' % (counter))
-        except ValueError:
+        except (ValueError, IndexError):
             counter += 1
     # save the list of files
     if it0 == None:
