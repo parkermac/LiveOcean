@@ -10,8 +10,8 @@ Only set up to work on mac.
 
 """
 
-gridname='cas5'
-tag='v3'
+gridname='cas6'
+tag='v1'
 #date_string = '2018.12.25'
 date_string = '2017.01.01'
 
@@ -80,12 +80,12 @@ plt.close()
 
 
 def set_box(ax):
-    ax.set_xlim(-127.5, -122)
-    ax.set_ylim(42.5,50.5)
+    ax.set_xlim(-130.5, -122)
+    ax.set_ylim(41.5,52.5)
 
 fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(15,7), squeeze=False)
 
-vn = 'salt' # roms variable name to plot
+vn = 'temp' # roms variable name to plot
 cmap = 'rainbow' # default colormap
 
 if vn == 'salt':
@@ -102,12 +102,12 @@ elif vn == 'zeta':
     vmax = .4
 elif vn == 'ubar':
     hvn = 'ubar'
-    vmin = -.5
-    vmax = .5
+    vmin = -.2
+    vmax = .2
 elif vn == 'vbar':
     hvn = 'vbar'
-    vmin = -.5
-    vmax = .5
+    vmin = -.2
+    vmax = .2
 
 # extract variables to plot
 if vn in ['zeta', 'ubar', 'vbar']:

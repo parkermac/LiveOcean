@@ -31,7 +31,7 @@ EX_NAME = Ldir['ex_name'].upper()
 roms_name = 'LO_ROMS'
 
 # account for differences when using biology
-do_bio = True
+do_bio = False
 
 multi_core = True # use more than one core
 
