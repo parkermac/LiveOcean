@@ -37,7 +37,6 @@ def get_sect_df():
 
     # Channels around the San Juans
     sect_df.loc['dp',:] = [-122.643, -122.643,   48.389,   48.425, 1]
-    sect_df.loc['swin',:] = [-122.531, -122.471,   48.420,   48.420, -1]
     sect_df.loc['haro',:] = [-123.429, -123.099,   48.542,   48.542, 1]
 
     # Admiralty Inlet

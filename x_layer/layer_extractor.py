@@ -99,6 +99,15 @@ elif args.layer_name == 'svar':
     vn_list_2d_uv_t = []
     vn_list_3d_uv_t = []
     vn_list_2d_custom = ['DA']
+elif args.layer_name == 'vave':
+    # a custom extraction of vertically averaged properties
+    nlay = -1
+    vn_list_2d_t = []
+    vn_list_3d_t = []
+    vn_list_3d_t_custom = ['vave_salt', 'vave_temp', 'vave_rho']
+    vn_list_2d_uv_t = []
+    vn_list_3d_uv_t = []
+    vn_list_2d_custom = []
 else:
     print('Unsupported layer name')
     sys.exit()
@@ -171,7 +180,21 @@ for vn in vn_list_3d_t_custom:
         vv = ds2.createVariable(vn, float, ('ocean_time', 'eta_rho', 'xi_rho'))
         vv.long_name = 'Vertically Integrated Mixing'
         vv.units = 'W m-2'
-        vv.time='ocean_time' # is this right?
+        vv.time='ocean_time'
+    elif vn == 'vave_salt':
+        vv = ds2.createVariable(vn, float, ('ocean_time', 'eta_rho', 'xi_rho'))
+        vv.long_name = 'Vertically Averaged Salinity'
+        vv.time='ocean_time'
+    elif vn == 'vave_temp':
+        vv = ds2.createVariable(vn, float, ('ocean_time', 'eta_rho', 'xi_rho'))
+        vv.long_name = 'Vertically Averaged Potential Temperature'
+        vv.units = 'Celsius'
+        vv.time='ocean_time'
+    elif vn == 'vave_rho':
+        vv = ds2.createVariable(vn, float, ('ocean_time', 'eta_rho', 'xi_rho'))
+        vv.long_name = 'Vertically Averaged Density Anomaly'
+        vv.units = 'kilogram meter-3'
+        vv.time='ocean_time'
 # - then time-dependent 2d fields interpolated from uv grids
 for vn in vn_list_2d_uv_t:
     varin = ds1[vn]
@@ -199,22 +222,22 @@ for fn in fn_list:
         sys.stdout.flush()
     ds = nc.Dataset(fn)
     
-    ds2['ocean_time'][tt] = ds['ocean_time'][0].squeeze()
+    ds2['ocean_time'][tt] = ds['ocean_time'][0]
     
     for vn in vn_list_2d_t:
-        ds2[vn][tt,:,:] = ds[vn][0, :, :].squeeze()
+        ds2[vn][tt,:,:] = ds[vn][0, :, :]
 
     for vn in vn_list_3d_t:
-        ds2[vn][tt,:,:] = ds[vn][0, nlay, :, :].squeeze()
+        ds2[vn][tt,:,:] = ds[vn][0, nlay, :, :]
         
     for vn in vn_list_3d_t_custom:
         if vn == 'mix':
-            zeta = ds['zeta'][0, :, :].squeeze()
-            salt = ds['salt'][0, :, :, :].squeeze()
+            zeta = ds['zeta'][0, :, :] # .squeeze() not needed unless using [:]
+            salt = ds['salt'][0, :, :, :]
             zr, zw = zrfun.get_z(h, zeta, S)
             dzr = np.diff(zw, axis=0)
             # calculate net destruction of variance by vertical mixing
-            K = ds['AKs'][0, 1:-1, :, :].squeeze()
+            K = ds['AKs'][0, 1:-1, :, :]
             dzw = np.diff(zr, axis=0)
             dsdz = np.diff(salt, axis=0) / dzw
             mix = 2 * K * dsdz**2
@@ -222,10 +245,34 @@ for fn in fn_list:
             Mix = np.sum(mix * dzw, axis=0)
             Mix = np.ma.masked_where(G['mask_rho']==0, Mix)
             ds2[vn][tt,:,:] = Mix
+        elif vn == 'vave_salt':
+            zeta = ds['zeta'][0, :, :]
+            var = ds['salt'][0, :, :, :]
+            zw = zrfun.get_z(h, zeta, S, only_w=True)
+            dzr = np.diff(zw, axis=0)
+            vave_var = np.sum(var * dzw, axis=0)/(zeta+h)
+            vave_var = np.ma.masked_where(G['mask_rho']==0, vave_var)
+            ds2[vn][tt,:,:] = vave_var
+        elif vn == 'vave_temp':
+            zeta = ds['zeta'][0, :, :]
+            var = ds['temp'][0, :, :, :]
+            zw = zrfun.get_z(h, zeta, S, only_w=True)
+            dzr = np.diff(zw, axis=0)
+            vave_var = np.sum(var * dzw, axis=0)/(zeta+h)
+            vave_var = np.ma.masked_where(G['mask_rho']==0, vave_var)
+            ds2[vn][tt,:,:] = vave_var
+        elif vn == 'vave_rho':
+            zeta = ds['zeta'][0, :, :]
+            var = ds['rho'][0, :, :, :]
+            zw = zrfun.get_z(h, zeta, S, only_w=True)
+            dzr = np.diff(zw, axis=0)
+            vave_var = np.sum(var * dzw, axis=0)/(zeta+h)
+            vave_var = np.ma.masked_where(G['mask_rho']==0, vave_var)
+            ds2[vn][tt,:,:] = vave_var
         
     if ('sustr' in vn_list_2d_uv_t) and ('svstr' in vn_list_2d_uv_t):
-        sustr0 = ds['sustr'][0, :, :].squeeze()
-        svstr0 = ds['svstr'][0, :, :].squeeze()
+        sustr0 = ds['sustr'][0, :, :]
+        svstr0 = ds['svstr'][0, :, :]
         sustr = omat.copy()
         svstr = omat.copy()
         sustr[:, 1:-1] = (sustr0[:, 1:] + sustr0[:, :-1])/2
@@ -236,8 +283,8 @@ for fn in fn_list:
         ds2['svstr'][tt,:,:] = svstr
         
     if ('bustr' in vn_list_2d_uv_t) and ('bvstr' in vn_list_2d_uv_t):
-        bustr0 = ds['bustr'][0, :, :].squeeze()
-        bvstr0 = ds['bvstr'][0, :, :].squeeze()
+        bustr0 = ds['bustr'][0, :, :]
+        bvstr0 = ds['bvstr'][0, :, :]
         bustr = omat.copy()
         bvstr = omat.copy()
         bustr[:, 1:-1] = (bustr0[:, 1:] + bustr0[:, :-1])/2
@@ -248,8 +295,8 @@ for fn in fn_list:
         ds2['bvstr'][tt,:,:] = bvstr
         
     if ('u' in vn_list_3d_uv_t) and ('v' in vn_list_3d_uv_t):
-        u0 = ds['u'][0, nlay, :, :].squeeze()
-        v0 = ds['v'][0, nlay, :, :].squeeze()
+        u0 = ds['u'][0, nlay, :, :]
+        v0 = ds['v'][0, nlay, :, :]
         u = omat.copy()
         v = omat.copy()
         u[:, 1:-1] = (u0[:, 1:] + u0[:, :-1])/2
