@@ -2,6 +2,9 @@
 Extract fields at a number of sections which may be used later for TEF analysis
 of transport and transport-weighted properties.
 
+All input parameters specified at the command line, so this can be run in the background
+because it can taka a few hours.  Use "-sn all" to get all sections.
+
 """
 
 # setup
@@ -30,6 +33,7 @@ parser.add_argument('-t', '--tag', nargs='?', type=str, default='v2')
 parser.add_argument('-x', '--ex_name', nargs='?', type=str, default='lo6biom')
 parser.add_argument('-0', '--date_string0', nargs='?', type=str, default='2017.07.20')
 parser.add_argument('-1', '--date_string1', nargs='?', type=str, default='2017.07.21')
+parser.add_argument('-sn', '--sect_name', nargs='?', type=str, default='ai1')
 # section specific arguments
 args = parser.parse_args()
 
@@ -60,12 +64,11 @@ sect_df = tef_fun.get_sect_df()
 # initialize a dictionary of info for each section
 sect_info = dict()
 # select which sections to extract
-my_choice = input('-- Input section to process (e.g. sog5, or Return to process all): ')
-if len(my_choice)==0:
+if args.sect_name == 'all':
     # full list
     sect_list = [item for item in sect_df.index]
 else: # single item
-    if my_choice in sect_df.index:
+    if args.sect_name in sect_df.index:
         sect_list = [my_choice]
     else:
         print('That section is not available')
