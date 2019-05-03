@@ -13,8 +13,8 @@ from importlib import reload
 reload(cfun)
 
 # set defaults
-gridname = 'cas5'
-tag = 'v3'
+gridname = 'cas6'
+tag = 'v1'
 ex_name = 'lo8'
 
 testing = False
