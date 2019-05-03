@@ -40,13 +40,13 @@ if data_source == 'ecology':
     # load processed station info and data
     sta_df_ca = pd.read_pickle(dir1 + 'sta_df.p')
     # combine
-    sta_df = pd.concat((sta_df, sta_df_ca))
+    sta_df = pd.concat((sta_df, sta_df_ca), sort=False)
     # and get cast data
     year = 2017
     Casts = pd.read_pickle(dir0 + 'Casts_' + str(year) + '.p')
     Casts_ca = pd.read_pickle(dir1 + 'Casts_' + str(year) + '.p')
     #
-    Casts = pd.concat((Casts, Casts_ca))
+    Casts = pd.concat((Casts, Casts_ca), sort=False)
 elif data_source == 'woac':
     dir0 = Ldir['parent'] + 'ptools_data/' + data_source + '/'
     # load processed station info and data
