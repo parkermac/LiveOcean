@@ -126,6 +126,7 @@ xvec = lon[0,:].flatten()
 yvec = lat[:,0].flatten()
 
 # automatically correct for moorings that are on land
+# Note that this only checks rho points - what if a u or v point is masked?
 for sta in sta_dict.keys():
     xy = sta_dict[sta]
     slon = xy[0]
@@ -135,6 +136,7 @@ for sta in sta_dict.keys():
     i0 = int(i0)
     j0 = int(j0)
     # find indices of nearest good point
+    # Note: tha mask in G is Boolean, not 0, 1, but testing with 1 or 0 works.
     if mask[j0,i0] == 1:
         print(sta + ': point ok')
     elif mask[j0,i0] == 0:

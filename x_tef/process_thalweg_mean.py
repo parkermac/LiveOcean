@@ -24,13 +24,35 @@ sect_df = tef_fun.get_sect_df()
 from warnings import filterwarnings
 filterwarnings('ignore') # skip some warning messages
 
+# ************ NEW ********************************
+# choose input and organize output
 Ldir = Lfun.Lstart()
-
-
 indir0 = Ldir['LOo'] + 'tef/'
-# choose the tef extraction to plot
+# choose the tef extraction to process
 item = Lfun.choose_item(indir0)
-indir = indir0 + item + '/'
+indir0 = indir0 + item + '/'
+indir = indir0 + 'bulk/'
+# sect_list_raw = os.listdir(indir)
+# sect_list_raw.sort()
+# sect_list = [item for item in sect_list_raw if ('.p' in item)]
+# print(20*'=' + ' Processed Sections ' + 20*'=')
+# print(*sect_list, sep=", ")
+# print(61*'=')
+# # select which sections to process
+# my_choice = input('-- Input section to plot (e.g. sog5, or Return to plot all): ')
+# if len(my_choice)==0:
+#     # full list
+#     save_fig = True
+# else: # single item
+#     if (my_choice + '.p') in sect_list:
+#         sect_list = [my_choice + '.p']
+#         save_fig = False
+#     else:
+#         print('That section is not available')
+#         sys.exit()
+outdir = indir0 + 'thalweg/'
+Lfun.make_dir(outdir)
+# **************************************************
 
 # a structure to hold results for future use
 ThalMean = dict()
@@ -77,6 +99,9 @@ for sect_list in [['jdf1','jdf2','jdf3','jdf4', # JdF to South Sound
             lat0 = lat        
         xs[counter], ys[counter] = zfun.ll2xy(lon, lat, lon0, lat0)
         fn = indir + sect_name + '.p'
+        # ****** NEW ***************************************************
+        
+        # **************************************************************
         Qi, Si, Fi, qnet_lp, fnet_lp, td = tef_fun.tef_integrals(fn)        
         qin[counter] = np.nanmean(Qi[:,0]/1e3)
         qout[counter] = np.nanmean(Qi[:,1]/1e3)        
