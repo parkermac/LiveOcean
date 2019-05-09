@@ -5,6 +5,9 @@
 This creates a single NetCDF file containing fields from one or more
 model layers, for some time range.
 
+NOTE: for the "vave" layer name we speed up the code by using the average (zeta=0)
+layer thickness.  It takes about 1.25 minutes for a 24 hour day for the cas4 grid.
+
 """
 
 from datetime import datetime, timedelta
@@ -119,8 +122,10 @@ DA = G['DX'] * G['DY']
 ny, nx = DA.shape
 h = G['h']
 S = zrfun.get_basic_info(fn, only_S=True)
-zr = zrfun.get_z(h, 0*h, S, only_rho=True)
+zr, zw = zrfun.get_z(h, 0*h, S)
 zlay = zr[nlay, :, :].squeeze()
+
+dzr = np.diff(zw, axis=0)
 
 ds1 = nc.Dataset(fn)
 ds2 = nc.Dataset(out_fn, 'w')
@@ -174,7 +179,7 @@ for vn in vn_list_3d_t:
     except AttributeError:
         pass # salt has no units
     vv.time = varin.time
-# - then time-dependent custom 3d fields
+# - then time-dependent custom 3d fields (processed into 2d)
 for vn in vn_list_3d_t_custom:
     if vn == 'mix':
         vv = ds2.createVariable(vn, float, ('ocean_time', 'eta_rho', 'xi_rho'))
@@ -246,28 +251,19 @@ for fn in fn_list:
             Mix = np.ma.masked_where(G['mask_rho']==0, Mix)
             ds2[vn][tt,:,:] = Mix
         elif vn == 'vave_salt':
-            zeta = ds['zeta'][0, :, :]
             var = ds['salt'][0, :, :, :]
-            zw = zrfun.get_z(h, zeta, S, only_w=True)
-            dzr = np.diff(zw, axis=0)
-            vave_var = np.sum(var * dzw, axis=0)/(zeta+h)
-            vave_var = np.ma.masked_where(G['mask_rho']==0, vave_var)
+            vave_var = np.sum(var * dzr, axis=0)/h
+            vave_var = np.ma.masked_where(G['mask_rho']==False, vave_var)
             ds2[vn][tt,:,:] = vave_var
         elif vn == 'vave_temp':
-            zeta = ds['zeta'][0, :, :]
             var = ds['temp'][0, :, :, :]
-            zw = zrfun.get_z(h, zeta, S, only_w=True)
-            dzr = np.diff(zw, axis=0)
-            vave_var = np.sum(var * dzw, axis=0)/(zeta+h)
-            vave_var = np.ma.masked_where(G['mask_rho']==0, vave_var)
+            vave_var = np.sum(var * dzr, axis=0)/h
+            vave_var = np.ma.masked_where(G['mask_rho']==False, vave_var)
             ds2[vn][tt,:,:] = vave_var
         elif vn == 'vave_rho':
-            zeta = ds['zeta'][0, :, :]
             var = ds['rho'][0, :, :, :]
-            zw = zrfun.get_z(h, zeta, S, only_w=True)
-            dzr = np.diff(zw, axis=0)
-            vave_var = np.sum(var * dzw, axis=0)/(zeta+h)
-            vave_var = np.ma.masked_where(G['mask_rho']==0, vave_var)
+            vave_var = np.sum(var * dzr, axis=0)/h
+            vave_var = np.ma.masked_where(G['mask_rho']==False, vave_var)
             ds2[vn][tt,:,:] = vave_var
         
     if ('sustr' in vn_list_2d_uv_t) and ('svstr' in vn_list_2d_uv_t):
