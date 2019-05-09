@@ -43,10 +43,10 @@ def boolean_string(s):
 
 parser = argparse.ArgumentParser()
 # standard arguments
-parser.add_argument('-g', '--gridname', nargs='?', type=str, default='cas4')
-parser.add_argument('-t', '--tag', nargs='?', type=str, default='v2')
-parser.add_argument('-x', '--ex_name', nargs='?', type=str, default='lo6biom')
-parser.add_argument('-0', '--date_string0', nargs='?', type=str, default='2018.09.29')
+parser.add_argument('-g', '--gridname', nargs='?', type=str, default='cas6')
+parser.add_argument('-t', '--tag', nargs='?', type=str, default='v1')
+parser.add_argument('-x', '--ex_name', nargs='?', type=str, default='lo8')
+parser.add_argument('-0', '--date_string0', nargs='?', type=str, default='2017.09.19')
 parser.add_argument('-1', '--date_string1', nargs='?', type=str, default='')
 # arguments that allow you to bypass the interactive choices
 parser.add_argument('-hn', '--his_num', nargs='?', type=int, default=1)
