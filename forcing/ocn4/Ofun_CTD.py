@@ -19,10 +19,9 @@ if pth not in sys.path:
 import zfun
 
 def get_casts(Ldir):
-    
-    this_dt = datetime.strptime(Ldir['date_string'], '%Y.%m.%d')
-    year = this_dt.year
-    month = this_dt.month
+        
+    year = 2017
+    month = 1
     
     # +++ load ecology CTD cast data +++
     dir0 = Ldir['parent'] + 'ptools_data/ecology/'
@@ -33,7 +32,6 @@ def get_casts(Ldir):
     # load processed station info and data
     sta_df_ca = pd.read_pickle(dir1 + 'sta_df.p')
     sta_df = pd.concat((sta_df, sta_df_ca), sort=False)
-    year = 2017
     Casts = pd.read_pickle(dir0 + 'Casts_' + str(year) + '.p')
     Casts_ca = pd.read_pickle(dir1 + 'Casts_' + str(year) + '.p')
     Casts = pd.concat((Casts, Casts_ca), sort=False)
@@ -44,7 +42,7 @@ def get_casts(Ldir):
     sta_df = sta_df.loc[sta_list,['Max_Depth', 'Latitude', 'Longitude']]
     #
 
-    # start a dict to store one cast per station (it is has data in the year)
+    # start a dict to store one cast per station (if it has data in the year)
     Cast_dict = dict()
 
     for station in sta_list:

@@ -10,10 +10,9 @@ Only set up to work on mac.
 
 """
 
-gridname='cas5'
-tag='v3'
-#date_string = '2018.12.25'
-date_string = '2017.01.01'
+gridname='cas6'
+tag='v2'
+date_string = '2016.12.15'
 
 # setup
 

@@ -15,6 +15,9 @@ on a specified day only.
 2019.04.24 I Removed the fix_NSoG code entirely because that experiment did
 not produce the desired results.
 
+2019.05.09 Changed the day for which CTD ICs are added to 2016.12.15, but in
+Ofun_CTD.get_casts() it is hardwired to look for casts in or after January 2017.
+
 *******************************
 
 To run from the command line in LiveOcean/driver/:
@@ -27,8 +30,8 @@ To test in python on mac:
 run make_forcing_main.py -g cas6 -t v1 -r backfill -d 2017.01.02
 
 # backfill with Salish and coastal estuary IC's from CTD and other info
-run make_forcing_main.py -g cas6 -t v1 -r backfill -d 2017.01.01
-- the switch to do this is hardwired to a day: 2017.01.01
+run make_forcing_main.py -g cas6 -t v1 -r backfill -d 2016.12.15
+- the switch to do this is hardwired to a day: 2016.12.15
 
 # today's forecast
 run make_forcing_main.py -g cas6 -t v1 -r forecast
@@ -72,7 +75,7 @@ do_bio = False
 
 # *** automate when to set add_CTD to True ***
 this_dt = datetime.strptime(Ldir['date_string'], '%Y.%m.%d')
-if this_dt == datetime(2017,1,1):
+if this_dt == datetime(2016,12,15):
     print('WARNING: adding CTD data to extrapolation!!')
     add_CTD = True
     
