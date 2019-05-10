@@ -67,7 +67,55 @@ def P_basic(in_dict):
             pfun.add_velocity_vectors(ax, ds, in_dict['fn'])
             #pfun.add_velocity_streams(ax, ds, in_dict['fn'])
         ii += 1
-    fig.tight_layout()
+    #fig.tight_layout()
+    
+    # FINISH
+    ds.close()
+    if len(in_dict['fn_out']) > 0:
+        plt.savefig(in_dict['fn_out'])
+        plt.close()
+    else:
+        plt.show()
+        
+def P_rho(in_dict):
+    # Surface density and stratification, for Jim Moum 2019_05
+    
+    # START
+    fig = plt.figure(figsize=(12,8)) # (16,12) or pinfo.figsize for default
+    ds = nc.Dataset(in_dict['fn'])
+
+    # PLOT CODE
+    aa = [-127, -123, 43, 48]
+    x = ds['lon_psi'][:]
+    y = ds['lat_psi'][:]
+    rho_surf = ds['rho'][0,-1,:,:] # surface density anomaly
+    z_level = -30
+    zfull = pfun.get_zfull(ds, in_dict['fn'], 'rho')
+    rho_deep = pfun.get_laym(ds, zfull, ds['mask_rho'][:], 'rho', z_level)
+    strat = rho_deep - rho_surf
+    
+    ax = fig.add_subplot(121)
+    cs = ax.pcolormesh(x, y, rho_surf[1:-1,1:-1], vmin=22, vmax=26, cmap='rainbow')
+    fig.colorbar(cs)
+    pfun.add_bathy_contours(ax, ds, txt=True)
+    pfun.add_coast(ax)
+    ax.axis(aa)
+    pfun.dar(ax)
+    ax.set_title('Surface Density Anomaly (kg m-3)')
+    ax.set_xlabel('Longitude')
+    ax.set_ylabel('Latitude')
+    pfun.add_info(ax, in_dict['fn'])
+    pfun.add_windstress_flower(ax, ds, t_scl=0.3, t_leglen=0.1, center=(0.25, 0.85))
+    
+    ax = fig.add_subplot(122)
+    cs = ax.pcolormesh(x, y, strat[1:-1,1:-1], vmin=0, vmax=3, cmap='jet')
+    fig.colorbar(cs)
+    pfun.add_bathy_contours(ax, ds, txt=False)
+    pfun.add_coast(ax)
+    ax.axis(aa)
+    pfun.dar(ax)
+    ax.set_title('Density Diff. over top ' + str(-z_level) + ' m (kg m-3)')
+    ax.set_xlabel('Longitude')
     
     # FINISH
     ds.close()
