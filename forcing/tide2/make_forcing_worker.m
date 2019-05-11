@@ -141,6 +141,10 @@ for ii = 1:np
         pf = pf*1.2*1.11;
 		phase_shift = -23.0; % deg
     end
+	
+	% override
+	phase_shift = 30.0;
+	
     disp([cons_nb, ': pf = ',num2str(pf)])
 	disp([cons_nb, ': phase_shift = ',num2str(phase_shift)])    
     tide_period(ii) = 2*pi/(3600*om); % hours
@@ -154,10 +158,10 @@ for ii = 1:np
 end
 
 % make sure the phase is between -360:360
-tide_Ephase(tide_Ephase>360) = tide_Ephase(tide_Ephase>360) - 360;
-tide_Ephase(tide_Ephase<-360) = tide_Ephase(tide_Ephase<-360) + 360;
-tide_Chase(tide_Cphase>360) = tide_Cphase(tide_Cphase>360) - 360;
-tide_Cphase(tide_Cphase<-360) = tide_Cphase(tide_Cphase<-360) + 360;
+%tide_Ephase(tide_Ephase>360) = tide_Ephase(tide_Ephase>360) - 360;
+%tide_Ephase(tide_Ephase<-360) = tide_Ephase(tide_Ephase<-360) + 360;
+%tide_Chase(tide_Cphase>360) = tide_Cphase(tide_Cphase>360) - 360;
+%tide_Cphase(tide_Cphase<-360) = tide_Cphase(tide_Cphase<-360) + 360;
 
 %make sure tide_period is a column vector
 tide_period = tide_period(:);
