@@ -6,7 +6,8 @@ function make_forcing_worker(gridname, tag, date_string, run_type, outdir)
 % This makes the tidal NetCDF forcing file for a ROMS 3.# simulation, and
 % NOTE that you need the TPXO model files (tmd_toolbox/)
 %
-% This version 2017.11.02 includes an increase to the semi-diural constituents.
+% This version 2017.11.02 includes an increase to the amplitudes.
+% and on 2019.05.11 I added a phase shift as well.
 
 addpath('../../alpha'); Ldir = Lstart(gridname, tag);
 start_time = datenum(now);
@@ -113,37 +114,55 @@ for ii = 1:np
     end
     % and make final adjustments before writing to arrays
 	
-    % PM Edit: increase diurnals
-	if cons_nb(2) == '1'
+    % PM Edit: diurnals
+	if cons_nb == 'o1'
+        disp([cons_nb, ': pf = ',num2str(pf)])
+        pf = pf*1.21*1.087;
+        disp([cons_nb, ': pf = ',num2str(pf)])
+		phase_shift = -10.0; % deg
+	elseif cons_nb == 'k1'
         disp([cons_nb, ': pf = ',num2str(pf)])
         pf = pf*1.21;
         disp([cons_nb, ': pf = ',num2str(pf)])        
-    end
-	
-    % PM Edit: increase semidiurnals
-	if cons_nb == 'm2'
+		phase_shift = -18.0; % deg
+	elseif cons_nb == 'p1'
         disp([cons_nb, ': pf = ',num2str(pf)])
-        pf = pf*1.17;
+        pf = pf*1.21;
         disp([cons_nb, ': pf = ',num2str(pf)])        
+		phase_shift = -18.0; % deg
+	elseif cons_nb == 'q1'
+        disp([cons_nb, ': pf = ',num2str(pf)])
+        pf = pf*1.21;
+        disp([cons_nb, ': pf = ',num2str(pf)])        	
+		phase_shift = -18.0; % deg
+    % PM Edit: semidiurnals
+	elseif cons_nb == 'm2'
+        disp([cons_nb, ': pf = ',num2str(pf)])
+        pf = pf*1.17*1.075;
+        disp([cons_nb, ': pf = ',num2str(pf)])        
+		phase_shift = -25.0; % deg
 	elseif cons_nb == 's2'
         disp([cons_nb, ': pf = ',num2str(pf)])
-        pf = pf*1.261;
+        pf = pf*1.261*1.13;
         disp([cons_nb, ': pf = ',num2str(pf)])        
+		phase_shift = -35.0; % deg
 	elseif cons_nb == 'n2'
         disp([cons_nb, ': pf = ',num2str(pf)])
-        pf = pf*1.196;
+        pf = pf*1.196*1.11;
         disp([cons_nb, ': pf = ',num2str(pf)])        
+		phase_shift = -23.0; % deg
 	elseif cons_nb == 'k2'
         disp([cons_nb, ': pf = ',num2str(pf)])
-        pf = pf*1.2;
+        pf = pf*1.2*1.11;
         disp([cons_nb, ': pf = ',num2str(pf)])        
+		phase_shift = -23.0; % deg
     end
 	
     tide_period(ii) = 2*pi/(3600*om); % hours
     tide_Eamp(ii,:,:) = pf*Eamp; % m
-    tide_Ephase(ii,:,:) = Ephase - 180*ph/pi - 180*pu/pi; % deg
+    tide_Ephase(ii,:,:) = Ephase - 180*ph/pi - 180*pu/pi + phase_shift; % deg
     tide_Cangle(ii,:,:) = Cangle; % deg
-    tide_Cphase(ii,:,:) = Cphase - 180*ph/pi - 180*pu/pi; % deg
+    tide_Cphase(ii,:,:) = Cphase - 180*ph/pi - 180*pu/pi + phase_shift; % deg
     tide_Cmax(ii,:,:) = pf*Cmax/100; % m s-1
     tide_Cmin(ii,:,:) = pf*Cmin/100; % m s-1
 	
