@@ -143,7 +143,7 @@ for ii = 1:np
     end
 	
 	% override
-	phase_shift = 1.0;
+	phase_shift = -30.0;
 	
     disp([cons_nb, ': pf = ',num2str(pf)])
 	disp([cons_nb, ': phase_shift = ',num2str(phase_shift)])    
@@ -151,7 +151,7 @@ for ii = 1:np
     tide_Eamp(ii,:,:) = pf*Eamp; % m
     tide_Ephase(ii,:,:) = Ephase - 180*ph/pi - 180*pu/pi + phase_shift; % deg
     tide_Cangle(ii,:,:) = Cangle; % deg
-    tide_Cphase(ii,:,:) = Cphase - 180*ph/pi - 180*pu/pi + phase_shift; % deg
+    tide_Cphase(ii,:,:) = Cphase - 180*ph/pi - 180*pu/pi;% + phase_shift; % deg
     tide_Cmax(ii,:,:) = pf*Cmax/100; % m s-1
     tide_Cmin(ii,:,:) = pf*Cmin/100; % m s-1
 	
