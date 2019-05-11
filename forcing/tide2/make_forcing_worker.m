@@ -143,7 +143,7 @@ for ii = 1:np
     end
 	
 	% override
-	phase_shift = 30.0;
+	phase_shift = 1.0;
 	
     disp([cons_nb, ': pf = ',num2str(pf)])
 	disp([cons_nb, ': phase_shift = ',num2str(phase_shift)])    
