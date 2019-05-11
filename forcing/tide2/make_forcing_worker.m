@@ -113,60 +113,51 @@ for ii = 1:np
         eval([EC_list{jj},' = this_out_ex;']);
     end
     % and make final adjustments before writing to arrays
-	
+    disp([cons_nb, ': pf = ',num2str(pf)])	
     % PM Edit: diurnals
 	if cons_nb == 'o1'
-        disp([cons_nb, ': pf = ',num2str(pf)])
         pf = pf*1.21*1.087;
-        disp([cons_nb, ': pf = ',num2str(pf)])
 		phase_shift = -10.0; % deg
 	elseif cons_nb == 'k1'
-        disp([cons_nb, ': pf = ',num2str(pf)])
-        pf = pf*1.21;
-        disp([cons_nb, ': pf = ',num2str(pf)])        
+         pf = pf*1.21;
 		phase_shift = -18.0; % deg
 	elseif cons_nb == 'p1'
-        disp([cons_nb, ': pf = ',num2str(pf)])
         pf = pf*1.21;
-        disp([cons_nb, ': pf = ',num2str(pf)])        
 		phase_shift = -18.0; % deg
 	elseif cons_nb == 'q1'
-        disp([cons_nb, ': pf = ',num2str(pf)])
         pf = pf*1.21;
-        disp([cons_nb, ': pf = ',num2str(pf)])        	
-		phase_shift = -18.0; % deg
+ 		phase_shift = -18.0; % deg
     % PM Edit: semidiurnals
 	elseif cons_nb == 'm2'
-        disp([cons_nb, ': pf = ',num2str(pf)])
         pf = pf*1.17*1.075;
-        disp([cons_nb, ': pf = ',num2str(pf)])        
 		phase_shift = -25.0; % deg
 	elseif cons_nb == 's2'
-        disp([cons_nb, ': pf = ',num2str(pf)])
         pf = pf*1.261*1.13;
-        disp([cons_nb, ': pf = ',num2str(pf)])        
 		phase_shift = -35.0; % deg
 	elseif cons_nb == 'n2'
-        disp([cons_nb, ': pf = ',num2str(pf)])
         pf = pf*1.196*1.11;
-        disp([cons_nb, ': pf = ',num2str(pf)])        
 		phase_shift = -23.0; % deg
 	elseif cons_nb == 'k2'
-        disp([cons_nb, ': pf = ',num2str(pf)])
         pf = pf*1.2*1.11;
-        disp([cons_nb, ': pf = ',num2str(pf)])        
 		phase_shift = -23.0; % deg
     end
-	
+    disp([cons_nb, ': pf = ',num2str(pf)])
+	disp([cons_nb, ': phase_shift = ',num2str(phase_shift)])    
     tide_period(ii) = 2*pi/(3600*om); % hours
     tide_Eamp(ii,:,:) = pf*Eamp; % m
-    tide_Ephase(ii,:,:) = Ephase - 180*ph/pi - 180*pu/pi; % + phase_shift; % deg
+    tide_Ephase(ii,:,:) = Ephase - 180*ph/pi - 180*pu/pi + phase_shift; % deg
     tide_Cangle(ii,:,:) = Cangle; % deg
-    tide_Cphase(ii,:,:) = Cphase - 180*ph/pi - 180*pu/pi; % + phase_shift; % deg
+    tide_Cphase(ii,:,:) = Cphase - 180*ph/pi - 180*pu/pi + phase_shift; % deg
     tide_Cmax(ii,:,:) = pf*Cmax/100; % m s-1
     tide_Cmin(ii,:,:) = pf*Cmin/100; % m s-1
 	
 end
+
+% make sure the phase is between -360:360
+tide_Ephase(tide_Ephase>360) = tide_Ephase(tide_Ephase>360) - 360;
+tide_Ephase(tide_Ephase<-360) = tide_Ephase(tide_Ephase<-360) + 360;
+tide_Chase(tide_Cphase>360) = tide_Cphase(tide_Cphase>360) - 360;
+tide_Cphase(tide_Cphase<-360) = tide_Cphase(tide_Cphase<-360) + 360;
 
 %make sure tide_period is a column vector
 tide_period = tide_period(:);
