@@ -143,7 +143,7 @@ for ii = 1:np
     end
 	
 	% override
-	phase_shift = -30.0;
+	%phase_shift = -30.0;
 	% Note on sign convention: in the ROMS code it converts this
 	% phase to radians and then calculates tidal forcing with a
 	% function like cos(omega*t - phase) so for as phase increases
@@ -155,9 +155,9 @@ for ii = 1:np
 	disp([cons_nb, ': phase_shift = ',num2str(phase_shift)])    
     tide_period(ii) = 2*pi/(3600*om); % hours
     tide_Eamp(ii,:,:) = pf*Eamp; % m
-    tide_Ephase(ii,:,:) = Ephase - 180*ph/pi - 180*pu/pi;% + phase_shift; % deg
+    tide_Ephase(ii,:,:) = Ephase - 180*ph/pi - 180*pu/pi + phase_shift; % deg
     tide_Cangle(ii,:,:) = Cangle; % deg
-    tide_Cphase(ii,:,:) = Cphase - 180*ph/pi - 180*pu/pi;% + phase_shift; % deg
+    tide_Cphase(ii,:,:) = Cphase - 180*ph/pi - 180*pu/pi + phase_shift; % deg
     tide_Cmax(ii,:,:) = pf*Cmax/100; % m s-1
     tide_Cmin(ii,:,:) = pf*Cmin/100; % m s-1
 	
