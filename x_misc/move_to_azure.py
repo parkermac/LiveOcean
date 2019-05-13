@@ -34,7 +34,7 @@ Ldir = Lfun.Lstart()
 # Command line arguments
 
 # set defaults
-input_filename = Ldir['LO'] + 'extract/az_testfile.txt'
+input_filename = Ldir['LO'] + 'x_misc/az_testfile.txt'
 output_filename = ''
 container_name = 'pm-share'
 

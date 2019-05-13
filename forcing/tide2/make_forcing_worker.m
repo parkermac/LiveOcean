@@ -89,7 +89,7 @@ for ii = 1:np
     [X,Y] = meshgrid(x,y);
     for jj = 1:length(EC_list)
         eval(['this_in = ',EC_list{jj},';']);
-        % first to a standard interpolation with NaN's
+        % first do a standard interpolation with NaN's
         this_out = NaN*lon_rho;
         this_in(~mask) = NaN;
         this_out = interp2(X,Y,this_in,lon_rho,lat_rho);
@@ -144,12 +144,18 @@ for ii = 1:np
 	
 	% override
 	phase_shift = -30.0;
+	% Note on sign convention: in the ROMS code it converts this
+	% phase to radians and then calculates tidal forcing with a
+	% function like cos(omega*t - phase) so for as phase increases
+	% that means the forcing lags longer in time.  Hence I expect
+	% that negative phase_shift would cause the forcing to happen EARLIER
+	% which is like what I want to accomplish, typically.
 	
     disp([cons_nb, ': pf = ',num2str(pf)])
 	disp([cons_nb, ': phase_shift = ',num2str(phase_shift)])    
     tide_period(ii) = 2*pi/(3600*om); % hours
     tide_Eamp(ii,:,:) = pf*Eamp; % m
-    tide_Ephase(ii,:,:) = Ephase - 180*ph/pi - 180*pu/pi + phase_shift; % deg
+    tide_Ephase(ii,:,:) = Ephase - 180*ph/pi - 180*pu/pi;% + phase_shift; % deg
     tide_Cangle(ii,:,:) = Cangle; % deg
     tide_Cphase(ii,:,:) = Cphase - 180*ph/pi - 180*pu/pi;% + phase_shift; % deg
     tide_Cmax(ii,:,:) = pf*Cmax/100; % m s-1
