@@ -142,7 +142,7 @@ do
   if [ $D == $D0 ] && [ $start_type == "new" ] ; then
     python ./make_dot_in.py -g $gridname -t $tag -s new -r $run_type -d $DD -x $ex_name -np $np_num -bu $blow_ups
     sleep 30
-    cd $roms"makefiles/"$ex_name
+    cd $roms"makefiles/"$ex_name"_tideramp"
   else
     python ./make_dot_in.py -g $gridname -t $tag -s continuation -r $run_type -d $DD -x $ex_name -np $np_num -bu $blow_ups
     sleep 30
