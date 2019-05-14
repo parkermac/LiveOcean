@@ -47,6 +47,9 @@ def get_tc_rn(df):
     return df
     
 def get_qt(df, dt_ind, yd_ind, Ldir, dt1, days):
+    
+    dt_ind = dt_ind.tz_localize(tz=None)
+    
     #%% step through all rivers
     from warnings import filterwarnings
     filterwarnings('ignore') # skip some warning messages
@@ -64,7 +67,7 @@ def get_qt(df, dt_ind, yd_ind, Ldir, dt1, days):
                         header=None, index_col=0, squeeze=True)
         qt_clim_yd = clim.ix[yd_ind] # clip just the needed values
         # Get T climatology (using squeeze=True returns a Series)
-        tc_rn = df.ix[rn, 'tc_rn']
+        tc_rn = df.loc[rn, 'tc_rn']
         T_clim = pd.read_csv(Ldir['data'] + 'rivers/Data_T_clim/' + tc_rn + '.csv',
                         header=None, index_col=0, squeeze=True)
         T_clim_yd = T_clim.ix[yd_ind] # clip just the needed values
@@ -77,7 +80,7 @@ def get_qt(df, dt_ind, yd_ind, Ldir, dt1, days):
                         + rn + '.p')
             if dt1 <= his.index[-1]:
                 # fill with historical data if the timing is right
-                qt_df['his'] = his.ix[dt_ind]
+                qt_df['his'] = his.loc[dt_ind]
                 qt_df['final'] = qt_df['his']
                 print(' filled from historical')
             else:
@@ -86,13 +89,19 @@ def get_qt(df, dt_ind, yd_ind, Ldir, dt1, days):
                 if pd.notnull(rs.nws) and Ldir['run_type'] == 'forecast':
                     riv.get_nws_data()
                     if not riv.qt.empty:
-                        qt_df['nws'] = riv.qt.ix[dt_ind]
+                        # debugging
+                        #print(riv.qt)
+                        riv.qt = riv.qt.tz_localize(tz=None)
+                        qt_df['nws'] = riv.qt.loc[dt_ind]
                         qt_df['final'] = qt_df['nws']
                         print(' filled from nws forecast')
                 elif pd.notnull(rs.usgs):
                     riv.get_usgs_data(days)
                     if not riv.qt.empty:
-                        qt_df['usgs'] = riv.qt.ix[dt_ind]
+                        # debugging
+                        #print(riv.qt)
+                        riv.qt = riv.qt.tz_localize(tz=None)
+                        qt_df['usgs'] = riv.qt.loc[dt_ind]
                         qt_df['final'] = qt_df['usgs']
                         print(' filled from usgs')
                         
@@ -107,7 +116,10 @@ def get_qt(df, dt_ind, yd_ind, Ldir, dt1, days):
                         if np.abs((dt0_actual - dt0_requested).days) >= 1:
                             print(' request was out of range for ec')
                         else:
-                            qt_df['ec'] = riv.qt.ix[dt_ind]
+                            # debugging
+                            #print(riv.qt)
+                            riv.qt = riv.qt.tz_localize(tz=None)
+                            qt_df['ec'] = riv.qt.loc[dt_ind]
                             qt_df['final'] = qt_df['ec']
                             print(' filled from ec')
         except FileNotFoundError:
