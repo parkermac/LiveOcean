@@ -236,8 +236,7 @@ GridsInLayer =  1
 
       DSTART =  $dstart$.0d0
 ! days from TIME_REF to start of forecast day
-!  TIDE_START =  8035.0d0                      ! days
-  TIDE_START =  8034.917d0                      ! days
+  TIDE_START =  8035.0d0                      ! days
 ! TIDE_START is days from TIME_REF to 1/1/1992
     TIME_REF =  19700101.0d0                      ! yyyymmdd.dd
 
