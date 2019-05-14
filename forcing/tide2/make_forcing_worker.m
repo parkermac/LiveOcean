@@ -113,7 +113,7 @@ for ii = 1:np
         eval([EC_list{jj},' = this_out_ex;']);
     end
     % and make final adjustments before writing to arrays
-    disp([cons_nb, ': pf = ',num2str(pf)])	
+    disp([cons_nb, ': pf before = ',num2str(pf)])	
     % PM Edit: diurnals
 	if cons_nb == 'o1'
         pf = pf*1.21*1.087;
@@ -151,23 +151,18 @@ for ii = 1:np
 	% that negative phase_shift would cause the forcing to happen EARLIER
 	% which is like what I want to accomplish, typically.
 	
-    disp([cons_nb, ': pf = ',num2str(pf)])
-	disp([cons_nb, ': phase_shift = ',num2str(phase_shift)])    
+    disp([cons_nb, ': pf after = ',num2str(pf)])
+	%disp([cons_nb, ': phase_shift = ',num2str(phase_shift)])    
     tide_period(ii) = 2*pi/(3600*om); % hours
     tide_Eamp(ii,:,:) = pf*Eamp; % m
-    tide_Ephase(ii,:,:) = Ephase - 180*ph/pi - 180*pu/pi + phase_shift; % deg
+    tide_Ephase(ii,:,:) = Ephase - 180*ph/pi - 180*pu/pi;% + phase_shift; % deg
     tide_Cangle(ii,:,:) = Cangle; % deg
-    tide_Cphase(ii,:,:) = Cphase - 180*ph/pi - 180*pu/pi + phase_shift; % deg
+    tide_Cphase(ii,:,:) = Cphase - 180*ph/pi - 180*pu/pi;% + phase_shift; % deg
     tide_Cmax(ii,:,:) = pf*Cmax/100; % m s-1
     tide_Cmin(ii,:,:) = pf*Cmin/100; % m s-1
 	
 end
 
-% make sure the phase is between -360:360
-%tide_Ephase(tide_Ephase>360) = tide_Ephase(tide_Ephase>360) - 360;
-%tide_Ephase(tide_Ephase<-360) = tide_Ephase(tide_Ephase<-360) + 360;
-%tide_Chase(tide_Cphase>360) = tide_Cphase(tide_Cphase>360) - 360;
-%tide_Cphase(tide_Cphase<-360) = tide_Cphase(tide_Cphase<-360) + 360;
 
 %make sure tide_period is a column vector
 tide_period = tide_period(:);
