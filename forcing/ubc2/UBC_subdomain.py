@@ -29,6 +29,9 @@
 import sys
 import netCDF4 as nc
 
+ncformat = 'NETCDF3_64BIT_OFFSET' # PM Edit 2019.05.15
+
+
 # XBS = [55, 80]  # x-limits
 # YBS = [295, 325]  # y-limits
 # Variables to copy
@@ -50,7 +53,9 @@ def get_UBC_subdomain(f_list, out_dir, XBS, YBS):
         #print(fnew)
         #sys.stdout.flush()
         #fnew = '{}_UBC.nc'.format(fname.split('.nc', 1)[0])
-        with nc.Dataset(fname) as G, nc.Dataset(fnew, 'w', format='NETCDF4_CLASSIC') as Gnew:
+        # with nc.Dataset(fname) as G, nc.Dataset(fnew, 'w', format='NETCDF4_CLASSIC') as Gnew:
+        #     _copy_netCDF_subdomain(G, Gnew, XBS, YBS, VAR_LIST, DIM_LIST)
+        with nc.Dataset(fname) as G, nc.Dataset(fnew, 'w', format=ncformat) as Gnew:
             _copy_netCDF_subdomain(G, Gnew, XBS, YBS, VAR_LIST, DIM_LIST)
 
 
