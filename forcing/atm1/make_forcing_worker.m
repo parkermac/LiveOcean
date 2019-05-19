@@ -45,6 +45,7 @@ if strcmp(run_type,'backfill')
     hr_vec = 0:24;
 elseif strcmp(run_type,'forecast')
     hr_vec = 0:72;
+    disp('- creating forecast');
     % this gives 73 hourly values (three days, including endpoints)
 end
 
@@ -54,7 +55,7 @@ vartime = (dt_out - datenum(1970,1,1))*86400; % seconds since 1/1/1970
 
 %% create the corresponding input files
 %
-% NOTE: this code uses the d4 (1.3 km) grid
+% NOTE: for now let's just use the d2 (12 km) grid
 
 % and get the parent
 switch Ldir.lo_env
@@ -62,17 +63,20 @@ switch Ldir.lo_env
         Info.wrf_dir = [Ldir.parent,'LiveOcean_data/wrf/'];
     otherwise
         Info.wrf_dir = '/pmr2/darr/wrf_crons/wrfout/';
-        disp(Info.wrf_dir)
 end
 
 indir00 = [Info.wrf_dir,yrs,mos,dys,'00/'];
 indir12 = [Info.wrf_dir,yrs,mos,dys,'12/'];
 
+disp(indir00)
+
 % just use the 00 forecast
 for tt = 1:length(hr_vec)
     hr = hr_vec(tt);
     hrs = ['00',num2str(hr)]; hrs = hrs(end-1:end);
-    infile_list_d4{tt} = [indir00,'wrfout.ocean_d4.',yrs,mos,dys, ...
+    %
+	disp([indir00,'wrfout.ocean_d2.',yrs,mos,dys,'00.f',hrs,'.0000'])
+    infile_list_d2{tt} = [indir00,'wrfout.ocean_d2.',yrs,mos,dys, ...
         '00.f',hrs,'.0000'];
     forecast_hour{tt} = hrs; % used for rain calculation
 end
@@ -88,23 +92,34 @@ invar_list = {'PSFC','RAINC','RAINNC','SWDOWN','GLW', ...
 %gdir = [Ldir.res,Ldir.gridname,'/'];
 gdir = [Ldir.data,'grids/',Ldir.gridname,'/'];
 fng = [gdir,'grid.nc'];
+disp('- getting model grid')
+disp(fng)
 lon = nc_varget(fng,'lon_rho');
 lat = nc_varget(fng,'lat_rho');
+disp('- done getting model grid')
+disp(num2str(lon(1,1)))
 
-% the WRF grids (2 for d2, and 3 for d3, 4 for d4)
-disp(infile_list_d4{1})
-if exist(infile_list_d4{1},'file')
-    disp("file exists")
-    lon4 = double(squeeze(nc_varget(infile_list_d4{1},'XLONG')));
-    lat4 = double(squeeze(nc_varget(infile_list_d4{1},'XLAT')));
+
+% the WRF grids (2 for d2, and 3 for d3)
+if exist(infile_list_d2{1},'file')
+    disp('- getting WRF grid')
+    lon2 = double(squeeze(nc_varget(infile_list_d2{1},'XLONG')));
+    disp(num2str(lon2(1,1)))
+    lat2 = double(squeeze(nc_varget(infile_list_d2{1},'XLAT')));
+    disp('- getting WRF grid')
 else
     disp('Missing WRF input files!');
 end
 
 % make blank results arrays
 [NR,NC] = size(lon);
-[NR2,NC2] = size(lon4);
+[NR2,NC2] = size(lon2);
 NT = length(hr_vec);
+disp(num2str(NR))
+disp(num2str(NC))
+disp(num2str(NR2))
+disp(num2str(NC2))
+disp(num2str(NT))
 nmat = NaN * ones(NT,NR,NC); % sized for output
 nmat2 = NaN * ones(NT,NR2,NC2); % sized for input
 
@@ -114,10 +129,12 @@ nmat2 = NaN * ones(NT,NR2,NC2); % sized for input
 % one variable at all times
 
 for tt = 1:NT
-    fn2 = infile_list_d4{tt};
+    fn2 = infile_list_d2{tt};
+    disp(fn2)
     for vv = 1:length(invar_list)
         VR = invar_list{vv};
         if tt == 1; eval([VR,'2 = nmat2;']); end;
+        disp(['- getting ',VR,' at ',num2str(tt)])
         eval([VR,'2(tt,:,:) = squeeze(nc_varget(fn2,VR));']);
     end
 end
@@ -156,9 +173,9 @@ SWDOWN2 = (1 - 0.1446)*SWDOWN2;
 RH2 = Z_wmo_RH(PSFC2,T22,Q22); % relative humidity [%]
 
 % rotate velocity to E-W and N-S
-theta = NaN * lon4;
+theta = NaN * lon2;
 for rr = 1:NR2
-    [dist,theta(rr,1:end-1)] = sw_dist(lat4(rr,:),lon4(rr,:),'km');
+    [dist,theta(rr,1:end-1)] = sw_dist(lat2(rr,:),lon2(rr,:),'km');
 end
 theta(:,end) = theta(:,end-1); % pad the end
 alpha = - pi*theta/180; % alpha is the angle (radians) to rotate the
@@ -186,8 +203,8 @@ for tt = 1:NT
         vr = outvar_list{vv};
         if tt == 1; eval([vr,' = nmat;']); end;
         eval(['OO = squeeze(',VR,'2(tt,:,:));']);
-        %F = TriScatteredInterp(lon4(:),lat4(:),OO(:));
-        F = scatteredInterpolant(lon4(:),lat4(:),OO(:));
+        %F = TriScatteredInterp(lon2(:),lat2(:),OO(:));
+        F = scatteredInterpolant(lon2(:),lat2(:),OO(:));
         eval([vr,'(tt,:,:) = F(lon,lat);']);
     end
 end
