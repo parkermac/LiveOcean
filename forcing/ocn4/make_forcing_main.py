@@ -5,6 +5,8 @@ This is the main program for making the OCN forcing file.
 It is designed to work with the new hycom2 archive of extracted files,
 as well as regular forecasts.
 
+Performance: on my mac a backfill day for cas6 takes 1 minute.
+
 2017.12.10 I added a planB flag to the forecast case
 which copies the clm file from the previous day and
 makes the final time a day later.
@@ -18,6 +20,8 @@ not produce the desired results.
 2019.05.09 Changed the day for which CTD ICs are added to 2016.12.15, but in
 Ofun_CTD.get_casts() it is hardwired to look for casts in or after January 2017.
 
+2019.05.20 Added Ofun.get_interpolated_alt() which sped up the program by a factor of 10.
+
 *******************************
 
 To run from the command line in LiveOcean/driver/:
@@ -27,7 +31,7 @@ To run from the command line in LiveOcean/driver/:
 To test in python on mac:
 
 # standard backfill
-run make_forcing_main.py -g cas6 -t v1 -r backfill -d 2017.01.02
+run make_forcing_main.py -g cas6 -t v3 -r backfill -d 2017.04.20
 
 # backfill with Salish and coastal estuary IC's from CTD and other info
 run make_forcing_main.py -g cas6 -t v1 -r backfill -d 2016.12.15
@@ -35,6 +39,7 @@ run make_forcing_main.py -g cas6 -t v1 -r backfill -d 2016.12.15
 
 # today's forecast
 run make_forcing_main.py -g cas6 -t v1 -r forecast
+
 
 """
 
@@ -53,6 +58,7 @@ import shutil
 import pickle
 import netCDF4 as nc
 import numpy as np
+import time
 
 import zrfun
 import Ofun
@@ -68,7 +74,6 @@ reload(Ofun_bio)
 start_time = datetime.now()
 
 # defaults
-testing = False
 planB = False
 add_CTD = False
 do_bio = False
@@ -169,18 +174,21 @@ if planB == False:
     count = 0
     c_dict = dict()
 
-    if testing == False: # this is a slow step, so omit for testing
-        for fn in aa:
-            print('-Interpolating ' + fn + ' to ROMS grid')
-            in_fn = fh_dir + fn
-            b = pickle.load(open(in_fn, 'rb'))
-            dt_list.append(b['dt'])
-            c = Ofun.get_interpolated(G, S, b, lon, lat, z, N)
-            c_dict[count] = c
-            count += 1
-        #%% Write to ROMS forcing files
-        nc_dir = Ldir['LOogf_f']
-        Ofun_nc.make_clm_file(Ldir, nc_dir, fh_dir, c_dict, dt_list, S, G)
+    zinds = Ofun.get_zinds(G['h'], S, z)
+    for fn in aa:
+        print('-Interpolating ' + fn + ' to ROMS grid')
+        in_fn = fh_dir + fn
+        b = pickle.load(open(in_fn, 'rb'))
+        dt_list.append(b['dt'])
+        #c = Ofun.get_interpolated(G, S, b, lon, lat, z, N)
+        c = Ofun.get_interpolated_alt(G, S, b, lon, lat, z, N, zinds)
+        c_dict[count] = c
+        count += 1
+    #%% Write to ROMS forcing files
+    nc_dir = Ldir['LOogf_f']
+    tt0 = time.time()
+    Ofun_nc.make_clm_file(Ldir, nc_dir, fh_dir, c_dict, dt_list, S, G)
+    print(' --write ocean_clm.nc took %0.1f seconds' % (time.time() - tt0))
 
 elif planB == True:
     print('**** Using planB ****')
@@ -209,29 +217,30 @@ result_dict['end_time'] = end_time.strftime(time_format)
 dt_sec = (end_time - start_time).seconds
 result_dict['total_seconds'] = str(dt_sec)
 
-if testing == False:
-    nc_dir = Ldir['LOogf_f']
-    if do_bio and (planB==False):
-        G = zrfun.get_basic_info(Ldir['grid'] + 'grid.nc', only_G=True)
-        Ofun_bio.add_bio(nc_dir, G, add_CTD=add_CTD)
-    Ofun_nc.make_ini_file(nc_dir)
-    Ofun_nc.make_bry_file(nc_dir)
-    ds = nc.Dataset(nc_dir + 'ocean_clm.nc')
-    ot = ds['ocean_time'][:]
-    ds.close()
-    dt0 = Lfun.modtime_to_datetime(ot[0])
-    dt1 = Lfun.modtime_to_datetime(ot[-1])
-    result_dict['var_start_time'] = dt0.strftime(time_format)
-    result_dict['var_end_time'] = dt1.strftime(time_format)
-    nc_list = ['ocean_clm.nc', 'ocean_ini.nc', 'ocean_bry.nc']
-    result_dict['result'] = 'success'
-    for fn in nc_list:
-        if os.path.isfile(nc_dir + fn):
-            pass
-        else:
-           result_dict['result'] = 'fail'
-else:
-    result_dict['result'] = 'testing'
+nc_dir = Ldir['LOogf_f']
+if do_bio and (planB==False):
+    tt0 = time.time()
+    G = zrfun.get_basic_info(Ldir['grid'] + 'grid.nc', only_G=True)
+    Ofun_bio.add_bio(nc_dir, G, add_CTD=add_CTD)
+    print(' --add bio took %0.1f seconds' % (time.time() - tt0))
+tt0 = time.time()
+Ofun_nc.make_ini_file(nc_dir)
+Ofun_nc.make_bry_file(nc_dir)
+print(' --write ocean_ini and _bry.nc took %0.1f seconds' % (time.time() - tt0))
+ds = nc.Dataset(nc_dir + 'ocean_clm.nc')
+ot = ds['ocean_time'][:]
+ds.close()
+dt0 = Lfun.modtime_to_datetime(ot[0])
+dt1 = Lfun.modtime_to_datetime(ot[-1])
+result_dict['var_start_time'] = dt0.strftime(time_format)
+result_dict['var_end_time'] = dt1.strftime(time_format)
+nc_list = ['ocean_clm.nc', 'ocean_ini.nc', 'ocean_bry.nc']
+result_dict['result'] = 'success'
+for fn in nc_list:
+    if os.path.isfile(nc_dir + fn):
+        pass
+    else:
+       result_dict['result'] = 'fail'
 
 #%% ************** END CASE-SPECIFIC CODE *****************
 

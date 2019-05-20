@@ -262,7 +262,7 @@ def convert_extraction(fn, iit):
     ds.close()
     
     return out_dict # the keys of this dictionary are separate variables
-                    
+
 def time_filter(in_dir, h_list, out_dir, Ldir):
     """
     Filter the files that ended up in data_dir
@@ -396,7 +396,7 @@ def extrap_nearest_to_masked(X, Y, fld, fld0=0):
         fldd = fldf.data
         checknan(fldd)
         return fldd
-            
+
 def get_extrapolated(in_fn, L, M, N, X, Y, lon, lat, z, Ldir, add_CTD=False):
     b = pickle.load(open(in_fn, 'rb'))
     vn_list = list(b.keys())    
@@ -515,10 +515,13 @@ def get_zr(G, S, vn):
     return zr
 
 def get_interpolated(G, S, b, lon, lat, z, N):
+    # OBSOLETE (and slow!)
+    
     # start input dict
     c = dict()
     # 2D fields
     for vn in ['ssh', 'ubar', 'vbar']:
+        tt0 = time.time()
         xr, yr = get_xyr(G, vn)
         Mr, Lr = xr.shape
         u = b[vn]
@@ -528,8 +531,11 @@ def get_interpolated(G, S, b, lon, lat, z, N):
             print('Warning: nans in output array for ' + vn)
         else:
             c[vn] = uu
+        print(' --' + vn + ' xy interpolation took %0.1f seconds' % (time.time() - tt0))
+        
     # 3D fields
     for vn in ['theta', 's3d', 'u3d', 'v3d']:
+        tt0 = time.time()
         xr, yr = get_xyr(G, vn)
         zr = get_zr(G, S, vn)
         Nr, Mr, Lr = zr.shape
@@ -546,6 +552,9 @@ def get_interpolated(G, S, b, lon, lat, z, N):
         u11 = v[:,yi1,xi1]
         vi = (1-yf)*((1-xf)*u00 + xf*u01) + yf*((1-xf)*u10 + xf*u11)
         vi = vi.reshape((N, Mr, Lr))
+        print(' --' + vn + ' xy interpolation took %0.1f seconds' % (time.time() - tt0))
+        
+        tt0 = time.time()
         # make interpolants to go from the HyCOM vertical grid to the
         # ROMS vertical grid
         I0, I1, FR = zfun.get_interpolant(zr, z, extrap_nan=True)
@@ -561,5 +570,109 @@ def get_interpolated(G, S, b, lon, lat, z, N):
             print('Warning: nans in output array for ' + vn)
         else:
             c[vn] = vv
+        print(' --' + vn + ' z interpolation took %0.1f seconds' % (time.time() - tt0))
     return c
+
+def get_zinds(h, S, z):
+    # Precalculate the array of indices to go from HYCOM z to ROMS z.
+    # This just finds the vertical index in HYCOM z for each ROMS z_rho
+    # value in the whole 3D array, with the index being the UPPER one of
+    # the two HYCOM z indices that any ROMS z falls between.
+    tt0 = time.time()
+    zr = zrfun.get_z(h, 0*h, S, only_rho=True)
+    zrf = zr.flatten()
+    zinds = np.nan * np.ones_like(zrf)
+    if isinstance(z, np.ma.MaskedArray):
+        z = z.data
+    for ii in range(len(z)-1):
+        zlo = z[ii]; zhi = z[ii+1]
+        mask = (zrf>zlo) & (zrf<=zhi)
+        zinds[mask] = ii+1 # this is where the UPPER index is enforced
+    zinds = zinds.astype(int)
+    if isinstance(zinds, np.ma.MaskedArray):
+        zinds = zinds.data
+    print(' --create zinds array took %0.1f seconds' % (time.time() - tt0))
+    return zinds
+
+def get_interpolated_alt(G, S, b, lon, lat, z, N, zinds):
+    # This does the horizontal and vertical interpolation to get from
+    # extrapolated, filtered HYCOM fields to ROMS fields.
+    #
+    # We use fast nearest neighbor interpolation as much as possible.
+    # Also we interpolate everything to the ROMS rho grid, and then crudely
+    # interpolate to the u and v grids at the last moment.  Much simpler.
+    
+    # start input dict
+    c = {}
+    
+    # precalculate useful arrays that are used for horizontal interpolation
+    tt0 = time.time()
+    if isinstance(lon, np.ma.MaskedArray):
+        lon = lon.data
+    if isinstance(lat, np.ma.MaskedArray):
+        lat = lat.data
+    Lon, Lat = np.meshgrid(lon,lat)
+    XYin = np.array((Lon.flatten(), Lat.flatten())).T
+    XYr = np.array((G['lon_rho'].flatten(), G['lat_rho'].flatten())).T
+    h = G['h']
+    IMr = cKDTree(XYin).query(XYr)[1]
+    print(' --create IMr tree took %0.1f seconds' % (time.time() - tt0))
+    
+    # 2D fields
+    tt0 = time.time()
+    for vn in ['ssh', 'ubar', 'vbar']:
+        vv = b[vn].flatten()[IMr].reshape(h.shape)
+        if vn == 'ubar':
+            vv = (vv[:,:-1] + vv[:,1:])/2
+        elif vn == 'vbar':
+            vv = (vv[:-1,:] + vv[1:,:])/2
+        vvc = vv.copy()
+        # always a good idea to make sure dict entries are not just pointers
+        # to arrays that might be changed later, hent the .copy()
+        c[vn] = vvc
+        checknan(vvc)
+    print(' --2d var xy interpolation took %0.1f seconds' % (time.time() - tt0))
+        
+    # 3D fields
+    verbose = False
+    # create intermediate arrays which are on the ROMS lon_rho, lat_rho grid
+    # but have the HYCOM vertical grid (N layers)
+    F = np.nan * np.ones(((N,) + h.shape))
+    vi_dict = {}
+    for vn in ['theta', 's3d', 'u3d', 'v3d']:
+        tt0 = time.time()
+        FF = F.copy()
+        for nn in range(N):
+            vin = b[vn][nn,:,:].flatten()
+            FF[nn,:,:] = vin[IMr].reshape(h.shape)
+        if verbose:
+            print('==== FF for ' + vn)
+            print(FF[:,10,10])
+        checknan(FF)
+        vi_dict[vn] = FF
+    print(' --3d var xy interpolation took %0.1f seconds' % (time.time() - tt0))
+    
+    # do the vertical interpolation from HYCOM to ROMS z positions
+    for vn in ['theta', 's3d', 'u3d', 'v3d']:
+        tt0 = time.time()
+        vi = vi_dict[vn]
+        if verbose:
+            print('==== vi for ' + vn)
+            print(vi[:,10,10])
+        hinds = np.indices((S['N'], G['M'], G['L']))
+        vvf = vi[zinds, hinds[1].flatten(), hinds[2].flatten()]
+        vv = vvf.reshape((S['N'], G['M'], G['L']))
+        vvc = vv.copy()
+        if verbose:
+            print('==== vvc for ' + vn)
+            print(vvc[:,10,10])
+        if vn == 'u3d':
+            vvc = (vvc[:,:,:-1] + vvc[:,:,1:])/2
+        elif vn == 'v3d':
+            vvc = (vvc[:,:-1,:] + vvc[:,1:,:])/2
+        checknan(vvc)
+        c[vn] = vvc
+        print(' --' + vn + ' z interpolation took %0.1f seconds' % (time.time() - tt0))
+    return c
+
 

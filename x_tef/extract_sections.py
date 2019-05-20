@@ -69,7 +69,7 @@ if args.sect_name == 'all':
     sect_list = [item for item in sect_df.index]
 else: # single item
     if args.sect_name in sect_df.index:
-        sect_list = [my_choice]
+        sect_list = [args.sect_name]
     else:
         print('That section is not available')
         sys.exit()

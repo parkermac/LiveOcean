@@ -82,23 +82,23 @@ def get_sect_df():
     sect_df.loc['ss3',:] = [-122.888, -122.888,   47.142,   47.313, -1]
 
     # Inlets in South Sound
-    sect_df.loc['carr',:] = [-122.769, -122.663,   47.291,   47.291, 1]
-    sect_df.loc['case',:] = [-122.868, -122.788,   47.214,   47.214, 1]
-    sect_df.loc['budd',:] = [-122.934, -122.894,   47.129,   47.129, -1]
-    sect_df.loc['eld',:] = [-122.934, -122.934,   47.133,   47.160, -1]
-    sect_df.loc['tott',:] = [-122.973, -122.934,   47.174,   47.174, -1]
+    # sect_df.loc['carr',:] = [-122.769, -122.663,   47.291,   47.291, 1]
+    # sect_df.loc['case',:] = [-122.868, -122.788,   47.214,   47.214, 1]
+    # sect_df.loc['budd',:] = [-122.934, -122.894,   47.129,   47.129, -1]
+    # sect_df.loc['eld',:] = [-122.934, -122.934,   47.133,   47.160, -1]
+    # sect_df.loc['tott',:] = [-122.973, -122.934,   47.174,   47.174, -1]
     #sect_df.loc['oak',:] = [-122.960, -122.960,   47.187,   47.214, -1]
 
     # Channel in South Sound
     sect_df.loc['pick',:] = [-122.947, -122.907,   47.264,   47.264, 1]
 
     # Coastal estuary sections
-    sect_df.loc['willapa_mouth',:] = [-124.051, -124.051,   46.631,   46.748, 1]
+    # sect_df.loc['willapa_mouth',:] = [-124.051, -124.051,   46.631,   46.748, 1]
     
     # Shelf sections (that do not close on ocean end)
-    sect_df.loc['shelf_45',:] = [-127, -123.733,   45,   45, 1]
-    sect_df.loc['shelf_46',:] = [-127, -123.628,   46,   46, 1]
-    sect_df.loc['shelf_47',:] = [-127, -123.865,   47,   47, 1]
+    # sect_df.loc['shelf_45',:] = [-127, -123.733,   45,   45, 1]
+    # sect_df.loc['shelf_46',:] = [-127, -123.628,   46,   46, 1]
+    # sect_df.loc['shelf_47',:] = [-127, -123.865,   47,   47, 1]
     
     return sect_df
     
@@ -286,8 +286,11 @@ def add_fields(ds, count, vn_list, G, S, sinfo):
         h = ds['h'][jj0:jj1+1,ii0:ii1+1].squeeze()
         zeta = ds['zeta'][0,jj0:jj1+1,ii0:ii1+1].squeeze()
         z = zrfun.get_z(h, zeta, S, only_w=True)
+        print(h)
+        print(zeta)
+        print(z)
         dz = np.diff(z, axis=0)
-        DZ = dz.mean(axis=2)
+        DZ = dz.mean(axis=2) # fails for a channel one point wide 2019.05.20 (oak)
         dd = G['DY'][jj0:jj1+1,ii0:ii1+1].squeeze()
         DD = dd.mean(axis=1)
         zeta = zeta.mean(axis=1)

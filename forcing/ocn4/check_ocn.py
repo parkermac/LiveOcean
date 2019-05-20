@@ -11,8 +11,12 @@ Only set up to work on mac.
 """
 
 gridname='cas6'
-tag='v2'
-date_string = '2016.12.15'
+tag='v3'
+date_string = '2017.04.20'
+
+vn = 'ubar' # roms variable name to plot
+cmap = 'rainbow' # default colormap
+
 
 # setup
 
@@ -82,10 +86,7 @@ def set_box(ax):
     ax.set_xlim(-130.5, -122)
     ax.set_ylim(41.5,52.5)
 
-fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(15,7), squeeze=False)
-
-vn = 'temp' # roms variable name to plot
-cmap = 'rainbow' # default colormap
+fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(18,7), squeeze=False)
 
 if vn == 'salt':
     hvn = 's3d'
