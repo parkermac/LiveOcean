@@ -1,34 +1,35 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Feb  7 16:22:34 2018
-
-@author: pm7
+Code to make cast-like extractions from a LiveOcean run, at times
+and places that match an observational dataset,
+specified by -ds [ecology, woac, ...] and a year.
 """
-
+import os; import sys
+sys.path.append(os.path.abspath('../../LiveOcean/alpha'))
+import Lfun
 import pandas as pd
-
 import cast_fun as cfun
 from importlib import reload
 reload(cfun)
 
-# set defaults
-gridname = 'cas6'
-tag = 'v1'
-ex_name = 'lo8'
-
 testing = False
 
-import os
-import sys
-pth = os.path.abspath('../../LiveOcean/alpha')
-if pth not in sys.path:
-    sys.path.append(pth)
-import Lfun
-Ldir = Lfun.Lstart(gridname, tag)
-Ldir['gtagex'] = Ldir['gtag'] + '_' + ex_name
+# get command line arguments
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument('-g', '--gridname', nargs='?', type=str, default='cas6')
+parser.add_argument('-t', '--tag', nargs='?', type=str, default='v2')
+parser.add_argument('-x', '--ex_name', nargs='?', type=str, default='lo8')
+parser.add_argument('-y', '--year', nargs='?', type=int, default=2017)
+parser.add_argument('-ds', '--data_source', nargs='?', type=str, default='ecology')
+args = parser.parse_args()
 
-data_source = 'ecology'
+year = args.year
+Ldir = Lfun.Lstart(args.gridname, args.tag)
+Ldir['gtagex'] = Ldir['gtag'] + '_' + args.ex_name
+
+data_source = args.data_source
 
 if data_source == 'ecology':
     # +++ load ecology CTD cast data +++
@@ -42,7 +43,6 @@ if data_source == 'ecology':
     # combine
     sta_df = pd.concat((sta_df, sta_df_ca), sort=False)
     # and get cast data
-    year = 2017
     Casts = pd.read_pickle(dir0 + 'Casts_' + str(year) + '.p')
     Casts_ca = pd.read_pickle(dir1 + 'Casts_' + str(year) + '.p')
     #
@@ -52,7 +52,6 @@ elif data_source == 'woac':
     # load processed station info and data
     sta_df = pd.read_pickle(dir0 + 'sta_df.p')
     # and get cast data
-    year = 2017
     Casts = pd.read_pickle(dir0 + 'Casts_' + str(year) + '.p')
     
 # trim the station list as desired
