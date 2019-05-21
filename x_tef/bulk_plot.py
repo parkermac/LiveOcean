@@ -27,6 +27,8 @@ sect_df = tef_fun.get_sect_df()
 from warnings import filterwarnings
 filterwarnings('ignore') # skip some warning messages
 
+year = 2017
+
 # choose input and organize output
 Ldir = Lfun.Lstart()
 indir0 = Ldir['LOo'] + 'tef/'
@@ -75,7 +77,8 @@ for snp in sect_list:
         dt.append(Lfun.modtime_to_datetime(tt))
     td = []
     for tt in dt:
-        ttt = tt- datetime(dt[0].year,1,1)
+        #ttt = tt- datetime(dt[0].year,1,1)
+        ttt = tt - datetime(year,1,1) # hardwire for 2016.12.15 start
         td.append(ttt.days + ttt.seconds/86400)
     td = np.array(td) # time in days from start of the year
     Time = td.reshape((NT,1)) * np.ones((1,NS)) # matrix version
@@ -159,7 +162,7 @@ for snp in sect_list:
     ax.set_xlim(0,366)
     ax.set_ylim(bottom=0)
     ax.grid(True)
-    ax.set_xlabel('Days from 1/1/' + str(dt[0].year))
+    ax.set_xlabel('Days from 1/1/' + str(year))
     ax.set_ylabel('|Q| 1000 m3/s')
     
     # Tidal energy flux vs. Time as second y-axis
@@ -181,7 +184,7 @@ for snp in sect_list:
     ax.plot(td, qnet/1e3, '-c', linewidth=2)
     ax.set_xlim(0,366)
     ax.grid(True)
-    ax.set_xlabel('Days from 1/1/' + str(dt[0].year))
+    ax.set_xlabel('Days from 1/1/' + str(year))
     ax.set_ylabel('Qnet 1000 m3/s')
     
     # Section location map

@@ -4,6 +4,8 @@ It has been substantially recoded from previous versions to use the new hycom FM
 
 For backfill it will use an archive of files of similar format, available from late 2012 to the present, created by the code in hycom2.
 
+2019.05.21 The new method Ofun.get_interpolated_alt() makes extensive use of nearest neighbor interpolation and the results is that the code is substantially faster: 1 min vs. 7 min for a cas6 backfill day.
+
 ===============================================================================
 * make_forcing_main.py is the main driver, similar in basic construction and usage to all the code of the same name in other forcing folders (e.g. riv2, tide1, atm).
 
@@ -42,3 +44,12 @@ Output: a screen plot of map fields for a variable - useful for debugging
 Input: ocean_ini.nc a given [f_string]/ocn4, as well as the grid.nc file from LiveOcean_data/grids.
 
 Output: a screen plot of map fields for a bunch of variables - useful for debugging
+
+===============================================================================
+* compare_ocn4_ocn4old.py makes comparisons of the results of ocn4old and ocn4, for a specific day and grid.  The only difference between the two is that ocn4 uses Ofun.get_interpolated_alt() whereas ocn4old uses Ofun.get_interpolated(), and this difference is implemented around line 184 of make_forcing_main.py.
+
+Input: ocean_ini.nc for a specific [gtag]/[f_string]/ocn4old and /ocn4, as well as the grid.nc file from LiveOcean_data/grids.
+
+Output: a series of screen plots of map fields for all variables, comparing the two calculations.  You can change whether it plots the surface or bottom layer using a switch in the code.
+
+RESULT: the comparisons looked close enough to indicate that the new fast interpolation is working as planned, and so I have gotten rid of ocn4old.
