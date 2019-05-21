@@ -25,10 +25,13 @@ parser.add_argument('-y', '--year', nargs='?', type=int, default=2017)
 parser.add_argument('-ds', '--data_source', nargs='?', type=str, default='ecology')
 args = parser.parse_args()
 
-year = args.year
-Ldir = Lfun.Lstart(args.gridname, args.tag)
-Ldir['gtagex'] = Ldir['gtag'] + '_' + args.ex_name
+gridname = args.gridname
+tag = args.tag
+ex_name = args.ex_name
+Ldir = Lfun.Lstart(gridname, tag)
+Ldir['gtagex'] = Ldir['gtag'] + '_' + ex_name
 
+year = args.year
 data_source = args.data_source
 
 if data_source == 'ecology':
