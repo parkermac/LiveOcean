@@ -123,9 +123,16 @@ def get_wrf_grid(fn):
 # Note: lat, lon are only in the first file of the day (hour zero)
 lon2, lat2, dx2_km = get_wrf_grid(d2_list[0])
 if do_d3:
-    lon3, lat3, dx3_km = get_wrf_grid(d3_list[0])
+    try:
+        lon3, lat3, dx3_km = get_wrf_grid(d3_list[0])
+    except:
+        do_d3 = False
 if do_d4:
-    lon4, lat4, dx4_km = get_wrf_grid(d4_list[0])
+    try:
+        # sometimes there are empty files
+        lon4, lat4, dx4_km = get_wrf_grid(d4_list[0])
+    except:
+        do_d4 = False
     
 # Limit varlist if testing
 if testing == True:
