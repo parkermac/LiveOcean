@@ -119,7 +119,7 @@ for ii = 1:np
         pf = pf*1.21*1.087;
 		phase_shift = -10.0; % deg
 	elseif cons_nb == 'k1'
-         pf = pf*1.21;
+         pf = pf*1.21*1.11;
 		phase_shift = -18.0; % deg
 	elseif cons_nb == 'p1'
         pf = pf*1.21;

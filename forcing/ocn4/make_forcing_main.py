@@ -76,7 +76,7 @@ start_time = datetime.now()
 # defaults
 planB = False
 add_CTD = False
-do_bio = False
+do_bio = True
 
 # *** automate when to set add_CTD to True ***
 this_dt = datetime.strptime(Ldir['date_string'], '%Y.%m.%d')
