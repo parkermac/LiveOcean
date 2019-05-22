@@ -4,6 +4,9 @@ This is the main program for making the ATM forcing file.
 Testing on my mac: need to use this day to find stored files:
 
 run make_forcing_main.py -g cas6 -t v3 -d 2017.04.20
+
+Note: we set rain to zero bacause its units are uncertain and
+we don't currently use it in the simulations.
 """
 
 import os; import sys
@@ -126,7 +129,7 @@ if do_d4:
     
 # Limit varlist if testing
 if testing == True:
-    outvar_list = ['Vwind']
+    outvar_list = ['rain']
     #outvar_list = ['Pair','rain','swrad','lwrad_down','Tair','Qair']
 else:
     outvar_list = afun.outvar_list
@@ -251,8 +254,9 @@ def gather_and_process_fields(fn, imax, ca, sa):
             # convert Pa to mbar
             ov_dict[ovn] = iv_dict['PSFC']/100 
         elif ovn == 'rain':
-            # The 0.1 gets us from mm/sec to cm/sec
-            ov_dict[ovn] = 0.1 * (iv_dict['RAINCV']+iv_dict['RAINNCV'])/3600
+            # set this to zero because (a) we don't really understand the units
+            # and (b) is it not used in the simulations at this point 2019.05.22
+            ov_dict[ovn] = 0 * (iv_dict['RAINCV']+iv_dict['RAINNCV'])
         elif ovn == 'Tair':
             # convert K to C
             ov_dict[ovn] = iv_dict['T2'] - 273.15
