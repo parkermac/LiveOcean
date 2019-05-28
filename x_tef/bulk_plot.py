@@ -58,6 +58,9 @@ outdir = indir0 + 'bulk_plots/'
 Lfun.make_dir(outdir)
             
 #plt.close('all')
+
+sect_list = [item for item in sect_list if item.replace('.p','') in sect_df.index]
+
 for snp in sect_list:
     
     sn = snp.replace('.p','')
@@ -116,7 +119,7 @@ for snp in sect_list:
     QSout = np.nansum(QQm*SS, axis=1)
     Sout = QSout/Qout
     # and find net transport to compare with qnet (should be identical)
-    # Qnet = np.nansum(QQ, axis=1)
+    Qnet = np.nansum(QQ, axis=1)
     # RESULT: it is identical
 
     # PLOTTING
@@ -182,6 +185,7 @@ for snp in sect_list:
     # Volume flux
     ax = fig.add_subplot(3,3,8)
     ax.plot(td, qnet/1e3, '-c', linewidth=2)
+    ax.plot(td, Qnet/1e3, '--r', linewidth=2)
     ax.set_xlim(0,366)
     ax.grid(True)
     ax.set_xlabel('Days from 1/1/' + str(year))

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Code to plot a TEF time series using Marvin Lorenz' new multi-layer code.
+Code to calculate a TEF time series using Marvin Lorenz' new multi-layer code.
 
 Based on his code, and modified by PM.
 """

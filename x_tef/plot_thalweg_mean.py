@@ -14,7 +14,7 @@ alp = os.path.abspath('../alpha')
 if alp not in sys.path:
     sys.path.append(alp)
 import Lfun
-Ldir = Lfun.Lstart('cas4', 'v2')
+Ldir = Lfun.Lstart('cas6', 'v2')
 
 pth = os.path.abspath(Ldir['LO'] + 'plotting')
 if pth not in sys.path:
@@ -26,7 +26,7 @@ if pth not in sys.path:
     sys.path.append(pth)
 import gfun
 import gfun_plotting as gfp
-Gr = gfun.gstart('cas4')
+Gr = gfun.gstart('cas6')
 
 import tef_fun
 from importlib import reload
@@ -39,7 +39,7 @@ sect_df = tef_fun.get_sect_df()
 indir0 = Ldir['LOo'] + 'tef/'
 # choose the tef extraction to plot
 item = Lfun.choose_item(indir0)
-indir = indir0 + item + '/'
+indir = indir0 + item + '/thalweg/'
 
 ThalMean = pickle.load(open(indir + 'ThalMean.p', 'rb'))
 
@@ -58,8 +58,8 @@ def plotit(ax, sect_df, sect_list, lcol):
 plt.close('all')
 lw=2
 fs=16
-distmax = 385
-fig = plt.figure(figsize=(13,8))
+distmax = 420
+fig = plt.figure(figsize=(20,12))
 ax1 = fig.add_subplot(221)
 ax2 = fig.add_subplot(223)
 ax3 = fig.add_subplot(122) # map
@@ -73,27 +73,29 @@ for lstr in lcol_dict.keys():
     sect_list, qin, qout, qsin, qsout, sin, sout, dist = ThalMean[lstr]
     lcol = lcol_dict[lstr]
     ax1.plot(dist,qin,'-o', color=lcol,linewidth=lw, label=lstr)
-    #ax1.plot(dist,-qout,'-', color=lcol,linewidth=lw-1, label=lstr)
-    ax1.set_xlim(0,distmax)
+    ax1.plot(dist,-qout,'-', color=lcol,linewidth=lw-1, label=lstr)
+    ax1.set_xlim(-20,distmax)
     ax1.grid(True)
-    ax1.set_ylabel('$Q_{in}\ (1000\ m^{3}s^{-1})$', fontsize=fs)
+    ax1.set_ylabel('Qin (1000 m3/s)', fontsize=fs)
     ax1.legend()
-    if lstr == 'JdF to South Sound':
+    if True: #lstr == 'JdF to South Sound':
         counter = 0
         for sn in sect_list:
             sn = sn.upper()
             ax1.text(dist[counter], qin[counter]+10, sn, rotation=45, fontsize=8)
             counter += 1
         
-    ax2.fill_between(dist, sout, y2=sin, color=lcol, alpha=.8)
+    #ax2.fill_between(dist, sout, y2=sin, color=lcol, alpha=.8)
+    ax2.plot(dist, sin, color=lcol, linewidth=lw)
+    ax2.plot(dist, sout, color=lcol, linewidth=lw-1)
     ax2.set_xlim(0,distmax)
     ax2.grid(True)
     ax2.set_xlabel('Distance from Mouth (km)', fontsize=fs)
-    ax2.set_ylabel('$S_{in},\ S_{out}\ (psu)$', fontsize=fs)
+    ax2.set_ylabel('Sin, Sout (g/kg)', fontsize=fs)
     #ax2.legend()
     
     if lstr == 'JdF to South Sound':
-        aa = [-125.5, -122, 46.7, 50.3]
+        aa = [-125.5, -122, 46.7, 50.4]
         pfun.add_coast(ax3)
         pfun.dar(ax3)
         ax3.axis(aa)

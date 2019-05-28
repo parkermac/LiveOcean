@@ -32,24 +32,6 @@ indir0 = Ldir['LOo'] + 'tef/'
 item = Lfun.choose_item(indir0)
 indir0 = indir0 + item + '/'
 indir = indir0 + 'bulk/'
-# sect_list_raw = os.listdir(indir)
-# sect_list_raw.sort()
-# sect_list = [item for item in sect_list_raw if ('.p' in item)]
-# print(20*'=' + ' Processed Sections ' + 20*'=')
-# print(*sect_list, sep=", ")
-# print(61*'=')
-# # select which sections to process
-# my_choice = input('-- Input section to plot (e.g. sog5, or Return to plot all): ')
-# if len(my_choice)==0:
-#     # full list
-#     save_fig = True
-# else: # single item
-#     if (my_choice + '.p') in sect_list:
-#         sect_list = [my_choice + '.p']
-#         save_fig = False
-#     else:
-#         print('That section is not available')
-#         sys.exit()
 outdir = indir0 + 'thalweg/'
 Lfun.make_dir(outdir)
 # **************************************************
@@ -65,13 +47,13 @@ for sect_list in [['jdf1','jdf2','jdf3','jdf4', # JdF to South Sound
             'ss1','ss2','ss3'],
         ['jdf1','jdf2','jdf3','jdf4', # Jdf to SoG
             'sji1', 'sji2', 'sog1','sog2',
-            'sog3','sog4'],
+            'sog3','sog4','sog5'],
         ['jdf1','jdf2','jdf3','jdf4', # JdF to HC
             'ai1', 'ai2', 'ai3',
             'hc1','hc2','hc3','hc4','hc5','hc6','hc7','hc8'],
         ['jdf1','jdf2','jdf3','jdf4', # JdF to Whidbey
             'ai1', 'ai2', 'ai3', 'ai4',
-            'wb1','wb2','wb3','wb4']
+            'wb1','wb2','wb3','wb4','dp']
             ]:
 
     NS = len(sect_list)
@@ -80,10 +62,6 @@ for sect_list in [['jdf1','jdf2','jdf3','jdf4', # JdF to South Sound
     qout = np.nan * np.ones(NS)
     qsin = np.nan * np.ones(NS)
     qsout = np.nan * np.ones(NS)
-    qin_abs = np.nan * np.ones(NS)
-    qout_abs = np.nan * np.ones(NS)
-    qsin_abs = np.nan * np.ones(NS)
-    qsout_abs = np.nan * np.ones(NS)
     sin = np.nan * np.ones(NS)
     sout = np.nan * np.ones(NS)
     xs = np.nan * np.ones(NS)
@@ -99,20 +77,40 @@ for sect_list in [['jdf1','jdf2','jdf3','jdf4', # JdF to South Sound
             lat0 = lat        
         xs[counter], ys[counter] = zfun.ll2xy(lon, lat, lon0, lat0)
         fn = indir + sect_name + '.p'
-        # ****** NEW ***************************************************
-        
-        # **************************************************************
-        Qi, Si, Fi, qnet_lp, fnet_lp, td = tef_fun.tef_integrals(fn)        
-        qin[counter] = np.nanmean(Qi[:,0]/1e3)
-        qout[counter] = np.nanmean(Qi[:,1]/1e3)        
-        qsin[counter] = np.nanmean(Fi[:,0]/1e3)
-        qsout[counter] = np.nanmean(Fi[:,1]/1e3)    
-        qin_abs[counter] = np.nanmean(np.abs(Qi[:,0]))
-        qout_abs[counter] = np.nanmean(np.abs(Qi[:,1]))        
-        qsin_abs[counter] = np.nanmean(np.abs(Fi[:,0]))
-        qsout_abs[counter] = np.nanmean(np.abs(Fi[:,1]))    
-        sin[counter] = qsin_abs[counter]/qin_abs[counter]
-        sout[counter] = qsout_abs[counter]/qout_abs[counter]
+        bulk = pickle.load(open(fn, 'rb'))
+        QQ = bulk['QQ']
+        if sect_name == 'dp':
+            QQ = -QQ
+        SS = bulk['SS']
+        # bulk['ot'] = ot
+        # bulk['qnet_lp'] = qnet_lp
+        # bulk['fnet_lp'] = fnet_lp
+        # bulk['ssh_lp'] = ssh_lp
+        QQin = QQ.copy()
+        QQout = QQ.copy()
+        QQin[QQ<=0] = 0
+        QQout[QQ>0] = 0
+        QQSSin = QQin * SS
+        QQSSout = QQout * SS
+        Qin = np.nansum(QQin,axis=1)
+        Qout = np.nansum(QQout,axis=1)
+        QSin = np.nansum(QQSSin,axis=1)
+        QSout = np.nansum(QQSSout,axis=1)
+        qin[counter] = np.nanmean(Qin)
+        qout[counter] = np.nanmean(Qout)
+        qsin[counter] = np.nanmean(QSin)
+        qsout[counter] = np.nanmean(QSout)
+        sin[counter] = qsin[counter]/qin[counter]
+        sout[counter] = qsout[counter]/qout[counter]
+        # reorganize when we got the direction wrong
+        if sin[counter] < sout[counter]:
+            qin[counter], qout[counter] = (qout[counter], qin[counter])
+            qsin[counter], qsout[counter] = (qsout[counter], qsin[counter])
+            sin[counter], sout[counter] = (sout[counter], sin[counter])
+        else:
+            pass
+            
+            
         counter += 1
     # create a distance vector
     dx = np.diff(xs)
@@ -135,6 +133,6 @@ for sect_list in [['jdf1','jdf2','jdf3','jdf4', # JdF to South Sound
     cc += 1
 
 # save results for plotting
-pickle.dump(ThalMean, open(indir + 'ThalMean.p', 'wb'))
+pickle.dump(ThalMean, open(outdir + 'ThalMean.p', 'wb'))
 
 

@@ -102,7 +102,7 @@ hourhi = dayhi*24
 qq = q[hourlo:hourhi,:,:].mean(axis=0)
 ss = salt[hourlo:hourhi,:,:].mean(axis=0)
 
-plt.close('all')
+#plt.close('all')
 fsz=14
 
 # PLOT: Eulerian section means and Map

@@ -79,8 +79,6 @@ for tef_file in sect_list:
     sedges = np.linspace(0, 36, 1001) # original was 1001 used 5001 for Willapa
     sbins = sedges[:-1] + np.diff(sedges)/2
     NS = len(sbins) # number of salinity bins
-    tef_q = np.zeros((NT, NS))
-    tef_qs = np.zeros((NT, NS))
 
     # TEF variables
     tef_q = np.zeros((NT, NS))
@@ -97,26 +95,30 @@ for tef_file in sect_list:
         if np.mod(tt,100) == 0:
             print('  time %d out of %d' % (tt,NT))
             sys.stdout.flush()
+            
         si = s[tt,:,:].squeeze()
-        try:
-            sf = si[si.mask==False] # flattens the array
-        except AttributeError:
+        if isinstance(si, np.ma.MaskedArray):
+            sf = si[si.mask==False].data.flatten()
+        else:
             sf = si.flatten()
+            
         qi = q[tt,:,:].squeeze()
-        try:
-            qf = qi[qi.mask==False] # flattens the array
-        except AttributeError:
+        if isinstance(qi, np.ma.MaskedArray):
+            qf = qi[qi.mask==False].data.flatten()
+        else:
             qf = qi.flatten()
+            
         qsi = qs[tt,:,:].squeeze()
-        try:
-            qsf = qsi[qsi.mask==False] # flattens the array
-        except AttributeError:
+        if isinstance(qsi, np.ma.MaskedArray):
+            qsf = qsi[si.mask==False].data.flatten()
+        else:
             qsf = qsi.flatten()
+            
         # sort into salinity bins
         inds = np.digitize(sf, sedges, right=True)
-        inds[inds>NS] = NS # catching an addo Willaa error
+        indsf = inds.copy().flatten()
         counter = 0
-        for ii in inds:
+        for ii in indsf:
             tef_q[tt, ii-1] += qf[counter]
             tef_qs[tt, ii-1] += qsf[counter]
             counter += 1
