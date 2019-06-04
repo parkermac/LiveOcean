@@ -93,7 +93,7 @@ ds.close()
 
 #%% plotting
 
-plt.close('all')
+#plt.close('all')
 
 NP = len(list_to_plot)
 NR, NC = zfun.get_rc(NP)

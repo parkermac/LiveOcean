@@ -64,42 +64,41 @@ ax1 = fig.add_subplot(221)
 ax2 = fig.add_subplot(223)
 ax3 = fig.add_subplot(122) # map
 
-lcol_dict = {'JdF to Strait of Georgia': 'olive',
-                'JdF to Hood Canal': 'blue',
-                'JdF to Whidbey Basin': 'gold',
-                'JdF to South Sound': 'red'}
+lcol_dict = dict(zip(list(ThalMean.keys()), ['olive', 'blue', 'gold', 'red']))
 
-for lstr in lcol_dict.keys():
-    sect_list, qin, qout, qsin, qsout, sin, sout, dist = ThalMean[lstr]
-    lcol = lcol_dict[lstr]
-    ax1.plot(dist,qin,'-o', color=lcol,linewidth=lw, label=lstr)
-    ax1.plot(dist,-qout,'-', color=lcol,linewidth=lw-1, label=lstr)
+do_plot_extras = True
+for ch_str in lcol_dict.keys():
+    sect_list, q2, q1, qs2, qs1, s2, s1, dist = ThalMean[ch_str]
+    lcol = lcol_dict[ch_str]
+    ax1.plot(dist,q2,'-o', color=lcol,linewidth=lw, label=ch_str)
+    ax1.plot(dist,-q1,'-', color=lcol,linewidth=lw-1, label=ch_str)
     ax1.set_xlim(-20,distmax)
     ax1.grid(True)
-    ax1.set_ylabel('Qin (1000 m3/s)', fontsize=fs)
+    ax1.set_ylabel('Q1 (thick), Q2 (1000 m3/s)', fontsize=fs)
     ax1.legend()
-    if True: #lstr == 'JdF to South Sound':
-        counter = 0
-        for sn in sect_list:
-            sn = sn.upper()
-            ax1.text(dist[counter], qin[counter]+10, sn, rotation=45, fontsize=8)
-            counter += 1
+
+    counter = 0
+    for sn in sect_list:
+        sn = sn.upper()
+        ax1.text(dist[counter], q2[counter]+10, sn, rotation=45, fontsize=8)
+        counter += 1
         
-    #ax2.fill_between(dist, sout, y2=sin, color=lcol, alpha=.8)
-    ax2.plot(dist, sin, color=lcol, linewidth=lw)
-    ax2.plot(dist, sout, color=lcol, linewidth=lw-1)
+    #ax2.fill_between(dist, s1, y2=s2, color=lcol, alpha=.8)
+    ax2.plot(dist, s2, color=lcol, linewidth=lw)
+    ax2.plot(dist, s1, color=lcol, linewidth=lw-1)
     ax2.set_xlim(0,distmax)
     ax2.grid(True)
     ax2.set_xlabel('Distance from Mouth (km)', fontsize=fs)
-    ax2.set_ylabel('Sin, Sout (g/kg)', fontsize=fs)
+    ax2.set_ylabel('S1 (thick), S2 (g/kg)', fontsize=fs)
     #ax2.legend()
     
-    if lstr == 'JdF to South Sound':
+    if do_plot_extras:
         aa = [-125.5, -122, 46.7, 50.4]
         pfun.add_coast(ax3)
         pfun.dar(ax3)
         ax3.axis(aa)
         ax3.grid(True)
+        di_plot_extras = False
         
     plotit(ax3, sect_df, sect_list, lcol)
 

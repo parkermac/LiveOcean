@@ -249,8 +249,13 @@ def gather_and_process_fields(fn, imax, ca, sa):
     ds = nc.Dataset(fn)
     iv_dict = dict()
     for ivn in afun.invar_list:
-        # we trim fields to match the trimmed coordinate arrays
-        iv_dict[ivn] = ds[ivn][0,:,:imax].squeeze()
+        try:
+            # we trim fields to match the trimmed coordinate arrays
+            iv_dict[ivn] = ds[ivn][0,:,:imax].squeeze()
+        except:
+            print('DEBUGGING')
+            print(fn)
+            print('ivn=%s imax=%d' % (ivn, imax))
     ds.close()
     # then convert to ROMS units/properties, still on the WRF grid
     # invar_list = ['Q2', 'T2', 'PSFC', 'U10', 'V10','RAINCV', 'RAINNCV', 'SWDOWN', 'GLW']
