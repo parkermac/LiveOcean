@@ -34,7 +34,7 @@ Ldir['gtagex'] = Ldir['gtag'] + '_' + ex_name
 year = args.year
 data_source = args.data_source
 
-if data_source == 'ecology':
+if data_source == 'ecology_canada':
     # +++ load ecology CTD cast data +++
     dir0 = Ldir['parent'] + 'ptools_data/ecology/'
     # load processed station info and data
@@ -50,6 +50,13 @@ if data_source == 'ecology':
     Casts_ca = pd.read_pickle(dir1 + 'Casts_' + str(year) + '.p')
     #
     Casts = pd.concat((Casts, Casts_ca), sort=False)
+if data_source == 'ecology':
+    # +++ load ecology CTD cast data +++
+    dir0 = Ldir['parent'] + 'ptools_data/ecology/'
+    # load processed station info and data
+    sta_df = pd.read_pickle(dir0 + 'sta_df.p')
+    # and get cast data
+    Casts = pd.read_pickle(dir0 + 'Casts_' + str(year) + '.p')
 elif data_source == 'woac':
     dir0 = Ldir['parent'] + 'ptools_data/' + data_source + '/'
     # load processed station info and data
@@ -60,7 +67,7 @@ elif data_source == 'woac':
 # trim the station list as desired
 sta_list = [sta for sta in sta_df.index]# if 'SOG' in sta]
 
-if data_source == 'ecology':
+if 'ecology' in data_source:
     for station in sta_list:
         casts = Casts[Casts['Station'] == station]
         casts = casts.set_index('Date')

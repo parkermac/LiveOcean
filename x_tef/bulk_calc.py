@@ -80,7 +80,7 @@ for snp in sect_list:
         pad = 36
     else:
         # nday Hanning window
-        nday = 5
+        nday = 120
         nfilt = nday*24
         tef_q_lp = zfun.filt_hanning_mat(tef_q, n=nfilt)
         tef_qs_lp = zfun.filt_hanning_mat(tef_qs, n=nfilt)

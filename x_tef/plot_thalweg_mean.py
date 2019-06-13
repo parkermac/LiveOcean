@@ -14,7 +14,7 @@ alp = os.path.abspath('../alpha')
 if alp not in sys.path:
     sys.path.append(alp)
 import Lfun
-Ldir = Lfun.Lstart('cas6', 'v2')
+Ldir = Lfun.Lstart('cas6', 'v3')
 
 pth = os.path.abspath(Ldir['LO'] + 'plotting')
 if pth not in sys.path:
