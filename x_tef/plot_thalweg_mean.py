@@ -1,5 +1,10 @@
 """
 Plot the mean of many TEF extractions on a thalweg section.
+
+q2, s2 = upper layer
+
+q1, s1 = lower layer (as determined by higher salinity)
+
 """
 
 # imports
@@ -7,6 +12,7 @@ import matplotlib.pyplot as plt
 import pickle
 import netCDF4 as nc
 import pandas as pd
+import numpy as np
 
 import os
 import sys
@@ -43,15 +49,35 @@ indir = indir0 + item + '/thalweg/'
 
 ThalMean = pickle.load(open(indir + 'ThalMean.p', 'rb'))
 
-def plotit(ax, sect_df, sect_list, lcol):
+def plotit(ax, sect_df, sect_list, lcol, qsign):
+    counter = 0
     for sn in sect_list:
-        x0 = sect_df.loc[sn,'x0']
-        x1 = sect_df.loc[sn,'x1']
-        y0 = sect_df.loc[sn,'y0']
-        y1 = sect_df.loc[sn,'y1']
+        # some information about direction
+        x0, x1, y0, y1, landward = sect_df.loc[sn,:]
+        ax.plot([x0,x1], [y0,y1], '-', color=lcol, linewidth=3)
+        
         xx = (x0+x1)/2
         yy = (y0+y1)/2
-        ax.plot([x0,x1], [y0,y1], '-', color=lcol, linewidth=3)
+        
+        # add a mark showing which direction is positive (landward)
+        dd = qsign[counter] * np.sqrt((x1-x0)**2 + (y1-y0)**2) / 5
+        if (x0==x1) and (y0!=y1):
+            sdir = 'NS'
+            if landward == 1:
+                ax.plot([xx, xx+dd], [yy, yy], '-', color=lcol, linewidth=3)
+                dir_str = 'Eastward'
+            elif landward == -1:
+                ax.plot([xx, xx-dd], [yy, yy], '-', color=lcol, linewidth=3)
+                dir_str = 'Westward'
+        elif (x0!=x1) and (y0==y1):
+            sdir = 'EW'
+            if landward == 1:
+                ax.plot([xx, xx], [yy, yy+dd], '-', color=lcol, linewidth=3)
+                dir_str = 'Northward'
+            elif landward == -1:
+                ax.plot([xx, xx], [yy, yy-dd], '-', color=lcol, linewidth=3)
+                dir_str = 'Southward'
+        counter += 1
 
 # plotting
 
@@ -68,10 +94,14 @@ lcol_dict = dict(zip(list(ThalMean.keys()), ['olive', 'blue', 'gold', 'red']))
 
 do_plot_extras = True
 for ch_str in lcol_dict.keys():
-    sect_list, q2, q1, qs2, qs1, s2, s1, dist = ThalMean[ch_str]
+    sect_list, q1, q2, qs1, qs2, s1, s2, dist = ThalMean[ch_str]
+    
+    # get the sign of q1
+    qsign = np.sign(q1)
+    
     lcol = lcol_dict[ch_str]
-    ax1.plot(dist,q2,'-o', color=lcol,linewidth=lw, label=ch_str)
-    ax1.plot(dist,-q1,'-', color=lcol,linewidth=lw-1, label=ch_str)
+    ax1.plot(dist,np.abs(q1),'-o', color=lcol,linewidth=lw, label=ch_str)
+    ax1.plot(dist,np.abs(q2),'-', color=lcol,linewidth=lw-1, label=ch_str)
     ax1.set_xlim(-20,distmax)
     ax1.grid(True)
     ax1.set_ylabel('Q1 (thick), Q2 (1000 m3/s)', fontsize=fs)
@@ -80,12 +110,12 @@ for ch_str in lcol_dict.keys():
     counter = 0
     for sn in sect_list:
         sn = sn.upper()
-        ax1.text(dist[counter], q2[counter]+10, sn, rotation=45, fontsize=8)
+        ax1.text(dist[counter], np.abs(q1[counter]), sn, rotation=45, fontsize=8)
         counter += 1
         
     #ax2.fill_between(dist, s1, y2=s2, color=lcol, alpha=.8)
-    ax2.plot(dist, s2, color=lcol, linewidth=lw)
-    ax2.plot(dist, s1, color=lcol, linewidth=lw-1)
+    ax2.plot(dist, s1, color=lcol, linewidth=lw)
+    ax2.plot(dist, s2, color=lcol, linewidth=lw-1)
     ax2.set_xlim(0,distmax)
     ax2.grid(True)
     ax2.set_xlabel('Distance from Mouth (km)', fontsize=fs)
@@ -98,12 +128,19 @@ for ch_str in lcol_dict.keys():
         pfun.dar(ax3)
         ax3.axis(aa)
         ax3.grid(True)
-        di_plot_extras = False
         
-    plotit(ax3, sect_df, sect_list, lcol)
+        for sn in sect_df.index:
+            x0, x1, y0, y1, landward = sect_df.loc[sn,:]
+            xx = (x0+x1)/2
+            yy = (y0+y1)/2
+            ax3.text(xx,yy, sn, rotation=45, fontsize=8)
+        
+            ax3.set_title('Section Locations, and direction of Q1 (deep inflow)')
+        do_plot_extras = False
+        
+    plotit(ax3, sect_df, sect_list, lcol, qsign)
 
 # add rivers
-#%% get river info
 ri_fn = Gr['ri_dir'] + 'river_info.csv'
 df = pd.read_csv(ri_fn, index_col='rname')
 for rn in df.index:

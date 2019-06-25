@@ -48,8 +48,7 @@ channel_dict = {'JdF to South Sound':['jdf1','jdf2','jdf3','jdf4',
                 'tn1','tn2','tn3',
                 'ss1','ss2','ss3'],
             'JdF to Strait of Georgia':['jdf1','jdf2','jdf3','jdf4',
-                'sji1', 'sji2', 'sog1','sog2',
-                'sog3','sog4','sog5'],
+                'sji1', 'sji2', 'sog1','sog2','sog3','sog4','sog5'],
             'JdF to Hood Canal':['jdf1','jdf2','jdf3','jdf4',
                 'ai1', 'ai2', 'ai3',
                 'hc1','hc2','hc3','hc4','hc5','hc6','hc7','hc8'],
@@ -102,9 +101,9 @@ for ch_str in channel_dict.keys():
         SS = bulk['SS']
         QQ1 = QQ.copy()
         QQ2 = QQ.copy()
-        #1tially we assume that the positive flux is the deeper (#1) layer
-        QQ1[QQ<=0] = 0
-        QQ2[QQ>0] = 0
+        # initially we assume that the positive flux is the deeper (#1) layer
+        QQ1[QQ<=0] = np.nan
+        QQ2[QQ>0] = np.nan
         QQSS1 = QQ1 * SS
         QQSS2 = QQ2 * SS
         # here the nansum() is over all layers of a given sign from bulk_calc.py
@@ -113,6 +112,7 @@ for ch_str in channel_dict.keys():
         QS1 = np.nansum(QQSS1,axis=1)
         QS2 = np.nansum(QQSS2,axis=1)
         # here the nanmean() is averaging over all days
+        # and the counter corresponds to which section this is on a channel
         q1[counter] = np.nanmean(Q1)
         q2[counter] = np.nanmean(Q2)
         qs1[counter] = np.nanmean(QS1)
@@ -121,6 +121,7 @@ for ch_str in channel_dict.keys():
         s2[counter] = qs2[counter]/q2[counter]
         # renumber when we got the direction wrong
         if s1[counter] < s2[counter]:
+            print('   -- renumbering ---')
             # this cute trick with tuple unpacking reverses names 2,1 => 1,2
             q1[counter], q2[counter] = (q2[counter], q1[counter])
             qs1[counter], qs2[counter] = (qs2[counter], qs1[counter])
