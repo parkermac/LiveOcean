@@ -59,6 +59,8 @@ NR = rn.shape[1]
 riv_name_list = []
 for ii in range(NR):
     a = rn[:,ii]
+    if isinstance(a, np.ma.MaskedArray):
+        a = a.data
     r = []
     for l in a:
         r.append(l.decode())
