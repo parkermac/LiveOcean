@@ -748,7 +748,7 @@ def P_willapa_omega(in_dict):
         plt.show()
 
 def P_willapa_oa2(in_dict):
-    # lige P_willapa_oa but for surface
+    # like P_willapa_oa but for surface
 
     # START
     fig = plt.figure(figsize=(12,9))

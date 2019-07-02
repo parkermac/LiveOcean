@@ -66,7 +66,8 @@ def get_data(this_dt, fn_out, nd_f):
     print('- dt1 = ' + dstr1)
     
     # specify spatial limits
-    aa = hfun.get_extraction_limits()
+    aa = hfun.aa
+    #aa = hfun.get_extraction_limits()
     north = aa[3]
     south = aa[2]
     west = aa[0] + 360
