@@ -2190,13 +2190,8 @@ def P_tracks_MERHAB(in_dict):
     if in_dict['auto_vlims']:
         pinfo.vlims_dict[vn] = ()
     tstr = 'Surface ' + pinfo.tstr_dict[vn]
-    if gtx_list[0]=='cas4':
-        mask_sal=False
-    else:
-        mask_sal=True
     cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict,
-            cmap=pinfo.cmap_dict[vn], fac=pinfo.fac_dict[vn],
-            do_mask_salish=mask_sal)
+            cmap=pinfo.cmap_dict[vn], fac=pinfo.fac_dict[vn])
     fig.colorbar(cs)
     pfun.add_bathy_contours(ax, ds, txt=False)
     pfun.add_coast(ax)
