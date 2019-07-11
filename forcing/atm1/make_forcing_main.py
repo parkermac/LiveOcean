@@ -319,8 +319,10 @@ for fn2, fn3, fn4 in dall_list:
     # if we are missing a d3 or d4 file then we don't do ANY of
     # that resolution after that
     if not os.path.isfile(fn3):
+        print(' - missing ' + fn3)
         do_d3 = False
     if not os.path.isfile(fn4):
+        print(' - missing ' + fn4)
         do_d4 = False
     
     tt0 = time.time()
@@ -335,6 +337,7 @@ for fn2, fn3, fn4 in dall_list:
             ovi3_dict = interp_to_roms_alt(ov3_dict, outvar_list, IM3)
             print(' - d3: gather, process, and interp took %0.1f seconds' % (time.time() - tt0))
         except:
+            print(' - could not process ' + fn3)
             do_d3 = False
     
     if do_d4:
@@ -344,6 +347,7 @@ for fn2, fn3, fn4 in dall_list:
             ovi4_dict = interp_to_roms_alt(ov4_dict, outvar_list, IM4)
             print(' - d4: gather, process, and interp took %0.1f seconds' % (time.time() - tt0))
         except:
+            print(' - could not process ' + fn4)
             do_d4 = False
     
     tt0 = time.time()
