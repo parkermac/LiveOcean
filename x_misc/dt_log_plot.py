@@ -30,7 +30,7 @@ fn = indir + log_file
 
 df = pd.read_csv(fn,parse_dates=True,index_col='Date')
 
-plt.close('all')
+#plt.close('all')
 
 df.plot(title=log_file.strip('.txt'))
 

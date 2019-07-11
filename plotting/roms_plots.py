@@ -399,6 +399,55 @@ def P_basic_salish(in_dict):
     else:
         plt.show()
         
+def P_basic_sji(in_dict):
+    # focus on the San Juan Islands
+    
+    # START
+    fig = plt.figure(figsize=(12,8))
+    ds = nc.Dataset(in_dict['fn'])
+
+    # PLOT CODE
+    vn_list = ['salt', 'temp']
+    #aa = [-123.3, -122.5, 48.1, 48.9]
+    aa = [-123.3, -122.65, 48.3, 48.8]
+    ii = 1
+    for vn in vn_list:
+        if in_dict['auto_vlims']:
+            pinfo.vlims_dict[vn] = ()
+        ax = fig.add_subplot(1, len(vn_list), ii)
+        cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict,
+                cmap=pinfo.cmap_dict[vn], aa=aa)
+        # Inset colorbar
+        # from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+        # cbaxes = inset_axes(ax, width="4%", height="40%", loc='upper left', borderpad=3)
+        # cb = fig.colorbar(cs, cax=cbaxes, orientation='vertical')
+        # cb.ax.tick_params(labelsize=fs1-2)
+        fig.colorbar(cs, orientation='horizontal')
+        pfun.add_coast(ax)
+        ax.axis(aa)
+        pfun.dar(ax)
+        ax.set_title('Surface %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
+        ax.set_xlabel('Longitude')
+        if ii == 1:
+            ax.set_ylabel('Latitude')
+            pfun.add_info(ax, in_dict['fn'])
+            pfun.add_windstress_flower(ax, ds, t_scl=2,
+                t_leglen=0.1, center=(.25, .3))
+        elif ii == 2:
+            pfun.add_velocity_vectors(ax, ds, in_dict['fn'],
+                v_scl=60, v_leglen=1, nngrid=60, center=(.1, .1))
+            ax.set_yticklabels([])
+        ii += 1
+    #fig.tight_layout()
+    
+    # FINISH
+    ds.close()
+    if len(in_dict['fn_out']) > 0:
+        plt.savefig(in_dict['fn_out'])
+        plt.close()
+    else:
+        plt.show()
+        
 def P_basic_colvos(in_dict):
 
     # START

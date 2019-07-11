@@ -5,7 +5,7 @@ Testing on my mac: need to use this day to find stored files:
 
 run make_forcing_main.py -g cas6 -t v3 -d 2017.04.20
 
-Note: we set rain to zero bacause its units are uncertain and
+Note: we set rain to zero because its units are uncertain and
 we don't currently use it in the simulations.
 """
 
@@ -74,16 +74,18 @@ d2i_dict = {}
 for i, v in enumerate(d2_list):
     d2i_dict[v] = i
         
-# check for existence, and if any are missing don't use that grid
+# check for existence, and if any d2 are missing then exit
 for fn in d2_list:
     if not os.path.isfile(fn):
         print('** Missing file: ' + fn)
         sys.exit() # this would be the place to invoke a Plan B
-for fn in d3_list:
+# for d3 and d4 just make sure we have the first one,
+# so that we can get the grid
+for fn in [d3_list[0]]:
     if not os.path.isfile(fn):
         print('** Missing file: ' + fn)
         do_d3 = False
-for fn in d4_list:
+for fn in [d4_list[0]]:
     if not os.path.isfile(fn):
         print('** Missing file: ' + fn)
         do_d4 = False
@@ -284,8 +286,6 @@ def gather_and_process_fields(fn, imax, ca, sa):
             ov_dict[ovn] = ca*iv_dict['V10'] - sa*iv_dict['U10']
     return ov_dict
     
-
-
 def interp_to_roms(ov_dict, outvar_list, XYn):
     # Interpolate to the ROMS grid, using nearest neighbor (about twice as fast as linear?)
     # Had we used linear interpolation it defaults to having nans outside the convex
@@ -316,25 +316,35 @@ dall_list = zip(d2_list, d3_list, d4_list)
 for fn2, fn3, fn4 in dall_list:
     print('Working on ' + fn2.split('/')[-1] + ' and etc.')
     
+    # if we are missing a d3 or d4 file then we don't do ANY of
+    # that resolution after that
+    if not os.path.isfile(fn3):
+        do_d3 = False
+    if not os.path.isfile(fn4):
+        do_d4 = False
+    
     tt0 = time.time()
     ov2_dict = gather_and_process_fields(fn2, imax2, ca2, sa2)
-    #ovi2_dict = interp_to_roms(ov2_dict, outvar_list, XY2)
     ovi2_dict = interp_to_roms_alt(ov2_dict, outvar_list, IM2)
     print(' - d2: gather, process, and interp took %0.1f seconds' % (time.time() - tt0))
     
     if do_d3:
-        tt0 = time.time()
-        ov3_dict = gather_and_process_fields(fn3, imax3, ca3, sa3)
-        #ovi3_dict = interp_to_roms(ov3_dict, outvar_list, XY3)
-        ovi3_dict = interp_to_roms_alt(ov3_dict, outvar_list, IM3)
-        print(' - d3: gather, process, and interp took %0.1f seconds' % (time.time() - tt0))
+        try:
+            tt0 = time.time()
+            ov3_dict = gather_and_process_fields(fn3, imax3, ca3, sa3)
+            ovi3_dict = interp_to_roms_alt(ov3_dict, outvar_list, IM3)
+            print(' - d3: gather, process, and interp took %0.1f seconds' % (time.time() - tt0))
+        except:
+            do_d3 = False
     
     if do_d4:
-        tt0 = time.time()
-        ov4_dict = gather_and_process_fields(fn4, imax4, ca4, sa4)
-        #ovi4_dict = interp_to_roms(ov4_dict, outvar_list, XY4)
-        ovi4_dict = interp_to_roms_alt(ov4_dict, outvar_list, IM4)
-        print(' - d4: gather, process, and interp took %0.1f seconds' % (time.time() - tt0))
+        try:
+            tt0 = time.time()
+            ov4_dict = gather_and_process_fields(fn4, imax4, ca4, sa4)
+            ovi4_dict = interp_to_roms_alt(ov4_dict, outvar_list, IM4)
+            print(' - d4: gather, process, and interp took %0.1f seconds' % (time.time() - tt0))
+        except:
+            do_d4 = False
     
     tt0 = time.time()
     # combine the grids
