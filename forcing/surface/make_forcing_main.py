@@ -16,6 +16,8 @@ This means we are eventually pushing 47x less to azure.
 
 For testing on my mac run in ipython as
 run make_forcing_main.py -d 2017.05.18
+
+2019.07.18 Shortened the list of variables to only those served by EDS Viewer.
 """
 
 import os
@@ -49,13 +51,13 @@ for item in fn_list_raw:
 fn_list.sort()
 
 #%% make z
-fn = fn_list[0]
-ds = nc.Dataset(fn)
-S = zrfun.get_basic_info(fn, only_S=True)
-h = ds['h'][:]
-z = zrfun.get_z(h, 0*h, S, only_rho=True)
-z0 = z[-1,:,:].squeeze()
-ds.close()
+# fn = fn_list[0]
+# ds = nc.Dataset(fn)
+# S = zrfun.get_basic_info(fn, only_S=True)
+# h = ds['h'][:]
+# z = zrfun.get_z(h, 0*h, S, only_rho=True)
+# z0 = z[-1,:,:].squeeze()
+# ds.close()
 
 #%% Initialize the multi-file input dataset
 ds1 = nc.MFDataset(fn_list)
@@ -81,9 +83,8 @@ ds2 = nc.Dataset(out_fn, 'w')
 # lists of variables to process
 dlist = ['xi_rho', 'eta_rho', 'xi_psi', 'eta_psi', 'ocean_time']
 vn_list2 = [ 'lon_rho', 'lat_rho', 'lon_psi', 'lat_psi', 'mask_rho', 'h']
-vn_list2t = ['Uwind', 'Vwind', 'zeta', 'ocean_time']
-vn_list3t = ['salt', 'temp', 'NO3', 'phytoplankton',
-           'zooplankton', 'oxygen', 'TIC', 'alkalinity', 'PH', 'ARAG']
+vn_list2t = ['Uwind', 'Vwind', 'ocean_time']
+vn_list3t = ['salt', 'temp']
 
 # Copy dimensions
 for dname, the_dim in ds1.dimensions.items():
@@ -136,10 +137,10 @@ for vn in vn_list3t:
         vv[:] = ds1[vn][:, -1, :, :].squeeze()
 
 # Add derived variables
-vv = ds2.createVariable('z', float, ('eta_rho', 'xi_rho'))
-vv.long_name = 'z position closest to free surface for 3D variables '
-vv.units = 'meter'
-vv[:] = z0
+# vv = ds2.createVariable('z', float, ('eta_rho', 'xi_rho'))
+# vv.long_name = 'z position closest to free surface for 3D variables '
+# vv.units = 'meter'
+# vv[:] = z0
 #
 vv = ds2.createVariable('u', float, ('ocean_time', 'eta_rho', 'xi_rho'))
 vv.long_name = 'eastward near-surface velocity'
