@@ -50,6 +50,9 @@ for item in fn_list_raw:
         fn_list.append(in_dir + item)
 fn_list.sort()
 
+# shorten the list to only be every 2 hours
+fn_list = fn_list[::2]
+
 #%% make z
 # fn = fn_list[0]
 # ds = nc.Dataset(fn)
