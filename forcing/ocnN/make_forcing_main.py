@@ -8,7 +8,7 @@ This is designed for NESTING.
 
 To run from the command line in LiveOcean/driver/:
     
-./driver_forcing2.sh -g hc0 -t v0 -f ocnN -r backfill -0 20170210 -1 20170212
+./driver_forcing2.sh -g sj0 -t v0 -f ocnN -r backfill -0 20170704 -1 20170704
 
 """
 
@@ -33,7 +33,7 @@ import netCDF4 as nc
 import numpy as np
 from scipy.spatial import cKDTree
 
-opth = os.path.abspath('../ocn1/')
+opth = os.path.abspath('../ocn4/')
 if opth not in sys.path:
     sys.path.append(opth)
 import Ofun_nc
@@ -43,7 +43,7 @@ reload(Ofun_nc)
 reload(Ofun)
 
 start_time = datetime.now()
-in_dir = Ldir['roms'] + 'output/cas3_v0_lo6m/f' + Ldir['date_string']
+in_dir = Ldir['roms'] + 'output/cas6_v3_lo8b/f' + Ldir['date_string']
 nc_dir = Ldir['LOogf_f']
 
 # get grid and S info
@@ -56,7 +56,7 @@ h_list = [item for item in h_list_full if 'ocean_his' in item]
 h_list.sort()
 
 # debugging
-testing = False
+testing = True
 if testing:
     h_list = h_list[:2]
 
@@ -100,7 +100,9 @@ for h in h_list:
         break
     tt0 = time.time()
     yes_list = ['zeta', 'ubar', 'vbar'] # only do these 2D fields
-    no_list = ['rho', 'AKv', 'AKs', 'w'] # exclude these 3D fields
+    #no_list = ['rho', 'AKv', 'AKs', 'w'] # exclude these 3D fields
+    no_list = ['rho', 'AKv', 'AKs', 'w', 'NO3', 'phytoplankton', 'zooplankton',
+        'detritus', 'Ldetritus', 'oxygen', 'TIC', 'alkalinity', 'CaCO3']
     for name, v0 in ds0.variables.items():
         
         if (len(v0.dimensions) >= 4 and name not in no_list) or name in yes_list:
