@@ -400,16 +400,16 @@ def P_basic_salish(in_dict):
         plt.show()
         
 def P_basic_sji(in_dict):
-    # focus on the San Juan Islands
+    # focus on the San Juan Islands, for the sj0 grid
     
     # START
-    fig = plt.figure(figsize=(12,8))
+    fig = plt.figure(figsize=(14,9))
     ds = nc.Dataset(in_dict['fn'])
 
     # PLOT CODE
     vn_list = ['salt', 'temp']
     #aa = [-123.3, -122.5, 48.1, 48.9]
-    aa = [-123.3, -122.65, 48.3, 48.8]
+    #aa = [-123.3, -122.65, 48.3, 48.8]
     ii = 1
     for vn in vn_list:
         if in_dict['auto_vlims']:
@@ -424,7 +424,8 @@ def P_basic_sji(in_dict):
         # cb.ax.tick_params(labelsize=fs1-2)
         fig.colorbar(cs, orientation='horizontal')
         pfun.add_coast(ax)
-        ax.axis(aa)
+        #ax.axis(aa)
+        ax.axis(pfun.get_aa(ds))
         pfun.dar(ax)
         ax.set_title('Surface %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
         ax.set_xlabel('Longitude')
