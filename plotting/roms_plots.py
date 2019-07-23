@@ -416,7 +416,7 @@ def P_basic_sji(in_dict):
             pinfo.vlims_dict[vn] = ()
         ax = fig.add_subplot(1, len(vn_list), ii)
         cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict,
-                cmap=pinfo.cmap_dict[vn], aa=aa)
+                cmap=pinfo.cmap_dict[vn])
         # Inset colorbar
         # from mpl_toolkits.axes_grid1.inset_locator import inset_axes
         # cbaxes = inset_axes(ax, width="4%", height="40%", loc='upper left', borderpad=3)
