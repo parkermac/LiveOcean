@@ -102,8 +102,8 @@ v1[:] = np.array(t_list)
 tt = 0 # hour counter
 for h in h_list:
     
-    print(' -- working on ' + h)
-    sys.stdout.flush()
+    # print(' -- working on ' + h)
+    # sys.stdout.flush()
     
     ds0 = nc.Dataset(in_dir + '/' + h)  
     if S['N'] != ds0.dimensions['N'].size:
@@ -116,8 +116,8 @@ for h in h_list:
         'detritus', 'Ldetritus', 'oxygen', 'TIC', 'alkalinity', 'CaCO3', 'PH', 'ARAG']
     for name, v0 in ds0.variables.items():
         
-        print(' --- variable = ' + name)
-        sys.stdout.flush()
+        # print(' --- variable = ' + name)
+        # sys.stdout.flush()
         
         if (len(v0.dimensions) >= 4 and name not in no_list) or name in yes_list:
         #if name in ['salt']:
