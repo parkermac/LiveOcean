@@ -408,15 +408,20 @@ def P_basic_sji(in_dict):
 
     # PLOT CODE
     vn_list = ['salt', 'temp']
-    #aa = [-123.3, -122.5, 48.1, 48.9]
-    #aa = [-123.3, -122.65, 48.3, 48.8]
+    
+    if False:
+        aa = pfun.get_aa(ds)
+    else:
+        #aa = [-123.3, -122.65, 48.3, 48.8]
+        aa = [-123.1, -122.8, 48.42, 48.62]
+        
     ii = 1
     for vn in vn_list:
         if in_dict['auto_vlims']:
             pinfo.vlims_dict[vn] = ()
         ax = fig.add_subplot(1, len(vn_list), ii)
         cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict,
-                cmap=pinfo.cmap_dict[vn])
+                cmap=pinfo.cmap_dict[vn], aa=aa)
         # Inset colorbar
         # from mpl_toolkits.axes_grid1.inset_locator import inset_axes
         # cbaxes = inset_axes(ax, width="4%", height="40%", loc='upper left', borderpad=3)
@@ -424,8 +429,7 @@ def P_basic_sji(in_dict):
         # cb.ax.tick_params(labelsize=fs1-2)
         fig.colorbar(cs, orientation='horizontal')
         pfun.add_coast(ax)
-        #ax.axis(aa)
-        ax.axis(pfun.get_aa(ds))
+        ax.axis(aa)
         pfun.dar(ax)
         ax.set_title('Surface %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
         ax.set_xlabel('Longitude')
