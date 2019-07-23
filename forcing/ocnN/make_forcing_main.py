@@ -56,7 +56,7 @@ h_list = [item for item in h_list_full if 'ocean_his' in item]
 h_list.sort()
 
 # debugging
-testing = True
+testing = False
 if testing:
     h_list = h_list[:2]
 
