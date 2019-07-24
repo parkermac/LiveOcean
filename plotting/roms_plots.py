@@ -403,13 +403,13 @@ def P_basic_sji(in_dict):
     # focus on the San Juan Islands, for the sj0 grid
     
     # START
-    fig = plt.figure(figsize=(14,9))
+    fig = plt.figure(figsize=(16,10))
     ds = nc.Dataset(in_dict['fn'])
 
     # PLOT CODE
     vn_list = ['salt', 'temp']
     
-    if False:
+    if True:
         aa = pfun.get_aa(ds)
     else:
         #aa = [-123.3, -122.65, 48.3, 48.8]
@@ -417,8 +417,11 @@ def P_basic_sji(in_dict):
         
     ii = 1
     for vn in vn_list:
-        if in_dict['auto_vlims']:
+        if False: #in_dict['auto_vlims']:
             pinfo.vlims_dict[vn] = ()
+        else:
+            pinfo.vlims_dict['salt'] = (24,31)
+            pinfo.vlims_dict['temp'] = (11,15)
         ax = fig.add_subplot(1, len(vn_list), ii)
         cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict,
                 cmap=pinfo.cmap_dict[vn], aa=aa)
@@ -440,7 +443,7 @@ def P_basic_sji(in_dict):
                 t_leglen=0.1, center=(.25, .3))
         elif ii == 2:
             pfun.add_velocity_vectors(ax, ds, in_dict['fn'],
-                v_scl=60, v_leglen=1, nngrid=60, center=(.1, .1))
+                v_scl=80, v_leglen=1, nngrid=60, center=(.1, .1))
             ax.set_yticklabels([])
         ii += 1
     #fig.tight_layout()
