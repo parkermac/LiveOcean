@@ -608,7 +608,7 @@ def P_dive_vort(in_dict):
     # plots surface fields of divergence and vorticity.
 
     # START
-    fig = plt.figure(figsize=pinfo.figsize)
+    fig = plt.figure(figsize=(16,8))
     ds = nc.Dataset(in_dict['fn'])
 
     # PLOT CODE
@@ -624,7 +624,7 @@ def P_dive_vort(in_dict):
     dyp = zfun.interp2(x, y, G['lon_rho'], G['lat_rho'], G['DY'])
     vort = np.diff(v, axis=1)/dxp - np.diff(u, axis=0)/dyp
     aa = pfun.get_aa(ds)
-    scl = 1e-2
+    scl = 5e-3
     # panel 1
     ax = fig.add_subplot(121)
     cs = plt.pcolormesh(G['lon_psi'], G['lat_psi'], dive/scl, cmap='bwr',
