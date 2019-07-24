@@ -624,7 +624,7 @@ def P_dive_vort(in_dict):
     dyp = zfun.interp2(x, y, G['lon_rho'], G['lat_rho'], G['DY'])
     vort = np.diff(v, axis=1)/dxp - np.diff(u, axis=0)/dyp
     aa = pfun.get_aa(ds)
-    scl = 1e-4
+    scl = 10e-4
     # panel 1
     ax = fig.add_subplot(121)
     cs = plt.pcolormesh(G['lon_psi'], G['lat_psi'], dive/scl, cmap='bwr',
