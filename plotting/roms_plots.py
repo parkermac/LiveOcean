@@ -214,7 +214,7 @@ def P_color(in_dict):
     
     # PLOT CODE
     vn_list = ['salt', 'temp']
-    aa = [-123.5, -122, 47,48.5]
+    aa = pfun.get_aa(ds) #[-123.5, -122, 47,48.5]
     ii = 1
     for vn in vn_list:
         
@@ -1221,6 +1221,106 @@ def P_sect2(in_dict):
                 cmap=pinfo.cmap_dict[vn], fac=pinfo.fac_dict[vn])
         pfun.add_coast(ax)
         ax.axis([-126, -122, 47, 50])
+        pfun.dar(ax)
+        ax.set_title('Surface %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
+        ax.set_ylabel('Latitude')
+        if counter == 1:
+            ax.set_xlabel('Longitude')
+        # add section track
+        ax.plot(x, y, '-w', linewidth=2)
+        ax.plot(x, y, '-k', linewidth=.5)
+        ax.plot(x[idist0], y[idist0], 'or', markersize=5, markerfacecolor='w',
+            markeredgecolor='r', markeredgewidth=2)
+        #
+        # section
+        if counter == 0:
+            ax = fig.add_subplot(2, 3, (2, 3))
+        elif counter == 1:
+            ax = fig.add_subplot(2, 3, (5, 6))
+        ax.plot(dist, v2['zbot'], '-k', linewidth=2)
+        ax.plot(dist, v2['zeta'], '-b', linewidth=1)
+        ax.set_xlim(dist.min(), dist.max())
+        ax.set_ylim(zdeep, 5)
+        sf = pinfo.fac_dict[vn] * v3['sectvarf']
+        # set section color limits
+        vmin = pinfo.vlims_dict[vn][0]
+        vmax = pinfo.vlims_dict[vn][1]
+        # plot section
+        cs = ax.pcolormesh(v3['distf'], v3['zrf'], sf,
+                           vmin=vmin, vmax=vmax, cmap=pinfo.cmap_dict[vn])
+        fig.colorbar(cs)
+        cs = ax.contour(v3['distf'], v3['zrf'], sf,
+            np.linspace(np.floor(vmin), np.ceil(vmax), 20),
+            colors='k', linewidths=0.5)
+        if counter == 1:
+            ax.set_xlabel('Distance (km)')
+            pfun.add_info(ax, in_dict['fn'])
+        ax.set_ylabel('Z (m)')
+        ax.set_title('Section %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
+        
+        counter += 1
+        
+    fig.tight_layout()
+
+    # FINISH
+    ds.close()
+    if len(in_dict['fn_out']) > 0:
+        plt.savefig(in_dict['fn_out'])
+        plt.close()
+    else:
+        plt.show()
+
+def P_sect_sji0(in_dict):
+    # Plots a map and a section (distance, z) for 2 variables.
+    
+    # START
+    fig = plt.figure(figsize=(18,8))
+    ds = nc.Dataset(in_dict['fn'])
+
+    # PLOT CODE
+    #
+    G, S, T = zrfun.get_basic_info(in_dict['fn'])
+    # CREATE THE SECTION
+    zdeep = -250
+    tracks_path = Ldir['data'] + 'tracks_new/'
+    track_fn = tracks_path + 'sji_thalweg0.p'
+    # get the track to interpolate onto
+    pdict = pickle.load(open(track_fn, 'rb'))
+    xx = pdict['lon_poly']
+    yy = pdict['lat_poly']
+    for ii in range(len(xx)-1):
+        x0 = xx[ii]
+        x1 = xx[ii+1]
+        y0 = yy[ii]
+        y1 = yy[ii+1]
+        nn = 20
+        if ii == 0:
+            x = np.linspace(x0, x1, nn)
+            y = np.linspace(y0,y1, nn)
+        else:
+            x = np.concatenate((x, np.linspace(x0, x1, nn)[1:]))
+            y = np.concatenate((y, np.linspace(y0, y1, nn)[1:]))
+
+    # PLOTTING
+    vn_list = ['salt', 'temp']
+    # override colors
+    pinfo.vlims_dict['salt'] = (24,33)
+    pinfo.vlims_dict['temp'] = (8,16)
+    pinfo.cmap_dict['temp'] = 'jet'
+    aa = pfun.get_aa(ds)
+    counter = 0
+    for vn in vn_list:
+        v2, v3, dist, idist0 = pfun.get_section(ds, vn, x, y, in_dict)
+
+        # map with section line
+        if counter == 0:
+            ax = fig.add_subplot(2, 3, 1)
+        elif counter == 1:
+            ax = fig.add_subplot(2, 3, 4)
+        cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict,
+                cmap=pinfo.cmap_dict[vn], fac=pinfo.fac_dict[vn])
+        pfun.add_coast(ax)
+        ax.axis(aa)
         pfun.dar(ax)
         ax.set_title('Surface %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
         ax.set_ylabel('Latitude')

@@ -36,7 +36,7 @@ if pth not in sys.path:
 import pfun
 
 indir = Ldir['LOo'] + 'tef/'
-Litem = 'cas4_v1_lo6biom_2017.01.01_2017.12.31'
+Litem = 'cas6_v3_lo8b_2017.01.01_2017.12.31'
 print('\nProcessing ' + Litem + '\n')
 Indir = indir + Litem + '/'
 

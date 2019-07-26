@@ -37,7 +37,7 @@ cmap_dict = {'salt': 'Spectral_r',#'rainbow',
 
 # Units (after multiplying by scaling factor)
 units_dict = {'salt': '',
-             'temp': ' $(^{\circ}C)$',
+             'temp': 'degC',#' $(^{\circ}C)$',
              'NO3': ' $(\mu mol\ L^{-1})$',
              'phytoplankton': ' $(mg\ Chl\ m^{-3})$',
              'zooplankton': ' $(\mu mol\ N\ L^{-1})$',
