@@ -439,14 +439,14 @@ def P_basic_sji(in_dict):
         if ii == 1:
             ax.set_ylabel('Latitude')
             pfun.add_info(ax, in_dict['fn'])
-            pfun.add_windstress_flower(ax, ds, t_scl=2,
-                t_leglen=0.1, center=(.25, .3))
+            pfun.add_windstress_flower(ax, ds, t_scl=3,
+                t_leglen=0.1, center=(.33, .52))
         elif ii == 2:
             pfun.add_velocity_vectors(ax, ds, in_dict['fn'],
-                v_scl=80, v_leglen=1, nngrid=60, center=(.1, .1))
+                v_scl=80, v_leglen=2, nngrid=60, center=(.27, .45))
             ax.set_yticklabels([])
         ii += 1
-    #fig.tight_layout()
+    fig.tight_layout()
     
     # FINISH
     ds.close()
@@ -1281,13 +1281,17 @@ def P_sect_sji0(in_dict):
     #
     G, S, T = zrfun.get_basic_info(in_dict['fn'])
     # CREATE THE SECTION
-    zdeep = -250
+    zdeep = -220
     tracks_path = Ldir['data'] + 'tracks_new/'
     track_fn = tracks_path + 'sji_thalweg0.p'
     # get the track to interpolate onto
     pdict = pickle.load(open(track_fn, 'rb'))
     xx = pdict['lon_poly']
     yy = pdict['lat_poly']
+    # dxx = np.diff(xx)
+    # dyy = np.diff(yy)
+    # for iii in range(len(dxx)):
+    #     print('%0.5f, %0.5f' % (dxx[iii], dyy[iii]))
     for ii in range(len(xx)-1):
         x0 = xx[ii]
         x1 = xx[ii+1]
@@ -1298,8 +1302,12 @@ def P_sect_sji0(in_dict):
             x = np.linspace(x0, x1, nn)
             y = np.linspace(y0,y1, nn)
         else:
-            x = np.concatenate((x, np.linspace(x0, x1, nn)[1:]))
-            y = np.concatenate((y, np.linspace(y0, y1, nn)[1:]))
+            if (x0 != x1) or (y0 != y1):
+                # only add points if they are not a repeat
+                x = np.concatenate((x, np.linspace(x0, x1, nn)[1:]))
+                y = np.concatenate((y, np.linspace(y0, y1, nn)[1:]))
+            else:
+                pass
 
     # PLOTTING
     vn_list = ['salt', 'temp']
@@ -1311,7 +1319,12 @@ def P_sect_sji0(in_dict):
     counter = 0
     for vn in vn_list:
         v2, v3, dist, idist0 = pfun.get_section(ds, vn, x, y, in_dict)
-
+        # find indices of some sills
+        sind_list = []
+        sdist_list = [6.27,25.82,39.28]
+        smarker_list = ['o','*','^']
+        for sdist in sdist_list:
+            sind_list.append(zfun.find_nearest_ind(dist,sdist))
         # map with section line
         if counter == 0:
             ax = fig.add_subplot(2, 3, 1)
@@ -1329,8 +1342,14 @@ def P_sect_sji0(in_dict):
         # add section track
         ax.plot(x, y, '-w', linewidth=2)
         ax.plot(x, y, '-k', linewidth=.5)
-        ax.plot(x[idist0], y[idist0], 'or', markersize=5, markerfacecolor='w',
-            markeredgecolor='r', markeredgewidth=2)
+        # ax.plot(x[idist0], y[idist0], 'or', markersize=5, markerfacecolor='w',
+        #     markeredgecolor='r', markeredgewidth=2)
+        scounter = 0
+        for sind in sind_list:
+            ax.plot(x[sind], y[sind], marker=smarker_list[scounter],
+                markersize=7, markerfacecolor='w',
+                markeredgecolor='k', markeredgewidth=1)
+            scounter += 1
         #
         # section
         if counter == 0:
@@ -1352,6 +1371,14 @@ def P_sect_sji0(in_dict):
         cs = ax.contour(v3['distf'], v3['zrf'], sf,
             np.linspace(np.floor(vmin), np.ceil(vmax), 20),
             colors='k', linewidths=0.5)
+        scounter = 0
+        for sind in sind_list:
+            ax.plot(dist[sind], 0, marker=smarker_list[scounter],
+                markersize=10, markerfacecolor='w',
+                markeredgecolor='k', markeredgewidth=1)
+            scounter += 1
+        # ax.plot(dist[is0], 0, '*r', markersize=5, markerfacecolor='w',
+        #     markeredgecolor='r', markeredgewidth=2)
         if counter == 1:
             ax.set_xlabel('Distance (km)')
             pfun.add_info(ax, in_dict['fn'])

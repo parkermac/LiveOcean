@@ -100,9 +100,7 @@ def add_bathy_contours(ax, ds, depth_levs = [], txt=False):
                         transform=ax.transAxes)
                 ii += 1
         
-
-def add_map_field(ax, ds, vn, vlims_dict, slev=-1, cmap='rainbow',
-                  fac=1, alpha=1, do_mask_salish=False, aa=[], vlims_fac=3):
+def add_map_field(ax, ds, vn, vlims_dict, slev=-1, cmap='rainbow', fac=1, alpha=1, do_mask_salish=False, aa=[], vlims_fac=3):
     cmap = plt.get_cmap(name=cmap)
     if 'lon_rho' in ds[vn].coordinates:
         x = ds['lon_psi'][:]
@@ -201,7 +199,7 @@ def add_velocity_vectors(ax, ds, fn, v_scl=3, v_leglen=0.5, nngrid=80, zlev='top
               [v_leglen, v_leglen],
         units='y', scale=v_scl, scale_units='y', color='k',
         transform=ax.transAxes)
-    ax.text(xc+.05, yc, str(v_leglen) + ' $ms^{-1}$',
+    ax.text(xc+.05, yc, str(v_leglen) + ' m/s',
         horizontalalignment='left', transform=ax.transAxes)
     # note: I could also use plt.quiverkey() 
 
