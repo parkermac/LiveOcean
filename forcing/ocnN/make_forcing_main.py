@@ -10,6 +10,10 @@ To run from the command line in LiveOcean/driver/:
     
 ./driver_forcing2.sh -g sj0 -t v0 -f ocnN -r backfill -0 20170704 -1 20170704
 
+and to run from ipython on my mac in LiveOcean/forcing/ocnN/:
+
+run make_forcing_main.py -g sj0 -t v0 -r backfill -d 2017.07.04
+
 """
 
 import os
@@ -60,7 +64,11 @@ if Ldir['run_type'] == 'backfill':
     h_list = h_list[:25]
 
 # debugging
-testing = False
+if Ldir['lo_env'] == 'pm_mac':
+    testing = True
+else:
+    testing = False
+    
 if testing:
     h_list = h_list[:2]
     
@@ -87,7 +95,7 @@ except OSError:
 ds1 = nc.Dataset(clm_fn, 'w', format='NETCDF3_64BIT_OFFSET')
 
 # create dimensions
-ds1.createDimension('ocean_time', len(h_list)) # could use None                  
+ds1.createDimension('ocean_time', len(h_list)) # could use None
 ds1.createDimension('s_rho', S['N']) # must match ds0.dimensions['N'].size
 ds1.createDimension('s_w', S['N'] + 1)
 for tag in ['rho', 'u', 'v']:
@@ -101,88 +109,194 @@ v1[:] = np.array(t_list)
 # loop over all hours and add processed fields
 tt = 0 # hour counter
 for h in h_list:
-    
-    # print(' -- working on ' + h)
-    # sys.stdout.flush()
-    
     ds0 = nc.Dataset(in_dir + '/' + h)  
     if S['N'] != ds0.dimensions['N'].size:
         print('Vertical dimensions inconsistent!')
         break
     tt0 = time.time()
-    yes_list = ['zeta', 'ubar', 'vbar'] # only do these 2D fields
-    #no_list = ['rho', 'AKv', 'AKs', 'w'] # exclude these 3D fields
-    no_list = ['rho', 'AKv', 'AKs', 'w', 'NO3', 'phytoplankton', 'zooplankton',
-        'detritus', 'Ldetritus', 'oxygen', 'TIC', 'alkalinity', 'CaCO3', 'PH', 'ARAG']
-    for name, v0 in ds0.variables.items():
-        
-        # print(' --- variable = ' + name)
-        # sys.stdout.flush()
-        
-        if (len(v0.dimensions) >= 4 and name not in no_list) or name in yes_list:
-        #if name in ['salt']:
+    
+    for name in ['zeta', 'temp', 'salt']:
+        v0 = ds0[name]
+        tt00 = time.time()
+        if tt == 0:
+            v1 = ds1.createVariable(name, v0.datatype, v0.dimensions)
+            v1.time = v0.time
+            try:
+                v1.units = v0.units
+            except AttributeError:
+                pass # salt has no units
+            v1.long_name = v0.long_name
+        X = ds0['lon_rho'][:]
+        Y = ds0['lat_rho'][:]
+        x = G['lon_rho']
+        y = G['lat_rho']
+        mask = G['mask_rho']
+        F = ds0[name][:].squeeze()
+        if name == 'zeta':
+            fld = F.copy()
+            fldf = fld.copy() # initialize the "filled" field
             if tt == 0:
-                v1 = ds1.createVariable(name, v0.datatype, v0.dimensions)
-                v1.time = v0.time
-                try:
-                    v1.units = v0.units
-                except AttributeError:
-                    pass # salt has no units
-                v1.long_name = v0.long_name
-                
-            if 'eta_rho' in v0.dimensions:
-                tag = 'rho'
-            elif 'eta_u' in v0.dimensions:
-                tag = 'u'
-            elif 'eta_v' in v0.dimensions:
-                tag = 'v'
-            else:
-                print('problem with dimensions')
-            X = ds0['lon_' + tag][:]
-            Y = ds0['lat_' + tag][:]
-            x = G['lon_' + tag]
-            y = G['lat_' + tag]
-            mask = G['mask_' + tag]
-                
-            F = ds0[name][:].squeeze()
-            if len(F.shape) == 2:
-                fx = Ofun.extrap_nearest_to_masked(X, Y, F)
-                ff = zfun.interp2(x, y, X, Y, fx)
+                # fill masked values using nearest neighbor
+                xyorig = np.array((X[~fld.mask],Y[~fld.mask])).T
+                xynew = np.array((X[fld.mask],Y[fld.mask])).T
+                a = cKDTree(xyorig).query(xynew)
+                aa_rho = a[1]
+                # INTERPOLATION    
+                # get interpolants
+                xi0_rho, xi1_rho, xf_rho = zfun.get_interpolant(x,X[0,:], extrap_nan=True)
+                yi0_rho, yi1_rho, yf_rho = zfun.get_interpolant(y,Y[:,0], extrap_nan=True)
+            # create the filled field
+            fldf[fld.mask] = fld[~fld.mask][aa_rho]
+            fx = fldf.data
+            # do the bi-linear interpolation
+            u00 = fx[yi0_rho,xi0_rho]
+            u10 = fx[yi1_rho,xi0_rho]
+            u01 = fx[yi0_rho,xi1_rho]
+            u11 = fx[yi1_rho,xi1_rho]
+            fi = (1-yf_rho)*((1-xf_rho)*u00 + xf_rho*u01) + yf_rho*((1-xf_rho)*u10 + xf_rho*u11)
+            ff = np.reshape(fi, x.shape)
+            fm = np.ma.masked_where(mask==False, ff)
+            ds1[name][tt,:,:] = fm
+        elif name in ['temp', 'salt']:
+            for iz in range(F.shape[0]):
+                # EXTRAPOLATION
+                fld = F[iz, :, :].squeeze()
+                # do the extrapolation using nearest neighbor
+                fldf = fld.copy() # initialize the "filled" field
+                fldf[fld.mask] = fld[~fld.mask][aa_rho]
+                fx = fldf.data
+                # do the bi-linear interpolation
+                u00 = fx[yi0_rho,xi0_rho]
+                u10 = fx[yi1_rho,xi0_rho]
+                u01 = fx[yi0_rho,xi1_rho]
+                u11 = fx[yi1_rho,xi1_rho]
+                fi = (1-yf_rho)*((1-xf_rho)*u00 + xf_rho*u01) + yf_rho*((1-xf_rho)*u10 + xf_rho*u11)
+                ff = np.reshape(fi, x.shape)
                 fm = np.ma.masked_where(mask==False, ff)
-                ds1[name][tt,:,:] = fm
-            elif len(F.shape) == 3:
-                # For the 3D variables we pull apart the extrapolation and
-                # interpolation methods so that the KD Tree and the
-                # interpolants are only calculated for the first depth.  This
-                # gives a 20x speedup (!) mainly because of the interpolants.
-                # This ASSUMES that the mask is the same at all s-levels.
-                for iz in range(F.shape[0]):
-                    # EXTRAPOLATION
-                    fld = F[iz, :, :].squeeze()
-                    # do the extrapolation using nearest neighbor
-                    fldf = fld.copy() # initialize the "filled" field
-                    if iz==0:
-                        xyorig = np.array((X[~fld.mask],Y[~fld.mask])).T
-                        xynew = np.array((X[fld.mask],Y[fld.mask])).T
-                        a = cKDTree(xyorig).query(xynew)
-                        aa = a[1]
-                    fldf[fld.mask] = fld[~fld.mask][aa]
-                    fx = fldf.data
-                    # INTERPOLATION    
-                    if iz==0:
-                        # get interpolants
-                        xi0, xi1, xf = zfun.get_interpolant(x,X[0,:], extrap_nan=True)
-                        yi0, yi1, yf = zfun.get_interpolant(y,Y[:,0], extrap_nan=True)
-                    # bi linear interpolation
-                    u00 = fx[yi0,xi0]
-                    u10 = fx[yi1,xi0]
-                    u01 = fx[yi0,xi1]
-                    u11 = fx[yi1,xi1]
-                    fi = (1-yf)*((1-xf)*u00 + xf*u01) + yf*((1-xf)*u10 + xf*u11)
-                    ff = np.reshape(fi, x.shape)
-                    fm = np.ma.masked_where(mask==False, ff)
-                    ds1[name][tt,iz,:,:] = fm
+                ds1[name][tt,iz,:,:] = fm
+        print(' -- %s took %0.1f seconds' % (name, time.time() - tt00))
+        sys.stdout.flush()
+
+    for name in ['ubar', 'u']:
+        v0 = ds0[name]
+        tt00 = time.time()
+        if tt == 0:
+            v1 = ds1.createVariable(name, v0.datatype, v0.dimensions)
+            v1.time = v0.time
+            v1.units = v0.units
+            v1.long_name = v0.long_name
+        X = ds0['lon_u'][:]
+        Y = ds0['lat_u'][:]
+        x = G['lon_u']
+        y = G['lat_u']
+        mask = G['mask_u']
+        F = ds0[name][:].squeeze()
+        if name == 'ubar':
+            fld = F.copy()
+            fldf = fld.copy() # initialize the "filled" field
+            if tt == 0:
+                # fill masked values using nearest neighbor
+                xyorig = np.array((X[~fld.mask],Y[~fld.mask])).T
+                xynew = np.array((X[fld.mask],Y[fld.mask])).T
+                a = cKDTree(xyorig).query(xynew)
+                aa_u = a[1]
+                # INTERPOLATION    
+                # get interpolants
+                xi0_u, xi1_u, xf_u = zfun.get_interpolant(x,X[0,:], extrap_nan=True)
+                yi0_u, yi1_u, yf_u = zfun.get_interpolant(y,Y[:,0], extrap_nan=True)
+            # create the filled field
+            fldf[fld.mask] = fld[~fld.mask][aa_u]
+            fx = fldf.data
+            # do the bi-linear interpolation
+            u00 = fx[yi0_u,xi0_u]
+            u10 = fx[yi1_u,xi0_u]
+            u01 = fx[yi0_u,xi1_u]
+            u11 = fx[yi1_u,xi1_u]
+            fi = (1-yf_u)*((1-xf_u)*u00 + xf_u*u01) + yf_u*((1-xf_u)*u10 + xf_u*u11)
+            ff = np.reshape(fi, x.shape)
+            fm = np.ma.masked_where(mask==False, ff)
+            ds1[name][tt,:,:] = fm
+        elif name == 'u':
+            for iz in range(F.shape[0]):
+                # EXTRAPOLATION
+                fld = F[iz, :, :].squeeze()
+                # do the extrapolation using nearest neighbor
+                fldf = fld.copy() # initialize the "filled" field
+                fldf[fld.mask] = fld[~fld.mask][aa_u]
+                fx = fldf.data
+                # do the bi-linear interpolation
+                u00 = fx[yi0_u,xi0_u]
+                u10 = fx[yi1_u,xi0_u]
+                u01 = fx[yi0_u,xi1_u]
+                u11 = fx[yi1_u,xi1_u]
+                fi = (1-yf_u)*((1-xf_u)*u00 + xf_u*u01) + yf_u*((1-xf_u)*u10 + xf_u*u11)
+                ff = np.reshape(fi, x.shape)
+                fm = np.ma.masked_where(mask==False, ff)
+                ds1[name][tt,iz,:,:] = fm
+        print(' -- %s took %0.1f seconds' % (name, time.time() - tt00))
+        sys.stdout.flush()
+        
+    for name in ['vbar', 'v']:
+        v0 = ds0[name]
+        tt00 = time.time()
+        if tt == 0:
+            v1 = ds1.createVariable(name, v0.datatype, v0.dimensions)
+            v1.time = v0.time
+            v1.units = v0.units
+            v1.long_name = v0.long_name
+        X = ds0['lon_v'][:]
+        Y = ds0['lat_v'][:]
+        x = G['lon_v']
+        y = G['lat_v']
+        mask = G['mask_v']
+        F = ds0[name][:].squeeze()
+        if name == 'vbar':
+            fld = F.copy()
+            fldf = fld.copy() # initialize the "filled" field
+            if tt == 0:
+                # fill masked values using nearest neighbor
+                xyorig = np.array((X[~fld.mask],Y[~fld.mask])).T
+                xynew = np.array((X[fld.mask],Y[fld.mask])).T
+                a = cKDTree(xyorig).query(xynew)
+                aa_v = a[1]
+                # INTERPOLATION    
+                # get interpolants
+                xi0_v, xi1_v, xf_v = zfun.get_interpolant(x,X[0,:], extrap_nan=True)
+                yi0_v, yi1_v, yf_v = zfun.get_interpolant(y,Y[:,0], extrap_nan=True)
+            # create the filled field
+            fldf[fld.mask] = fld[~fld.mask][aa_v]
+            fx = fldf.data
+            # do the bi-linear interpolation
+            u00 = fx[yi0_v,xi0_v]
+            u10 = fx[yi1_v,xi0_v]
+            u01 = fx[yi0_v,xi1_v]
+            u11 = fx[yi1_v,xi1_v]
+            fi = (1-yf_v)*((1-xf_v)*u00 + xf_v*u01) + yf_v*((1-xf_v)*u10 + xf_v*u11)
+            ff = np.reshape(fi, x.shape)
+            fm = np.ma.masked_where(mask==False, ff)
+            ds1[name][tt,:,:] = fm
+        elif name == 'v':
+            for iz in range(F.shape[0]):
+                # EXTRAPOLATION
+                fld = F[iz, :, :].squeeze()
+                # do the extrapolation using nearest neighbor
+                fldf = fld.copy() # initialize the "filled" field
+                fldf[fld.mask] = fld[~fld.mask][aa_v]
+                fx = fldf.data
+                # do the bi-linear interpolation
+                u00 = fx[yi0_v,xi0_v]
+                u10 = fx[yi1_v,xi0_v]
+                u01 = fx[yi0_v,xi1_v]
+                u11 = fx[yi1_v,xi1_v]
+                fi = (1-yf_v)*((1-xf_v)*u00 + xf_v*u01) + yf_v*((1-xf_v)*u10 + xf_v*u11)
+                ff = np.reshape(fi, x.shape)
+                fm = np.ma.masked_where(mask==False, ff)
+                ds1[name][tt,iz,:,:] = fm
+        print(' -- %s took %0.1f seconds' % (name, time.time() - tt00))
+        sys.stdout.flush()
+                    
     print('Hour %d took %0.1f seconds' % (tt, time.time() - tt0))
+    sys.stdout.flush()
     tt += 1
     ds0.close()
 ds1.close()
