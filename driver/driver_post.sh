@@ -144,6 +144,10 @@ do
   if [ $lo_env == "pm_mac" ] ; then # testing
     echo "TESTING"
   elif [ $lo_env == "pm_boiler" ] && [ $all_files_here -eq 1 ]; then
+    
+    # 2019.07.27 first make the sj0 nest forcing (16 minutes)
+    ./driver_forcing2.sh -g sj0 -t v0 -f ocnN -r forecast > ./dlog_sj0_ocnN &
+    
     for frc in 'surface' 'ubc2' 'azu1' 'active_forecast' 'carbon' ; do
       # echo "Would be working on "$frc
       ./driver_forcing2.sh -g $gridname -t $tag -x $ex_name -f $frc -r $run_type > $LO"driver/dlog_"$frc &
