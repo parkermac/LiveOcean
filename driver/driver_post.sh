@@ -146,7 +146,12 @@ do
   elif [ $lo_env == "pm_boiler" ] && [ $all_files_here -eq 1 ]; then
     
     # 2019.07.27 first make the sj0 nest forcing (16 minutes)
+    sleep 60
     ./driver_forcing2.sh -g sj0 -t v0 -f ocnN -r forecast > ./dlog_sj0_ocnN &
+    PID0=$!
+    wait $PID0
+    echo "job completed for ocnN at" $(date)
+    sleep 15
     
     for frc in 'surface' 'ubc2' 'azu1' 'active_forecast' 'carbon' ; do
       # echo "Would be working on "$frc
@@ -155,7 +160,6 @@ do
       PID1=$!
       wait $PID1
       echo "job completed for" $frc "at" $(date)
-      echo $(date)
       sleep 15
     done
 
