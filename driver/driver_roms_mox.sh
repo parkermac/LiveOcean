@@ -184,7 +184,7 @@ do
           echo "- Run blew up!"
           blow_ups=$(( $blow_ups + 1 )) #increment the blow ups
           keep_checking_log=0
-          if [ $blow_ups -le 5 ] ; then
+          if [ $blow_ups -le 7 ] ; then
             keep_going=1
           else
             keep_going=0

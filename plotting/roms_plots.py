@@ -536,7 +536,7 @@ def P_debug(in_dict):
             pfun.add_info(ax, in_dict['fn'])
             pfun.add_windstress_flower(ax, ds)
         elif ii == 2:
-            pfun.add_velocity_vectors(ax, ds, in_dict['fn'])
+            #pfun.add_velocity_vectors(ax, ds, in_dict['fn'])
             # add debugging information to the plot
             # gathering info
             u = ds['u'][0,-1,:,:].squeeze()
