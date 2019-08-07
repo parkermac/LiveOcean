@@ -455,6 +455,69 @@ def P_basic_sji(in_dict):
         plt.close()
     else:
         plt.show()
+
+def P_speed_sji(in_dict):
+    # focus on the San Juan Islands, for the sj0 grid
+    # with a cool speed color and some vectors
+    
+    # START
+    fig = plt.figure(figsize=(16,10))
+    ds = nc.Dataset(in_dict['fn'])
+
+    # PLOT CODE
+    # get suface velocity
+    uu = ds['u'][0, -1, :, :].squeeze()
+    vv = ds['v'][0, -1, :, :].squeeze()
+    # interpolate to trimmed rho grid
+    u = (uu[1:, :] + uu[:-1, :])/2
+    v = (vv[:, 1:] + vv[:, :-1])/2
+    from warnings import filterwarnings
+    filterwarnings('ignore') # skip some warning messages
+    speed = np.sqrt(u**2 + v**2)
+    # encompasing axes
+    x = ds['lon_psi'][:]
+    y = ds['lat_psi'][:]
+    
+    aa = pfun.get_aa(ds)
+        
+    vn = 'salt'
+    pinfo.vlims_dict['salt'] = (26,31)
+    ax = fig.add_subplot(121)
+    cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict,
+            cmap=pinfo.cmap_dict[vn], aa=aa)
+    fig.colorbar(cs, orientation='horizontal')
+    pfun.add_coast(ax)
+    ax.axis(aa)
+    pfun.dar(ax)
+    ax.set_title('Surface %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
+    ax.set_xlabel('Longitude')
+    ax.set_ylabel('Latitude')
+    pfun.add_info(ax, in_dict['fn'])
+    pfun.add_windstress_flower(ax, ds, t_scl=3,
+        t_leglen=0.1, center=(.33, .52))
+
+    ax = fig.add_subplot(122)
+    cs = ax.pcolormesh(x, y, speed, vmin=0, vmax=2, cmap='rainbow')
+    fig.colorbar(cs, orientation='horizontal')
+    pfun.add_coast(ax)
+    ax.axis(aa)
+    pfun.dar(ax)
+    ax.set_title('Surface speed (m/s)')
+    ax.set_xlabel('Longitude')
+    pfun.add_velocity_vectors(ax, ds, in_dict['fn'],
+        v_scl=80, v_leglen=2, nngrid=60, center=(.27, .45))
+    ax.set_yticklabels([])
+    
+    fig.tight_layout()
+    
+    # FINISH
+    ds.close()
+    if len(in_dict['fn_out']) > 0:
+        plt.savefig(in_dict['fn_out'])
+        plt.close()
+    else:
+        plt.show()
+
         
 def P_basic_colvos(in_dict):
 
