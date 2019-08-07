@@ -52,7 +52,7 @@ def write_to_azure(out_fn, blob_service, containername, out_name):
 print(' - Creating wesite images for ' + Ldir['date_string'])
 os.chdir(Ldir['LO'] + 'plotting/')
 
-P_list = ['P_basic_sji', 'P_sect_sji0']
+P_list = ['P_speed_sji', 'P_sect_sji0']
 for P_name in P_list:    
     lt = 'forecast'
     do_mov = 'True'
