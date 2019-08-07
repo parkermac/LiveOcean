@@ -517,7 +517,6 @@ def P_speed_sji(in_dict):
         plt.close()
     else:
         plt.show()
-
         
 def P_basic_colvos(in_dict):
 
@@ -1337,24 +1336,20 @@ def P_sect_sji0(in_dict):
     # Plots a map and a section (distance, z) for 2 variables.
     
     # START
-    fig = plt.figure(figsize=(18,8))
+    fig = plt.figure(figsize=(18,10))
     ds = nc.Dataset(in_dict['fn'])
 
     # PLOT CODE
     #
     G, S, T = zrfun.get_basic_info(in_dict['fn'])
     # CREATE THE SECTION
-    zdeep = -220
+    zdeep = -200
     tracks_path = Ldir['data'] + 'tracks_new/'
     track_fn = tracks_path + 'sji_thalweg0.p'
     # get the track to interpolate onto
     pdict = pickle.load(open(track_fn, 'rb'))
     xx = pdict['lon_poly']
     yy = pdict['lat_poly']
-    # dxx = np.diff(xx)
-    # dyy = np.diff(yy)
-    # for iii in range(len(dxx)):
-    #     print('%0.5f, %0.5f' % (dxx[iii], dyy[iii]))
     for ii in range(len(xx)-1):
         x0 = xx[ii]
         x1 = xx[ii+1]
@@ -1377,6 +1372,7 @@ def P_sect_sji0(in_dict):
     # override colors
     pinfo.vlims_dict['salt'] = (24,33)
     pinfo.vlims_dict['temp'] = (8,16)
+    ci = 0.2 # contour interval
     pinfo.cmap_dict['temp'] = 'jet'
     aa = pfun.get_aa(ds)
     counter = 0
@@ -1432,7 +1428,7 @@ def P_sect_sji0(in_dict):
                            vmin=vmin, vmax=vmax, cmap=pinfo.cmap_dict[vn])
         fig.colorbar(cs)
         cs = ax.contour(v3['distf'], v3['zrf'], sf,
-            np.linspace(np.floor(vmin), np.ceil(vmax), 20),
+            np.arange(np.floor(vmin), np.ceil(vmax), .2),
             colors='k', linewidths=0.5)
         scounter = 0
         for sind in sind_list:
@@ -1446,7 +1442,7 @@ def P_sect_sji0(in_dict):
             ax.set_xlabel('Distance (km)')
             pfun.add_info(ax, in_dict['fn'])
         ax.set_ylabel('Z (m)')
-        ax.set_title('Section %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
+        ax.set_title('Section %s %s (C.I.=%0.1f)' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn],ci))
         
         counter += 1
         
