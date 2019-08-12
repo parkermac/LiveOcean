@@ -465,7 +465,7 @@ def P_speed_sji(in_dict):
     ds = nc.Dataset(in_dict['fn'])
 
     # PLOT CODE
-    # get suface velocity
+    # get surface velocity
     uu = ds['u'][0, -1, :, :].squeeze()
     vv = ds['v'][0, -1, :, :].squeeze()
     # interpolate to trimmed rho grid
@@ -481,7 +481,8 @@ def P_speed_sji(in_dict):
     aa = pfun.get_aa(ds)
         
     vn = 'salt'
-    pinfo.vlims_dict['salt'] = (26,31)
+    #pinfo.vlims_dict['salt'] = (26,31)
+    pinfo.vlims_dict['salt'] = ()
     ax = fig.add_subplot(121)
     cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict,
             cmap=pinfo.cmap_dict[vn], aa=aa)
