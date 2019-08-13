@@ -482,7 +482,8 @@ def P_speed_sji(in_dict):
         
     vn = 'salt'
     #pinfo.vlims_dict['salt'] = (26,31)
-    pinfo.vlims_dict['salt'] = ()
+    if in_dict['auto_vlims']:
+        pinfo.vlims_dict[vn] = ()
     ax = fig.add_subplot(121)
     cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict,
             cmap=pinfo.cmap_dict[vn], aa=aa)
