@@ -724,6 +724,49 @@ def P_dive_vort(in_dict):
     else:
         plt.show()
     
+
+def P_vort(in_dict):
+    # plots surface fields of vorticity.
+
+    # START
+    fig = plt.figure(figsize=(12,10))
+    ds = nc.Dataset(in_dict['fn'])
+
+    # PLOT CODE
+    # calculate divergence and vorticity
+    u = ds['u'][0, -1, :, :]
+    v = ds['v'][0, -1, :, :]
+    G = zrfun.get_basic_info(in_dict['fn'], only_G=True)
+    dive = ((np.diff(u, axis=1)/G['DX'][:, 1:-1])[1:-1, :]
+            + (np.diff(v, axis = 0)/G['DY'][1:-1, :])[:, 1:-1])   
+    x = G['lon_psi'] # matrix
+    y = G['lat_psi'] # matrix
+    dxp = zfun.interp2(x, y, G['lon_rho'], G['lat_rho'], G['DX'])
+    dyp = zfun.interp2(x, y, G['lon_rho'], G['lat_rho'], G['DY'])
+    vort = np.diff(v, axis=1)/dxp - np.diff(u, axis=0)/dyp
+    aa = pfun.get_aa(ds)
+    scl = 5e-3
+
+    # plot
+    ax = fig.add_subplot(111)
+    cs = plt.pcolormesh(G['lon_rho'], G['lat_rho'], vort/scl, cmap='bwr',
+                        vmin=-1, vmax=1)
+    pfun.add_coast(ax)
+    ax.axis(aa)
+    pfun.dar(ax)
+    ax.set_yticklabels([])
+    ax.set_xticklabels([])
+    
+    fig.tight_layout()
+
+    # FINISH
+    ds.close()
+    if len(in_dict['fn_out']) > 0:
+        plt.savefig(in_dict['fn_out'])
+        plt.close()
+    else:
+        plt.show()
+    
 def P_pH_Arag(in_dict):
 
     # START
