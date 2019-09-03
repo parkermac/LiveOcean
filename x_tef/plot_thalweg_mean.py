@@ -59,23 +59,27 @@ def plotit(ax, sect_df, sect_list, lcol, qsign):
         xx = (x0+x1)/2
         yy = (y0+y1)/2
         
-        # add a mark showing which direction is positive (landward)
-        dd = qsign[counter] * np.sqrt((x1-x0)**2 + (y1-y0)**2) / 5
+        # add a mark showing which direction the deep flow is going
+        clat = np.cos(np.pi*yy/180)
         if (x0==x1) and (y0!=y1):
             sdir = 'NS'
+            dd = qsign[counter] * 0.05 / clat
+            ww = dd/8
             if landward == 1:
-                ax.plot([xx, xx+dd], [yy, yy], '-', color=lcol, linewidth=3)
+                ax.fill([xx, xx+dd, xx], [yy-ww, yy, yy+ww], color=lcol)
                 dir_str = 'Eastward'
             elif landward == -1:
-                ax.plot([xx, xx-dd], [yy, yy], '-', color=lcol, linewidth=3)
+                ax.fill([xx, xx-dd, xx], [yy-ww, yy, yy+ww], color=lcol)
                 dir_str = 'Westward'
         elif (x0!=x1) and (y0==y1):
             sdir = 'EW'
+            dd = qsign[counter] * 0.05
+            ww = dd/(8*clat)
             if landward == 1:
-                ax.plot([xx, xx], [yy, yy+dd], '-', color=lcol, linewidth=3)
+                ax.fill([xx-ww, xx, xx+ww], [yy, yy+dd, yy], color=lcol)
                 dir_str = 'Northward'
             elif landward == -1:
-                ax.plot([xx, xx], [yy, yy-dd], '-', color=lcol, linewidth=3)
+                ax.fill([xx-ww, xx, xx+ww], [yy, yy-dd, yy], color=lcol)
                 dir_str = 'Southward'
         counter += 1
 
@@ -90,7 +94,7 @@ ax1 = fig.add_subplot(221)
 ax2 = fig.add_subplot(223)
 ax3 = fig.add_subplot(122) # map
 
-lcol_dict = dict(zip(list(ThalMean.keys()), ['olive', 'blue', 'gold', 'red']))
+lcol_dict = dict(zip(list(ThalMean.keys()), ['olive', 'blue', 'orange', 'red']))
 
 do_plot_extras = True
 for ch_str in lcol_dict.keys():

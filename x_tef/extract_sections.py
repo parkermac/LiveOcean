@@ -3,7 +3,7 @@ Extract fields at a number of sections which may be used later for TEF analysis
 of transport and transport-weighted properties.
 
 All input parameters specified at the command line, so this can be run in the background
-because it can taka a few hours.  Use "-sn all" to get all sections.
+because it can take a few hours.  Use "-sn all" to get all sections.
 
 """
 
@@ -28,17 +28,25 @@ reload(tef_fun)
 import argparse
 parser = argparse.ArgumentParser()
 # standard arguments
-parser.add_argument('-g', '--gridname', nargs='?', type=str, default='cas4')
-parser.add_argument('-t', '--tag', nargs='?', type=str, default='v2')
-parser.add_argument('-x', '--ex_name', nargs='?', type=str, default='lo6biom')
+parser.add_argument('-g', '--gridname', nargs='?', type=str, default='cas6')
+parser.add_argument('-t', '--tag', nargs='?', type=str, default='v3')
+parser.add_argument('-x', '--ex_name', nargs='?', type=str, default='lo8b')
 parser.add_argument('-0', '--date_string0', nargs='?', type=str, default='2017.07.20')
 parser.add_argument('-1', '--date_string1', nargs='?', type=str, default='2017.07.21')
 parser.add_argument('-sn', '--sect_name', nargs='?', type=str, default='ai1')
+# this optional argument allows us to access runs kept in non-standard places
+# e.g. -rundir /pmr2/darr/LiveOcean_roms/ for cascadia1_base_lobio5
+parser.add_argument('-rundir', '--run_directory', nargs='?', type=str, default='')
 # section specific arguments
 args = parser.parse_args()
 
 # Get Ldir
 Ldir = Lfun.Lstart(args.gridname, args.tag)
+# overide model run location
+if len(args.run_directory) > 0:
+    Ldir['roms'] = args.run_directory
+else:
+    pass
 Ldir['gtagex'] = Ldir['gtag'] + '_' + args.ex_name
 # get time limits
 ds0 = args.date_string0; ds1 = args.date_string1

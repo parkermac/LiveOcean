@@ -96,9 +96,9 @@ def get_sect_df():
     # sect_df.loc['willapa_mouth',:] = [-124.051, -124.051,   46.631,   46.748, 1]
     
     # Shelf sections (that do not close on ocean end)
-    # sect_df.loc['shelf_45',:] = [-127, -123.733,   45,   45, 1]
-    # sect_df.loc['shelf_46',:] = [-127, -123.628,   46,   46, 1]
-    # sect_df.loc['shelf_47',:] = [-127, -123.865,   47,   47, 1]
+    sect_df.loc['shelf_45',:] = [-127, -123.733,   45,   45, 1]
+    sect_df.loc['shelf_46',:] = [-127, -123.628,   46,   46, 1]
+    sect_df.loc['shelf_47',:] = [-127, -123.865,   47,   47, 1]
     
     return sect_df
     
@@ -205,9 +205,9 @@ def start_netcdf(fn, out_fn, NT, NX, NZ, Lon, Lat, Ldir):
     else:
         # override
         vn_list.append('salt')
-        #vn_list.append('oxygen')
-        #vn_list.append('temp')
-        # vn_list.append('NO3')
+        vn_list.append('oxygen')
+        vn_list.append('temp')
+        vn_list.append('NO3')
     # and some dicts of long names and units
     long_name_dict = dict()
     units_dict = dict()
