@@ -130,4 +130,15 @@ def get_sta_dict(job_name):
             'lynch_east': (-122.921, 47.4029),
         }
         
+    elif job_name == 'stephanie_1':
+        sta_dict = {
+        'ptWillBuoyKC': (-122.399048, 47.778825),
+        'ksbp01KC': (-122.428169, 47.743960),
+        'lsnt01KC': (-122.433333, 47.533333),  
+        'nsex01KC': (-122.387082, 47.358617),
+        'adm002ECY': (-122.842950, 48.187318),
+        'sjf002ECY': (-123.025000, 48.250000),
+        'crr001ECY': (-122.709575, 47.276485)
+        }
+        
     return sta_dict, v2_list, v3_list_rho, v3_list_w

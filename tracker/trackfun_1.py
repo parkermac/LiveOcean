@@ -261,6 +261,8 @@ def update_position(R, maskr, V, ZH, S, delta_t, plon, plat, pcs, surface):
     # zeta of all particles, and the second is bottom depth h (a positive number),
     # so the H we calculate above is the total water column thickness.
     # The particle z-positions are given by H*pcs - ZH[:,1]
+    # NOTE 2019.09.09 don't I mean "ZH[:,0]" in the line above???
+    # ALSO I think this is only true for HC = 0
     pdz_s = dX_m[:,2]/H
         
     # dict for diagnostic information
