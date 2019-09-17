@@ -222,6 +222,15 @@ def get_S(S_info_dict):
     # stretching functions, 1-4 see:
     # https://www.myroms.org/wiki/index.php/Vertical_S-coordinate#Vertical_Stretching_Functions
     
+    NOTES 2019.09.11
+    (1) I checked that Cs_r and _w made by this program are identical to those which are
+    given in the ROMS history files.  They are.
+    (2) I also made some inquiries on the ROMS forum to make sure that the parameter 'hc' is
+    being done correctly.  The short answer is that yes it is.  With Vtransform = 2 (my
+    new default) it is given by Tcline from the .in file.  In older runs with Vtransform = 1
+    is it min(hmin, Tcline) and this REQUIRES that Tcline be less than hmin.  Since all those
+    older runs used Tcline = 0 then hc = 0.
+    
     """
     S = dict()
     for item in S_info_dict.keys():
