@@ -155,7 +155,7 @@ f2 = open(dot_in_dir + dot_in_name,'w')
 in_varlist = ['base_dir','ntilei','ntilej','ntimes','dt','nrrec','ninfo',
     'nhis','dstart','ndefhis','nrst','force_dir','grid_dir','roms_dir',
     'atm_dir','ocn_dir','riv_dir','tide_dir','dot_in_dir',
-    'ini_fullname','out_dir','EX_NAME','roms_name','bio_tag',
+    'ini_fullname','out_dir','EX_NAME','roms_name',
     'nrows','ncols', 'nlayers', 'ndtfast']
 for line in f:
     for var in in_varlist:
