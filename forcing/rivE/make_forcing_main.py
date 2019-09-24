@@ -30,7 +30,7 @@ ncformat = 'NETCDF3_64BIT_OFFSET' # NETCDF3_CLASSIC'
 if Ldir['gridname'] != 'aestus3':
     sys.exit()
 
-testing = True
+testing = False
 if testing:
     import matplotlib.pyplot as plt
     plt.close('all')
@@ -191,12 +191,11 @@ v_var.flag_meanings = "flow across u-face, flow across v-face"
 v_varLwSrc_True = "flag not used"
 
 v_var = foo.createVariable('river_Xposition', float, ('river'))
-count = 0
 for rr in range(nriv):
     if river_direction[rr] == 0:
-        v_var[count] = col_py[rr] + 1
+        v_var[rr] = col_py[rr] + 1
     elif river_direction[rr] == 1:
-        v_var[count] = col_py[rr]
+        v_var[rr] = col_py[rr]
 v_var.long_name = 'river XI-position'
 v_var.LuvSrc_True_meaning = "i point index of U or V face source/sink"
 v_var.LwSrc_True_meaning = "i point index of RHO center source/sink" ;
