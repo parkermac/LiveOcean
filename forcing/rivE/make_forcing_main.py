@@ -213,7 +213,7 @@ v_var.LwSrc_True_meaning = "j point index of RHO center source/sink" ;
 v_var = foo.createVariable('river_transport', float, ('river_time', 'river'))
 for rr in range(nriv):
     this_qr = q[:,rr].sum() * np.ones(ndt)
-    v_var[:, count] = this_qr
+    v_var[:, rr] = this_qr
 v_var.long_name = 'river runoff vertically integrated mass transport'
 v_var.positive = "LuvSrc=T flow in positive u,v direction, LwSrc=T flow into RHO-cell"
 v_var.negative = "LuvSrc=T flow in negative u,v direction, LwSrc=T flow out of RHO-cell"
