@@ -20,7 +20,10 @@ alp = os.path.abspath('../alpha')
 if alp not in sys.path:
     sys.path.append(alp)
 import Lfun
-Ldir = Lfun.Lstart('cas6', 'v3')
+
+gridname = 'cas6'
+tag = 'v3'
+Ldir = Lfun.Lstart(gridname, tag)
 
 pth = os.path.abspath(Ldir['LO'] + 'plotting')
 if pth not in sys.path:
@@ -32,7 +35,7 @@ if pth not in sys.path:
     sys.path.append(pth)
 import gfun
 import gfun_plotting as gfp
-Gr = gfun.gstart('cas6')
+Gr = gfun.gstart(gridname=gridname)
 
 import tef_fun
 from importlib import reload

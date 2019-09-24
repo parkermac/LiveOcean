@@ -56,39 +56,62 @@ rmean = dfrr.mean() # a series
 # created by plot_thalweg_mean.py
 segs = {
         'J1':{'S':[], 'N':[], 'W':['jdf1'], 'E':['jdf2'], 'R':['sanjuan', 'hoko']},
-        #'J2':{'S':[], 'N':[], 'W':['jdf2'], 'E':['jdf3'], 'R':[]},
+        'J2':{'S':[], 'N':[], 'W':['jdf2'], 'E':['jdf3'], 'R':[]},
+        'J3':{'S':[], 'N':[], 'W':['jdf3'], 'E':['jdf4'], 'R':['elwha']},
+        'J4':{'S':[], 'N':['sji1'], 'W':['jdf4'], 'E':['ai1','dp'], 'R':['dungeness']},
+        'G1':{'S':['sji1'], 'N':['sji2'], 'W':[], 'E':[], 'R':['samish']},
+        'G2':{'S':['sji2'], 'N':['sog1'], 'W':[], 'E':[], 'R':['nooksack', 'cowichan']},
+        'G3':{'S':['sog1'], 'N':['sog2'], 'W':[], 'E':[], 'R':['nanaimo', 'fraser']},
+        'G4':{'S':['sog2'], 'N':[], 'W':['sog3'], 'E':[], 'R':['clowhom', 'squamish']},
+        'G5':{'S':[], 'N':['sog4'], 'W':[], 'E':['sog3'], 'R':['englishman', 'tsolum', 'oyster']},
+        'G6':{'S':['sog4'], 'N':['sog5'], 'W':[], 'E':[], 'R':[]},
+        
+        #'##':{'S':[], 'N':[], 'W':[], 'E':[], 'R':[]},
         }
 
 for seg_name in segs.keys():
     
     seg = segs[seg_name]
+    has_riv = False
 
     # find number of sections for this segment
     N = 0
-    for side in list('NSEW'):
+    for side in list('SNWE'):
         s = seg[side]
-        N += len(s)
+        N += len(s) # count up the TEF sections
     if len(seg['R']) > 0:
-        N += 1
+        N += 1 # the sum of all rivers counts as a single section
+        
     # initialize result arrays
     # - inflows
     q = np.nan * np.ones(N)
     f = np.nan * np.ones(N)
     # - outflows
     Q = np.nan * np.ones(N)
+    # Qf is a modified version of Q, non-zero only in the fresher of two layers
+    Qf = np.zeros(N)
     F = np.nan * np.ones(N)
-
+    
+    
     # initialize arrays
     counter = 0
-    for side in list('WESNR'):
+    for side in list('SNWER'):
+    #for side in list('WESNR'):
         s = seg[side]
         if len(s) > 0:
             if side in ['W', 'S']:
                 for sect in s:
                     q_s, q_f, f_s, f_f, s_s, s_f = df.loc[sect,:]
+                    
+                    # debugging
+                    # print(sect)
+                    # np.set_printoptions(precision=3, suppress=True)
+                    # print(np.array([q_s, q_f, f_s, f_f, s_s, s_f]))
+                    
                     if q_s > 0:
                         q[counter] = q_s
                         Q[counter] = -q_f
+                        Qf[counter] = -q_f
                         f[counter] = f_s
                         F[counter] = -f_f
                     elif q_s < 0:
@@ -100,6 +123,12 @@ for seg_name in segs.keys():
             elif side in ['E', 'N']:
                 for sect in s:
                     q_s, q_f, f_s, f_f, s_s, s_f = df.loc[sect,:]
+                    
+                    # debugging
+                    # print(sect)
+                    # np.set_printoptions(precision=3, suppress=True)
+                    # print(np.array([q_s, q_f, f_s, f_f, s_s, s_f]))
+                    
                     if q_s > 0:
                         q[counter] =-q_f
                         Q[counter] = q_s
@@ -108,10 +137,12 @@ for seg_name in segs.keys():
                     elif q_s < 0:
                         q[counter] = -q_s
                         Q[counter] = q_f
+                        Qf[counter] = q_f
                         f[counter] = -f_s
                         F[counter] = f_f
                     counter += 1
             elif side=='R':
+                has_riv = True
                 Qr = rmean[s].sum()
                 q[counter] = Qr
                 Q[counter] = 0
@@ -119,7 +150,7 @@ for seg_name in segs.keys():
                 F[counter] = 0
                 
     # make adjustments to enforce volume and salt conservation
-    if len(seg['R'])>0:
+    if has_riv:
         # if there are rivers only adjust the non-river fluxes
         dq = q.sum() - Q.sum()
         q[:-1] -= 0.5*dq/(N-1)
@@ -146,77 +177,58 @@ for seg_name in segs.keys():
     # and y is the vector of outgoing fluxes
     
     # initialize the system matrices
-    C = np.zeros((2*N, N*N))
-    x = np.nan * np.ones(N*N)
+    C = np.zeros((2*N, 2*N))
+    x = np.nan * np.ones(2*N)
     y = np.nan * np.ones(2*N)
     A = np.nan * np.ones((N,N))
     # A is a matrix form of the elements in x, organized as
     # A[incoming section number, outgoing section number], and
-    # the vector x is A.flatten(order='F')
+    # the vector x is A[:2,:].flatten(order='F')
     
     # fill the elements of C
-    for rr in range(N):
-        for cc in range(N):
-            if rr == cc:
-                C[rr*2,cc*N:(cc*N+N)] = q
-                C[rr*2 + 1,cc*N:(cc*N+N)] = f
-                
+    Cqf = np.array([ [q[0],q[1]],[f[0],f[1]] ])
+    for ii in range(N):
+        C[2*ii:2*ii+2, 2*ii:2*ii+2] = Cqf
+        
+    # make guesses for A
+    for cc in range(N):
+        A[:N-1,cc] = Q[cc]/Q.sum()
+        A[-1,cc] = Qf[cc]/Qf.sum()
+        
+    # hand edits
+    if seg_name == 'G4':
+        A[-1,:] = np.array([1,0,0])
+        
+    # for a20 in np.linspace(0,1,21):
+    #
+    #     if seg_name == 'G5':
+    #         A[-1,:] = np.array([a20, 1-a20, 0])
+        
+    
     # fill the elements of y:
     for rr in range(N):
-        y[2*rr] = Q[rr]
-        y[2*rr + 1] = F[rr]
-    
-    # to solve the system we need to make guesses for elements of A,
-    # then move those to the RHS and remove columns from C
-    
-    # The code below may only work for dN = 3
-    
-    dN = N*N - 2*N # number of guesses needed
-    
-    a20_vec = np.linspace(.9,1,11)
-    for a20 in a20_vec:
-    
-        if dN > 0:
-        
-            # make guess for a row of A
-        
-            # BUT it may be reasonable to assume that the river flow
-            # only goes to the upper outgoing layers, not the incoming ones...
-        
-            for ii in range(dN):
-                A[N-1, ii] = Q[ii]/Q.sum()
-            
-            # Experimentation
-            if seg_name == 'J1':
-                A[N-1, :] = np.array([a20, 1-a20, 0])
-    
-            # make adjustments to y
-            yy = y.copy()
-            for ii in range(dN):
-                yy[2*ii] -= A[N-1,ii] * q[N-1]
-                yy[2*ii + 1] -= A[N-1,ii] * f[N-1]
-        
-            # CC is C with appropriate columns removed
-            CC = np.nan * np.ones((2*N,2*N))
-            for ii in range(dN):
-                CC[:,(N-1)*ii] = C[:,N*ii]
-                CC[:,(N-1)*ii + 1] = C[:,N*ii + 1]
-        else:
-            CC = C.copy()
-            yy = y.copy()
+        y[2*rr] = Q[rr] - np.sum(A[2:,rr]*q[2:])
+        y[2*rr + 1] = F[rr] - np.sum(A[2:,rr]*f[2:])
 
-        # and find the solution
-        x = la.tensorsolve(CC,yy)
-        # iCC = la.inv(CC)
-        # xalt = iCC.dot(y)
+    # and find the solution
+    x = la.tensorsolve(C,y)
+    # iCC = la.inv(CC); xalt = iCC.dot(y) # is the same
+
+    # fill in the A matrix with the correct values
+    if N > 2:
+        A[:2,:] = x.reshape((2,N), order='F')
+    else:
+        A[:] = x.reshape((N,N), order='F')
+
+    print('Solution matrix A:')
+    np.set_printoptions(precision=3, suppress=True)
+    print(A)
     
-        # fill in rest of the A matrix
-        if dN > 0:
-            A[:-1] = x.reshape((N-1,N), order='F')
-        else:
-            A[:] = x.reshape((N,N), order='F')
-        
-        print('')
-        print(A)
+    # cvec = 'rbgmc'
+    # plt.close('all')
+    # fig = plt.figure(figsize=(10,7))
+    #
+    #
+    # plt.show()
     
 
