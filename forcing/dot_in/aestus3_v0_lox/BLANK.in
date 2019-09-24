@@ -65,15 +65,15 @@ GridsInLayer =  1
 !                           h               h
 !
 !                   1       2       3       4
-   LBC(isFsur) ==   Cha     Cha     Cha     Cha         ! free-surface
-   LBC(isUbar) ==   Fla     Fla     Fla     Fla         ! 2D U-momentum
-   LBC(isVbar) ==   Fla     Fla     Fla     Fla         ! 2D V-momentum
-   LBC(isUvel) ==   RadNud     RadNud     RadNud     RadNud         ! 3D U-momentum
-   LBC(isVvel) ==   RadNud     RadNud     RadNud     RadNud         ! 3D V-momentum
-   LBC(isMtke) ==   RadNud     RadNud     RadNud     RadNud         ! mixing TKE
+   LBC(isFsur) ==   Cha     Cha     Clo     Cha         ! free-surface
+   LBC(isUbar) ==   Fla     Fla     Clo     Fla         ! 2D U-momentum
+   LBC(isVbar) ==   Fla     Fla     Clo     Fla         ! 2D V-momentum
+   LBC(isUvel) ==   RadNud     RadNud     Clo     RadNud         ! 3D U-momentum
+   LBC(isVvel) ==   RadNud     RadNud     Clo     RadNud         ! 3D V-momentum
+   LBC(isMtke) ==   RadNud     RadNud     Clo     RadNud         ! mixing TKE
 
-   LBC(isTvar) ==   RadNud     RadNud     RadNud     RadNud \       ! temperature
-                    RadNud     RadNud     RadNud     RadNud \       ! salinity
+   LBC(isTvar) ==   RadNud     RadNud     Clo     RadNud \       ! temperature
+                    RadNud     RadNud     Clo     RadNud \       ! salinity
 
 ! Set lateral open boundary edge volume conservation switch for
 ! nonlinear model and adjoint-based algorithms. Usually activated
@@ -243,10 +243,10 @@ GridsInLayer =  1
 ! Nudging/relaxation time scales, inverse scales will be computed
 ! internally, [1:Ngrids].
 
-       TNUDG == 0.1d0 0.1d0                ! days
-       ZNUDG == 0.1d0                      ! days
-      M2NUDG == 0.1d0                      ! days
-      M3NUDG == 0.1d0                      ! days
+       TNUDG == 3.0d0 3.0d0                ! days
+       ZNUDG == 3.0d0                      ! days
+      M2NUDG == 3.0d0                      ! days
+      M3NUDG == 3.0d0                      ! days
       
 ! Factor between passive (outflow) and active (inflow) open boundary
 ! conditions, [1:Ngrids]. If OBCFAC > 1, nudging on inflow is stronger
@@ -277,7 +277,7 @@ GridsInLayer =  1
 ! (like river runoff) and to specify which tracer variables to consider:
 ! [1:NAT+NPT,Ngrids].  See glossary below for details.
 
-  LtracerSrc == F F                       ! temperature, salinity, inert
+  LtracerSrc == T T                       ! temperature, salinity, inert
 
 ! Logical switches (TRUE/FALSE) to read and process climatology fields.
 ! See glossary below for details.
@@ -561,28 +561,15 @@ Dout(iTvdif) == T T     ! temp_vdiff, ...    vertical diffusion
 ! line per entry with a vertical bar (|) symbol after each entry,
 ! except the last one.
 
-     BRYNAME == $force_dir$$ocn_dir$ocean_bry$bio_tag$.nc
-     CLMNAME == $force_dir$$ocn_dir$ocean_clm$bio_tag$.nc
-
-! Input climatology nudging coefficients file name.
-
-!     NUDNAME == ocean_nud.nc
+     BRYNAME == $force_dir$$ocn_dir$ocean_bry.nc
+     CLMNAME == $force_dir$$ocn_dir$ocean_clm.nc
 
 ! Input Sources/Sinks forcing (like river runoff) file name.
 
-!     SSFNAME == $force_dir$$riv_dir$rivers$bio_tag$.nc
+     SSFNAME == $force_dir$$riv_dir$rivers.nc
 
-     NFFILES == 8                          ! number of unique forcing files
+     NFFILES == 0                          ! number of unique forcing files
 
-!     FRCNAME == $force_dir$$tide_dir$tides.nc \
-  FRCNAME ==$force_dir$$atm_dir$lwrad_down.nc \
-  $force_dir$$atm_dir$Pair.nc \
-  $force_dir$$atm_dir$Qair.nc \
-  $force_dir$$atm_dir$rain.nc \
-  $force_dir$$atm_dir$swrad.nc \
-  $force_dir$$atm_dir$Tair.nc \
-  $force_dir$$atm_dir$Uwind.nc \
-  $force_dir$$atm_dir$Vwind.nc  
 
 ! Output NetCDF file names, [1:Ngrids].
 
