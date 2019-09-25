@@ -47,7 +47,7 @@ GridsInLayer =  1
 
          NAT =  2             ! Number of active tracers (usually, 2)
          NPT =  0             ! Number of inactive passive tracers
-         NBT =  9             ! Number of biology tracers
+         NBT =  0             ! Number of biology tracers
          NCS =  0             ! Number of cohesive (mud) sediment tracers
          NNS =  0             ! Number of non-cohesive (sand) sediment tracers
 
