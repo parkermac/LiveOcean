@@ -153,6 +153,7 @@ outdir1 = out_name + '/'
 outdir = outdir0 + outdir1
 Lfun.make_dir(outdir, clean=True)
 print(50*'*' + '\nWriting to ' + outdir)
+sys.stdout.flush()
 
 # write a csv file of experiment information
 Lfun.dict_to_csv(TR, outdir + 'exp_info.csv')
@@ -175,6 +176,7 @@ for idt0 in idt_list:
     idt0_str = datetime.strftime(idt0,'%Y.%m.%d')
     outname = ('release_' + idt0_str + '.nc')
     print('-- ' + outname)
+    sys.stdout.flush()
     out_fn = outdir + outname
     
     # we do the calculation in one-day segments
@@ -189,6 +191,7 @@ for idt0 in idt_list:
         # screen output
         idt_str = datetime.strftime(idt,'%Y.%m.%d')
         print(' - working on ' + idt_str)
+        sys.stdout.flush()
             
         fn_list = tf1.get_fn_list(idt, Ldir)
         
