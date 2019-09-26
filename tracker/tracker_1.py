@@ -128,7 +128,7 @@ elif not TR['3d']:
 if TR['turb']:
     out_name += '_turb'
 if TR['windage'] > 0:
-    out_name += '_wind'
+    out_name += '_wind' + str(int(100*TR['windage']))
 
 # make the list of start days (datetimes)
 idt_list = []

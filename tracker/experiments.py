@@ -47,13 +47,9 @@ def make_ic(exp_name):
             gtagex = 'cas4_v2_lo6biom'
             ic_name = 'test3'
             
-    elif exp_name == 'tj0': # for Tim Jones, new dead bird work
-            gtagex = 'cas6_v3_lo8b'
-            ic_name = 'birds0'
     elif exp_name == 'tj1': # for Tim Jones, new dead bird work
             gtagex = 'cascadia1_base_lobio5'
-            ic_name = 'birds0'
-    
+            ic_name = 'birds_lo'
         
     # routines to set particle initial locations, all numpy arrays
     #
@@ -63,9 +59,16 @@ def make_ic(exp_name):
     # each lat, lon (expressed as fraction of depth -1 < pcs < 1)
     #
     
-    if ic_name == 'birds0': # Dear Birds new work, 2019_09
+    if ic_name == 'birds_hi': # Dead Birds new work, 2019_09
         lonvec = np.linspace(-127, -123.9, 48)
         latvec = np.linspace(45, 49.8, 107)
+        lonmat, latmat = np.meshgrid(lonvec, latvec)
+        plon_vec = lonmat.flatten()
+        plat_vec = latmat.flatten()
+        pcs_vec = np.array([-.05])
+    if ic_name == 'birds_lo': # Dead Birds new work, 2019_09 lower resolution
+        lonvec = np.linspace(-127, -123.9, 34)
+        latvec = np.linspace(45, 49.8, 76)
         lonmat, latmat = np.meshgrid(lonvec, latvec)
         plon_vec = lonmat.flatten()
         plat_vec = latmat.flatten()
