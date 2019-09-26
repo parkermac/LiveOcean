@@ -34,11 +34,8 @@ from datetime import datetime, timedelta
 import time
 import argparse
 
-import os
-import sys
-alp = os.path.abspath('../alpha')
-if alp not in sys.path:
-    sys.path.append(alp)
+import os; import sys
+sys.path.append(os.path.abspath('../alpha'))
 import Lfun
 Ldir = Lfun.Lstart()
 
@@ -100,6 +97,9 @@ parser.add_argument('-dtt', '--days_to_track', default=1, type=int)
 # 300 s seems like a good default value, based on Banas et al.
 parser.add_argument('-ndiv', default=12, type=int)
 
+# set which roms output directory to look in (refers to Ldir['roms'] or Ldir['roms2'])
+parser.add_argument('-rd', '--roms_dir', default='roms', type=str)
+
 args = parser.parse_args()
 TR = args.__dict__ 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -144,6 +144,9 @@ outdir0 = Ldir['LOo'] + 'tracks/'
 Lfun.make_dir(outdir0)
 
 Ldir['gtagex'] = TR['gtagex']
+
+# override directory location for model output
+Ldir['roms'] = Ldir[TR['roms_dir']]
 
 # make the output directory (empty)
 outdir1 = out_name + '/'
