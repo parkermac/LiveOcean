@@ -43,10 +43,17 @@ def make_ic(exp_name):
     elif exp_name == 'ae3':
         gtagex = 'aestus1_A1_ae1'
         ic_name = 'est3'
-        
-    elif exp_name == 'col3': # Bridget Ovall
+    elif exp_name == 'col3': # for Bridget Ovall
             gtagex = 'cas4_v2_lo6biom'
             ic_name = 'test3'
+            
+    elif exp_name == 'tj0': # for Tim Jones, new dead bird work
+            gtagex = 'cas6_v3_lo8b'
+            ic_name = 'birds0'
+    elif exp_name == 'tj1': # for Tim Jones, new dead bird work
+            gtagex = 'cascadia1_base_lobio5'
+            ic_name = 'birds0'
+    
         
     # routines to set particle initial locations, all numpy arrays
     #
@@ -55,6 +62,15 @@ def make_ic(exp_name):
     # and the length of pcs00 is however many vertical positions you have at
     # each lat, lon (expressed as fraction of depth -1 < pcs < 1)
     #
+    
+    if ic_name == 'birds0': # Dear Birds new work, 2019_09
+        lonvec = np.linspace(-127, -123.9, 48)
+        latvec = np.linspace(45, 49.8, 107)
+        lonmat, latmat = np.meshgrid(lonvec, latvec)
+        plon_vec = lonmat.flatten()
+        plat_vec = latmat.flatten()
+        pcs_vec = np.array([-.05])
+    
     if ic_name == 'hc0': # Hood Canal
         lonvec = np.linspace(-122.65, -122.45, 30)
         latvec = np.linspace(47.2, 47.35, 30)
