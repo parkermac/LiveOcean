@@ -80,7 +80,7 @@ def get_tracks(fn_list, plon0, plat0, pcs0, TR, trim_loc=False):
     vn_list_zh = ['zeta','h']
     vn_list_wind = ['Uwind','Vwind']
     vn_list_other = ['salt', 'temp'] + vn_list_zh + vn_list_vel
-    if windage == True:
+    if windage > 0:
         vn_list_other = vn_list_other + vn_list_wind
     # plist_main is what ends up written to output
     plist_main = ['lon', 'lat', 'cs', 'ot', 'z'] + vn_list_other
