@@ -18,6 +18,9 @@
 # of LiveOcean directory locations and other info that had crept into those four
 # places.
 
+# defaults
+roms2="BLANK"
+
 if [ $HOME == "/Users/pm7" ] ; then
   lo_env='pm_mac'
   parent=$HOME"/Documents/"
@@ -87,4 +90,5 @@ echo "LO",$LO >> $outfile
 echo "data",$data >> $outfile
 echo "LOo",$LOo >> $outfile
 echo "roms",$roms >> $outfile
+echo "roms2",$roms2 >> $outfile
 echo "which_matlab",$which_matlab >> $outfile
