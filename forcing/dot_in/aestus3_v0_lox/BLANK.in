@@ -141,7 +141,7 @@ GridsInLayer =  1
 ! Harmonic/biharmonic horizontal diffusion of tracer for nonlinear model
 ! and adjoint-based algorithms: [1:NAT+NPT,Ngrids].
 
-        TNU2 == 2*2.0d0                         ! m2/s
+        TNU2 == 2*0.0d0                         ! m2/s
         TNU4 == 2*0.0d0                         ! m4/s
 
 ! Harmonic/biharmonic, horizontal viscosity coefficient for nonlinear model
@@ -362,15 +362,15 @@ Hout(idWpbt) == F       ! Pwave_bot          wave bottom period
 Hout(idWorb) == F       ! Ub_swan            wave bottom orbital velocity
 Hout(idWdis) == F       ! Wave_dissip        wave dissipation
 
-Hout(idPair) == T       ! Pair               surface air pressure
-Hout(idUair) == T       ! Uair               surface U-wind component
-Hout(idVair) == T       ! Vair               surface V-wind component
+Hout(idPair) == F       ! Pair               surface air pressure
+Hout(idUair) == F       ! Uair               surface U-wind component
+Hout(idVair) == F       ! Vair               surface V-wind component
 
-Hout(idTsur) == T T     ! shflux, ssflux     surface net heat and salt flux
-Hout(idLhea) == T       ! latent             latent heat flux
-Hout(idShea) == T       ! sensible           sensible heat flux
-Hout(idLrad) == T       ! lwrad              longwave radiation flux
-Hout(idSrad) == T       ! swrad              shortwave radiation flux
+Hout(idTsur) == F F     ! shflux, ssflux     surface net heat and salt flux
+Hout(idLhea) == F       ! latent             latent heat flux
+Hout(idShea) == F       ! sensible           sensible heat flux
+Hout(idLrad) == F       ! lwrad              longwave radiation flux
+Hout(idSrad) == F       ! swrad              shortwave radiation flux
 Hout(idEmPf) == F       ! EminusP            E-P flux
 Hout(idevap) == F       ! evaporation        evaporation rate
 Hout(idrain) == F       ! rain               precipitation rate
@@ -401,7 +401,7 @@ Aout(idVvel) == T       ! v                  3D V-velocity
 Aout(idu3dE) == F       ! u_eastward         3D U-eastward  at RHO-points
 Aout(idv3dN) == F       ! v_northward        3D V-northward at RHO-points
 Aout(idWvel) == T       ! w                  3D W-velocity
-Aout(idOvel) == T       ! omega              omega vertical velocity
+Aout(idOvel) == F       ! omega              omega vertical velocity
 Aout(idUbar) == T       ! ubar               2D U-velocity
 Aout(idVbar) == T       ! vbar               2D V-velocity
 Aout(idu2dE) == F       ! ubar_eastward      2D U-eastward  at RHO-points
@@ -410,8 +410,8 @@ Aout(idFsur) == T       ! zeta               free-surface
 
 Aout(idTvar) == T T     ! temp, salt         temperature and salinity
 
-Aout(idUsms) == T       ! sustr              surface U-stress
-Aout(idVsms) == T       ! svstr              surface V-stress
+Aout(idUsms) == F       ! sustr              surface U-stress
+Aout(idVsms) == F       ! svstr              surface V-stress
 Aout(idUbms) == T       ! bustr              bottom U-stress
 Aout(idVbms) == T       ! bvstr              bottom V-stress
 
@@ -434,16 +434,16 @@ Aout(idU3Sd) == F       ! u_stokes           3D U-Stokes velocity
 Aout(idV3Sd) == F       ! v_stokes           3D V-Stokes velocity
 
 Aout(idPair) == F       ! Pair               surface air pressure
-Aout(idUair) == T       ! Uair               surface U-wind component
-Aout(idVair) == T       ! Vair               surface V-wind component
+Aout(idUair) == F       ! Uair               surface U-wind component
+Aout(idVair) == F       ! Vair               surface V-wind component
 
-Aout(idTsur) == T T     ! shflux, ssflux     surface net heat and salt flux
-Aout(idLhea) == T       ! latent             latent heat flux
-Aout(idShea) == T       ! sensible           sensible heat flux
-Aout(idLrad) == T       ! lwrad              longwave radiation flux
-Aout(idSrad) == T       ! swrad              shortwave radiation flux
-Aout(idevap) == T       ! evaporation        evaporation rate
-Aout(idrain) == T       ! rain               precipitation rate
+Aout(idTsur) == F F     ! shflux, ssflux     surface net heat and salt flux
+Aout(idLhea) == F       ! latent             latent heat flux
+Aout(idShea) == F       ! sensible           sensible heat flux
+Aout(idLrad) == F       ! lwrad              longwave radiation flux
+Aout(idSrad) == F       ! swrad              shortwave radiation flux
+Aout(idevap) == F       ! evaporation        evaporation rate
+Aout(idrain) == F       ! rain               precipitation rate
 
 Aout(idDano) == T       ! rho                density anomaly
 Aout(idVvis) == F       ! AKv                vertical viscosity
@@ -469,10 +469,10 @@ Aout(idHUav) == T       ! Huon               u-volume flux, Huon
 Aout(idHVav) == T       ! Hvom               v-volume flux, Hvom
 Aout(idUUav) == T       ! uu                 quadratic <u*u> term
 Aout(idUVav) == F       ! uv                 quadratic <u*v> term
-Aout(idVVav) == T       ! vv                 quadratic <v*v> term
-Aout(idU2av) == T       ! ubar2              quadratic <ubar*ubar> term
-Aout(idV2av) == T       ! vbar2              quadratic <vbar*vbar> term
-Aout(idZZav) == T       ! zeta2              quadratic <zeta*zeta> term
+Aout(idVVav) == F       ! vv                 quadratic <v*v> term
+Aout(idU2av) == F       ! ubar2              quadratic <ubar*ubar> term
+Aout(idV2av) == F       ! vbar2              quadratic <vbar*vbar> term
+Aout(idZZav) == F       ! zeta2              quadratic <zeta*zeta> term
 
 Aout(idTTav) == F F     ! temp2, salt2       quadratic <t*t> T/S terms
 Aout(idUTav) == F F     ! utemp, usalt       quadratic <u*t> T/S terms
@@ -549,12 +549,6 @@ Dout(iTvdif) == T T     ! temp_vdiff, ...    vertical diffusion
      GRDNAME == $grid_dir$grid.nc
      ININAME == $ini_fullname$
 
-! Nesting grids connectivity data: contact points information. This
-! NetCDF file is special and complex. It is currently generated using
-! the script "matlab/grid/contact.m" from the Matlab repository.
-
-     NGCNAME =  ocean_ngc.nc
-
 ! Input lateral boundary conditions and climatology file names.  The
 ! USER has the option to split input data time records into several
 ! NetCDF files (see prologue instructions above). If so, use a single
@@ -577,9 +571,6 @@ Dout(iTvdif) == T T     ! temp_vdiff, ...    vertical diffusion
      HISNAME == $out_dir$ocean_his.nc
      AVGNAME == $out_dir$ocean_avg.nc
      DIANAME == $out_dir$ocean_dia.nc
-
-! Input ASCII parameter filenames.
-     BPARNAM = $dot_in_dir$npzd2o_Banas.in     
 
 
 

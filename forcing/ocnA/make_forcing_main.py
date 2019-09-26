@@ -50,7 +50,7 @@ try:
     os.remove(clm_fn)
 except OSError:
     pass # assume error was because the file did not exist
-foo = nc.Dataset(clm_fn, 'w', format='NETCDF3_CLASSIC')
+foo = nc.Dataset(clm_fn, 'w', format='NETCDF3_64BIT_OFFSET')
 
 # create dimensions
 for vn in ['salt', 'temp', 'v3d', 'v2d', 'zeta', 'ocean']:
@@ -118,7 +118,7 @@ try:
     os.remove(ini_fn)
 except OSError:
     pass # assume error was because the file did not exist
-ds2 = nc.Dataset(ini_fn, 'w', format='NETCDF3_CLASSIC')
+ds2 = nc.Dataset(ini_fn, 'w', format='NETCDF3_64BIT_OFFSET')
 
 # Copy dimensions
 for dname, the_dim in ds1.dimensions.items():
@@ -152,7 +152,7 @@ try:
     os.remove(bry_fn)
 except OSError:
     pass # assume error was because the file did not exist
-ds2 = nc.Dataset(bry_fn, 'w', format='NETCDF3_CLASSIC')
+ds2 = nc.Dataset(bry_fn, 'w', format='NETCDF3_64BIT_OFFSET')
 
 # Copy dimensions
 for dname, the_dim in ds1.dimensions.items():
