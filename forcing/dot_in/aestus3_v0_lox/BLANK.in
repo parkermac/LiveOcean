@@ -270,14 +270,14 @@ GridsInLayer =  1
 ! point Sources/Sinks (like river runoff transport) and mass point
 ! Sources/Sinks (like volume vertical influx), [1:Ngrids].
 
-      LuvSrc == T                          ! horizontal momentum transport
+      LuvSrc == F                          ! horizontal momentum transport
        LwSrc == F                          ! volume vertical influx
 
 ! Logical switches (TRUE/FALSE) to activate tracers point Sources/Sinks
 ! (like river runoff) and to specify which tracer variables to consider:
 ! [1:NAT+NPT,Ngrids].  See glossary below for details.
 
-  LtracerSrc == T T                       ! temperature, salinity, inert
+  LtracerSrc == F F                       ! temperature, salinity, inert
 
 ! Logical switches (TRUE/FALSE) to read and process climatology fields.
 ! See glossary below for details.
