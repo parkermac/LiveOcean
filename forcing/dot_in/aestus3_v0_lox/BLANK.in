@@ -555,7 +555,7 @@ Dout(iTvdif) == T T     ! temp_vdiff, ...    vertical diffusion
 ! line per entry with a vertical bar (|) symbol after each entry,
 ! except the last one.
 
-     BRYNAME == $force_dir$$ocn_dir$ocean_bry.nc
+     BRYNAME == $force_dir$$ocn_dir$ocean_bry_JUNK.nc
      CLMNAME == $force_dir$$ocn_dir$ocean_clm.nc
 
 ! Input Sources/Sinks forcing (like river runoff) file name.
