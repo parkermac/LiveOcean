@@ -563,7 +563,7 @@ Dout(iTvdif) == T T     ! temp_vdiff, ...    vertical diffusion
      SSFNAME == $force_dir$$riv_dir$rivers.nc
 
      NFFILES == 1                          ! number of unique forcing files
-	 FRCNAME == ocean_frc.nc
+	 FRCNAME == $force_dir$$tide_dir$tides.nc
 	 
 ! Output NetCDF file names, [1:Ngrids].
 
