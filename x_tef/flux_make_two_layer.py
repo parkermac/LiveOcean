@@ -3,8 +3,8 @@ Goes through all the sections for a given extraction and makes
 long-time averages (like a whole year) and forces fluxes into
 two layers.
 
-The results are saved in a single DataFrame, for layter use by code
-like efflux_reflux.py.
+The results are saved in a single DataFrame, for later use by code
+like flux_get_A.py.
 
 """
 
