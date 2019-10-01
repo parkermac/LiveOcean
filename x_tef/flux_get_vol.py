@@ -96,9 +96,17 @@ for seg_name in seg_name_list:
     for sn in seg_df.index:
         s = seg_df.loc[sn,:]
         if s['sdir'] == 'NS' and s['side'] == 'W':
-            ax.plot(x[s['jj0']:s['jj1']+1, s['ii1']], y[s['jj0']:s['jj1']+1, s['ii1']], 'ok')
-        elif s['sdir'] == 'NS' and s['side'] == 'E':
             ax.plot(x[s['jj0']:s['jj1']+1, s['ii0']], y[s['jj0']:s['jj1']+1, s['ii0']], 'ok')
+            ax.plot(x[s['jj0']:s['jj1']+1, s['ii1']], y[s['jj0']:s['jj1']+1, s['ii1']], 'om')
+        elif s['sdir'] == 'NS' and s['side'] == 'E':
+            ax.plot(x[s['jj0']:s['jj1']+1, s['ii0']], y[s['jj0']:s['jj1']+1, s['ii0']], 'om')
+            ax.plot(x[s['jj0']:s['jj1']+1, s['ii1']], y[s['jj0']:s['jj1']+1, s['ii1']], 'ok')
+        if s['sdir'] == 'EW' and s['side'] == 'S':
+            ax.plot(x[s['jj0'], s['ii0']:s['ii1']+1], y[s['jj0'], s['ii0']:s['ii1']+1], 'ok')
+            ax.plot(x[s['jj1'], s['ii0']:s['ii1']+1], y[s['jj1'], s['ii0']:s['ii1']+1], 'om')
+        if s['sdir'] == 'EW' and s['side'] == 'N':
+            ax.plot(x[s['jj0'], s['ii0']:s['ii1']+1], y[s['jj0'], s['ii0']:s['ii1']+1], 'om')
+            ax.plot(x[s['jj1'], s['ii0']:s['ii1']+1], y[s['jj1'], s['ii0']:s['ii1']+1], 'ok')
         
     plt.show()
         
