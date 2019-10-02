@@ -45,19 +45,19 @@ elif Ldir['run_type'] == 'forecast':
 if Ldir['blow_ups'] == 0:
     dtsec = 60
 elif Ldir['blow_ups'] == 1:
-    dtsec = 30
+    dtsec = 50
 elif Ldir['blow_ups'] == 2:
-    dtsec = 20
+    dtsec = 40
 elif Ldir['blow_ups'] == 3:
-    dtsec = 10
+    dtsec = 30
 elif Ldir['blow_ups'] == 4:
-    dtsec = 6
+    dtsec = 20
 elif Ldir['blow_ups'] == 5:
-    dtsec = 4
+    dtsec = 10
 elif Ldir['blow_ups'] == 6:
-    dtsec = 2
+    dtsec = 8
 elif Ldir['blow_ups'] == 7:
-    dtsec = 1
+    dtsec = 5
 else:
     print('Unsupported number of blow ups: %d' % (Ldir['blow_ups']))
     
@@ -68,10 +68,10 @@ his_interval = 3600 # seconds to define and write to history files
 rst_interval = 10 # days between writing to the restart file (e.g. 5)
 
 # which forcings to look for
-atm_dir = 'BLANK/' # which atm forcing files to use
-ocn_dir = 'ocnA/' # which ocn forcing files to use
-riv_dir = 'rivE/' # which riv forcing files to use
-tide_dir = 'tideA/' # which tide forcing files to use
+atm_dir = 'atm1/' # which atm forcing files to use
+ocn_dir = 'ocnN/' # which ocn forcing files to use
+riv_dir = 'BLANK/' # which riv forcing files to use
+tide_dir = 'BLANK/' # which tide forcing files to use
 
 #### END USER DEFINED VALUES ####
 
@@ -81,9 +81,21 @@ if multi_core:
     if Ldir['np_num'] == 64: # for new mox nodes 2*32=64 2019_02
         ntilei = '8' # number of tiles in I-direction
         ntilej = '8' # number of tiles in J-direction
+    elif Ldir['np_num'] == 72:
+        ntilei = '6' # number of tiles in I-direction
+        ntilej = '12' # number of tiles in J-direction
+    elif Ldir['np_num'] == 144:
+        ntilei = '8' # number of tiles in I-direction
+        ntilej = '18' # number of tiles in J-direction
     elif Ldir['np_num'] == 196:
         ntilei = '14' # number of tiles in I-direction
         ntilej = '14' # number of tiles in J-direction
+    elif Ldir['np_num'] == 392:
+        ntilei = '14' # number of tiles in I-direction
+        ntilej = '28' # number of tiles in J-direction
+    elif Ldir['np_num'] == 588:
+        ntilei = '21' # number of tiles in I-direction
+        ntilej = '28' # number of tiles in J-direction
     else:
         print('Unsupported number of processors: %d' % (Ldir['np_num']))
 else:
@@ -116,6 +128,15 @@ grid_dir = Ldir['parent'] + 'LiveOcean_data/grids/' + Ldir['gridname'] + '/'
 force_dir = loo_dir + gtag + '/' + f_string + '/'
 roms_dir = Ldir['parent'] + 'LiveOcean_roms/'
 
+# determine grid size
+# gfn = grid_dir + 'grid.nc'
+# ds = nc.Dataset(gfn)
+# h = ds['h'][:]
+# nrows0, ncols0 = h.shape
+# nrows = nrows0 - 2
+# ncols = ncols0 - 2
+#ds.close()
+
 # hardwired because we don't have netCDF4
 nrows = 385 - 2
 ncols = 142 - 2
@@ -123,6 +144,11 @@ ncols = 142 - 2
 # determine number of layers
 s_dict = Lfun.csv_to_dict(grid_dir + 'S_COORDINATE_INFO.csv')
 nlayers = str(s_dict['N'])
+
+if do_bio:
+    bio_tag = ''
+else:
+    bio_tag = ''
 
 # the .in file
 dot_in_name = 'liveocean.in' # name of the .in file
@@ -138,12 +164,13 @@ out_dir0 = roms_dir + 'output/' + gtagex + '/'
 out_dir = out_dir0 + f_string + '/'
 
 if Ldir['start_type'] == 'continuation':
-    nrrec = '0' # '-1' for a hot restart?
-    ininame = 'ocean_rst.nc' # for a hot perfect restart
+    nrrec = '0' # '-1' for a hot restart
+    #ininame = 'ocean_rst.nc' # for a hot perfect restart
+    ininame = 'ocean_his_0025.nc' # for a hot restart
     ini_fullname = out_dir0 + f_string_yesterday + '/' + ininame
 elif Ldir['start_type'] == 'new':
     nrrec = '0' # '0' for a history or ini file
-    ininame = 'ocean_ini' + '.nc' # could be an ini or history file
+    ininame = 'ocean_ini' + bio_tag + '.nc' # could be an ini or history file
     ini_fullname = force_dir + ocn_dir + ininame
 
 # END DERIVED VALUES
@@ -155,7 +182,7 @@ f2 = open(dot_in_dir + dot_in_name,'w')
 in_varlist = ['base_dir','ntilei','ntilej','ntimes','dt','nrrec','ninfo',
     'nhis','dstart','ndefhis','nrst','force_dir','grid_dir','roms_dir',
     'atm_dir','ocn_dir','riv_dir','tide_dir','dot_in_dir',
-    'ini_fullname','out_dir','EX_NAME','roms_name',
+    'ini_fullname','out_dir','EX_NAME','roms_name','bio_tag',
     'nrows','ncols', 'nlayers', 'ndtfast']
 for line in f:
     for var in in_varlist:
@@ -168,4 +195,19 @@ for line in f:
 f.close()
 f2.close()
 
+## npzd2o_Banas.in ###########
 
+f = open('npzd2o_Banas_BLANK.in','r')
+bio_dot_in_name = 'npzd2o_Banas.in'
+f3 = open(dot_in_dir + bio_dot_in_name,'w')
+in_varlist = ['force_dir','riv_dir','bio_tag']
+for line in f:
+    for var in in_varlist:
+        if '$'+var+'$' in line:
+            line2 = line.replace('$'+var+'$', str(eval(var)))
+            line = line2
+        else:
+            line2 = line
+    f3.write(line2)
+f.close()
+f3.close()
