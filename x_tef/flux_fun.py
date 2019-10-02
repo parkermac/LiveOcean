@@ -50,3 +50,44 @@ segs = {
         
         #'##':{'S':[], 'N':[], 'W':[], 'E':[], 'R':[]},
         }
+        
+def update_mm(ji, mm, this_ji_list, full_ji_list, next_ji_list):
+    this_ji_list.append(ji)
+    full_ji_list.append(ji)
+    for ji in this_ji_list:
+        mm[ji] = False
+    keep_looking = True
+    counter = 0
+    while len(this_ji_list) > 0:
+        print('iteration ' + str(counter))
+        for ji in this_ji_list:
+            JI = (ji[0]+1, ji[1]) # North
+            if mm[JI] == True:
+                next_ji_list.append(JI)
+                mm[JI] = False
+            else:
+                pass
+            JI = (ji[0], ji[1]+1) # East
+            if mm[JI] == True:
+                next_ji_list.append(JI)
+                mm[JI] = False
+            else:
+                pass
+            JI = (ji[0]-1, ji[1]) # South
+            if mm[JI] == True:
+                next_ji_list.append(JI)
+                mm[JI] = False
+            else:
+                pass
+            JI = (ji[0], ji[1]-1) # West
+            if mm[JI] == True:
+                next_ji_list.append(JI)
+                mm[JI] = False
+            else:
+                pass
+        for ji in next_ji_list:
+            full_ji_list.append(ji)
+        this_ji_list = next_ji_list.copy()
+        next_ji_list = []
+        counter += 1
+    return mm, this_ji_list, full_ji_list, next_ji_list

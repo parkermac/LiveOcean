@@ -44,11 +44,13 @@ testing = True
 segs = flux_fun.segs
 
 if testing == True:
-    seg_name_list = ['M4']
+    seg_name_list = ['W2']
 else:
      seg_name_list = segs.keys()
 
 plt.close('all')
+
+
 
 for seg_name in seg_name_list:
     
@@ -93,21 +95,85 @@ for seg_name in seg_name_list:
     ax.axis([seg_df['Lon0'].min()-pad,seg_df['Lon1'].max()+pad,
         seg_df['Lat0'].min()-pad,seg_df['Lat1'].max()+pad])
         
+    # initialize a mask
+    mm = m.copy().data # boolean array, True over water
+    full_ji_list = [] # full list of indices of good rho points inside the volume
+    this_ji_list = [] # current list of indices of good rho points inside the volume
+    next_ji_list = [] # next list of indices of good rho points inside the volume
+        
     for sn in seg_df.index:
         s = seg_df.loc[sn,:]
+        # the black dots show rho gridpoints OUTSIDE of the segment volume, while
+        # the magenta ones are those just inside
         if s['sdir'] == 'NS' and s['side'] == 'W':
             ax.plot(x[s['jj0']:s['jj1']+1, s['ii0']], y[s['jj0']:s['jj1']+1, s['ii0']], 'ok')
             ax.plot(x[s['jj0']:s['jj1']+1, s['ii1']], y[s['jj0']:s['jj1']+1, s['ii1']], 'om')
+            mm[s['jj0']:s['jj1']+1, s['ii0']] = False
         elif s['sdir'] == 'NS' and s['side'] == 'E':
             ax.plot(x[s['jj0']:s['jj1']+1, s['ii0']], y[s['jj0']:s['jj1']+1, s['ii0']], 'om')
             ax.plot(x[s['jj0']:s['jj1']+1, s['ii1']], y[s['jj0']:s['jj1']+1, s['ii1']], 'ok')
+            mm[s['jj0']:s['jj1']+1, s['ii1']] = False
         if s['sdir'] == 'EW' and s['side'] == 'S':
             ax.plot(x[s['jj0'], s['ii0']:s['ii1']+1], y[s['jj0'], s['ii0']:s['ii1']+1], 'ok')
             ax.plot(x[s['jj1'], s['ii0']:s['ii1']+1], y[s['jj1'], s['ii0']:s['ii1']+1], 'om')
+            mm[s['jj0'], s['ii0']:s['ii1']+1] = False
         if s['sdir'] == 'EW' and s['side'] == 'N':
             ax.plot(x[s['jj0'], s['ii0']:s['ii1']+1], y[s['jj0'], s['ii0']:s['ii1']+1], 'om')
             ax.plot(x[s['jj1'], s['ii0']:s['ii1']+1], y[s['jj1'], s['ii0']:s['ii1']+1], 'ok')
+            mm[s['jj1'], s['ii0']:s['ii1']+1] = False
+
+
+    for sn in seg_df.index:
+        print(sn)
+        s = seg_df.loc[sn,:]
+        if s['sdir'] == 'NS' and s['side'] == 'W':
+            ji = (s['jj0'],s['ii1'])
+            mm, this_ji_list, full_ji_list, next_ji_list = flux_fun.update_mm(ji, mm,
+                    this_ji_list, full_ji_list, next_ji_list)
+            ji = (s['jj1'],s['ii1'])
+            mm, this_ji_list, full_ji_list, next_ji_list = flux_fun.update_mm(ji, mm,
+                    this_ji_list, full_ji_list, next_ji_list)
+        elif s['sdir'] == 'NS' and s['side'] == 'E':
+            ji = (s['jj0'],s['ii0'])
+            mm, this_ji_list, full_ji_list, next_ji_list = flux_fun.update_mm(ji, mm,
+                    this_ji_list, full_ji_list, next_ji_list)
+            ji = (s['jj1'],s['ii0'])
+            mm, this_ji_list, full_ji_list, next_ji_list = flux_fun.update_mm(ji, mm,
+                    this_ji_list, full_ji_list, next_ji_list)
+        elif s['sdir'] == 'EW' and s['side'] == 'S':
+            ji = (s['jj1'],s['ii0'])
+            mm, this_ji_list, full_ji_list, next_ji_list = flux_fun.update_mm(ji, mm,
+                    this_ji_list, full_ji_list, next_ji_list)
+            ji = (s['jj1'],s['ii1'])
+            mm, this_ji_list, full_ji_list, next_ji_list = flux_fun.update_mm(ji, mm,
+                    this_ji_list, full_ji_list, next_ji_list)
+        elif s['sdir'] == 'EW' and s['side'] == 'N':
+            ji = (s['jj0'],s['ii0'])
+            mm, this_ji_list, full_ji_list, next_ji_list = flux_fun.update_mm(ji, mm,
+                    this_ji_list, full_ji_list, next_ji_list)
+            ji = (s['jj0'],s['ii1'])
+            mm, this_ji_list, full_ji_list, next_ji_list = flux_fun.update_mm(ji, mm,
+                    this_ji_list, full_ji_list, next_ji_list)
+            
+
+                
+        for ji in full_ji_list:
+            ax.plot(x[ji],y[ji],'*r')
+            
+        # elif s['sdir'] == 'NS' and s['side'] == 'E':
+        #     ax.plot(x[s['jj0']:s['jj1']+1, s['ii0']], y[s['jj0']:s['jj1']+1, s['ii0']], 'om')
+        #     ax.plot(x[s['jj0']:s['jj1']+1, s['ii1']], y[s['jj0']:s['jj1']+1, s['ii1']], 'ok')
+        #     mm[s['jj0']:s['jj1']+1, s['ii1']] = False
+        # if s['sdir'] == 'EW' and s['side'] == 'S':
+        #     ax.plot(x[s['jj0'], s['ii0']:s['ii1']+1], y[s['jj0'], s['ii0']:s['ii1']+1], 'ok')
+        #     ax.plot(x[s['jj1'], s['ii0']:s['ii1']+1], y[s['jj1'], s['ii0']:s['ii1']+1], 'om')
+        #     mm[s[s['jj0'], s['ii0']:s['ii1']+1] = False
+        # if s['sdir'] == 'EW' and s['side'] == 'N':
+        #     ax.plot(x[s['jj0'], s['ii0']:s['ii1']+1], y[s['jj0'], s['ii0']:s['ii1']+1], 'om')
+        #     ax.plot(x[s['jj1'], s['ii0']:s['ii1']+1], y[s['jj1'], s['ii0']:s['ii1']+1], 'ok')
+        #     mm[s['jj1'], s['ii0']:s['ii1']+1] = False
+    
         
-    plt.show()
+        plt.show()
         
     
