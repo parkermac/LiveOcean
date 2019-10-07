@@ -70,7 +70,7 @@ rst_interval = 10 # days between writing to the restart file (e.g. 5)
 # which forcings to look for
 atm_dir = 'BLANK/' # which atm forcing files to use
 ocn_dir = 'ocnA/' # which ocn forcing files to use
-riv_dir = 'rivA/' # which riv forcing files to use
+riv_dir = 'riv2/' # which riv forcing files to use
 tide_dir = 'tideA/' # which tide forcing files to use
 
 #### END USER DEFINED VALUES ####
