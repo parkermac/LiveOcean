@@ -102,7 +102,7 @@ def get_sect_df():
     
     return sect_df
     
-def get_inds(x0, x1, y0, y1, G):
+def get_inds(x0, x1, y0, y1, G, verbose=False):
     
     # determine the direction of the section
     # and make sure indices are *increasing*
@@ -169,7 +169,8 @@ def get_inds(x0, x1, y0, y1, G):
         # of the start and end points.
         jj0 = jj0 + igood0
         jj1 = jj1 - igood1
-        print('  sdir=%2s: jj0=%4d, jj1=%4d, ii0=%4d' % (sdir, jj0, jj1, ii0))
+        if verbose:
+            print('  sdir=%2s: jj0=%4d, jj1=%4d, ii0=%4d' % (sdir, jj0, jj1, ii0))
         Lat = lat[jj0:jj1+1]
         Lon = lon[ii0] * np.ones_like(Mask)
     elif sdir == 'EW':
@@ -182,7 +183,8 @@ def get_inds(x0, x1, y0, y1, G):
         Mask = mask[igood0:-igood1]
         ii0 = ii0 + igood0
         ii1 = ii1 - igood1
-        print('  sdir=%2s: jj0=%4d, ii0=%4d, ii1=%4d' % (sdir, jj0, ii0, ii1))
+        if verbose:
+            print('  sdir=%2s: jj0=%4d, ii0=%4d, ii1=%4d' % (sdir, jj0, ii0, ii1))
         Lon = lon[ii0:ii1+1]
         Lat = lat[jj0] * np.ones_like(Mask)
         

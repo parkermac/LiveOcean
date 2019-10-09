@@ -27,8 +27,8 @@ if False:
     indir = indir0 + item + '/'
     infile = Lfun.choose_item(indir, tag='.nc')
 else:
-    indir = indir0 + 'sj0_v0_lo8nest_2019.07.22_2019.08.17/'
-    infile = 'sjc_mid_hourly.nc'
+    indir = indir0 + 'sj0_v0_lo8nest_2019.09.01_2019.10.01/'
+    infile = 'lost_tripod_hourly.nc'
 fn = indir + infile
 
 ds = nc.Dataset(fn)

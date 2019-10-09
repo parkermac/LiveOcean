@@ -18,7 +18,7 @@ from importlib import reload
 reload(Lfun)
 
 auto_lims = True
-low_pass = False
+low_pass = True
 
 # set limits
 lim_dict = {'temp': (0, 20),
@@ -66,10 +66,11 @@ V = dict()
 # and a dict of units
 Vu = dict()
 
-#choose what to plot
-list_to_plot = v3_list_rho + v3_list_w + v2_list
-#list_to_plot = v3_list_rho
-
+# choose what to plot
+if False:
+    list_to_plot = v3_list_rho + v3_list_w + v2_list
+else:
+    list_to_plot = ['zeta', 'z_rho', 'u', 'v', 'salt', 'temp']
 # hand edit variables not to look at
 for v in ['CaCO3']:#, 'PH', 'ARAG']:
     try:
@@ -98,31 +99,40 @@ NR, NC = zfun.get_rc(NP)
 fig, axes = plt.subplots(nrows=NR, ncols=NC, figsize=(13,8),
                          squeeze=False, sharex=True)
 
-days = (V['ocean_time'] - V['ocean_time'][0])/86400.
+if True:
+    # mdays = Lfun.modtime_to_mdate_vec(V['ocean_time'])
+    # days = mdates.num2date(mdays) # list of datetimes of data
+    # For some reason the code above was throwing a timezone error
+    # but when I do essentially the same thing bleow it works fine.
+    dt_list = []
+    for mt in V['ocean_time']:
+        dt_list.append(Lfun.modtime_to_datetime(mt))
+    #days = dt_list
+    mdays = mdates.date2num(dt_list)
+    days = mdates.num2date(mdays)
+else:
+    days = (V['ocean_time'] - V['ocean_time'][0])/86400.
 
-cc = 0
-nmid = round(V['z_rho'].shape[1]/2)
 N = V['z_rho'].shape[1]
-nbot = 0
-nmid = nmid
-ntop = N-1
 
+nlist = [0, int(N/2), int(3*N/4), N-1]
+cdict = dict(zip(nlist, ['b','g','gold','r']))
+
+cc = 0 # a counter
 for vn in list_to_plot:
     
     ir, ic = zfun.get_irc(cc, NC)
     ax = axes[ir, ic]
     if low_pass == False: # raw
         if V[vn].ndim == 2:
-            ax.plot(days, V[vn][:, ntop], '-r')
-            ax.plot(days, V[vn][:, nmid],'-g')
-            ax.plot(days, V[vn][:, nbot], '-b')
+            for n in nlist:
+                ax.plot(days, V[vn][:, n], linestyle='-', color=cdict[n])
         elif V[vn].ndim == 1:
             ax.plot(days, V[vn])
     elif low_pass == True: # filtered (e.g. tidally_averaged)
         if V[vn].ndim == 2:
-            ax.plot(days, zfun.filt_godin(V[vn][:, ntop]), '-r')
-            ax.plot(days, zfun.filt_godin(V[vn][:, nmid]),'-g')
-            ax.plot(days, zfun.filt_godin(V[vn][:, nbot]), '-b')
+            for n in nlist:
+                ax.plot(days, zfun.filt_godin(V[vn][:, n]), linestyle='-', color=cdict[n])
         elif V[vn].ndim == 1:
             ax.plot(days, zfun.filt_godin(V[vn]))
     
@@ -132,18 +142,20 @@ for vn in list_to_plot:
     except KeyError:
         pass
         
+    ax.xaxis.set_tick_params(labelrotation=45)
+    
     ax.grid(True)
     ax.set_xlim(days[0], days[-1])
 
     if ir == NR-1:
-        ax.set_xlabel('Days')
+        ax.set_xlabel('Date')
 
     ax.ticklabel_format(useOffset=False, axis='y')
     ax.text(.05, .85, vn,
-            horizontalalignment='left',
+            horizontalalignment='left', fontweight='bold', fontsize=12,
             transform=ax.transAxes)
     ax.text(.05, .75, Vu[vn],
-            horizontalalignment='left',
+            horizontalalignment='left', fontweight='bold', fontsize=12,
             transform=ax.transAxes)
     cc += 1
 

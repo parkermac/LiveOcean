@@ -724,7 +724,6 @@ def P_dive_vort(in_dict):
     else:
         plt.show()
     
-
 def P_vort(in_dict):
     # plots surface fields of vorticity.
 
@@ -1063,6 +1062,55 @@ def P_layer(in_dict):
     # PLOT CODE
     vn_list = ['salt', 'temp']
     z_level = -30
+    zfull = pfun.get_zfull(ds, in_dict['fn'], 'rho')
+    ii = 1
+    for vn in vn_list:
+        if in_dict['auto_vlims']:
+            pinfo.vlims_dict[vn] = ()
+        ax = fig.add_subplot(1, len(vn_list), ii)
+        laym = pfun.get_laym(ds, zfull, ds['mask_rho'][:], vn, z_level)
+        v_scaled = pinfo.fac_dict[vn]*laym
+        vlims = pinfo.vlims_dict[vn]
+        if len(vlims) == 0:
+            vlims = pfun.auto_lims(v_scaled)
+            pinfo.vlims_dict[vn] = vlims
+        cs = ax.pcolormesh(ds['lon_psi'][:], ds['lat_psi'][:], v_scaled[1:-1,1:-1],
+                           vmin=vlims[0], vmax=vlims[1], cmap=pinfo.cmap_dict[vn])
+        cb = fig.colorbar(cs)
+        # cb.formatter.set_useOffset(False)
+        # cb.update_ticks()
+        pfun.add_bathy_contours(ax, ds, txt=True)
+        pfun.add_coast(ax)
+        ax.axis(pfun.get_aa(ds))
+        pfun.dar(ax)
+        ax.set_xlabel('Longitude')
+        ax.set_title('%s %s on Z = %d (m)' % (pinfo.tstr_dict[vn], pinfo.units_dict[vn], z_level))
+        if ii == 1:
+            pfun.add_info(ax, in_dict['fn'])
+            ax.set_ylabel('Latitude')
+            pfun.add_windstress_flower(ax, ds)
+        if ii == 2:
+            pfun.add_velocity_vectors(ax, ds, in_dict['fn'], v_scl=1, v_leglen=0.5,
+                                      nngrid=80, zlev=z_level)
+        ii += 1
+
+    # FINISH
+    ds.close()
+    if len(in_dict['fn_out']) > 0:
+        plt.savefig(in_dict['fn_out'])
+        plt.close()
+    else:
+        plt.show()
+        
+def P_layer_ooi(in_dict):
+
+    # START
+    fig = plt.figure(figsize=pinfo.figsize)
+    ds = nc.Dataset(in_dict['fn'])
+
+    # PLOT CODE
+    vn_list = ['temp', 'oxygen']
+    z_level = -200
     zfull = pfun.get_zfull(ds, in_dict['fn'], 'rho')
     ii = 1
     for vn in vn_list:

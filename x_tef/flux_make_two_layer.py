@@ -38,7 +38,7 @@ indir0 = Ldir['LOo'] + 'tef/'
 item = Lfun.choose_item(indir0)
 indir0 = indir0 + item + '/'
 indir = indir0 + 'bulk/'
-outdir = indir0 + 'two_layer/'
+outdir = indir0 + 'flux/'
 Lfun.make_dir(outdir)
 
 # initialize output DataFrame
@@ -95,6 +95,6 @@ for sect_name in sect_df.index:
     df.loc[sect_name, 's_f'] = s_f
         
 # save results for plotting
-df.to_pickle(outdir + 'TwoLayer.p')
+df.to_pickle(outdir + 'two_layer.p')
 
 

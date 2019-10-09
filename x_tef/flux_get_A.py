@@ -31,7 +31,8 @@ reload(tef_fun)
 import flux_fun
 reload(flux_fun)
 
-testing = False
+testing = True
+verbose = False
 
 # get the DataFrame of all sections
 sect_df = tef_fun.get_sect_df()
@@ -45,7 +46,7 @@ if False:
 else:
     indir = '/Users/pm7/Documents/LiveOcean_output/tef/cas6_v3_lo8b_2017.01.01_2017.12.31/'
 
-df = pd.read_pickle(indir + 'two_layer/TwoLayer.p')
+df = pd.read_pickle(indir + 'flux/two_layer.p')
 
 # get river flow from the model run
 fnr = Ldir['gtag'] + '_2017.01.01_2018.12.31.p'
@@ -68,7 +69,21 @@ else:
 # initialize a DataFrame to store results, filled with zeros
 df_up_down = pd.DataFrame(0, index=seg_name_list, columns=['q_up', 'q_down', 'A_bad', 'N', 'has_riv'])
 
+# initialize a dict to store output matrices
+A_dict = {}
+
+# initialize a DataFrame to store the fluxes used to drive the flux engine
+sl2 = []
+for sn in seg_name_list:
+    sl2.append(sn + '_s')
+    sl2.append(sn + '_f')
+sl2or = ['ocean'] + sl2 + ['river']
+
+q_df = pd.DataFrame(index = sl2, columns = sl2or)
+
 for seg_name in seg_name_list:
+    
+    print('\n' + seg_name + ':')
     
     seg = segs[seg_name]
     has_riv = False
@@ -173,8 +188,7 @@ for seg_name in seg_name_list:
         s = f/q
         S = F/Q
     
-        if testing == True:    
-            print('\n' + seg_name + ':')
+        if verbose:    
             print(' - Volume Flux adjustment = %0.5f' % (dq/Q.sum()))
             print(' -   Salt Flux adjustment = %0.5f' % (dqs/F.sum()))
 
@@ -223,25 +237,10 @@ for seg_name in seg_name_list:
             return A
         
         yorig = y.copy()
-        
-        def get_A(N, q, Q, f, F, y, A):
-            # fill the elements of y:
-            for rr in range(N):
-                y[2*rr] = Q[rr] - np.sum(A[2:,rr]*q[2:])
-                y[2*rr + 1] = F[rr] - np.sum(A[2:,rr]*f[2:])
-            # and find the solution
-            x = la.tensorsolve(C,y)
-            # iCC = la.inv(CC); xalt = iCC.dot(y) # is the same
-            # fill in the A matrix with the correct values
-            if N > 2:
-                A[:2,:] = x.reshape((2,N), order='F')
-            else:
-                A[:] = x.reshape((N,N), order='F')
-            return A
             
-            
-        if (N == 3) and has_riv:
+        if (N == 3):# and has_riv:
             # iterative method to scan over all possible river distributions
+            # (or section 3 distributions in the case of M4)
             # and then return the average of all valid A's.
             NN = 21 # number of guesses
             AA = np.nan * np.ones((NN,N,N))
@@ -255,23 +254,25 @@ for seg_name in seg_name_list:
             for gg in range(NN):
                 if (AA[gg,:,:]>=0).all():
                     good_guess.append(gg)
-            if testing == True:
+            if verbose:
                 print(good_guess)
             A = AA[good_guess,:,:].mean(axis=0)
         else:
             A = get_A(N, q, Q, f, F, yorig, A)
         
         if (N == 2) and (not has_riv):
-            # check for bad solutions
+            # check for bad solutions and force them to have no mixing
             if (A < 0).any():
-                print('Bad value for N=2 segment ' + seg_name)
-                print('ORIGINAL')
-                np.set_printoptions(precision=3, suppress=True)
-                print(A)
-                print('NEW')
+                if verbose:
+                    print('Bad value for N=2 segment ' + seg_name)
+                    print('ORIGINAL')
+                    np.set_printoptions(precision=3, suppress=True)
+                    print(A)
+                    print('NEW')
                 A = np.array([[0,1],[1,0]])
-                np.set_printoptions(precision=3, suppress=True)
-                print(A)
+                if verbose:
+                    np.set_printoptions(precision=3, suppress=True)
+                    print(A)
             
     # store results in the DataFrame
     for ii in range(N-1):
@@ -287,8 +288,23 @@ for seg_name in seg_name_list:
     df_up_down.loc[seg_name, 'N'] = N
     if has_riv:
         df_up_down.loc[seg_name, 'has_riv'] = 1
+        
+    # store other results in dicts
+    A_dict[seg_name] = A
+    
+    # *************************************************
+    # store results in the DataFrame of fluxes used for the flux engine
+    sect_list = []
+    Sect_list = []
+    for Seg_name in segs.keys():
+        for side in list('SNWER'):
+            Sect_list += segs[Seg_name][side]
+            sect_list += segs[seg_name][side]
+        for sect in sect_list:
+            if (sect in Sect_list) and (seg_name != Seg_name):
+                print(' -- Adjoining segment = ' + Seg_name + ' for ' + sect)
 
-    if testing == True:
+    if verbose:
         print('Solution matrix A:')
         np.set_printoptions(precision=3, suppress=True)
         print(A)
@@ -296,12 +312,8 @@ for seg_name in seg_name_list:
         
         print('')
         print(df_up_down)
-    
-    # cvec = 'rbgmc'
-    # plt.close('all')
-    # fig = plt.figure(figsize=(10,7))
-    #
-    #
-    # plt.show()
-    
+    # else:
+    #     # save results
+    #     pickle.dump(A_dict, open(outdir + 'flux/A_dict.p', 'wb'))
+        
 

@@ -52,14 +52,15 @@ segs = {
         }
         
 def update_mm(ji, mm, this_ji_list, full_ji_list, next_ji_list):
-    this_ji_list.append(ji)
-    full_ji_list.append(ji)
+    if mm[ji] == True:
+        this_ji_list.append(ji)
+        full_ji_list.append(ji)
     for ji in this_ji_list:
         mm[ji] = False
     keep_looking = True
     counter = 0
     while len(this_ji_list) > 0:
-        print('iteration ' + str(counter))
+        #print('iteration ' + str(counter))
         for ji in this_ji_list:
             JI = (ji[0]+1, ji[1]) # North
             if mm[JI] == True:
