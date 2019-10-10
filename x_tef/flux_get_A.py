@@ -32,7 +32,7 @@ import flux_fun
 reload(flux_fun)
 
 testing = True
-verbose = False
+verbose = True
 
 # get the DataFrame of all sections
 sect_df = tef_fun.get_sect_df()
@@ -61,10 +61,11 @@ rmean = dfrr.mean() # a series
 # created by plot_thalweg_mean.py
 segs = flux_fun.segs
 
+seg_name_list_full = list(segs.keys())
 if testing == True:
-    seg_name_list = ['M4']
+    seg_name_list = ['J1']
 else:
-     seg_name_list = segs.keys()
+     seg_name_list = seg_name_list_full
 
 # initialize a DataFrame to store results, filled with zeros
 df_up_down = pd.DataFrame(0, index=seg_name_list, columns=['q_up', 'q_down', 'A_bad', 'N', 'has_riv'])
@@ -77,7 +78,11 @@ sl2 = []
 for sn in seg_name_list:
     sl2.append(sn + '_s')
     sl2.append(sn + '_f')
-sl2or = ['ocean'] + sl2 + ['river']
+sl2f = []
+for sn in seg_name_list_full:
+    sl2f.append(sn + '_s')
+    sl2f.append(sn + '_f')
+sl2or = ['ocean_s', 'ocean_f'] + sl2f + ['river_s', 'river_f']
 
 q_df = pd.DataFrame(index = sl2, columns = sl2or)
 
@@ -108,30 +113,40 @@ for seg_name in seg_name_list:
     F = np.nan * np.ones(N)
     S = np.nan * np.ones(N)
     
-    # initialize a list of whether in inflow is salt or fresh
-    q_sal = list(N*'f') 
+    # initialize a list of whether inflow is salt or fresh
+    q_sal = list(N*'x')
+    # initialize a list of whether outflow is salt or fresh
+    Q_sal = list(N*'x')
+    
+    # initialize a list of section names
+    snl = list(N*'x') # the 'x' is just a placeholder
     
     # initialize arrays
     counter = 0
     for side in list('SNWER'):
-    #for side in list('WESNR'):
         sect_list = seg[side]
         if len(sect_list) > 0:
             if side in ['W', 'S']:
                 for sect in sect_list:
+                    snl[counter] = sect
                     q_s, q_f, f_s, f_f, s_s, s_f = df.loc[sect,:]
                     if q_s > 0:
+                        # inflow is salty
                         q[counter] = q_s
-                        q_sal[counter] = 's'
                         Q[counter] = -q_f
+                        q_sal[counter] = 's'
+                        Q_sal[counter] = 'f'
                         Qf[counter] = -q_f
                         f[counter] = f_s
                         F[counter] = -f_f
                         s[counter] = s_s
                         S[counter] = s_f
                     elif q_s < 0:
+                        # inflow is fresh
                         q[counter] = q_f
                         Q[counter] = -q_s
+                        q_sal[counter] = 'f'
+                        Q_sal[counter] = 's'
                         f[counter] = f_f
                         F[counter] = -f_s
                         s[counter] = s_f
@@ -139,19 +154,25 @@ for seg_name in seg_name_list:
                     counter += 1
             elif side in ['E', 'N']:
                 for sect in sect_list:
+                    snl[counter] = sect
                     q_s, q_f, f_s, f_f, s_s, s_f = df.loc[sect,:]
                     if q_s > 0:
+                        # outflow is salty
                         q[counter] =-q_f
                         Q[counter] = q_s
+                        q_sal[counter] = 'f'
+                        Q_sal[counter] = 's'
                         f[counter] = -f_f
                         F[counter] = f_s
                         s[counter] = s_f
                         S[counter] = s_s
                         
                     elif q_s < 0:
+                        # outflow is fresh
                         q[counter] = -q_s
-                        q_sal[counter] = 's'
                         Q[counter] = q_f
+                        q_sal[counter] = 's'
+                        Q_sal[counter] = 'f'
                         Qf[counter] = q_f
                         f[counter] = -f_s
                         F[counter] = f_f
@@ -163,8 +184,11 @@ for seg_name in seg_name_list:
                 Qr = rmean[sect_list].sum()
                 q[counter] = Qr
                 Q[counter] = 0
+                q_sal[counter] = 'f'
+                Q_sal[counter] = 'x' # indicate there is no outflow from a river
                 f[counter] = 0
                 F[counter] = 0
+                snl[counter]='river'
     
     if True:
         # make adjustments to enforce volume and salt conservation
@@ -186,7 +210,11 @@ for seg_name in seg_name_list:
             F[:] += 0.5*dqs/N
         # then adjust the salinities to match
         s = f/q
-        S = F/Q
+        if has_riv:
+            S = np.zeros(N)
+            S[:-1] = F[:-1]/Q[:-1]
+        else:
+            S = F/Q
     
         if verbose:    
             print(' - Volume Flux adjustment = %0.5f' % (dq/Q.sum()))
@@ -255,8 +283,11 @@ for seg_name in seg_name_list:
                 if (AA[gg,:,:]>=0).all():
                     good_guess.append(gg)
             if verbose:
-                print(good_guess)
-            A = AA[good_guess,:,:].mean(axis=0)
+                print('good guess = ' + str(good_guess))
+            if len(good_guess) > 0:
+                A = AA[good_guess,:,:].mean(axis=0)
+            else: # G5 had no valid solutions
+                A = np.ones((N,N)) - np.eye(N)
         else:
             A = get_A(N, q, Q, f, F, yorig, A)
         
@@ -269,7 +300,7 @@ for seg_name in seg_name_list:
                     np.set_printoptions(precision=3, suppress=True)
                     print(A)
                     print('NEW')
-                A = np.array([[0,1],[1,0]])
+                A = np.ones((N,N)) - np.eye(N)
                 if verbose:
                     np.set_printoptions(precision=3, suppress=True)
                     print(A)
@@ -294,15 +325,67 @@ for seg_name in seg_name_list:
     
     # *************************************************
     # store results in the DataFrame of fluxes used for the flux engine
-    sect_list = []
-    Sect_list = []
-    for Seg_name in segs.keys():
-        for side in list('SNWER'):
-            Sect_list += segs[Seg_name][side]
-            sect_list += segs[seg_name][side]
-        for sect in sect_list:
-            if (sect in Sect_list) and (seg_name != Seg_name):
-                print(' -- Adjoining segment = ' + Seg_name + ' for ' + sect)
+    counter = 0
+    for sect in snl:
+        if seg_name == 'J1' and sect == 'jdf1':
+            Seg_name = 'ocean'
+            
+            print(' -- Adjoining segment = ' + Seg_name + ' for ' + sect)
+            # transport in from adjoining segment
+            # and vertical transport up from below or down from above
+            if q_sal[counter] == 's':
+                q_df.loc[seg_name+'_s',Seg_name+'_s'] = q[counter]*(1-A[counter,counter])
+                q_df.loc[seg_name+'_f',Seg_name+'_s'] = q[counter] * A[counter,counter]
+            elif q_sal[counter] == 'f':
+                q_df.loc[seg_name+'_f',Seg_name+'_f'] = q[counter]*(1-A[counter,counter])
+                q_df.loc[seg_name+'_s',Seg_name+'_f'] = q[counter] * A[counter,counter]
+            # transport out to adjoining segment
+            # in this case the column (where tracer comes from) is the segment itself
+            if Q_sal[counter] == 's':
+                q_df.loc[seg_name+'_s',seg_name+'_s'] =  -Q[counter]
+            elif Q_sal[counter] == 'f':
+                q_df.loc[seg_name+'_f',seg_name+'_f'] = -Q[counter]
+            
+            
+            # print(' -- Adjoining segment = ' + Seg_name + ' for ' + sect)
+            # # transport in from adjoining segment
+            # q_df.loc[seg_name+'_s',Seg_name+'_s'] = q[counter]*(1-A[counter,counter])
+            # #q_df.loc[seg_name+'_f',Seg_name+'_f'] = q[counter]*(1-A[counter,counter])
+            # # transport out to adjoining segment
+            # # in this case the column (where tracer comes from) is the segment itself
+            # if Q_sal[counter] == 's':
+            #     q_df.loc[seg_name+'_s',seg_name+'_s'] =  -Q[counter]
+            # elif Q_sal[counter] == 'f':
+            #     q_df.loc[seg_name+'_f',seg_name+'_f'] = -Q[counter]
+            # # vertical transport up from below or down from above
+            # #q_df.loc[seg_name+'_s',Seg_name+'_f'] = q[counter] * A[counter,counter]
+            # q_df.loc[seg_name+'_f',Seg_name+'_s'] = q[counter] * A[counter,counter]
+        else:
+            # find which segment each section connects to
+            for Seg_name in segs.keys():
+                Seg = segs[Seg_name]
+                for side in list('SNWER'):
+                    sect_list = Seg[side]
+                    if sect in sect_list and Seg_name != seg_name:
+                        print(' -- Adjoining segment = ' + Seg_name + ' for ' + sect)
+                        # transport in from adjoining segment
+                        # and vertical transport up from below or down from above
+                        if q_sal[counter] == 's':
+                            q_df.loc[seg_name+'_s',Seg_name+'_s'] = q[counter]*(1-A[counter,counter])
+                            q_df.loc[seg_name+'_f',Seg_name+'_s'] = q[counter] * A[counter,counter]
+                        elif q_sal[counter] == 'f':
+                            q_df.loc[seg_name+'_f',Seg_name+'_f'] = q[counter]*(1-A[counter,counter])
+                            q_df.loc[seg_name+'_s',Seg_name+'_f'] = q[counter] * A[counter,counter]
+                        # transport out to adjoining segment
+                        # in this case the column (where tracer comes from) is the segment itself
+                        if Q_sal[counter] == 's':
+                            q_df.loc[seg_name+'_s',seg_name+'_s'] =  -Q[counter]
+                        elif Q_sal[counter] == 'f':
+                            q_df.loc[seg_name+'_f',seg_name+'_f'] = -Q[counter]
+            
+                    
+                
+        counter =+ 1
 
     if verbose:
         print('Solution matrix A:')
@@ -311,7 +394,7 @@ for seg_name in seg_name_list:
         print(q_sal)
         
         print('')
-        print(df_up_down)
+        #print(df_up_down)
     # else:
     #     # save results
     #     pickle.dump(A_dict, open(outdir + 'flux/A_dict.p', 'wb'))

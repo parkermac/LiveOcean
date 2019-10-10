@@ -116,7 +116,7 @@ else:
 N = V['z_rho'].shape[1]
 
 nlist = [0, int(N/2), int(3*N/4), N-1]
-cdict = dict(zip(nlist, ['b','g','gold','r']))
+cdict = dict(zip(nlist, ['b','g','orange','r']))
 
 cc = 0 # a counter
 for vn in list_to_plot:
