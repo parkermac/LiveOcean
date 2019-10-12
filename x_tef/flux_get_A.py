@@ -31,8 +31,8 @@ reload(tef_fun)
 import flux_fun
 reload(flux_fun)
 
-testing = True
-verbose = True
+testing = False
+verbose = False
 
 # get the DataFrame of all sections
 sect_df = tef_fun.get_sect_df()
@@ -63,7 +63,7 @@ segs = flux_fun.segs
 
 seg_name_list_full = list(segs.keys())
 if testing == True:
-    seg_name_list = ['J1']
+    seg_name_list = ['J4']
 else:
      seg_name_list = seg_name_list_full
 
@@ -82,13 +82,14 @@ sl2f = []
 for sn in seg_name_list_full:
     sl2f.append(sn + '_s')
     sl2f.append(sn + '_f')
-sl2or = ['ocean_s', 'ocean_f'] + sl2f + ['river_s', 'river_f']
-
-q_df = pd.DataFrame(index = sl2, columns = sl2or)
+sl2or = ['ocean_s', 'ocean_f'] + ['river_s', 'river_f'] + sl2f
+#
+q_df = pd.DataFrame(0, index = sl2, columns = sl2or)
 
 for seg_name in seg_name_list:
     
-    print('\n' + seg_name + ':')
+    if verbose:
+        print('\n' + seg_name + ':')
     
     seg = segs[seg_name]
     has_riv = False
@@ -129,7 +130,7 @@ for seg_name in seg_name_list:
             if side in ['W', 'S']:
                 for sect in sect_list:
                     snl[counter] = sect
-                    q_s, q_f, f_s, f_f, s_s, s_f = df.loc[sect,:]
+                    q_s, q_f, f_s, f_f, s_s, s_f, lon, lat = df.loc[sect,:]
                     if q_s > 0:
                         # inflow is salty
                         q[counter] = q_s
@@ -155,7 +156,7 @@ for seg_name in seg_name_list:
             elif side in ['E', 'N']:
                 for sect in sect_list:
                     snl[counter] = sect
-                    q_s, q_f, f_s, f_f, s_s, s_f = df.loc[sect,:]
+                    q_s, q_f, f_s, f_f, s_s, s_f, lon, lat = df.loc[sect,:]
                     if q_s > 0:
                         # outflow is salty
                         q[counter] =-q_f
@@ -227,7 +228,7 @@ for seg_name in seg_name_list:
     # and y is the vector of outgoing fluxes
     
     if N == 1: # H8 case, only a single section, no rivers
-        A = np.array([1], ndmin=2)
+        A = np.array([0], ndmin=2)
         
     else:
         # initialize the system matrices
@@ -304,6 +305,9 @@ for seg_name in seg_name_list:
                 if verbose:
                     np.set_printoptions(precision=3, suppress=True)
                     print(A)
+                    
+        if (N == 2) and has_riv:
+            A = np.ones((N,N)) - np.eye(N)
             
     # store results in the DataFrame
     for ii in range(N-1):
@@ -325,78 +329,67 @@ for seg_name in seg_name_list:
     
     # *************************************************
     # store results in the DataFrame of fluxes used for the flux engine
-    counter = 0
+    def update_q(q_df, q_sal, seg_name, Seg_name, q, Q, sss):
+        # transport in from adjoining segment
+        # and vertical transport up from below or down from above
+        if q_sal[sss] == 's':
+            q_df.loc[seg_name+'_s',Seg_name+'_s'] += q[sss]*(1-A[sss,sss])
+            q_df.loc[seg_name+'_f',Seg_name+'_s'] += q[sss] * A[sss,sss]
+        elif q_sal[sss] == 'f':
+            q_df.loc[seg_name+'_f',Seg_name+'_f'] += q[sss]*(1-A[sss,sss])
+            q_df.loc[seg_name+'_s',Seg_name+'_f'] += q[sss] * A[sss,sss]
+        # transport out to adjoining segment
+        # in this case the column (where tracer comes from) is the segment itself
+        if Q_sal[sss] == 's':
+            q_df.loc[seg_name+'_s',seg_name+'_s'] -=  Q[sss]
+        elif Q_sal[sss] == 'f':
+            q_df.loc[seg_name+'_f',seg_name+'_f'] -= Q[sss]
+        return q_df
+        
+    sss = 0
     for sect in snl:
-        if seg_name == 'J1' and sect == 'jdf1':
+        if (seg_name=='J1' and sect=='jdf1') or (seg_name=='G6' and sect=='sog5'):
             Seg_name = 'ocean'
-            
-            print(' -- Adjoining segment = ' + Seg_name + ' for ' + sect)
-            # transport in from adjoining segment
-            # and vertical transport up from below or down from above
-            if q_sal[counter] == 's':
-                q_df.loc[seg_name+'_s',Seg_name+'_s'] = q[counter]*(1-A[counter,counter])
-                q_df.loc[seg_name+'_f',Seg_name+'_s'] = q[counter] * A[counter,counter]
-            elif q_sal[counter] == 'f':
-                q_df.loc[seg_name+'_f',Seg_name+'_f'] = q[counter]*(1-A[counter,counter])
-                q_df.loc[seg_name+'_s',Seg_name+'_f'] = q[counter] * A[counter,counter]
-            # transport out to adjoining segment
-            # in this case the column (where tracer comes from) is the segment itself
-            if Q_sal[counter] == 's':
-                q_df.loc[seg_name+'_s',seg_name+'_s'] =  -Q[counter]
-            elif Q_sal[counter] == 'f':
-                q_df.loc[seg_name+'_f',seg_name+'_f'] = -Q[counter]
-            
-            
-            # print(' -- Adjoining segment = ' + Seg_name + ' for ' + sect)
-            # # transport in from adjoining segment
-            # q_df.loc[seg_name+'_s',Seg_name+'_s'] = q[counter]*(1-A[counter,counter])
-            # #q_df.loc[seg_name+'_f',Seg_name+'_f'] = q[counter]*(1-A[counter,counter])
-            # # transport out to adjoining segment
-            # # in this case the column (where tracer comes from) is the segment itself
-            # if Q_sal[counter] == 's':
-            #     q_df.loc[seg_name+'_s',seg_name+'_s'] =  -Q[counter]
-            # elif Q_sal[counter] == 'f':
-            #     q_df.loc[seg_name+'_f',seg_name+'_f'] = -Q[counter]
-            # # vertical transport up from below or down from above
-            # #q_df.loc[seg_name+'_s',Seg_name+'_f'] = q[counter] * A[counter,counter]
-            # q_df.loc[seg_name+'_f',Seg_name+'_s'] = q[counter] * A[counter,counter]
+            if verbose:
+                print(' -- Adjoining segment = ' + Seg_name + ' for ' + sect)
+            q_df = update_q(q_df, q_sal, seg_name, Seg_name, q, Q, sss)
+        elif sect == 'river':
+            q_df.loc[seg_name+'_f','river_f'] = q[sss]
         else:
             # find which segment each section connects to
             for Seg_name in segs.keys():
                 Seg = segs[Seg_name]
-                for side in list('SNWER'):
+                for side in list('SNWE'):
                     sect_list = Seg[side]
                     if sect in sect_list and Seg_name != seg_name:
-                        print(' -- Adjoining segment = ' + Seg_name + ' for ' + sect)
-                        # transport in from adjoining segment
-                        # and vertical transport up from below or down from above
-                        if q_sal[counter] == 's':
-                            q_df.loc[seg_name+'_s',Seg_name+'_s'] = q[counter]*(1-A[counter,counter])
-                            q_df.loc[seg_name+'_f',Seg_name+'_s'] = q[counter] * A[counter,counter]
-                        elif q_sal[counter] == 'f':
-                            q_df.loc[seg_name+'_f',Seg_name+'_f'] = q[counter]*(1-A[counter,counter])
-                            q_df.loc[seg_name+'_s',Seg_name+'_f'] = q[counter] * A[counter,counter]
-                        # transport out to adjoining segment
-                        # in this case the column (where tracer comes from) is the segment itself
-                        if Q_sal[counter] == 's':
-                            q_df.loc[seg_name+'_s',seg_name+'_s'] =  -Q[counter]
-                        elif Q_sal[counter] == 'f':
-                            q_df.loc[seg_name+'_f',seg_name+'_f'] = -Q[counter]
-            
-                    
-                
-        counter =+ 1
-
+                        if verbose:
+                            print(' -- Adjoining segment = ' + Seg_name + ' for ' + sect)
+                        q_df = update_q(q_df, q_sal, seg_name, Seg_name, q, Q, sss)
+        sss += 1
+        
+    # add net vertical advection in the section (required for W4)
+    qx_s = q_df.loc[seg_name+'_s'].sum(axis=0)
+    qx_f = q_df.loc[seg_name+'_f'].sum(axis=0)
+    if np.abs(qx_s + qx_f) > 1:
+        print('qx warning')
+    if qx_s > 0:
+        # upward transport
+        q_df.loc[seg_name+'_s',seg_name+'_s'] -=  qx_s
+        q_df.loc[seg_name+'_f',seg_name+'_s'] +=  qx_s
+    elif qx_s <= 0:
+        # downward transport
+        q_df.loc[seg_name+'_f',seg_name+'_f'] +=  qx_s
+        q_df.loc[seg_name+'_s',seg_name+'_f'] -=  qx_s
+    
     if verbose:
         print('Solution matrix A:')
         np.set_printoptions(precision=3, suppress=True)
         print(A)
         print(q_sal)
-        
         print('')
-        #print(df_up_down)
-    # else:
-    #     # save results
-    #     pickle.dump(A_dict, open(outdir + 'flux/A_dict.p', 'wb'))
+        
+    if not testing:
+        # save results
+        q_df.to_pickle(indir + 'flux/q_df.p')
         
 

@@ -70,7 +70,7 @@ else:
      seg_name_list = segs.keys()
      
 # initialize a DataFrame to hold all volumes:
-vol_df = pd.DataFrame(index=seg_name_list, columns=['volume m3', 'area m2'])
+vol_df = pd.DataFrame(index=seg_name_list, columns=['volume m3', 'area m2', 'lon', 'lat'])
 
 for seg_name in seg_name_list:
     
@@ -133,7 +133,7 @@ for seg_name in seg_name_list:
         # doing this will form a natural barrier for the "search robot"
     
     if testing:
-        # same as the loop above, but fo plottting
+        # same as the loop above, but for plottting
         for sn in seg_df.index:
             s = seg_df.loc[sn,:]
             # the black dots show rho gridpoints OUTSIDE of the segment volume, while
@@ -198,14 +198,22 @@ for seg_name in seg_name_list:
     # find the volume and surface area
     volume = 0
     area = 0
+    lon = 0
+    lat = 0
     for ji in full_ji_list:
         area += DA[ji]
         volume += h[ji] * DA[ji]
+        lon += x[ji]
+        lat += y[ji]
+    lon = lon / len(full_ji_list)
+    lat = lat / len(full_ji_list)
     print(' -- Area = %0.1f km2' % (area/1e6))
     print(' -- Volume = %0.1f km3' % (volume/1e9))
-    
+        
     vol_df.loc[seg_name,'volume m3'] = volume
     vol_df.loc[seg_name,'area m2'] = area
+    vol_df.loc[seg_name,'lon'] = lon
+    vol_df.loc[seg_name,'lat'] = lat
     
 vol_df.to_pickle(outdir + 'volumes.p')
                 

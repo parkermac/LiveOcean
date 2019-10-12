@@ -88,7 +88,7 @@ def plotit(ax, sect_df, sect_list, lcol, qsign):
 
 # plotting
 
-plt.close('all')
+#plt.close('all')
 lw=2
 fs=16
 distmax = 420

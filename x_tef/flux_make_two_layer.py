@@ -45,7 +45,7 @@ Lfun.make_dir(outdir)
 # naming convention part 1: q_, f_, s_ mean volume flux, salt flux, and salinity
 # naming convention part 2: _s and _f mean the saltier or fresher of the two layers
 # sign convention: positive Northward or Eastward
-df = pd.DataFrame(index=sect_df.index, columns=['q_s', 'q_f', 'f_s', 'f_f', 's_s', 's_f'])
+df = pd.DataFrame(index=sect_df.index, columns=['q_s', 'q_f', 'f_s', 'f_f', 's_s', 's_f', 'lon', 'lat'])
 
 for sect_name in sect_df.index:
     print('== ' + sect_name + ' ==')
@@ -93,6 +93,8 @@ for sect_name in sect_df.index:
     df.loc[sect_name, 'f_f'] = f_f
     df.loc[sect_name, 's_s'] = s_s
     df.loc[sect_name, 's_f'] = s_f
+    df.loc[sect_name, 'lon'] = (x0 + x1)/2
+    df.loc[sect_name, 'lat'] = (y0 + y1)/2
         
 # save results for plotting
 df.to_pickle(outdir + 'two_layer.p')
