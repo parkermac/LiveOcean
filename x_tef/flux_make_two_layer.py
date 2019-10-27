@@ -44,7 +44,7 @@ Lfun.make_dir(outdir)
 # initialize output DataFrame
 # naming convention part 1: q_, f_, s_ mean volume flux, salt flux, and salinity
 # naming convention part 2: _s and _f mean the saltier or fresher of the two layers
-# sign convention: positive Northward or Eastward
+# ** sign convention: positive Northward or Eastward **
 df = pd.DataFrame(index=sect_df.index, columns=['q_s', 'q_f', 'f_s', 'f_f', 's_s', 's_f', 'lon', 'lat'])
 
 for sect_name in sect_df.index:

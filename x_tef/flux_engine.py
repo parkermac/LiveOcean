@@ -1,5 +1,5 @@
 """
-Find the volume of each flux segment
+Run the flux engine!
 """
 
 # imports
@@ -26,6 +26,7 @@ import flux_fun
 reload(flux_fun)
 
 verbose = False
+check_convergence = False
 
 # select output location
 if False:
@@ -58,7 +59,8 @@ for seg_name in f.index:
     if 'J1' in seg_name:
         f.loc[seg_name,'ocean_s'] = 33.1
     elif 'G6' in seg_name:
-        f.loc[seg_name,'ocean_s'] = 30.5
+        f.loc[seg_name,'ocean_s'] = 31#30.5
+        # nudging this up to 31 improves the SoG fit a bit
 
 NR = len(q_df.index)
 NC = len(q_df.columns)
@@ -71,14 +73,29 @@ q = q_df.values
 ff = np.zeros((NR,NC))
 ff[:,0] = f.loc[:,'ocean_s'].values
 
-dt = 3e3
-for ii in range(30000):
+dt = 3e3 # time step (seconds)
+NT = 60000 # number of time steps
+
+if check_convergence:
+    c_check = np.nan + np.ones((int(NT/100), NR))
+    t_check = np.nan + np.ones(int(NT/100))
+
+for ii in range(NT):
     #print(ii)
     
     qff = (q*ff).sum(axis=1)
     c = c + dt*ivv*qff
     ff[:,4:] = np.tile(c,(NR,1))
     
+    if check_convergence and np.mod(ii,100)==0 :
+        c_check[int(ii/100), :] = c.copy() # 45 = S4_f
+        t_check[int(ii/100)] = dt * ii
+    
+if check_convergence:
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.plot(t_check/86400, c_check, '-')
+    plt.show()
 
 cc = pd.DataFrame(index=q_df.index,columns=['c', 'v', 'netq'])
 cc['c'] = c
@@ -90,21 +107,7 @@ if verbose:
         print('%5s: %10.2f %10.2f %10.2f' % (seg_name,
             cc.loc[seg_name,'c'], cc.loc[seg_name,'v']/1e9, cc.loc[seg_name,'netq']/1e3))
         
-vs = (['J'+str(s)+'_s' for s in range(1,5)] +
-        ['M'+str(s)+'_s' for s in range(1,10)]+
-        ['S'+str(s)+'_s' for s in range(1,4)])
-vf = (['J'+str(s)+'_f' for s in range(1,5)] +
-        ['M'+str(s)+'_f' for s in range(1,10)]+
-        ['S'+str(s)+'_f' for s in range(1,4)])
 
-# plotting
-plt.close('all')
-fig = plt.figure(figsize=(14,8))
-
-ax = fig.add_subplot(111)
-cc.loc[vs,'c'].plot(ax=ax, color='r')
-cc.loc[vf,'c'].plot(ax=ax, color='b')
-
-plt.show()    
+cc.to_pickle(indir + 'cc.p')
     
     
