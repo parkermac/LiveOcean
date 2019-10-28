@@ -160,5 +160,9 @@ def get_sta_dict(job_name):
         'ncb11': (-125.097616709, 43.566349513),
         'ncb12': (-125.097547806, 43.580175830)
         }
+        v2_list = ['zeta', 'Pair']
+        v3_list_rho = ['rho', 'u', 'v','salt','temp']
+        v3_list_w = []
+        
         
     return sta_dict, v2_list, v3_list_rho, v3_list_w
