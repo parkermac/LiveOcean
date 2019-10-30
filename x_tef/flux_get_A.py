@@ -325,22 +325,68 @@ for seg_name in seg_name_list:
             A = np.array([[0,0],[1,0]])
             
     # hand overrides
-    if True:
+    if False:
         print('   ** eye override **')
         for ii in range(N):
-            A[ii,ii] *= 1.25
-                    
+            A[ii,ii] *= .8
+        if has_riv == True:
+            A[N-1,N-1] = 0
+    elif False and seg_name=='J4':
+        print('   ** J4 override **')
+        A[2,2] = .4
+    elif True and seg_name=='M1':
+        print('   ** M1 override **')
+        A[0,0] = .1
+        A[1,1] = .6
+        # RESULT: this really helps! 2091.10.29
+        # A[0,0] = .1
+        # A[1,1] = .6
+    elif False:
+        print('   ** eye Average override **')
+        if has_riv == True:
+            Atemp = A[:-1,:-1]*np.eye(N-1)
+            Amean = Atemp.sum()/(N-1)
+            for ii in range(N-1):
+                A[ii,ii] = Amean
+            A[N-1,N-1] = 0
+        else:
+            Atemp = A*np.eye(N)
+            Amean = Atemp.sum()/N
+            for ii in range(N):
+                A[ii,ii] = Amean
+    
     # *****************************************************************
+
     # store results in the DataFrame of fluxes used for the flux engine
+    #   
+    # def update_q(q_df, q_sal, seg_name, Seg_name, q, Q, sss):
+    #     # transport in from adjoining segment
+    #     # and vertical transport up from below or down from above
+    #     if q_sal[sss] == 's':
+    #         q_df.loc[seg_name+'_s',Seg_name+'_s'] += q[sss]*(1-A[sss,sss])
+    #         q_df.loc[seg_name+'_f',Seg_name+'_s'] += q[sss] * A[sss,sss]
+    #     elif q_sal[sss] == 'f':
+    #         q_df.loc[seg_name+'_f',Seg_name+'_f'] += q[sss]*(1-A[sss,sss])
+    #         q_df.loc[seg_name+'_s',Seg_name+'_f'] += q[sss] * A[sss,sss]
+    #     # transport out to adjoining segment
+    #     # in this case the column (where tracer comes from) is the segment itself
+    #     if Q_sal[sss] == 's':
+    #         q_df.loc[seg_name+'_s',seg_name+'_s'] -=  Q[sss]
+    #     elif Q_sal[sss] == 'f':
+    #         q_df.loc[seg_name+'_f',seg_name+'_f'] -= Q[sss]
+    #     return q_df
+        
+    # store results in the DataFrame of fluxes used for the flux engine
+    # TEST VERSION
     def update_q(q_df, q_sal, seg_name, Seg_name, q, Q, sss):
         # transport in from adjoining segment
         # and vertical transport up from below or down from above
         if q_sal[sss] == 's':
             q_df.loc[seg_name+'_s',Seg_name+'_s'] += q[sss]*(1-A[sss,sss])
-            q_df.loc[seg_name+'_f',Seg_name+'_s'] += q[sss] * A[sss,sss]
+            q_df.loc[seg_name+'_f',seg_name+'_s'] += q[sss] * A[sss,sss]
         elif q_sal[sss] == 'f':
             q_df.loc[seg_name+'_f',Seg_name+'_f'] += q[sss]*(1-A[sss,sss])
-            q_df.loc[seg_name+'_s',Seg_name+'_f'] += q[sss] * A[sss,sss]
+            q_df.loc[seg_name+'_s',seg_name+'_f'] += q[sss] * A[sss,sss]
         # transport out to adjoining segment
         # in this case the column (where tracer comes from) is the segment itself
         if Q_sal[sss] == 's':
@@ -383,6 +429,11 @@ for seg_name in seg_name_list:
         # downward transport
         q_df.loc[seg_name+'_f',seg_name+'_f'] +=  qx_s
         q_df.loc[seg_name+'_s',seg_name+'_f'] -=  qx_s
+    # check again
+    qx_s = q_df.loc[seg_name+'_s'].sum() # this use of .loc returns a series
+    qx_f = q_df.loc[seg_name+'_f'].sum()
+    if np.abs(qx_s + qx_f) > 1:
+        print('   @@@@@@@@@@@@ qx warning @@@@@@@@@@@@@@@')
     
     if verbose:
         print(' - Solution matrix A:')

@@ -1,5 +1,5 @@
 """
-Run the flux engine!
+Run the flux engine to determine the age of different water sources.
 """
 
 # imports
@@ -25,8 +25,7 @@ reload(tef_fun)
 import flux_fun
 reload(flux_fun)
 
-verbose = False
-check_convergence = False
+check_convergence = True
 
 # select output location
 if False:
@@ -54,12 +53,17 @@ for seg_name in volumes.index:
     V[seg_name+'_f'] = 0.2 * volumes.loc[seg_name,'volume m3']
     
 # the forcing array
+source = 'river'
 f = pd.DataFrame(0, index=q_df.index, columns=q_df.columns)
 for seg_name in f.index:
-    if 'J1' in seg_name:
-        f.loc[seg_name,'ocean_s'] = 33.1
-    elif 'G6' in seg_name:
-        f.loc[seg_name,'ocean_s'] = 30.5
+    if source == 'ocean':
+        if 'J1' in seg_name:
+            f.loc[seg_name,'ocean_s'] = 1
+        elif 'G6' in seg_name:
+            f.loc[seg_name,'ocean_s'] = 1
+    elif source == 'river':
+        if 'S6' in seg_name: # G3 = Fraser, S6 = Deschutes
+            f.loc[seg_name,'river_f'] = 1
 
 NR = len(q_df.index)
 NC = len(q_df.columns)
@@ -68,10 +72,16 @@ NC = len(q_df.columns)
 vv = V.values
 ivv = 1/vv
 c = np.zeros(NR)
+ca = np.zeros(NR) 
 q = q_df.values
 ff = np.zeros((NR,NC))
-# column 0 of ff goes with 'ocean_s'
-ff[:,0] = f.loc[:,'ocean_s'].values
+ffa = np.zeros((NR,NC))
+if source == 'ocean':
+    ff[:,0] = f.loc[:,'ocean_s'].values # column 0 is the ocean inflow
+    #ffa[:,0] = f.loc[:,'ocean_s'].values
+elif source == 'river':
+    ff[:,3] = f.loc[:,'river_f'].values # column 3 is the river inflow
+    #ffa[:,3] = f.loc[:,'river_f'].values
 
 dt = 3e3 # time step (seconds)
 NT = 60000 # number of time steps
@@ -80,34 +90,33 @@ if check_convergence:
     c_check = np.nan + np.ones((int(NT/100), NR))
     t_check = np.nan + np.ones(int(NT/100))
 
+# calculate distribution of tracer
 for ii in range(NT):
-    #print(ii)
-    
     qff = (q*ff).sum(axis=1)
     c = c + dt*ivv*qff
     ff[:,4:] = np.tile(c,(NR,1))
-    
     if check_convergence and np.mod(ii,100)==0 :
-        c_check[int(ii/100), :] = c.copy() # 45 = S4_f
+        c_check[int(ii/100), :] = c.copy()
         t_check[int(ii/100)] = dt * ii
+        
+    qffa = (q*ffa).sum(axis=1)
+    ca = ca + dt*ivv*qffa + dt*c/(365*86400)
+    ffa[:,4:] = np.tile(ca,(NR,1))
     
+        
 if check_convergence:
     fig = plt.figure()
     ax = fig.add_subplot(111)
     ax.plot(t_check/86400, c_check, '-')
     plt.show()
-
-cc = pd.DataFrame(index=q_df.index,columns=['c', 'v', 'netq'])
+    
+cc = pd.DataFrame(index=q_df.index,columns=['c', 'ca', 'v', 'netq'])
 cc['c'] = c
+cc['ca'] = ca
 cc['v'] = vv
 cc['netq'] = q.sum(axis=1)
 
-if verbose:
-    for seg_name in cc.index:
-        print('%5s: %10.2f %10.2f %10.2f' % (seg_name,
-            cc.loc[seg_name,'c'], cc.loc[seg_name,'v']/1e9, cc.loc[seg_name,'netq']/1e3))
         
-
-cc.to_pickle(indir + 'cc.p')
+cc.to_pickle(indir + 'cc_age.p')
     
     

@@ -1,5 +1,5 @@
 """
-Plot the results of the flux engine.
+Plot the results of the flux age engine.
 
 """
 
@@ -58,9 +58,9 @@ for seg_name in v.index:
     V.loc[seg_name+'_f','lat'] = v.loc[seg_name,'lat']
 
 # load the DataFrame of results of flux_engine.py
-cc = pd.read_pickle(indir + 'cc.p')
+cc = pd.read_pickle(indir + 'cc_age.p')
 # index is ['J1_s', 'J1_f',... = (*)
-# columns are ['c', 'v', 'netq']
+# columns are ['c', 'ca', 'v', 'netq']
 
 # make lists of the various segment sequences
 ssJ = ['J'+str(s) for s in range(1,5)]
@@ -108,100 +108,38 @@ seg_dict = {'JdF to South Sound': ssJ + ssM + ssS,
 #plt.close('all')
 fig = plt.figure(figsize=(13,8))
 
+cc.loc[:,'age'] = cc.loc[:,'ca']/cc.loc[:,'c']
+
 ax_counter = 1
 for ch in channel_dict.keys():
     
     ax = fig.add_subplot(2,2,ax_counter)    
 
-    sect_list = channel_dict[ch]
     seg_list = seg_dict[ch]
-    
-    # get target salinities (the actual TEF values, at segment boundaries)
-    Ns = len(sect_list)
-    sa_s = np.zeros(Ns)
-    sa_f = np.zeros(Ns)
-    sa_x = np.zeros(Ns)
-    sa_y = np.zeros(Ns)
-    counter = 0
-    for sect in sect_list:
-        q_s, q_f, f_s, f_f, s_s, s_f, lon, lat = df_2.loc[sect,:]
-        sa_s[counter] = s_s
-        sa_f[counter] = s_f
-        sa_x[counter] = lon
-        sa_y[counter] = lat
-        counter += 1
-    # and associated distance vector
-    sa_dist = make_dist(sa_x, sa_y)
-    
     vs = [s + '_s' for s in seg_list]
     vf = [s + '_f' for s in seg_list]
-
-    # alternate definition of dist that goes with segments
-    if ch in ['JdF to South Sound', 'JdF to Hood Canal']:
-        dist = sa_dist.copy()
-        ddd = np.diff(sa_dist)/2
-        dist[:-1] += ddd
-        dist[-1] += ddd[-1]
-    else:
-        dist = sa_dist[:-1].copy()
-        ddd = np.diff(sa_dist)/2
-        dist += ddd
-
-    if True:
-        # plots of layer salinities
         
+    dist = make_dist(v.loc[seg_list,'lon'],v.loc[seg_list,'lat'])
+
+    # plots of layer tracer concentration or age
+    
+    if False:
         # values from the flux_engine
         ax.plot(dist, cc.loc[vs,'c'].values,'-*r')
         ax.plot(dist, cc.loc[vf,'c'].values,'-*r', alpha=.5)
         for ii in range(len(dist)):
             ax.text(dist[ii], cc.loc[vs[ii],'c'], seg_list[ii], color='r')
-        # TEF target values
-        ax.plot(sa_dist, sa_s, '-ob')
-        ax.plot(sa_dist, sa_f, '-ob', alpha=.5)
-        for ii in range(len(sa_dist)):
-            ax.text(sa_dist[ii], sa_s[ii], sect_list[ii], color='b')
-
-        ax.set_xlim(-10,410)
-        ax.set_ylim(22,34)
-
+        ax.set_ylim(0, 1)
     else:
-        # plots of sbar and sprime
-        ax2 = ax.twinx()
-        
         # values from the flux_engine
-        sbot = cc.loc[vs,'c'].values
-        stop = cc.loc[vf,'c'].values
-        sbar = (sbot+stop)/2
-        sprime = sbot - stop
-        
-        ax.plot(dist, sbar,'-*r')
-        ax2.plot(dist, sprime,'-*m')
+        ax.plot(dist, cc.loc[vs,'age'].values,'-*r')
+        ax.plot(dist, cc.loc[vf,'age'].values,'-*r', alpha=.5)
         for ii in range(len(dist)):
-            ax.text(dist[ii], sbar[ii], seg_list[ii], color='r')
-        # TEF target values
-        sa_sbar = (sa_s+sa_f)/2
-        sa_sprime = sa_s - sa_f
-
-        ax.plot(sa_dist, sa_sbar, '-ob')
-        ax2.plot(sa_dist, sa_sprime, '-og')
-        for ii in range(len(sa_dist)):
-            ax.text(sa_dist[ii], sa_sbar[ii], sect_list[ii], color='b')
-        
-        ax.set_xlim(-10,410)
-        ax.set_ylim(22,34)
-        
-        ax2.set_ylim(0,4)
-        
-        
-    if ax_counter == 4:
-        ax.text(.1,.1,'Target',color='b',fontweight='bold',transform=ax.transAxes)
-        ax.text(.1,.2,'Model',color='r',fontweight='bold',transform=ax.transAxes)
-
+            ax.text(dist[ii], cc.loc[vs[ii],'age']*365, seg_list[ii], color='r')
+        #ax.set_ylim(0, 365)
+    ax.set_xlim(-10,500)
     ax.set_title(ch)
-    
-    
     ax.grid(True)
-    
     ax_counter += 1
 
 plt.show()
