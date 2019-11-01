@@ -43,7 +43,6 @@ df = pd.read_pickle(indir + 'two_layer.p')
 # created by plot_thalweg_mean.py
 segs = flux_fun.segs
 
-
 q_df = pd.read_pickle(indir + 'q_df.p')
 volumes = pd.read_pickle(indir + 'volumes.p')
 
@@ -53,7 +52,7 @@ for seg_name in volumes.index:
     V[seg_name+'_f'] = 0.2 * volumes.loc[seg_name,'volume m3']
     
 # the forcing array
-source = 'river'
+source = 'ocean'
 f = pd.DataFrame(0, index=q_df.index, columns=q_df.columns)
 for seg_name in f.index:
     if source == 'ocean':
@@ -62,7 +61,7 @@ for seg_name in f.index:
         elif 'G6' in seg_name:
             f.loc[seg_name,'ocean_s'] = 1
     elif source == 'river':
-        if 'S6' in seg_name: # G3 = Fraser, S6 = Deschutes
+        if 'G3' in seg_name: # G3 = Fraser, S6 = Deschutes
             f.loc[seg_name,'river_f'] = 1
 
 NR = len(q_df.index)
@@ -78,22 +77,32 @@ ff = np.zeros((NR,NC))
 ffa = np.zeros((NR,NC))
 if source == 'ocean':
     ff[:,0] = f.loc[:,'ocean_s'].values # column 0 is the ocean inflow
-    #ffa[:,0] = f.loc[:,'ocean_s'].values
 elif source == 'river':
     ff[:,3] = f.loc[:,'river_f'].values # column 3 is the river inflow
-    #ffa[:,3] = f.loc[:,'river_f'].values
 
 dt = 3e3 # time step (seconds)
-NT = 60000 # number of time steps
+NT = 2*60000 # number of time steps
 
 if check_convergence:
     c_check = np.nan + np.ones((int(NT/100), NR))
     t_check = np.nan + np.ones(int(NT/100))
+    
+sinking = True
+dz = 1e-4 # a parameter to control sinking rate
 
 # calculate distribution of tracer
 for ii in range(NT):
     qff = (q*ff).sum(axis=1)
     c = c + dt*ivv*qff
+    
+    if sinking == True:
+        NC2 = int(len(c)/2)
+        for jj in range(NC2):
+            c_f = c[2*jj + 1]
+            c[2*jj + 1] -= c_f*dz
+            c[2*jj] += c_f*dz
+            
+        
     ff[:,4:] = np.tile(c,(NR,1))
     if check_convergence and np.mod(ii,100)==0 :
         c_check[int(ii/100), :] = c.copy()

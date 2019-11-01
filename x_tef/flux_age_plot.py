@@ -123,20 +123,20 @@ for ch in channel_dict.keys():
 
     # plots of layer tracer concentration or age
     
-    if False:
+    if True:
         # values from the flux_engine
         ax.plot(dist, cc.loc[vs,'c'].values,'-*r')
         ax.plot(dist, cc.loc[vf,'c'].values,'-*r', alpha=.5)
         for ii in range(len(dist)):
             ax.text(dist[ii], cc.loc[vs[ii],'c'], seg_list[ii], color='r')
-        ax.set_ylim(0, 1)
+        ax.set_ylim(bottom=0)
     else:
         # values from the flux_engine
-        ax.plot(dist, cc.loc[vs,'age'].values,'-*r')
-        ax.plot(dist, cc.loc[vf,'age'].values,'-*r', alpha=.5)
+        ax.plot(dist, cc.loc[vs,'age'].values*365,'-*r')
+        ax.plot(dist, cc.loc[vf,'age'].values*365,'-*r', alpha=.5)
         for ii in range(len(dist)):
             ax.text(dist[ii], cc.loc[vs[ii],'age']*365, seg_list[ii], color='r')
-        #ax.set_ylim(0, 365)
+        ax.set_ylim(0, 700)
     ax.set_xlim(-10,500)
     ax.set_title(ch)
     ax.grid(True)
