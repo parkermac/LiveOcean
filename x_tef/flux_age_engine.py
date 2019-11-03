@@ -61,7 +61,7 @@ for seg_name in f.index:
         elif 'G6' in seg_name:
             f.loc[seg_name,'ocean_s'] = 1
     elif source == 'river':
-        if 'G3' in seg_name: # G3 = Fraser, S6 = Deschutes
+        if 'G3' in seg_name: # G3 = Fraser, S4 = Deschutes, W4 = Skagit
             f.loc[seg_name,'river_f'] = 1
 
 NR = len(q_df.index)

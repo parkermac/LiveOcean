@@ -334,8 +334,8 @@ for seg_name in seg_name_list:
     elif False and seg_name=='J4':
         print('   ** J4 override **')
         A[2,2] = .4
-    elif True and seg_name=='M1':
-        print('   ** M1 override **')
+    elif True and seg_name=='A1':
+        print('   ** A1 override **')
         A[0,0] = .1
         A[1,1] = .6
         # RESULT: this really helps! 2091.10.29

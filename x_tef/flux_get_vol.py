@@ -58,7 +58,7 @@ testing = False
 segs = flux_fun.segs
 
 if testing == True:
-    seg_name_list = ['G4']
+    seg_name_list = ['J4']
     plt.close('all')
     # start a useful plot
     fig = plt.figure(figsize=(10,10))
@@ -69,20 +69,22 @@ if testing == True:
 else:
      seg_name_list = segs.keys()
      
+
+
 # initialize a DataFrame to hold all volumes:
 vol_df = pd.DataFrame(index=seg_name_list, columns=['volume m3', 'area m2', 'lon', 'lat'])
 
 for seg_name in seg_name_list:
-    
+
     print('Segment: ' + seg_name)
-    
+
     # get the names of the sections around this segment
     seg = segs[seg_name]
 
     # initialize a DataFrame to hold segment info
     seg_df = pd.DataFrame(columns=['ii0','ii1','jj0','jj1',
         'sdir','side','Lon0','Lon1','Lat0','Lat1',])
-        
+
     # fill the DataFrame for this segment
     for side in list('SNWE'):
         sect_list = seg[side]
@@ -103,22 +105,22 @@ for seg_name in seg_name_list:
             seg_df.loc[sect_name,'Lon1'] = Lon1
             seg_df.loc[sect_name,'Lat0'] = Lat0
             seg_df.loc[sect_name,'Lat1'] = Lat1
-            
-    
+
+
     if testing:
         # focus the plot axes around this segment
         pad = .5
         ax.axis([seg_df['Lon0'].min()-pad,seg_df['Lon1'].max()+pad,
             seg_df['Lat0'].min()-pad,seg_df['Lat1'].max()+pad])
-        
+
     # initialize a mask
     mm = m.copy().data # boolean array, True over water
-    
+
     # initialize some lists
     full_ji_list = [] # full list of indices of good rho points inside the volume
     this_ji_list = [] # current list of indices of good rho points inside the volume
     next_ji_list = [] # next list of indices of good rho points inside the volume
-    
+
     for sn in seg_df.index:
         s = seg_df.loc[sn,:]
         # mask the rho grid points on the outside of the TEF sections
@@ -131,7 +133,7 @@ for seg_name in seg_name_list:
         if s['sdir'] == 'EW' and s['side'] == 'N':
             mm[s['jj1'], s['ii0']:s['ii1']+1] = False
         # doing this will form a natural barrier for the "search robot"
-    
+#
     if testing:
         # same as the loop above, but for plottting
         for sn in seg_df.index:
@@ -150,7 +152,7 @@ for seg_name in seg_name_list:
             if s['sdir'] == 'EW' and s['side'] == 'N':
                 ax.plot(x[s['jj0'], s['ii0']:s['ii1']+1], y[s['jj0'], s['ii0']:s['ii1']+1], 'om')
                 ax.plot(x[s['jj1'], s['ii0']:s['ii1']+1], y[s['jj1'], s['ii0']:s['ii1']+1], 'ok')
-
+#
     # deploy the "search robot" flux_fun.update_mm()
     # the algorithm is that we start the search at a good rho point at either end of each TEF
     # section, and allow it to fill in as much of the remaining points as it can
@@ -194,7 +196,7 @@ for seg_name in seg_name_list:
         # plot the points that will make up the volume
         for ji in full_ji_list:
             ax.plot(x[ji],y[ji],'*r')
-            
+#
     # find the volume and surface area
     volume = 0
     area = 0
@@ -209,15 +211,16 @@ for seg_name in seg_name_list:
     lat = lat / len(full_ji_list)
     print(' -- Area = %0.1f km2' % (area/1e6))
     print(' -- Volume = %0.1f km3' % (volume/1e9))
-        
+
     vol_df.loc[seg_name,'volume m3'] = volume
     vol_df.loc[seg_name,'area m2'] = area
     vol_df.loc[seg_name,'lon'] = lon
     vol_df.loc[seg_name,'lat'] = lat
-    
-vol_df.to_pickle(outdir + 'volumes.p')
-                
+
+if not testing:
+    vol_df.to_pickle(outdir + 'volumes.p')
+#
 if testing:
     plt.show()
-        
-    
+
+

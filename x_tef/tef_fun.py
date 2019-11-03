@@ -32,12 +32,13 @@ def get_sect_df():
     sect_df.loc['sog4',:] = [-125.356, -124.556,   50.002,   50.002, 1]
     sect_df.loc['sog5',:] = [-125.600, -124.400,   50.200,   50.200, 1]
     # San Juans
-    sect_df.loc['sji1',:] = [-123.350, -122.451,   48.438,   48.438, 1]
+    # sect_df.loc['sji1',:] = [-123.350, -122.451,   48.438,   48.438, 1]
+    sect_df.loc['sji1',:] = [-123.350, -122.65,   48.438,   48.438, 1] # edited E limit 2019.11.03
     sect_df.loc['sji2',:] = [-123.449, -122.425,   48.681,   48.681, 1]
 
     # Channels around the San Juans
     sect_df.loc['dp',:] = [-122.643, -122.643,   48.389,   48.425, 1]
-    sect_df.loc['haro',:] = [-123.429, -123.099,   48.542,   48.542, 1]
+    # sect_df.loc['haro',:] = [-123.429, -123.099,   48.542,   48.542, 1]
 
     # Admiralty Inlet
     sect_df.loc['ai1',:] = [-122.762, -122.762,   48.141,   48.227, 1]
@@ -69,7 +70,7 @@ def get_sect_df():
     sect_df.loc['mb5',:] = [-122.610, -122.300,   47.349,   47.349, -1]
 
     # Colvos Passage
-    sect_df.loc['clv',:] = [-122.577, -122.485,   47.444,   47.444, -1]
+    # sect_df.loc['clv',:] = [-122.577, -122.485,   47.444,   47.444, -1]
 
     # Tacoma Narrows
     sect_df.loc['tn1',:] = [-122.584, -122.537,   47.313,   47.313, -1]
@@ -90,7 +91,7 @@ def get_sect_df():
     #sect_df.loc['oak',:] = [-122.960, -122.960,   47.187,   47.214, -1]
 
     # Channel in South Sound
-    sect_df.loc['pick',:] = [-122.947, -122.907,   47.264,   47.264, 1]
+    # sect_df.loc['pick',:] = [-122.947, -122.907,   47.264,   47.264, 1]
 
     # Coastal estuary sections
     # sect_df.loc['willapa_mouth',:] = [-124.051, -124.051,   46.631,   46.748, 1]

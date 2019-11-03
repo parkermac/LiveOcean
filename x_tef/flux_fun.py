@@ -17,22 +17,22 @@ segs = {
         'G5':{'S':[], 'N':['sog4'], 'W':[], 'E':['sog3'], 'R':['englishman', 'tsolum', 'oyster']},
         'G6':{'S':['sog4'], 'N':['sog5'], 'W':[], 'E':[], 'R':[]},
         
-        'M1':{'S':['ai2'], 'N':[], 'W':['ai1'], 'E':[], 'R':[]},
-        'M2':{'S':['ai3'], 'N':['ai2'], 'W':[], 'E':[], 'R':[]},
-        'M3':{'S':['hc1'], 'N':['ai3'], 'W':[], 'E':['ai4'], 'R':[]},
-        'M4':{'S':['mb1'], 'N':['wb1'], 'W':['ai4'], 'E':[], 'R':[]},
-        'M5':{'S':['mb2'], 'N':['mb1'], 'W':[], 'E':[], 'R':[]},
-        'M6':{'S':['mb3'], 'N':['mb2'], 'W':[], 'E':[], 'R':['green', 'cedar']},
-        'M7':{'S':['mb4'], 'N':['mb3'], 'W':[], 'E':[], 'R':[]},
-        'M8':{'S':['mb5'], 'N':['mb4'], 'W':[], 'E':[], 'R':[]},
-        'M9':{'S':['tn1'], 'N':['mb5'], 'W':[], 'E':[], 'R':['puyallup']},
+        'A1':{'S':['ai2'], 'N':[], 'W':['ai1'], 'E':[], 'R':[]},
+        'A2':{'S':['ai3'], 'N':['ai2'], 'W':[], 'E':[], 'R':[]},
+        'A3':{'S':['hc1'], 'N':['ai3'], 'W':[], 'E':['ai4'], 'R':[]},
+        'M1':{'S':['mb1'], 'N':['wb1'], 'W':['ai4'], 'E':[], 'R':[]},
+        'M2':{'S':['mb2'], 'N':['mb1'], 'W':[], 'E':[], 'R':[]},
+        'M3':{'S':['mb3'], 'N':['mb2'], 'W':[], 'E':[], 'R':['green', 'cedar']},
+        'M4':{'S':['mb4'], 'N':['mb3'], 'W':[], 'E':[], 'R':[]},
+        'M5':{'S':['mb5'], 'N':['mb4'], 'W':[], 'E':[], 'R':[]},
+        'M6':{'S':['tn1'], 'N':['mb5'], 'W':[], 'E':[], 'R':['puyallup']},
         
-        'S1':{'S':['tn2'], 'N':['tn1'], 'W':[], 'E':[], 'R':[]},
-        'S2':{'S':['tn3'], 'N':['tn2'], 'W':[], 'E':[], 'R':[]},
-        'S3':{'S':[], 'N':['tn3'], 'W':['ss1'], 'E':[], 'R':[]},
-        'S4':{'S':[], 'N':[], 'W':['ss2'], 'E':['ss1'], 'R':['nisqually']},
-        'S5':{'S':[], 'N':[], 'W':['ss3'], 'E':['ss2'], 'R':[]},
-        'S6':{'S':[], 'N':[], 'W':[], 'E':['ss3'], 'R':['deschutes']},
+        'T1':{'S':['tn2'], 'N':['tn1'], 'W':[], 'E':[], 'R':[]},
+        'T2':{'S':['tn3'], 'N':['tn2'], 'W':[], 'E':[], 'R':[]},
+        'S1':{'S':[], 'N':['tn3'], 'W':['ss1'], 'E':[], 'R':[]},
+        'S2':{'S':[], 'N':[], 'W':['ss2'], 'E':['ss1'], 'R':['nisqually']},
+        'S3':{'S':[], 'N':[], 'W':['ss3'], 'E':['ss2'], 'R':[]},
+        'S4':{'S':[], 'N':[], 'W':[], 'E':['ss3'], 'R':['deschutes']},
         
         'W1':{'S':['wb1'], 'N':['wb2'], 'W':[], 'E':[], 'R':['snohomish']},
         'W2':{'S':['wb2'], 'N':['wb3'], 'W':[], 'E':[], 'R':['stillaguamish']},
@@ -50,6 +50,31 @@ segs = {
         
         #'##':{'S':[], 'N':[], 'W':[], 'E':[], 'R':[]},
         }
+        
+# make lists of the various segment sequences
+ssJ = ['J'+str(s) for s in range(1,5)]
+ssM = ['M'+str(s) for s in range(1,7)]
+ssA = ['A'+str(s) for s in range(1,4)]
+ssT = ['T'+str(s) for s in range(1,3)]
+ssS = ['S'+str(s) for s in range(1,5)]
+ssG = ['G'+str(s) for s in range(1,7)]
+ssW = ['W'+str(s) for s in range(1,5)]
+ssH = ['H'+str(s) for s in range(1,9)]
+
+# also cue up a line for the target salinities from the TEF sections
+channel_dict = {'Juan de Fuca to Strait of Georgia':['jdf1','jdf2','jdf3','jdf4','sji1', 'sji2', 'sog1','sog2','sog3','sog4','sog5'],
+            'Admiralty Inlet to South Sound': ['ai1', 'ai2', 'ai3','ai4',
+                'mb1','mb2','mb3','mb4','mb5',
+                'tn1','tn2','tn3',
+                'ss1','ss2','ss3'],
+            'Hood Canal':['hc1','hc2','hc3','hc4','hc5','hc6','hc7','hc8'],
+            'Whidbey Basin':['wb1','wb2','wb3','wb4','dp']}
+                
+seg_dict = {'Juan de Fuca to Strait of Georgia': ssJ + ssG,
+            'Admiralty Inlet to South Sound': ssA + ssM + ssT + ssS,
+            'Hood Canal': ssH,
+            'Whidbey Basin': ssW}
+
         
 def update_mm(ji, mm, this_ji_list, full_ji_list, next_ji_list):
     if mm[ji] == True:

@@ -62,16 +62,6 @@ cc = pd.read_pickle(indir + 'cc.p')
 # index is ['J1_s', 'J1_f',... = (*)
 # columns are ['c', 'v', 'netq']
 
-# make lists of the various segment sequences
-ssJ = ['J'+str(s) for s in range(1,5)]
-ssM = ['M'+str(s) for s in range(1,10)]
-ssMH = ['M'+str(s) for s in range(1,4)] # to Hood Canal
-ssMW = ['M'+str(s) for s in range(1,5)] # to Whidbey Basin
-ssS = ['S'+str(s) for s in range(1,7)]
-ssG = ['G'+str(s) for s in range(1,7)]
-ssW = ['W'+str(s) for s in range(1,5)]
-ssH = ['H'+str(s) for s in range(1,9)]
-
 def make_dist(x,y):
     NS = len(x)
     xs = np.zeros(NS)
@@ -84,37 +74,19 @@ def make_dist(x,y):
     dist[1:] = np.cumsum(dd/1000)
     return dist
     
-
-# also cue up a line for the input salinities from the TEF sections
-channel_dict = {'JdF to South Sound':['jdf1','jdf2','jdf3','jdf4',
-                'ai1', 'ai2', 'ai3','ai4',
-                'mb1','mb2','mb3','mb4','mb5',
-                'tn1','tn2','tn3',
-                'ss1','ss2','ss3'],
-            'JdF to Strait of Georgia':['jdf1','jdf2','jdf3','jdf4',
-                'sji1', 'sji2', 'sog1','sog2','sog3','sog4','sog5'],
-            'JdF to Hood Canal':['jdf1','jdf2','jdf3','jdf4',
-                'ai1', 'ai2', 'ai3',
-                'hc1','hc2','hc3','hc4','hc5','hc6','hc7','hc8'],
-            'JdF to Whidbey Basin':['jdf1','jdf2','jdf3','jdf4',
-                'ai1', 'ai2', 'ai3', 'ai4',
-                'wb1','wb2','wb3','wb4','dp']}
-                
-seg_dict = {'JdF to South Sound': ssJ + ssM + ssS,
-            'JdF to Strait of Georgia': ssJ + ssG,
-            'JdF to Hood Canal': ssJ + ssMH + ssH,
-            'JdF to Whidbey Basin': ssJ + ssMW + ssW}
-
-#plt.close('all')
+plt.close('all')
 fig = plt.figure(figsize=(13,8))
 
 ax_counter = 1
-for ch in channel_dict.keys():
+for ch in flux_fun.channel_dict.keys():
     
-    ax = fig.add_subplot(2,2,ax_counter)    
-
-    sect_list = channel_dict[ch]
-    seg_list = seg_dict[ch]
+    if ax_counter == 1:
+        ax = fig.add_subplot(2,1,ax_counter)
+    else:
+        ax = fig.add_subplot(2,3,ax_counter+2)
+        
+    sect_list = flux_fun.channel_dict[ch]
+    seg_list = flux_fun.seg_dict[ch]
     
     # get target salinities (the actual TEF values, at segment boundaries)
     Ns = len(sect_list)
@@ -137,7 +109,7 @@ for ch in channel_dict.keys():
     vf = [s + '_f' for s in seg_list]
 
     # alternate definition of dist that goes with segments
-    if ch in ['JdF to South Sound', 'JdF to Hood Canal']:
+    if ch in ['Admiralty Inlet to South Sound', 'Hood Canal']:
         dist = sa_dist.copy()
         ddd = np.diff(sa_dist)/2
         dist[:-1] += ddd
@@ -161,8 +133,13 @@ for ch in channel_dict.keys():
         for ii in range(len(sa_dist)):
             ax.text(sa_dist[ii], sa_s[ii], sect_list[ii], color='b')
 
-        ax.set_xlim(-10,410)
-        ax.set_ylim(22,34)
+        if ax_counter == 1:
+            ax.set_xlim(-10,410)
+            ax.set_ylim(24,34)
+        else:
+            ax.set_xlim(-10,180)
+            ax.set_ylim(22,32)
+            
 
     else:
         # plots of sbar and sprime
@@ -194,10 +171,10 @@ for ch in channel_dict.keys():
         
         
     if ax_counter == 4:
-        ax.text(.1,.1,'Target',color='b',fontweight='bold',transform=ax.transAxes)
-        ax.text(.1,.2,'Model',color='r',fontweight='bold',transform=ax.transAxes)
+        ax.text(.9,.1,'Target',color='b',fontweight='bold',transform=ax.transAxes, horizontalalignment='right')
+        ax.text(.9,.2,'Model',color='r',fontweight='bold',transform=ax.transAxes, horizontalalignment='right')
 
-    ax.set_title(ch)
+    ax.text(.05,.05,ch,transform=ax.transAxes)
     
     
     ax.grid(True)
