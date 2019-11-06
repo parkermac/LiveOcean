@@ -50,9 +50,10 @@ riv_df = pd.read_csv(ri_fn, index_col='rname')
 plt.close('all')
 lw=3
 fs=14
-fig = plt.figure(figsize=(20,12))
-ax1 = fig.add_subplot(121)
-ax2 = fig.add_subplot(122)
+fig1 = plt.figure(figsize=(9,12))
+fig2 = plt.figure(figsize=(9,12))
+ax1 = fig1.add_subplot(111)
+ax2 = fig2.add_subplot(111)
 
 def inax(x,y,aa, aa_x):
     # returns true if x,y, is inside of the box defined by aa
@@ -111,6 +112,9 @@ for ax in [ax1, ax2]:
     pfun.add_coast(ax)
     pfun.dar(ax)
     ax.axis(aa)
+    
+    ax.set_xlabel('Longitude')
+    ax.set_ylabel('Latitude')
     
     ax_counter += 1
 

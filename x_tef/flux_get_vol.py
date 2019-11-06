@@ -63,16 +63,20 @@ if testing == True:
     # start a useful plot
     fig = plt.figure(figsize=(10,10))
     ax = fig.add_subplot(111)
-    ax.pcolormesh(xp, yp, h[1:-1,1:-1], cmap='terrain_r', vmin=-100, vmax = 400)
+    ax.pcolormesh(xp, yp, h[1:-1,1:-1], cmap='terrain_r', vmin=-100, vmax = 400, alpha=.1)
     pfun.dar(ax)
     pfun.add_coast(ax)
 else:
      seg_name_list = segs.keys()
-     
-
 
 # initialize a DataFrame to hold all volumes:
 vol_df = pd.DataFrame(index=seg_name_list, columns=['volume m3', 'area m2', 'lon', 'lat'])
+
+# create a dict to hold the bathy file
+bathy_dict = {'h':h, 'xp':xp, 'yp':yp}
+
+# initialize a dict to store all the ji lists that define each segment area
+ji_dict = {}
 
 for seg_name in seg_name_list:
 
@@ -134,7 +138,7 @@ for seg_name in seg_name_list:
             mm[s['jj1'], s['ii0']:s['ii1']+1] = False
         # doing this will form a natural barrier for the "search robot"
 #
-    if testing:
+    if testing and True:
         # same as the loop above, but for plottting
         for sn in seg_df.index:
             s = seg_df.loc[sn,:]
@@ -191,11 +195,17 @@ for seg_name in seg_name_list:
     if len(set(full_ji_list)) != len(full_ji_list):
         print(' -- Warning: had to remove duplicates from list')
         full_ji_list = set(full_ji_list)
+        
+    ji_dict[seg_name] = full_ji_list
 
     if testing:
-        # plot the points that will make up the volume
-        for ji in full_ji_list:
-            ax.plot(x[ji],y[ji],'*r')
+        hh = np.zeros(h.shape)
+        for ji in full_ji_list: 
+            hh[ji]=1
+        H = hh==0
+        hm = np.ma.masked_where(H,h)
+        ax.pcolormesh(xp, yp, hm[1:-1,1:-1], cmap='terrain_r', vmin=-100, vmax = 400)
+        
 #
     # find the volume and surface area
     volume = 0
@@ -219,6 +229,8 @@ for seg_name in seg_name_list:
 
 if not testing:
     vol_df.to_pickle(outdir + 'volumes.p')
+    pickle.dump(bathy_dict, open(outdir + 'bathy_dict.p', 'wb'))
+    pickle.dump(ji_dict, open(outdir + 'ji_dict.p', 'wb'))
 #
 if testing:
     plt.show()

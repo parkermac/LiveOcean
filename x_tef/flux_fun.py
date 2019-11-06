@@ -1,6 +1,8 @@
 """
 Varibles and functions used by the "flux" code.
 """
+import numpy as np
+import zfun # path provided by calling code
 
 # segment definitions, assembled by looking at the figure
 # created by plot_thalweg_mean.py
@@ -74,7 +76,21 @@ seg_dict = {'Juan de Fuca to Strait of Georgia': ssJ + ssG,
             'Admiralty Inlet to South Sound': ssA + ssM + ssT + ssS,
             'Hood Canal': ssH,
             'Whidbey Basin': ssW}
+            
+# colors to associate with each channel (the keys in channel_ and seg_dict)
+clist = ['purple', 'orange', 'green', 'blue']
 
+def make_dist(x,y):
+    NS = len(x)
+    xs = np.zeros(NS)
+    ys = np.zeros(NS)
+    xs, ys = zfun.ll2xy(x, y, x[0], y[0])
+    dx = np.diff(xs)
+    dy = np.diff(ys)
+    dd = (dx**2 + dy**2)**.5 # not clear why np.sqrt throws an error
+    dist = np.zeros(NS)
+    dist[1:] = np.cumsum(dd/1000) # convert m to km
+    return dist
         
 def update_mm(ji, mm, this_ji_list, full_ji_list, next_ji_list):
     if mm[ji] == True:

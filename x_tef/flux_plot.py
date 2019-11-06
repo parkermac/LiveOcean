@@ -16,11 +16,7 @@ Ldir = Lfun.Lstart(gridname='cas6', tag='v3')
 import zfun
 
 import tef_fun
-from importlib import reload
-reload(tef_fun)
-
 import flux_fun
-reload(flux_fun)
 
 # select the indir
 indir0 = Ldir['LOo'] + 'tef/cas6_v3_lo8b_2017.01.01_2017.12.31/'
@@ -38,41 +34,16 @@ segs = flux_fun.segs
 #   {'J1':
 #       {'S': [], 'N': [], 'W': ['jdf1'], 'E': ['jdf2'], 'R': ['sanjuan', 'hoko']},...
 
-# load a Series of the volumes of each segment, created by flux_get_vol.py
-v = pd.read_pickle(indir + 'volumes.p')
-# index is ['J1', 'J2', 'J3',...
-# columns are ['volume m3', 'area m2', 'lon', 'lat']
-
 # this is the big DataFrame created by flux_get_A.py
 q_df = pd.read_pickle(indir + 'q_df.p')
 # index is ['J1_s', 'J1_f', 'J2_s',... = (*)
 # columns are ['ocean_s', 'ocean_f', 'river_s', 'river_f', 'J1_s', 'J1_f', 'J2_s',...
 
-# Make a version of "v" which has entries for the _s (salty) and _f (fresh)
-# parts of each segment, to be compatible with "cc" below.  The new version
-V = pd.DataFrame(index=q_df.index, columns=['v_s', 'v_f', 'lon', 'lat'])
-for seg_name in v.index:
-    V.loc[seg_name+'_s','lon'] = v.loc[seg_name,'lon']
-    V.loc[seg_name+'_s','lat'] = v.loc[seg_name,'lat']
-    V.loc[seg_name+'_f','lon'] = v.loc[seg_name,'lon']
-    V.loc[seg_name+'_f','lat'] = v.loc[seg_name,'lat']
-
 # load the DataFrame of results of flux_engine.py
-cc = pd.read_pickle(indir + 'cc.p')
+cc = pd.read_pickle(indir + 'cc_ocean_salt.p')
 # index is ['J1_s', 'J1_f',... = (*)
 # columns are ['c', 'v', 'netq']
 
-def make_dist(x,y):
-    NS = len(x)
-    xs = np.zeros(NS)
-    ys = np.zeros(NS)
-    xs, ys = zfun.ll2xy(x, y, x[0], y[0])
-    dx = np.diff(xs)
-    dy = np.diff(ys)
-    dd = (dx**2 + dy**2)**.5 # not clear why np.sqrt throws an error
-    dist = np.zeros(NS)
-    dist[1:] = np.cumsum(dd/1000)
-    return dist
     
 plt.close('all')
 fig = plt.figure(figsize=(13,8))
@@ -103,7 +74,7 @@ for ch in flux_fun.channel_dict.keys():
         sa_y[counter] = lat
         counter += 1
     # and associated distance vector
-    sa_dist = make_dist(sa_x, sa_y)
+    sa_dist = flux_fun.make_dist(sa_x, sa_y)
     
     vs = [s + '_s' for s in seg_list]
     vf = [s + '_f' for s in seg_list]
@@ -135,9 +106,16 @@ for ch in flux_fun.channel_dict.keys():
 
         if ax_counter == 1:
             ax.set_xlim(-10,410)
-            ax.set_ylim(24,34)
         else:
             ax.set_xlim(-10,180)
+
+        if ax_counter == 1:
+            ax.set_ylim(28,34)
+        elif ax_counter == 2:
+            ax.set_ylim(28,32)
+        elif ax_counter == 3:
+            ax.set_ylim(24,32)
+        elif ax_counter == 4:
             ax.set_ylim(22,32)
             
 
