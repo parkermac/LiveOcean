@@ -65,7 +65,7 @@ dz = np.diff(z_w, axis=0)
 DV = dz * DA3
 
 # select input/output location
-indir0 = '/Users/pm7/Documents/LiveOcean_output/tef/cas6_v3_lo8b_2017.01.01_2017.12.31/'
+indir0 = Ldir['LOo'] + 'tef/cas6_v3_lo8b_2017.01.01_2017.12.31/'
 indir = indir0 + 'flux/'
 
 # load DateFrames of transport and volume
