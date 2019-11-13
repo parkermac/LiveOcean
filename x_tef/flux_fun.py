@@ -22,6 +22,7 @@ segs = {
         'A1':{'S':['ai2'], 'N':[], 'W':['ai1'], 'E':[], 'R':[]},
         'A2':{'S':['ai3'], 'N':['ai2'], 'W':[], 'E':[], 'R':[]},
         'A3':{'S':['hc1'], 'N':['ai3'], 'W':[], 'E':['ai4'], 'R':[]},
+        
         'M1':{'S':['mb1'], 'N':['wb1'], 'W':['ai4'], 'E':[], 'R':[]},
         'M2':{'S':['mb2'], 'N':['mb1'], 'W':[], 'E':[], 'R':[]},
         'M3':{'S':['mb3'], 'N':['mb2'], 'W':[], 'E':[], 'R':['green', 'cedar']},
@@ -31,6 +32,7 @@ segs = {
         
         'T1':{'S':['tn2'], 'N':['tn1'], 'W':[], 'E':[], 'R':[]},
         'T2':{'S':['tn3'], 'N':['tn2'], 'W':[], 'E':[], 'R':[]},
+        
         'S1':{'S':[], 'N':['tn3'], 'W':['ss1'], 'E':[], 'R':[]},
         'S2':{'S':[], 'N':[], 'W':['ss2'], 'E':['ss1'], 'R':['nisqually']},
         'S3':{'S':[], 'N':[], 'W':['ss3'], 'E':['ss2'], 'R':[]},
@@ -73,9 +75,9 @@ channel_dict = {'Juan de Fuca to Strait of Georgia':['jdf1','jdf2','jdf3','jdf4'
             'Whidbey Basin':['wb1','wb2','wb3','wb4','dp']}
                 
 seg_dict = {'Juan de Fuca to Strait of Georgia': ssJ + ssG,
-            'Admiralty Inlet to South Sound': ssA + ssM + ssT + ssS,
-            'Hood Canal': ssH,
-            'Whidbey Basin': ssW}
+            'Admiralty Inlet to South Sound': ['J4'] + ssA + ssM + ssT + ssS,
+            'Hood Canal': ['A3'] + ssH,
+            'Whidbey Basin': ['M1'] + ssW}
             
 # colors to associate with each channel (the keys in channel_ and seg_dict)
 clist = ['purple', 'orange', 'green', 'blue']

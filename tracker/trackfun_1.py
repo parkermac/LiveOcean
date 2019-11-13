@@ -15,9 +15,9 @@ import netCDF4 as nc4
 # Shared Constants
 #
 # save diagnostics?
-save_dia = True
+save_dia = False
 #
-# criterion for deciding if particles are on lane
+# criterion for deciding if particles are on land
 maskr_crit = 0.8 # (maskr = 1 in water, 0 on land) [0.8 seems good]
 
 def get_tracks(fn_list, plon0, plat0, pcs0, TR, trim_loc=False):
@@ -54,6 +54,9 @@ def get_tracks(fn_list, plon0, plat0, pcs0, TR, trim_loc=False):
     # This is an attempt to fix a bug that happens avery couple of weeks,
     # one which I can't reliably reproduce!  In theory fn_list is sorted
     # by the calling function, but maybe ...??
+    # Now (2019.11.08) I think this glitch was caused when the carbon code was
+    # modifying the history files at the same time as the particle tracking was
+    # going.
     rot.sort()
     
     delta_t = rot[1] - rot[0] # second between saves
@@ -139,7 +142,7 @@ def get_tracks(fn_list, plon0, plat0, pcs0, TR, trim_loc=False):
             P = get_properties(vn_list_other, ds0, it0, P, plon, plat, pcs, R, surface)
             
         delt = delta_t/ndiv
-        # do the particle tracking for a single pari of history files in ndiv steps
+        # do the particle tracking for a single pair of history files in ndiv steps
         for nd in range(ndiv):
             
             fr0 = nd/ndiv
@@ -559,24 +562,32 @@ def get_V(vn_list, ds, plon, plat, pcs, R, surface):
                 + frlat*((1-frlon)*VV[:,6] + frlon*VV[:,7]) )
             v = (1-frcs)*vl + frcs*vu
         elif vn in ['salt','temp','u','v','w'] and surface==True:
-            VV = np.nan* np.ones((NP, 4))
-            VV[:,0] = vv[i0lat, i0lon]
-            VV[:,1] = vv[i0lat, i1lon]
-            VV[:,2] = vv[i1lat, i0lon]
-            VV[:,3] = vv[i1lat, i1lon]
-            # Work on edge values.  If all in a box are masked
-            # then that row will be nan's, and also:
-            if vn in ['u', 'v', 'w']:
-                # set all velocities to zero if any in the box are masked
-                mask = np.isnan(VV)
-                VV[mask] = 0
-            elif vn in ['salt','temp']:
-                # set all tracers to their average if any in the box are masked
-                newval = np.nanmean(VV, axis=1).reshape(NP, 1) * np.ones((1,4))
-                mask = np.isnan(VV)
-                VV[mask] = newval[mask]
-            v = ( (1-frlat)*((1-frlon)*VV[:,0] + frlon*VV[:,1])
-                + frlat*((1-frlon)*VV[:,2] + frlon*VV[:,3]) )
+            #from time import time
+            #tt0 = time()
+            if vn == 'w':
+                v = np.zeros(NP)
+            else:
+                VV = np.nan* np.ones((NP, 4))
+                VV[:,0] = vv[i0lat, i0lon]
+                VV[:,1] = vv[i0lat, i1lon]
+                VV[:,2] = vv[i1lat, i0lon]
+                VV[:,3] = vv[i1lat, i1lon]
+                # Work on edge values.  If all in a box are masked
+                # then that row will be nan's, and also:
+                if vn in ['u', 'v', 'w']:
+                    # set all velocities to zero if any in the box are masked
+                    # wait... this looks like it just sets masked velocities to
+                    # zero, not all of them... 2019.11.08
+                    mask = np.isnan(VV)
+                    VV[mask] = 0
+                elif vn in ['salt','temp']:
+                    # set all tracers to their average if any in the box are masked
+                    newval = np.nanmean(VV, axis=1).reshape(NP, 1) * np.ones((1,4))
+                    mask = np.isnan(VV)
+                    VV[mask] = newval[mask]
+                v = ( (1-frlat)*((1-frlon)*VV[:,0] + frlon*VV[:,1])
+                    + frlat*((1-frlon)*VV[:,2] + frlon*VV[:,3]) )
+            #print('%s  took %0.3f seconds' % (vn, time() - tt0))
         elif vn in ['zeta','Uwind','Vwind', 'h']:
             VV = np.nan* np.ones((NP, 4))
             VV[:,0] = vv[i0lat, i0lon]

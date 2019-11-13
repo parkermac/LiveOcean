@@ -51,7 +51,7 @@ DA = G['DX'] * G['DY']
 # get the DataFrame of all sections
 sect_df = tef_fun.get_sect_df()
 
-testing = False
+testing = True
 
 # segment definitions, assembled by looking at the figure
 # created by plot_thalweg_mean.py

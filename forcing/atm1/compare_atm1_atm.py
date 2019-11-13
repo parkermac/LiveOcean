@@ -5,10 +5,10 @@ we are doing the variable conversion and interpolation well enough.
 
 """
 
-# gridname='cas6'
-# tag='v3'
-gridname='sj0'
-tag='v0'
+gridname='cas6'
+tag='v3'
+# gridname='sj0'
+# tag='v0'
 date_string = '2017.04.20'
 
 # setup

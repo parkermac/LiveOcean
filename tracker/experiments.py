@@ -17,11 +17,9 @@ def make_ic(exp_name):
     if exp_name == 'jdf5':
         gtagex = 'cascadia1_base_lobio5'
         ic_name = 'jdf0'
-        
     elif exp_name == 'lo0': # LiveOcean testing
         gtagex = 'cas4_v2_lo6biom'
         ic_name = 'ic1'
-        
     elif exp_name == 'jdf6':
         gtagex = 'cas3_v0_lo6m'
         ic_name = 'jdf0'
@@ -46,11 +44,13 @@ def make_ic(exp_name):
     elif exp_name == 'col3': # for Bridget Ovall
             gtagex = 'cas4_v2_lo6biom'
             ic_name = 'test3'
-            
     elif exp_name == 'tj1': # for Tim Jones, new dead bird work
             gtagex = 'cascadia1_base_lobio5'
             ic_name = 'birds_lo'
-        
+    elif exp_name == 'fast1': # experimenting with performance
+            gtagex = 'cas6_v3_lo8b'
+            ic_name = 'jdf0'
+    
     # routines to set particle initial locations, all numpy arrays
     #
     # first create three vectors of initial locations

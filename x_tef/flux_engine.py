@@ -7,7 +7,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pickle
 import pandas as pd
-import netCDF4 as nc
+#import netCDF4 as nc
+import argparse
 
 import os; import sys
 sys.path.append(os.path.abspath('../alpha'))
@@ -21,30 +22,24 @@ import pfun
 import tef_fun
 import flux_fun
 
-check_convergence = True
+def boolean_string(s):
+    if s not in ['False', 'True']:
+        raise ValueError('Not a valid boolean string')
+    return s == 'True' # note use of ==
 
-# select input/output location
-indir0 = '/Users/pm7/Documents/LiveOcean_output/tef/cas6_v3_lo8b_2017.01.01_2017.12.31/'
-indir = indir0 + 'flux/'
+# optional command line arguments, can be input in any order
+parser = argparse.ArgumentParser()
+parser.add_argument('-src', '--source', nargs='?', type=str, default='ocean')
+parser.add_argument('-sink', '--sinking', default=False, type=boolean_string)
+parser.add_argument('-conv', '--check_convergence', default=False, type=boolean_string)
+args = parser.parse_args()
 
-# segment definitions, assembled by looking at the figure
-# created by plot_thalweg_mean.py
-segs = flux_fun.segs
+source = args.source
+sinking = args.sinking
+check_convergence = args.check_convergence
 
-# load DateFrames of transport and volume
-q_df = pd.read_pickle(indir + 'q_df.p')
-v_df = pd.read_pickle(indir + 'volumes.p')
-
-# create Series of two-layer volumes
-V = pd.Series(index=q_df.index)
-for seg_name in v_df.index:
-    V[seg_name+'_s'] = 0.8 * v_df.loc[seg_name,'volume m3']
-    V[seg_name+'_f'] = 0.2 * v_df.loc[seg_name,'volume m3']
-    
-# specify the forcing array
-#
-source = 'ocean_salt'
-# Valid Choices:
+print('Running integration with source = ' + source)
+# Valid choices for source:
 #
 # Dye from the ocean meant to reproduce the actual mean salinity
 # - ocean_salt
@@ -59,6 +54,22 @@ source = 'ocean_salt'
 # - ic_hood_canal
 #
 
+# select input/output location
+indir0 = '/Users/pm7/Documents/LiveOcean_output/tef/cas6_v3_lo8b_2017.01.01_2017.12.31/'
+indir = indir0 + 'flux/'
+
+# load DateFrames of transport and volume
+q_df = pd.read_pickle(indir + 'q_df.p')
+v_df = pd.read_pickle(indir + 'volumes.p')
+
+# create Series of two-layer volumes
+V = pd.Series(index=q_df.index)
+for seg_name in v_df.index:
+    V[seg_name+'_s'] = 0.8 * v_df.loc[seg_name,'volume m3']
+    V[seg_name+'_f'] = 0.2 * v_df.loc[seg_name,'volume m3']
+    
+# "f" is a DataFrame organized like q_df but whose entries
+# are the forced values of the tracer
 f = pd.DataFrame(0, index=q_df.index, columns=q_df.columns)
 
 for seg_name in f.index:
@@ -71,7 +82,7 @@ for seg_name in f.index:
         if 'J1' in seg_name:
             f.loc[seg_name,'ocean_s'] = 1
         elif 'G6' in seg_name:
-            f.loc[seg_name,'ocean_s'] = 1
+            f.loc[seg_name,'ocean_s'] = 30.5/33.1
     elif source == 'river_fraser':
         if 'G3' in seg_name:
             f.loc[seg_name,'river_f'] = 1
@@ -98,20 +109,34 @@ if 'ocean' in source:
     ff[:,0] = f.loc[:,'ocean_s'].values # column 0 is the ocean inflow
 elif 'river' in source:
     ff[:,3] = f.loc[:,'river_f'].values # column 3 is the river inflow
-
-dt = 3e3 # time step (seconds)
-nyears = 6
-NT = int(nyears*365*86400/dt) # number of time steps
-
-if check_convergence:
-    c_check = np.nan + np.ones((int(NT/100)+1, NR))
-    t_check = np.nan + np.ones(int(NT/100)+1)
     
-sinking = False
-dz = 1e-4 # a parameter to control sinking rate
+if 'ic' in source:
+    for seg_name in f.index:
+        if source == 'ic_hood_canal':
+            if 'H' in seg_name and '_s' in seg_name:
+                jj = int(np.argwhere(f.index==seg_name))
+                ff[jj,jj+4] = 1
+                c[jj] = 1
+
+dt = 3600 #3e3 # time step (seconds)
+nyears = 1#6
+NT = int(nyears*365*86400/dt) # number of time steps
+savedays = 2#10
+Nsave = int(savedays*86400/dt)
+# Nsave = number of time steps between saves in order to save every "savedays"
+
+# arrays to store time-varying information
+c_arr = np.nan + np.ones((int(NT/Nsave)+1, NR))
+t_arr = np.nan + np.ones(int(NT/Nsave)+1)
+    
+dz = .5e-4 #1e-4 # a parameter to control sinking rate
 
 for ii in range(NT):
-        
+    
+    if np.mod(ii,Nsave)==0 :
+        c_arr[int(ii/Nsave), :] = c.copy()
+        t_arr[int(ii/Nsave)] = dt * ii
+    
     qff = (q*ff).sum(axis=1)
     c = c + dt*ivv*qff
     if sinking == True:
@@ -125,16 +150,12 @@ for ii in range(NT):
     qffa = (q*ffa).sum(axis=1)
     ca = ca + dt*ivv*qffa + dt*c/(365*86400)
     ffa[:,4:] = np.tile(ca,(NR,1))
-    
-    if check_convergence and np.mod(ii,100)==0 :
-        c_check[int(ii/100), :] = c.copy()
-        t_check[int(ii/100)] = dt * ii
-    
+        
 if check_convergence:
     plt.close('all')
     fig = plt.figure(figsize=(12,8))
     ax = fig.add_subplot(111)
-    ax.plot(t_check/(365*86400), c_check, '-')
+    ax.plot(t_arr/(365*86400), c_arr, '-')
     ax.set_xlabel('Time (years)')
     ax.set_xlim(0,nyears)
     plt.show()
@@ -143,7 +164,16 @@ if check_convergence:
 cc = pd.DataFrame(index=q_df.index,columns=['c', 'ca'])
 cc['c'] = c
 cc['ca'] = ca
+
+# and another one for the time-dependent fields
+aa = pd.DataFrame(c_arr, index=t_arr/86400, columns=q_df.index)
+# note that the index is time (days)
+
+sink_tag = ''
+if sinking:
+    sink_tag = '_sinking'
         
-cc.to_pickle(indir + 'cc_' + source + '.p')
+cc.to_pickle(indir + 'cc_' + source + sink_tag + '.p')
+aa.to_pickle(indir + 'aa_' + source + sink_tag + '.p')
     
     

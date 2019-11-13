@@ -85,6 +85,12 @@ for ch in flux_fun.channel_dict.keys():
         ddd = np.diff(sa_dist)/2
         dist[:-1] += ddd
         dist[-1] += ddd[-1]
+        dist = np.append(0,dist)
+    elif ch == 'Whidbey Basin':
+        dist = sa_dist[:-1].copy()
+        ddd = np.diff(sa_dist)/2
+        dist += ddd
+        dist = np.append(0,dist)
     else:
         dist = sa_dist[:-1].copy()
         ddd = np.diff(sa_dist)/2
@@ -149,8 +155,10 @@ for ch in flux_fun.channel_dict.keys():
         
         
     if ax_counter == 4:
-        ax.text(.9,.1,'Target',color='b',fontweight='bold',transform=ax.transAxes, horizontalalignment='right')
-        ax.text(.9,.2,'Model',color='r',fontweight='bold',transform=ax.transAxes, horizontalalignment='right')
+        ax.text(.9,.1,'Target',color='b',fontweight='bold',
+            transform=ax.transAxes, horizontalalignment='right')
+        ax.text(.9,.2,'Model',color='r',fontweight='bold',
+            transform=ax.transAxes, horizontalalignment='right')
 
     ax.text(.05,.05,ch,transform=ax.transAxes)
     

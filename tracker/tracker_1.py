@@ -67,7 +67,7 @@ parser = argparse.ArgumentParser()
 
 # Set the experiment name
 # (details set in experiments.py, or, if it exists, user_experiments.py)
-parser.add_argument('-exp', '--exp_name', default='ae0', type=str)
+parser.add_argument('-exp', '--exp_name', default='fast1', type=str)
 
 # These are False unless the flags are used with the argument True
 # so if you do NOT use these flags the run will be:
@@ -83,7 +83,7 @@ parser.add_argument('-turb', default=False, type=boolean_string) # include turbu
 parser.add_argument('-wnd', '--windage', default=0, type=float)
 
 # set the starting day (will be last day for rev=True)
-parser.add_argument('-ds', '--ds_first_day', default='2017.07.20', type=str)
+parser.add_argument('-ds', '--ds_first_day', default='2017.07.04', type=str)
 
 # You can make multiple releases using:
 # number_of_start_days > 1 & days_between_starts
