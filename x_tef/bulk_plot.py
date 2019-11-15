@@ -121,6 +121,19 @@ for snp in sect_list:
     # and find net transport to compare with qnet (should be identical)
     Qnet = np.nansum(QQ, axis=1)
     # RESULT: it is identical
+    
+    # 2019.11.14 make monthly averages
+    import pandas as pd
+    td_list = []
+    for t in td:
+        td_list.append(datetime(2017,1,1,0,0,0) + timedelta(days=t))
+    tef_df = pd.DataFrame(index=td_list, columns=['Qin','Qout','Sin','Sout'])
+    tef_df.loc[:,'Qin']=Qin
+    tef_df.loc[:,'Qout']=Qout
+    tef_df.loc[:,'Sin']=Sin
+    tef_df.loc[:,'Sout']=Sout
+    tef_mean_df = tef_df.resample('1M').mean() # puts timestamps at the end of the month
+    
 
     # PLOTTING
     fig = plt.figure(figsize=(21,9))
