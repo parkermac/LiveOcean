@@ -356,7 +356,7 @@ def add_fields(ds, count, vn_list, G, S, sinfo):
         
     foo.close()
     
-def tef_integrals(fn):
+def OBSOLETE_tef_integrals(fn):
     # choices
     tidal_average = False # which kind of time filtering
     nlay_max = 2 # maximum allowable number of layers to process
@@ -443,7 +443,7 @@ def tef_integrals(fn):
     
     return Qi, Si, Fi, qnet_lp, fnet_lp, td
     
-def tef_details(fn):
+def OBSOLETE_tef_details(fn):
     # this is much the same as tef_integrals() but it returns the raw fields
     # which I plan to use for making a TEF tutorial
     

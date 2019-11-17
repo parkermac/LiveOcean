@@ -55,7 +55,7 @@ segs = {
         #'##':{'S':[], 'N':[], 'W':[], 'E':[], 'R':[]},
         }
         
-# make lists of the various segment sequences
+# make lists of the various segment sequences (used below)
 ssJ = ['J'+str(s) for s in range(1,5)]
 ssM = ['M'+str(s) for s in range(1,7)]
 ssA = ['A'+str(s) for s in range(1,4)]
@@ -78,6 +78,12 @@ seg_dict = {'Juan de Fuca to Strait of Georgia': ssJ + ssG,
             'Admiralty Inlet to South Sound': ['J4'] + ssA + ssM + ssT + ssS,
             'Hood Canal': ['A3'] + ssH,
             'Whidbey Basin': ['M1'] + ssW}
+            
+# same as seg_dict, but without the connections to adjoining channels
+short_seg_dict = {'Juan de Fuca to Strait of Georgia': ssJ + ssG,
+            'Admiralty Inlet to South Sound': ssA + ssM + ssT + ssS,
+            'Hood Canal': ssH,
+            'Whidbey Basin': ssW}
             
 # colors to associate with each channel (the keys in channel_ and seg_dict)
 clist = ['purple', 'orange', 'green', 'blue']
