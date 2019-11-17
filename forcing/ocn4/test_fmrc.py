@@ -11,7 +11,7 @@ from socket import timeout
 import time
 from datetime import datetime, timedelta
 
-testing = False
+testing = True
 
 # specify output file
 fn_out = 'test.nc'
