@@ -132,7 +132,12 @@ for snp in sect_list:
     tef_df.loc[:,'Qout']=Qout
     tef_df.loc[:,'Sin']=Sin
     tef_df.loc[:,'Sout']=Sout
-    tef_mean_df = tef_df.resample('1M').mean() # puts timestamps at the end of the month
+    tef_mean_df = tef_df.resample('1M').mean()
+    # the above puts timestamps at the end of the month
+    # so here we set it to the middle of each month becasue it is more
+    # consistent with the averaging
+    tef_mean_df.index -= timedelta(days=15)
+    tef_mean_df.loc[:,'yd'] = tef_mean_df.index.dayofyear
     
 
     # PLOTTING
@@ -147,7 +152,11 @@ for snp in sect_list:
     ax.scatter(Time, SS, s=qf*np.abs(QQp/Qscale), c='r', alpha=alpha)
     ax.scatter(Time, SS, s=qf*np.abs(QQm/Qscale), c='b', alpha=alpha)
     # add two-layer versions
-    ax.plot(td, Sin, '-k', td, Sout, '--k')
+    if False:
+        ax.plot(td, Sin, '-k', td, Sout, '--k')
+    else:
+        tef_mean_df.plot(x='yd', y = 'Sin', style='-ok', ax=ax, legend=False)
+        tef_mean_df.plot(x='yd', y = 'Sout', style='--ok', ax=ax, legend=False)
     ax.text(0.05, 0.1, 'Positive is ' + dir_str, transform=ax.transAxes, fontweight='bold')
     ax.set_xlim(0,366)
     ax.grid(True)
@@ -174,7 +183,16 @@ for snp in sect_list:
     ax.scatter(Time, QQp/1e3, s=qf*np.abs(QQp/Qscale), c='r', alpha=alpha)
     ax.scatter(Time, -QQm/1e3, s=qf*np.abs(QQm/Qscale), c='b', alpha=alpha)
     # add two-layer versions
-    ax.plot(td, Qin/1e3, '-k', td, -Qout/1e3, '--k')
+    if False:
+        ax.plot(td, Qin/1e3, '-k', td, -Qout/1e3, '--k')
+    else:
+        this_yd = tef_mean_df.loc[:,'yd'].values
+        this_qin = tef_mean_df.loc[:,'Qin'].values/1e3
+        this_qout = -tef_mean_df.loc[:,'Qout'].values/1e3
+        # tef_mean_df.plot(x='yd', y = 'Qin', style='-ok', ax=ax, legend=False)
+        # tef_mean_df.plot(x='yd', y = 'Qout', style='--ok', ax=ax, legend=False)
+        ax.plot(this_yd, this_qin, '-ok')
+        ax.plot(this_yd, this_qout, '--ok')
     ax.set_xlim(0,366)
     ax.set_ylim(bottom=0)
     ax.grid(True)

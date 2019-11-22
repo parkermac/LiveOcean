@@ -74,9 +74,3 @@ Code below needs to be updated - not guaranteed to work.
 3. Run plot_time_series.py to make plots of time series from each processed station.  You can edit the code to just look at a subset of the stations.
 
 4. Run plot_thalweg_mean.py to make mean values of Qin/Qout, etc. versus along channel distance for a sequence of stations defined by hand in the code.
-
-NOTE: Need to add more lines (e.g. Hood Canal)
-
-Other code:
-
-Run plot_section_map.py to see where all the sections are.  Does not need to be run in order.

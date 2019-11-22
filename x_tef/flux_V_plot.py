@@ -30,14 +30,14 @@ x00_list = [0, 0, 30, 45]
 y00_list = [0, -10, -10, -10]
 
 plt.close('all')
-fig = plt.figure(figsize=(16, 5))
+fig = plt.figure(figsize=(12, 7))
 ax = fig.add_subplot(111)
 
-ch_list = list(flux_fun.seg_dict.keys())
+ch_list = list(flux_fun.short_seg_dict.keys())
 
 jj = 0
 for ch in ch_list:
-    seg_list = flux_fun.seg_dict[ch]
+    seg_list = flux_fun.short_seg_dict[ch]
     
     # make vectors of volume
     vs = v_df.loc[seg_list,'volume m3'].values
