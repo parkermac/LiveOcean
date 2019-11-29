@@ -4,7 +4,7 @@ Varibles and functions used by the "flux" code.
 import numpy as np
 import zfun # path provided by calling code
 
-# segment definitions, assembled by looking at the figure
+# segment definitions, assembled by looking at the figures
 # created by plot_thalweg_mean.py
 segs = {
         'J1':{'S':[], 'N':[], 'W':['jdf1'], 'E':['jdf2'], 'R':['sanjuan', 'hoko']},
@@ -65,14 +65,32 @@ ssG = ['G'+str(s) for s in range(1,7)]
 ssW = ['W'+str(s) for s in range(1,5)]
 ssH = ['H'+str(s) for s in range(1,9)]
 
+# This list is the same as the keys for all the dicts below.
+# we make it to have a fixed order for processing things, since
+# the order of the keys of a dict may not be fixed.
+channel_list = ['Juan de Fuca to Strait of Georgia',
+            'Admiralty Inlet to South Sound',
+            'Hood Canal',
+            'Whidbey Basin']
+
 # also cue up a line for the target salinities from the TEF sections
-channel_dict = {'Juan de Fuca to Strait of Georgia':['jdf1','jdf2','jdf3','jdf4','sji1', 'sji2', 'sog1','sog2','sog3','sog4','sog5'],
+channel_dict = {'Juan de Fuca to Strait of Georgia':['jdf1','jdf2','jdf3','jdf4',
+                'sji1', 'sji2', 'sog1','sog2','sog3','sog4','sog5'],
             'Admiralty Inlet to South Sound': ['ai1', 'ai2', 'ai3','ai4',
                 'mb1','mb2','mb3','mb4','mb5',
                 'tn1','tn2','tn3',
                 'ss1','ss2','ss3'],
             'Hood Canal':['hc1','hc2','hc3','hc4','hc5','hc6','hc7','hc8'],
             'Whidbey Basin':['wb1','wb2','wb3','wb4','dp']}
+
+long_channel_dict = {'Juan de Fuca to Strait of Georgia':['jdf1','jdf2','jdf3','jdf4',
+                'sji1', 'sji2', 'sog1','sog2','sog3','sog4','sog5'],
+            'Admiralty Inlet to South Sound': ['jdf4', 'ai1', 'ai2', 'ai3','ai4',
+                'mb1','mb2','mb3','mb4','mb5',
+                'tn1','tn2','tn3',
+                'ss1','ss2','ss3'],
+            'Hood Canal':['ai3', 'hc1','hc2','hc3','hc4','hc5','hc6','hc7','hc8'],
+            'Whidbey Basin':['ai4', 'wb1','wb2','wb3','wb4','dp']}
                 
 seg_dict = {'Juan de Fuca to Strait of Georgia': ssJ + ssG,
             'Admiralty Inlet to South Sound': ['J4'] + ssA + ssM + ssT + ssS,
@@ -86,7 +104,7 @@ short_seg_dict = {'Juan de Fuca to Strait of Georgia': ssJ + ssG,
             'Whidbey Basin': ssW}
             
 # colors to associate with each channel (the keys in channel_ and seg_dict)
-clist = ['purple', 'orange', 'green', 'blue']
+clist = ['blue', 'red', 'olive', 'orange']
 
 def make_dist(x,y):
     NS = len(x)

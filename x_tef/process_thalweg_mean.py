@@ -8,17 +8,15 @@ We organize by calling the saltier of the two layers "1" and the fresher "2".
 import numpy as np
 import pickle
 
-import os
-import sys
-alp = os.path.abspath('../alpha')
-if alp not in sys.path:
-    sys.path.append(alp)
+import os, sys
+sys.path.append(os.path.abspath('../alpha'))
 import Lfun
 import zfun
 
 import tef_fun
+import flux_fun
 from importlib import reload
-reload(tef_fun)
+reload(flux_fun)
 
 # get the DataFrame of all sections
 sect_df = tef_fun.get_sect_df()
@@ -40,27 +38,14 @@ Lfun.make_dir(outdir)
 
 # a structure to hold results for future use
 ThalMean = dict()
+                
+channel_dict = flux_fun.long_channel_dict
 
-# dict to define sections on each channel
-channel_dict = {'JdF to South Sound':['jdf1','jdf2','jdf3','jdf4',
-                'ai1', 'ai2', 'ai3','ai4',
-                'mb1','mb2','mb3','mb4','mb5',
-                'tn1','tn2','tn3',
-                'ss1','ss2','ss3'],
-            'JdF to Strait of Georgia':['jdf1','jdf2','jdf3','jdf4',
-                'sji1', 'sji2', 'sog1','sog2','sog3','sog4','sog5'],
-            'JdF to Hood Canal':['jdf1','jdf2','jdf3','jdf4',
-                'ai1', 'ai2', 'ai3',
-                'hc1','hc2','hc3','hc4','hc5','hc6','hc7','hc8'],
-            'JdF to Whidbey Basin':['jdf1','jdf2','jdf3','jdf4',
-                'ai1', 'ai2', 'ai3', 'ai4',
-                'wb1','wb2','wb3','wb4','dp']}
-
-for ch_str in channel_dict.keys():
+for ch_str in flux_fun.channel_list:
     print('== ' + ch_str + ' ==')
     sect_list = channel_dict[ch_str]
 
-    # initialize vectors to hold transports and salnities for all sections on a channel
+    # initialize vectors to hold transports and salinities for all sections on a channel
     NS = len(sect_list)
     dd = np.nan * np.ones(NS)
     q1 = np.nan * np.ones(NS)
@@ -136,6 +121,24 @@ for ch_str in channel_dict.keys():
     dd = np.sqrt(dx**2 + dy**2)
     dist = np.zeros(NS)
     dist[1:] = np.cumsum(dd/1000)
+    
+    # adjust the dist vectors so that things plot nicely in
+    # plot_thalweg_mean.py
+    if ch_str == 'Admiralty Inlet to South Sound':
+        alt_tup =  ThalMean['Juan de Fuca to Strait of Georgia']
+        alt_sect_list = alt_tup[0]
+        alt_dist = alt_tup[-1]
+        dist += alt_dist[alt_sect_list.index(sect_list[0])]
+    elif ch_str == 'Hood Canal':
+        alt_tup =  ThalMean['Admiralty Inlet to South Sound']
+        alt_sect_list = alt_tup[0]
+        alt_dist = alt_tup[-1]
+        dist += alt_dist[alt_sect_list.index(sect_list[0])]
+    elif ch_str =='Whidbey Basin':
+        alt_tup =  ThalMean['Admiralty Inlet to South Sound']
+        alt_sect_list = alt_tup[0]
+        alt_dist = alt_tup[-1]
+        dist += alt_dist[alt_sect_list.index(sect_list[0])]
     
     # pack results in a tuple as a dict entry
     ThalMean[ch_str] = (sect_list, q1, q2, qs1, qs2, s1, s2, dist)

@@ -23,6 +23,8 @@ import flux_fun
 indir0 = Ldir['LOo'] + 'tef/cas6_v3_lo8b_2017.01.01_2017.12.31/'
 indir = indir0 + 'flux/'
 
+outdir = indir0 + 'misc_figs/'
+
 # load a Series of the volumes of each segment, created by flux_get_vol.py
 v_df = pd.read_pickle(indir + 'volumes.p')
 # index is ['J1', 'J2', 'J3',...
@@ -97,5 +99,7 @@ for ch in flux_fun.seg_dict.keys():
     ax_counter += 1
 
 plt.show()
+
+fig.savefig(outdir + 'w_plot.png')
 
 

@@ -25,11 +25,8 @@ reload(flux_fun)
 testing = False
 verbose = True
 
-# Load the DataFrame of all sections.
-sect_df = tef_fun.get_sect_df()
-
 # Load DataFrame of TEF transports and salinities.
-indir = '/Users/pm7/Documents/LiveOcean_output/tef/cas6_v3_lo8b_2017.01.01_2017.12.31/'
+indir = Ldir['LOo'] + 'tef/cas6_v3_lo8b_2017.01.01_2017.12.31/'
 df = pd.read_pickle(indir + 'flux/two_layer.p')
 
 # Get river flow from the model run, and average over a specified time range.
@@ -47,7 +44,7 @@ segs = flux_fun.segs
 
 # Create list of all segments to work on.
 seg_name_list_full = list(segs.keys())
-# We need the full list because influws come from neighboring segments.
+# We need the full list because inflows come from neighboring segments.
 if testing == True:
     seg_name_list = ['M1']
 else:

@@ -72,7 +72,7 @@ for ch in flux_fun.channel_dict.keys():
         horizontalalignment='center', verticalalignment='bottom', fontsize=fs-3)
         
     ax2.text(.05, .75-ch_counter*.11, ch, color=color,
-        transform=ax2.transAxes, fontsize=fs,
+        transform=ax2.transAxes, fontsize=fs, fontweight='bold',
         bbox=dict(facecolor='w',edgecolor='w', alpha=0.8))
     
     ch_counter += 1

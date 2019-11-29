@@ -11,22 +11,15 @@ from datetime import datetime
 import pickle
 import pandas as pd
 
-import os
-import sys
-alp = os.path.abspath('../alpha')
-if alp not in sys.path:
-    sys.path.append(alp)
+import os, sys
+sys.path.append(os.path.abspath('../alpha'))
 import Lfun
 import zfun
 Ldir = Lfun.Lstart()
 
 import tef_fun
-from importlib import reload
-reload(tef_fun)
 
-pth = os.path.abspath(Ldir['LO'] + 'plotting')
-if pth not in sys.path:
-    sys.path.append(pth)
+sys.path.append(os.path.abspath(Ldir['LO'] + 'plotting'))
 import pfun
 
 # get the DataFrame of all sections
@@ -41,18 +34,23 @@ fn = indir + sect_name_nc
 
 sect_name = sect_name_nc.replace('.nc','')
 
-# set plotting parameters
-if True:
-    save_fig = True
-    out_dir = indir0 + run_name + '/section_plots_' + sect_name + '/'
-    Lfun.make_dir(out_dir, clean=True)
-else:
+my_choice = input('Press any key to save output (return = plot to screen): ')
+if len(my_choice)==0:
     save_fig = False
+else:
+    save_fig = True
+
+# set plotting parameters
+if save_fig:
+    out_dir0 = indir0 + run_name + '/physical_section_plots/'
+    Lfun.make_dir(out_dir0)
+    out_dir = out_dir0 + sect_name + '/'
+    Lfun.make_dir(out_dir, clean=True)
+    print('Saving plots to ' + out_dir)
 
 plt.close('all')
 
 # function for the section map
-aa = [-127.4, -122, 42, 50.3]
 def plotit(ax, aa, sect_df, sn):
     pfun.add_coast(ax)
     pfun.dar(ax)
@@ -108,6 +106,9 @@ dt_ser = pd.Series(index=dt, data=tind)
 q = ds['q'][:]
 salt = ds['salt'][:]
 
+svmin = salt.mean() - 2*salt.std()
+svmax = salt.mean() + 2*salt.std()
+
 for mm in range(1,13):
     try:
         dt_mo = dt_ser[dt_ser.index.month == mm]
@@ -119,20 +120,25 @@ for mm in range(1,13):
         ss = salt[it0:it1,:].mean(axis=0)
 
         fig = plt.figure(figsize=(13,8))
+        
+        if 'shelf' in sect_name:
+            aa = [-127.4, -122, 42, 50.3]
+        else:
+            aa = [-125.5, -122, 46.7, 50.4]
     
         ax = fig.add_subplot(221)
-        cs = ax.pcolormesh(xsect, z0, qq/da0, vmin=-.1, vmax=.1, cmap='bwr')
+        cs = ax.pcolormesh(xsect, z0, 100*qq/da0, vmin=-10, vmax=10, cmap='bwr')
         fig.colorbar(cs)
         ax.text(0.05, 0.1, 'Positive is ' + dir_str, transform=ax.transAxes)
-        ax.set_title('Mean Velocity (m/s) Month = ' + str(mm))
+        ax.set_title('Mean Velocity (cm/s) Month = ' + str(mm))
 
         ax = fig.add_subplot(223)
-        if 'shelf' in sect_name:
-            cs = ax.pcolormesh(xsect, z0, ss, vmin = 33, vmax=34.5, cmap='rainbow')
-        else:
-            cs = ax.pcolormesh(xsect, z0, ss, cmap='rainbow')
+        cs = ax.pcolormesh(xsect, z0, ss, vmin =svmin, vmax=svmax, cmap='rainbow')
         fig.colorbar(cs)
-        ax.set_title('Mean Salinity')
+        contour_interval = .2
+        ax.contour(xsect*np.ones((z0.shape[0],1)), z0, ss,
+            np.arange(0,35,contour_interval), colors='black', linewidths=.4)
+        ax.set_title('Mean Salinity (C.I. = %0.1f)' % (contour_interval))
 
         # add section location map
         ax = fig.add_subplot(122)

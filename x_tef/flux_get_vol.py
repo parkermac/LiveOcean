@@ -26,16 +26,12 @@ import flux_fun
 reload(flux_fun)
 
 # select output location
-if False:
-    outdir00 = Ldir['LOo'] + 'tef/'
-    # choose the tef extraction to work with
-    item = Lfun.choose_item(outdir00)
-    outdir = indir0 + item + '/'
-else:
-    outdir0 = '/Users/pm7/Documents/LiveOcean_output/tef/cas6_v3_lo8b_2017.01.01_2017.12.31/'
+outdir00 = Ldir['LOo'] + 'tef/'
+# choose the tef extraction to work with
+item = Lfun.choose_item(outdir00)
+outdir0 = indir0 + item + '/'
 outdir = outdir0 + 'flux/'
 Lfun.make_dir(outdir)
-
 
 fng = Ldir['grid'] + 'grid.nc'
 G = zrfun.get_basic_info(fng, only_G=True)
@@ -54,7 +50,7 @@ sect_df = tef_fun.get_sect_df()
 testing = True
 
 # segment definitions, assembled by looking at the figure
-# created by plot_thalweg_mean.py
+# created by flux_seg_map.py
 segs = flux_fun.segs
 
 if testing == True:

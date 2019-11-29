@@ -24,7 +24,7 @@ import pfun
 sys.path.append(os.path.abspath(Ldir['parent'] + 'ptools/pgrid'))
 import gfun
 import gfun_plotting as gfp
-Gr = gfun.gstart(gridname=gridname)
+Gr = gfun.gstart(gridname=gridname) # gives access to river info
 
 import tef_fun
 from importlib import reload
@@ -37,7 +37,10 @@ sect_df = tef_fun.get_sect_df()
 indir0 = Ldir['LOo'] + 'tef/cas6_v3_lo8b_2017.01.01_2017.12.31/'
 indir = indir0 + 'flux/'
 
-# load Daframe of volumes, created by flux_get_vol.py
+outdir = indir0 + 'misc_figs/'
+Lfun.make_dir(outdir)
+
+# load DataFrame of volumes, created by flux_get_vol.py
 v_df = pd.read_pickle(indir + 'volumes.p')
 # index is ['J1', 'J2', 'J3',...
 # columns are ['volume m3', 'area m2', 'lon', 'lat']
@@ -93,7 +96,8 @@ for ax in [ax1, ax2]:
         vy = v_df.loc[Sn,'lat']
         if inax(vx,vy,aa, aa_x):
             ax.text(vx,vy, Sn,
-                verticalalignment='center',horizontalalignment='center', fontsize=fs, fontweight='bold')
+                verticalalignment='center',horizontalalignment='center',
+                    fontsize=fs, fontweight='bold')
                 
     # rivers
     for rn in riv_df.index:
@@ -105,7 +109,8 @@ for ax in [ax1, ax2]:
             if inax(rx[0], ry[0], aa, aa_x):
                 ax.plot(rx, ry, '-',color='g', linewidth=lw-1, alpha=.4)
                 ax.plot(rx[-1], ry[-1], '*g', alpha=.4)
-                ax.text(rx[-1]+.01, ry[-1]+.01, rn.replace('_',' ').title(), alpha=.4, fontsize=fs-4, rotation=30)
+                ax.text(rx[-1]+.01, ry[-1]+.01, rn.replace('_',' ').title(),
+                    alpha=.4, fontsize=fs-4, rotation=30)
         except FileNotFoundError:
             pass
         
@@ -120,4 +125,7 @@ for ax in [ax1, ax2]:
 
 
 plt.show()
+
+fig1.savefig(outdir + 'seg_map_full.png')
+fig2.savefig(outdir + 'seg_map_focus.png')
     

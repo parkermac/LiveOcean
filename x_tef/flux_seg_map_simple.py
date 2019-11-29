@@ -5,6 +5,8 @@ Plot a map of the segments, showing just the key areas.
 
 # imports
 import matplotlib.pyplot as plt
+from matplotlib import colors
+from matplotlib.colors import LinearSegmentedColormap as lsc
 import pickle
 import netCDF4 as nc
 import pandas as pd
@@ -23,10 +25,15 @@ import pfun
 
 import tef_fun
 import flux_fun
+from importlib import reload
+reload(flux_fun)
 
 # select the indir
 indir0 = Ldir['LOo'] + 'tef/cas6_v3_lo8b_2017.01.01_2017.12.31/'
 indir = indir0 + 'flux/'
+
+outdir = indir0 + 'misc_figs/'
+Lfun.make_dir(outdir)
 
 # load data
 bathy_dict = pickle.load(open(indir + 'bathy_dict.p', 'rb'))
@@ -50,13 +57,13 @@ if testing:
 
 # colors
 clist = flux_fun.clist
-cmap_list = []
-for c in clist:
-    cmap_list.append(c.title() + 's')
 
 jj = 0
 for ch in ch_list:
-    seg_list = flux_fun.seg_dict[ch]
+    
+    cmap = lsc.from_list('pm',[clist[jj],[0,0,0]])
+
+    seg_list = flux_fun.short_seg_dict[ch]
     hh = np.zeros(h.shape)
     for seg_name in seg_list:
         full_ji_list = ji_dict[seg_name]
@@ -64,20 +71,22 @@ for ch in ch_list:
             hh[ji]=1
     H = hh==0
     hm = np.ma.masked_where(H,h)
-    vmin=-100; vmax=200
+    vmin=0; vmax=300
     if jj == 0:
-        ax.pcolormesh(xp, yp, hm[1:-1,1:-1], cmap=cmap_list[jj], vmin=vmin, vmax=vmax)
+        ax.pcolormesh(xp, yp, hm[1:-1,1:-1], cmap=cmap, vmin=vmin, vmax=vmax)
         pfun.dar(ax)
         ax.axis(aa0)
     else:
-        ax.pcolormesh(xp, yp, hm[1:-1,1:-1], cmap=cmap_list[jj], vmin=vmin, vmax=vmax)
+        ax.pcolormesh(xp, yp, hm[1:-1,1:-1], cmap=cmap, vmin=vmin, vmax=vmax)
     ax.text(.05, .3-jj*.05, ch, color=clist[jj],
-        transform=ax.transAxes, fontsize=16)
+        transform=ax.transAxes, fontsize=18, fontweight='bold')
     jj += 1
     
 ax.set_axis_off()
 fig.tight_layout()
 plt.show()
+
+fig.savefig(outdir + 'seg_map_simple.png')
     
 
 

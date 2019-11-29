@@ -34,11 +34,6 @@ segs = flux_fun.segs
 #   {'J1':
 #       {'S': [], 'N': [], 'W': ['jdf1'], 'E': ['jdf2'], 'R': ['sanjuan', 'hoko']},...
 
-# this is the big DataFrame created by flux_get_A.py
-q_df = pd.read_pickle(indir + 'q_df.p')
-# index is ['J1_s', 'J1_f', 'J2_s',... = (*)
-# columns are ['ocean_s', 'ocean_f', 'river_s', 'river_f', 'J1_s', 'J1_f', 'J2_s',...
-
 # load the DataFrame of results of flux_engine.py
 cc = pd.read_pickle(indir + 'cc_ocean_salt.p')
 # index is ['J1_s', 'J1_f',... = (*)
