@@ -118,5 +118,17 @@ Output: a plot
 * flux_plot_movie.py makes a movie out of times saved in any instance of an aa_ file created by flux_engine.py.
 
 ------------------------------------------------------------------
+
+* flux_get_s.py creates time series of daily average salinity in segments, over a user specified (like a year) period.
+
+Input: ROMS history files
+
+Output: LiveOcean_output/tef/[*]/flux/daily_segment_salinity.p, a pickled DataFrame where the index is daily datetime and the columns are the segments.
+
 ------------------------------------------------------------------
+
+* flux_salt_budget.py uses daily_segment_salinity.p from the above code to make a salt budget.  The code is unfinished at this point.  The goal is to determine whether the salt budget is fundamentally unsteady, or nearly steady.  An ancillary goal should be to see if the salt budget is closed.
+
+Input: LiveOcean_output/tef/[*]/flux/daily_segment_salinity.p, volumes.p
+
 ------------------------------------------------------------------

@@ -1,10 +1,10 @@
 """
-A tool to extract time series of salinity statistics in the segment volumes.
+A tool to extract hourly time series of salinity and volume in the segments.
 
-We do this with zero SSH and just once per day, because we are only concerned
-with low-frequency salinity variation.
+Performance: takes 1.5 sec per save (3.6 hours per year) on my mac.  This relies
+on creating i_dict and j_dict of indices used for fancy indexing in the segment loop.
+The alternate version takes about 15 times longer.
 
-A variant of this code could be used to get hourly values with SSH variation.
 """
 
 # imports
@@ -60,65 +60,95 @@ h = G['h']
 DA = G['DX'] * G['DY']
 DA3 = DA.reshape((1,G['M'],G['L']))
 
-z_w = zrfun.get_z(h, 0*h, S, only_w=True)
-dz = np.diff(z_w, axis=0)
-DV = dz * DA3
-
 # select input/output location
 indir0 = Ldir['LOo'] + 'tef/cas6_v3_lo8b_2017.01.01_2017.12.31/'
 indir = indir0 + 'flux/'
 
-# load DateFrames of transport and volume
+# load DataFrame of volume and associated dicts
 v_df = pd.read_pickle(indir + 'volumes.p')
-
-# load data
 bathy_dict = pickle.load(open(indir + 'bathy_dict.p', 'rb'))
 ji_dict = pickle.load(open(indir + 'ji_dict.p', 'rb'))
 
 seg_list = list(v_df.index)
-
-dti = pd.date_range(dt0, dt1, freq='D')
-
-s_df = pd.DataFrame(index=dti, columns=seg_list)
-
 verbose = False
 
-for dt in s_df.index:
+testing = False
+if testing:
+    verbose = True
+    seg_list = seg_list[-2:]
+
+j_dict = {}; i_dict = {}
+for seg_name in seg_list:
+    jj = []; ii = []
+    ji_list_full = ji_dict[seg_name]
+    for ji in ji_list_full:
+        jj.append(ji[0])
+        ii.append(ji[1])
+    jjj = np.array(jj)
+    iii = np.array(ii)
+    j_dict[seg_name] = jjj
+    i_dict[seg_name] = iii
+
+s_df = pd.DataFrame(columns=seg_list)
+v_df = pd.DataFrame(columns=seg_list)
+
+for fn in fn_list:
     
     tt0 = time()
-        
-    ymd = datetime.strftime(dt, '%Y.%m.%d')
-    #hrs = ('0000' + str(dt.hour + 1))[-4:]
-    hrs = '0013'
-    fn = (Ldir['roms'] + 'output/' + Ldir['gtagex'] +
-        '/f' + ymd + '/ocean_his_' + hrs + '.nc')
-        
+            
     print(fn)
         
     ds = nc.Dataset(fn)
     salt = ds['salt'][0,:,:,:]
+    zeta = ds['zeta'][0,:,:]
+    ot = ds['ocean_time'][:]
     ds.close()
     
-    # find the volume and salinity
+    if testing:
+        z_w_alt = zrfun.get_z(h, zeta, S, only_w=True)
+        dz_alt = np.diff(z_w_alt, axis=0)
+        DV_alt = dz_alt * DA3
     
+    dt = Lfun.modtime_to_datetime(ot.data[0])
+    
+    # find the volume and volume-mean salinity
     for seg_name in seg_list:
-        net_salt = 0
-        full_ji_list = ji_dict[seg_name]
-        for ji in full_ji_list:
-            net_salt += (salt[:,ji[0],ji[1]] * DV[:,ji[0],ji[1]]).sum()
-        volume = v_df.loc[seg_name, 'volume m3']
-        mean_salt = net_salt / volume
+        
+        jjj = j_dict[seg_name]
+        iii = i_dict[seg_name]
+        
+        z_w = zrfun.get_z(h[jjj,iii], zeta[jjj,iii], S, only_w=True)
+        dz = np.diff(z_w, axis=0)
+        DV = dz * DA3[0,jjj,iii]
+        volume = DV.sum()
+        net_salt = (salt[:,jjj,iii] * DV).sum()
+        mean_salt = net_salt/volume
+        
+        if testing:
+            net_salt_alt = 0
+            volume_alt = 0
+            full_ji_list = ji_dict[seg_name]
+            for ji in full_ji_list:
+                net_salt_alt += (salt[:,ji[0],ji[1]] * DV_alt[:,ji[0],ji[1]]).sum()
+                volume_alt += DV_alt[:,ji[0],ji[1]].sum()
+            mean_salt_alt = net_salt_alt / volume_alt
+        
         # store results
         s_df.loc[dt, seg_name] = mean_salt
+        v_df.loc[dt, seg_name] = volume
         
         if verbose:
-            print('%3s: Mean Salinity = %0.4f, Volume = %0.2f km3' %
+            print('%3s: Mean Salinity = %0.4f, Volume  = %0.4f km3' %
                 (seg_name, mean_salt, volume/1e9))
+            print('%3s: Mean Sal alt  = %0.4f, Vol alt = %0.4f km3' %
+                (seg_name, mean_salt_alt, volume_alt/1e9))
                 
     print('  ** took %0.1f sec' % (time()-tt0))
 
-out_fn = indir + 'daily_segment_salinity.p'
-s_df.to_pickle(out_fn)
+s_out_fn = indir + 'hourly_segment_salinity.p'
+v_out_fn = indir + 'hourly_segment_volume.p'
+s_df.to_pickle(s_out_fn)
+v_df.to_pickle(v_out_fn)
     
         
     

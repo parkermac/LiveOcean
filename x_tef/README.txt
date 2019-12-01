@@ -90,6 +90,5 @@ Input: LiveOcean_output/tef/[*]/thalweg/ThalMean.p
 Output: LiveOcean_output/tef/[*]/misc_figs/thalweg_mean.png to make mean values of Qin/Qout, etc. versus along channel distance for a sequence of stations defined by hand in the code.
 
 ------------------------------------------------------------------
-
 ------------------------------------------------------------------
 ------------------------------------------------------------------
