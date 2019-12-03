@@ -14,6 +14,7 @@ import os; import sys
 sys.path.append(os.path.abspath('../alpha'))
 import Lfun
 import zrfun
+import zfun
 
 import tef_fun
 import flux_fun
@@ -24,7 +25,6 @@ from warnings import filterwarnings
 filterwarnings('ignore') # skip some warning messages
 # associated with lines like QQp[QQ<=0] = np.nan
 
-
 # Get Ldir
 Ldir = Lfun.Lstart('cas6', 'v3')
 
@@ -32,45 +32,50 @@ Ldir = Lfun.Lstart('cas6', 'v3')
 indir0 = Ldir['LOo'] + 'tef/cas6_v3_lo8b_2017.01.01_2017.12.31/'
 indir = indir0 + 'flux/'
 
-# load DataFrames of transport, volume, and salinity
-v_df = pd.read_pickle(indir + 'volumes.p')
-s_df = pd.read_pickle(indir + 'daily_segment_salinity.p')
-# note s_df.index is daily datetimes
+# load low passed segment volumne and net salt DataFrames
+v_lp_df = pd.read_pickle(indir + 'daily_segment_volume.p')
+sv_lp_df = pd.read_pickle(indir + 'daily_segment_net_salt.p')
+
+# USER set which volume to consider
+which_vol = 'Hood Canal'
+if which_vol == 'Salish Sea':
+    seg_list = list(v_lp_df.columns)
+    sect_sign_dict = {'jdf1':1, 'sog5':-1}
+elif which_vol == 'Puget Sound':
+    seg_list = flux_fun.ssA + flux_fun.ssM + flux_fun.ssT + flux_fun.ssS + flux_fun.ssW + flux_fun.ssH
+    sect_sign_dict = {'ai1':1, 'dp':1}
+elif which_vol == 'Hood Canal':
+    seg_list = flux_fun.ssH
+    sect_sign_dict = {'hc1':1}
+
+sv_lp_df = sv_lp_df[seg_list]
 
 sect_df = tef_fun.get_sect_df()
 
-seg_list = list(v_df.index)
+sv_lp_df = sv_lp_df[seg_list]
 
-vol = v_df.loc[seg_list,'volume m3'].sum()/1e9
-
-# form a time series of the net salt in the system
-net_s_df = pd.DataFrame(index=s_df.index, columns=['net_salt'])
-ns = []
-for dt in net_s_df.index:
-     ns.append((s_df.loc[dt,seg_list]*v_df.loc[seg_list,'volume m3']).sum())
-     # I had to do this as list items because if I added the net salt entries
-     # to the DataFrame directly they ended up as objects of some sort, and then
-     # later resample operations threw and error.
-net_s_df.loc[:,'net_salt'] = ns
+river_list = []
+for seg_name in seg_list:
+    seg = flux_fun.segs[seg_name]
+    river_list = river_list + seg['R']
+riv_df = pd.read_pickle(Ldir['LOo'] + 'river/' + 'cas6_v3_2017.01.01_2018.12.31.p')
+riv_df.index += timedelta(days=0.5)
+riv_df = riv_df.loc[sv_lp_df.index, river_list]
     
 def get_fluxes(sect_name, in_sign=1):
-    
     # form time series of net 2-layer transports into (+) and out of (-) the volume
     bulk = pickle.load(open(indir0 + 'bulk/' + sect_name + '.p', 'rb'))
     QQ = bulk['QQ']
     SS = bulk['SS']
     ot = bulk['ot']
-
     dt2 = []
     for tt in ot:
         dt2.append(Lfun.modtime_to_datetime(tt))
-
     # separate inflowing and outflowing transports
     QQp = QQ.copy()
     QQp[QQ<=0] = np.nan
     QQm = QQ.copy()
     QQm[QQ>=0] = np.nan
-
     # form two-layer versions of Q and S
     if in_sign == 1:
         Qin = np.nansum(QQp, axis=1)
@@ -84,7 +89,6 @@ def get_fluxes(sect_name, in_sign=1):
         QSout = -np.nansum(QQp*SS, axis=1)
     Sin = QSin/Qin
     Sout = QSout/Qout
-
     tef_df = pd.DataFrame(index=dt2, columns=['Qin','Qout','QSin','QSout','Sin','Sout'])
     tef_df.loc[:,'Qin']=Qin
     tef_df.loc[:,'Qout']=Qout
@@ -92,44 +96,51 @@ def get_fluxes(sect_name, in_sign=1):
     tef_df.loc[:,'QSout']=QSout
     tef_df.loc[:,'Sin']=Sin
     tef_df.loc[:,'Sout']=Sout
-    
+
     return tef_df
     
-tef_df_jdf1 = get_fluxes('jdf1')
-tef_df_sog5 = get_fluxes('sog5', in_sign=-1)
+tef_df_dict = {}
+for sn in sect_sign_dict.keys():
+    in_sign = sect_sign_dict[sn]
+    tef_df_dict[sn] = get_fluxes(sn, in_sign=in_sign)
 
-tef_df = pd.DataFrame(index=tef_df_jdf1.index, columns=['QSin','QSout','Snet'])
-tef_df.loc[:,'QSin'] = tef_df_jdf1.loc[:,'QSin'] + tef_df_sog5.loc[:,'QSin']
-tef_df.loc[:,'QSout'] = tef_df_jdf1.loc[:,'QSout'] + tef_df_sog5.loc[:,'QSout']
+# volume budget
+vol_df = pd.DataFrame(index=sv_lp_df.index, columns=['Qin','-Qout', 'Qr','dV_dt','dV_dt_check'])
+vol_df.loc[:,['Qin','-Qout']] = 0
+for sect_name in sect_sign_dict.keys():
+    df = tef_df_dict[sect_name]
+    vol_df.loc[:,'Qin'] = vol_df.loc[:,'Qin'] + df.loc[:,'Qin']
+    vol_df.loc[:,'-Qout'] = vol_df.loc[:,'-Qout'] - df.loc[:,'Qout']
+qr = riv_df.sum(axis=1)
+vol_df.loc[:,'Qr'] = qr
+v = v_lp_df[seg_list].sum(axis=1).values
+vol_df.loc[1:-1, 'dV_dt'] = (v[2:] - v[:-2]) / (2*86400)
+vol_df.loc[:,'dV_dt_check'] = vol_df.loc[:,'Qin'] - vol_df.loc[:,'-Qout'] + vol_df.loc[:,'Qr']
+vol_err = (vol_df['dV_dt'] - vol_df['dV_dt_check']).std()
+vol_rel_err = vol_err/vol_df['Qin'].mean()
 
-tef_mean_df = tef_df.resample('1M').mean()
-# the above puts timestamps at the end of the month
-# so here we set it to the middle of each month becasue it is more
-# consistent with the averaging
-tef_mean_df.index -= timedelta(days=15)
-tef_mean_df.loc[:,'yd'] = tef_mean_df.index.dayofyear
+# salt budget
+salt_df = pd.DataFrame(index=sv_lp_df.index, columns=['QSin','-QSout','dSnet_dt','dSnet_dt_check'])
+salt_df.loc[:,['QSin','-QSout']] = 0
+for sect_name in sect_sign_dict.keys():
+    df = tef_df_dict[sect_name]
+    salt_df.loc[:,'QSin'] = salt_df.loc[:,'QSin'] + df.loc[:,'QSin']
+    salt_df.loc[:,'-QSout'] = salt_df.loc[:,'-QSout'] - df.loc[:,'QSout']
+sn = sv_lp_df[seg_list].sum(axis=1).values
+salt_df.loc[1:-1, 'dSnet_dt'] = (sn[2:] - sn[:-2]) / (2*86400)
+salt_df.loc[:,'dSnet_dt_check'] = salt_df.loc[:,'QSin'] - salt_df.loc[:,'-QSout']
+salt_err = (salt_df['dSnet_dt'] - salt_df['dSnet_dt_check']).std()
+salt_rel_err = salt_err/salt_df['QSin'].mean()
 
-# add monthly average net salt
-for tdt in list(tef_mean_df.index):
-    a = net_s_df[net_s_df.index.month==tdt.month].mean()
-    tef_mean_df.loc[tdt,'Snet'] = float(a)
-    
-yd = np.array(tef_mean_df.loc[:,'yd'].values)
-qs_in = np.array(tef_mean_df.loc[:,'QSin'].values)
-qs_out = np.array(tef_mean_df.loc[:,'QSout'].values)
-sn = np.array(tef_mean_df.loc[:,'Snet'].values)
-dsdt = np.diff(sn) / (np.diff(yd)*86400)
-
-# plotting
 plt.close('all')
-fig = plt.figure(figsize=(12,7))
+fig = plt.figure(figsize=(14,7))
 
-ax = fig.add_subplot(111)
-ax.plot(yd[1:], dsdt, '-r', yd[1:], qs_in[1:], '-b', yd[1:], -qs_out[1:], '-g',
-    yd[1:], qs_in[1:]+qs_out[1:], '--r', linewidth=3)
+ax = fig.add_subplot(121)
+salt_df.plot(ax=ax, grid=True, title=which_vol + ' Salt Budget (g/kg m3/s)')
+ax.text(.05,.9, 'Relative Error = %0.2f%%' % (salt_rel_err*100), transform=ax.transAxes, fontsize=14)
 
-ax.grid(True)
+ax = fig.add_subplot(122)
+vol_df.plot(ax=ax, grid=True, title='Volume Budget (m3/s)')
+ax.text(.05,.9, 'Relative Error = %0.2f%%' % (vol_rel_err*100), transform=ax.transAxes, fontsize=14)
 
 plt.show()
-    
-

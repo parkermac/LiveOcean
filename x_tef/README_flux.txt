@@ -119,16 +119,26 @@ Output: a plot
 
 ------------------------------------------------------------------
 
-* flux_get_s.py creates time series of daily average salinity in segments, over a user specified (like a year) period.
+* flux_get_s.py creates time series of hourly salinity and volume in segments, over a user specified (like a year) period.
 
 Input: ROMS history files
 
-Output: LiveOcean_output/tef/[*]/flux/daily_segment_salinity.p, a pickled DataFrame where the index is daily datetime and the columns are the segments.
+Output: LiveOcean_output/tef/[*]/flux/hourly_segment_[salinity,volume].p, pickled DataFrames where the index is hourly datetime and the columns are the segments.
 
 ------------------------------------------------------------------
 
-* flux_salt_budget.py uses daily_segment_salinity.p from the above code to make a salt budget.  The code is unfinished at this point.  The goal is to determine whether the salt budget is fundamentally unsteady, or nearly steady.  An ancillary goal should be to see if the salt budget is closed.
+* flux_lowpass_s.py creates time series of daily salinity, volume, and net salt in segments.
 
-Input: LiveOcean_output/tef/[*]/flux/daily_segment_salinity.p, volumes.p
+Input: LiveOcean_output/tef/[*]/flux/hourly_segment_[salinity,volume].p
+
+Output: LiveOcean_output/tef/[*]/flux/daily_segment_[salinity,volume,net_salt].p
+
+------------------------------------------------------------------
+
+* flux_salt_budget.py makes a complete salt budget for a user-specified set of segments.
+
+Input: LiveOcean_output/tef/[*]/flux/daily_segment_[net_salt].p
+
+Output: A sscreen plot of the budget vs. time.
 
 ------------------------------------------------------------------
