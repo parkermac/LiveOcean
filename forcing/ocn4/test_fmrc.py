@@ -53,12 +53,21 @@ if testing == True:
 else:
     var_list = 'surf_el,water_temp,salinity,water_u,water_v'
 
-# create the request url
-url = ('http://ncss.hycom.org/thredds/ncss/grid/GLBy0.08/expt_93.0/data/forecasts/FMRC_best.ncd'+
-    '?var='+var_list +
-    '&north='+str(north)+'&south='+str(south)+'&west='+str(west)+'&east='+str(east) +
-    '&time_start='+dstr0+'&time_end='+dstr1+'&timeStride=8' +
-    '&addLatLon=true&accept=netcdf4')
+if False:
+    # create the request url
+    url = ('http://ncss.hycom.org/thredds/ncss/grid/GLBy0.08/expt_93.0/data/forecasts/FMRC_best.ncd'+
+        '?var='+var_list +
+        '&north='+str(north)+'&south='+str(south)+'&west='+str(west)+'&east='+str(east) +
+        '&time_start='+dstr0+'&time_end='+dstr1+'&timeStride=8' +
+        '&addLatLon=true&accept=netcdf4')
+else:
+    # NEW version 2019.12.06
+    url = ('https://ncss.hycom.org/thredds/ncss/GLBy0.08/expt_93.0/FMRC/GLBy0.08_930_FMRC_best.ncd'+
+        '?var='+var_list +
+        '&north='+str(north)+'&south='+str(south)+'&west='+str(west)+'&east='+str(east) +
+        '&time_start='+dstr0+'&time_end='+dstr1+'&timeStride=8' +
+        '&addLatLon=true&accept=netcdf4')
+    # RESULT: the new version (and the old version) seem to work fine.
 
 # get the data and save as a netcdf file
 counter = 1

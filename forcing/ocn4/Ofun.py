@@ -78,8 +78,9 @@ def get_data(this_dt, fn_out, nd_f):
     else:
         var_list = 'surf_el,water_temp,salinity,water_u,water_v'
 
-    # create the request url
-    url = ('http://ncss.hycom.org/thredds/ncss/grid/GLBy0.08/expt_93.0/data/forecasts/FMRC_best.ncd'+
+    # create the request url (added new url 2019.12.06)
+    #url = ('http://ncss.hycom.org/thredds/ncss/grid/GLBy0.08/expt_93.0/data/forecasts/FMRC_best.ncd'+
+    url = ('https://ncss.hycom.org/thredds/ncss/GLBy0.08/expt_93.0/FMRC/GLBy0.08_930_FMRC_best.ncd'+
         '?var='+var_list +
         '&north='+str(north)+'&south='+str(south)+'&west='+str(west)+'&east='+str(east) +
         '&time_start='+dstr0+'&time_end='+dstr1+'&timeStride=8' +

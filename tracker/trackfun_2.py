@@ -83,13 +83,12 @@ def get_tracks(fn_list, plon0, plat0, pcs0, TR, trim_loc=False):
         rot[counter] = ds.variables['ocean_time'][:].squeeze()
         counter += 1
         ds.close
-        
-    delta_t = rot[1] - rot[0] # seconds between saves
-    delt = delta_t/ndiv # time step in seconds
+    delta_t_his = rot[1] - rot[0] # seconds between saves
+    delt = delta_t_his/ndiv # time step in seconds
 
     # this is how we track backwards in time
     if dir_tag == 'reverse':
-        delta_t = -delta_t
+        delta_t_his = -delta_t_his
         fn_list = fn_list[::-1]
             
     # these lists are used internally to get other variables as needed
@@ -105,7 +104,7 @@ def get_tracks(fn_list, plon0, plat0, pcs0, TR, trim_loc=False):
     
     # Step through times.
     #
-    counter = 0
+    counter_his = 0
     # rot is a list of all the ocean times (sec) in the current file list(e.g. 25)
     # and pot is a single one of these
     for pot in rot[:-1]:
@@ -119,7 +118,7 @@ def get_tracks(fn_list, plon0, plat0, pcs0, TR, trim_loc=False):
         
         # prepare the fields for nearest neighbor interpolation
         tt0 = time()
-        if counter == 0:
+        if counter_his == 0:
             h = G['h']
             hf = h[Maskr].data
             if surface == True:
@@ -227,7 +226,7 @@ def get_tracks(fn_list, plon0, plat0, pcs0, TR, trim_loc=False):
             zf1 = z1[Maskr].data
         print('Prepare fields for tree %0.4f sec' % (time()-tt0))
 
-        if counter == 0:
+        if counter_his == 0:
             if trim_loc == True:
                 # remove points on land
                 xys = np.array((plon0,plat0)).T
@@ -353,7 +352,7 @@ def get_tracks(fn_list, plon0, plat0, pcs0, TR, trim_loc=False):
         ds0.close()
         ds1.close()
 
-        counter += 1
+        counter_his += 1
 
     # by doing this the points are going forward in time
     if dir_tag == 'reverse':
