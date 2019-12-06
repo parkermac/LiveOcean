@@ -80,6 +80,22 @@ z = dsr['z'][:]
 zeta = dsr['zeta'][:]
 h = dsr['h'][:]
 
+# subsample output for plotting
+
+npmax = 100
+step = int(NP/npmax)
+
+u = u[:,::step]
+v = v[:,::step]
+w = w[:,::step]
+salt = salt[:,::step]
+temp = temp[:,::step]
+lon = lon[:,::step]
+lat = lat[:,::step]
+z = z[:,::step]
+zeta = zeta[:,::step]
+h = h[:,::step]
+
 # PLOTTING
 
 #plt.close('all')

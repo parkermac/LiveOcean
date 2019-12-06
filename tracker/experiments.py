@@ -47,9 +47,12 @@ def make_ic(exp_name):
     elif exp_name == 'tj1': # for Tim Jones, new dead bird work
             gtagex = 'cascadia1_base_lobio5'
             ic_name = 'birds_lo'
-    elif exp_name == 'fast1': # experimenting with performance
+    elif exp_name == 'fast0': # experimenting with performance
             gtagex = 'cas6_v3_lo8b'
             ic_name = 'jdf0'
+    elif exp_name == 'fast1': # experimenting with performance
+            gtagex = 'cas6_v3_lo8b'
+            ic_name = 'ic1'
     
     # routines to set particle initial locations, all numpy arrays
     #
@@ -91,8 +94,8 @@ def make_ic(exp_name):
         pcs_vec = np.array([-.05])
         
     elif ic_name == 'jdf0': # Mid-Juan de Fuca
-        lonvec = np.linspace(-123.85, -123.6, 20)
-        latvec = np.linspace(48.2, 48.4, 20)
+        lonvec = np.linspace(-123.85, -123.6, 40)
+        latvec = np.linspace(48.2, 48.4, 40)
         lonmat, latmat = np.meshgrid(lonvec, latvec)
         plon_vec = lonmat.flatten()
         plat_vec = latmat.flatten()
