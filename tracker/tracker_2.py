@@ -1,6 +1,14 @@
 """
-Code for particle tracking, designed for ROMS output with
-plaid lat, lon grids.
+Code for particle tracking, designed for ROMS output.  This new version
+makes extensive use of nearest-neighbor KDTree algorithms for interpolation.
+This results is significantly (36x) faster runtimes compared with tracker_1.py.
+
+NOTE: You have to have run make_KDTrees.py for the grid (e.g. cas6) before running.
+
+NOTE: There is some issue, perhaps with garbage collection, which causes
+the loading of NetCDF files to happen slower after running a few times
+interactively from ipython.  It may be that this can be avoided by running
+from the terminal as: python tracker_2.py [args].
 
 This program is a driver where you specify:
 - an experiment (ROMS run + release locations + other choices)
@@ -20,19 +28,17 @@ to use git pull to update the main code.
 It can be run on its own, or with command line arguments to facilitate
 large, automated jobs, for example in python:
     
-run tracker_1.py -dtt 2 -ds 2013.01.30
-run tracker_1.py -3d True -rev True -dtt 5
-run tracker_1.py -exp ae1 -3d True -rev True -dtt 5 -nsd 4 -dbs 4 -ds 2013.03.01
-run tracker_1.py -exp ae2 -3d True -rev True -dtt 7 -nsd 3 -dbs 4 -ds 2013.03.01
+[examples under construction]
 
 From the terminal or a script you would use "python" instead of "run".
 
 """
 
-#%% setup
+# setup
 from datetime import datetime, timedelta
 import time
 import argparse
+import numpy as np
 
 import os; import sys
 sys.path.append(os.path.abspath('../alpha'))
@@ -40,21 +46,15 @@ import Lfun
 Ldir = Lfun.Lstart()
 
 from importlib import reload
-#
-if os.path.isfile('user_trackfun.py'):
-    import user_trackfun as tf2
+
+if os.path.isfile('user_experiments_2.py'):
+    import user_experiments_2 as exp
 else:
-    import trackfun_2 as tf2
-reload(tf2)
-#
+    import experiments_2 as exp
+reload(exp)
+
 import trackfun_nc as tfnc
 reload(tfnc)
-#
-if os.path.isfile('user_experiments.py'):
-    import user_experiments as exp
-else:
-    import experiments as exp
-reload(exp)
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 def boolean_string(s):
@@ -67,14 +67,12 @@ parser = argparse.ArgumentParser()
 
 # Set the experiment name
 # (details set in experiments.py, or, if it exists, user_experiments.py)
-parser.add_argument('-exp', '--exp_name', default='fast1', type=str)
+parser.add_argument('-exp', '--exp_name', default='fast0', type=str)
 
 # These are False unless the flags are used with the argument True
 # so if you do NOT use these flags the run will be:
-# - forward in time
 # - trapped to the surface
 # - no vertical turbulent diffusion
-parser.add_argument('-rev', default=False, type=boolean_string) # reverse time
 parser.add_argument('-3d', default=False, type=boolean_string) # do 3d tracking
 parser.add_argument('-turb', default=False, type=boolean_string) # include turbulence
 
@@ -82,7 +80,7 @@ parser.add_argument('-turb', default=False, type=boolean_string) # include turbu
 # fraction of windspeed added to advection, only for 3d=False
 parser.add_argument('-wnd', '--windage', default=0, type=float)
 
-# set the starting day (will be last day for rev=True)
+# set the starting day
 parser.add_argument('-ds', '--ds_first_day', default='2017.07.04', type=str)
 
 # You can make multiple releases using:
@@ -93,12 +91,13 @@ parser.add_argument('-dtt', '--days_to_track', default=1, type=int)
 
 # number of divisions to make between saves for the integration
 # e.g. if ndiv = 12 and we have hourly saves, we use a 300 sec step
-# for the integration, but still only report fields hourly.
-# 300 s seems like a good default value, based on Banas et al.
+# for the integration. 300 s seems like a good default value, based on Banas et al.
 parser.add_argument('-ndiv', default=12, type=int)
+# You would change TR['sph'] below to have more saves per hour
 
 # set which roms output directory to look in (refers to Ldir['roms'] or Ldir['roms2'])
 parser.add_argument('-rd', '--roms_dir', default='roms', type=str)
+# valid arguments to pass are: roms, roms2
 
 args = parser.parse_args()
 TR = args.__dict__ 
@@ -106,21 +105,36 @@ TR = args.__dict__
 
 # set dependent fields
 
-# overrides      
+TR['sph'] = 4 # saves per hour (no larger than ndiv)
+TR['sph'] = np.min((TR['sph'],TR['ndiv']))
+
+# overrides
 if TR['3d']:
     TR['windage'] = 0
-if TR['rev']:
-    TR['turb'] = False
 
-# get experiment info, including initial condition   
-TR['gtagex'], ic_name, plon00, plat00, pcs00 = exp.make_ic(TR['exp_name'])
+# get experiment info, including initial condition
+#TR['gtagex'], ic_name, plon00, plat00, pcs00 = exp.get_exp_info(TR['exp_name'])
+EI = exp.get_exp_info(TR['exp_name'])
+TR['gtagex'] = EI['gtagex']
+TR['gridname'] = EI['gridname']
+TR['ic_name'] = EI['ic_name']
+
+# get the full path to a valid history file
+fn00 = Ldir['roms'] + 'output/' + TR['gtagex'] + '/f' + TR['ds_first_day'] + '/ocean_his_0001.nc'
+TR['fn00'] = fn00
+
+# make sure the output parent directory exists
+outdir00 = Ldir['LOo']
+Lfun.make_dir(outdir00)
+outdir0 = Ldir['LOo'] + 'tracks/'
+Lfun.make_dir(outdir0)
+# and write some info to it in a .csv, for use by trackfun_2.py
+Lfun.dict_to_csv(TR,outdir0 + 'exp_info.csv')
 
 out_name = TR['exp_name']
 out_name += '_ndiv' + str(TR['ndiv'])
 
 # modify the output folder name, based on other choices
-if TR['rev']:
-    out_name += '_reverse'
 if TR['3d']:
     out_name += '_3d'
 elif not TR['3d']:
@@ -137,12 +151,6 @@ for nic in range(TR['number_of_start_days']):
     idt_list.append(dt)
     dt = dt + timedelta(TR['days_between_starts'])
 
-# make sure the output parent directory exists
-outdir00 = Ldir['LOo']
-Lfun.make_dir(outdir00)
-outdir0 = Ldir['LOo'] + 'tracks/'
-Lfun.make_dir(outdir0)
-
 Ldir['gtagex'] = TR['gtagex']
 
 # override directory location for model output
@@ -157,20 +165,25 @@ sys.stdout.flush()
 
 # write a csv file of experiment information
 Lfun.dict_to_csv(TR, outdir + 'exp_info.csv')
+# NOTE: we have to load this module AFTER we write exp_info.csv
+# because it uses that information to decide which KDTrees to load.
+if os.path.isfile('user_trackfun.py'):
+    import user_trackfun as tfun
+else:
+    import trackfun_2 as tfun
+reload(tfun)
 
-# calculate total number of hours for NetCDF output
-NT_full = (24 * TR['days_to_track']) + 1
+plon00, plat00, pcs00 = exp.get_ic(TR['ic_name'], fn00)
+
+# calculate total number of times for NetCDF output
+NT_full = (TR['sph']*24*TR['days_to_track']) + 1
 
 # step through the releases, one for each start day
 write_grid = True
+
 for idt0 in idt_list:
     
     tt0 = time.time() # monitor integration time
-    
-    if TR['rev']:
-        idt0 = idt0 + timedelta(days=TR['days_to_track']-1)
-    else:
-        pass
     
     # name the release file by start day
     idt0_str = datetime.strftime(idt0,'%Y.%m.%d')
@@ -183,17 +196,14 @@ for idt0 in idt_list:
     for nd in range(TR['days_to_track']):
         
         # get or replace the history file list for this day
-        if TR['rev']:
-            idt = idt0 - timedelta(days=nd)
-        else:
-            idt = idt0 + timedelta(days=nd)
+        idt = idt0 + timedelta(days=nd)
             
         # screen output
         idt_str = datetime.strftime(idt,'%Y.%m.%d')
         print(' - working on ' + idt_str)
         sys.stdout.flush()
             
-        fn_list = tf2.get_fn_list(idt, Ldir)
+        fn_list = tfun.get_fn_list(idt, Ldir)
         
         # write the grid file (once per experiment) for plotting
         if write_grid == True:
@@ -209,34 +219,22 @@ for idt0 in idt_list:
             plat0 = plat00.copy()
             pcs0 = pcs00.copy()
             # do the tracking
-            P = tf2.get_tracks(fn_list, plon0, plat0, pcs0, TR,
+            P = tfun.get_tracks(fn_list, plon0, plat0, pcs0, TR,
                                trim_loc=True)
-            if TR['rev']:
-                it0 = NT_full - 24*(nd+1) - 1
-                it1 = it0 + 25
-            else:
-                it0 = 0
-                it1 = 25
+            it0 = 0
+            it1 = TR['sph']*24 + 1
+            #print('MAIN: it0 = %d, it1 = %d' % ( it0, it1))
             # save the results to NetCDF
             tfnc.start_outfile(out_fn, P, NT_full, it0, it1)
         else: # subsequent days
             # set IC
-            if TR['rev']:
-                plon0 = P['lon'][0,:]
-                plat0 = P['lat'][0,:]
-                pcs0 = P['cs'][0,:]
-            else:
-                plon0 = P['lon'][-1,:]
-                plat0 = P['lat'][-1,:]
-                pcs0 = P['cs'][-1,:]
+            plon0 = P['lon'][-1,:]
+            plat0 = P['lat'][-1,:]
+            pcs0 = P['cs'][-1,:]
             # do the tracking
-            P = tf2.get_tracks(fn_list, plon0, plat0, pcs0, TR)
-            if TR['rev']:
-                it0 = NT_full - 24*(nd+1) - 1
-                it1 = it0 + 25
-            else:
-                it0 = 24*nd
-                it1 = it0 + 25
+            P = tfun.get_tracks(fn_list, plon0, plat0, pcs0, TR)
+            it0 = TR['sph']*24*nd
+            it1 = it0 +  TR['sph']*24 + 1
             tfnc.append_to_outfile(out_fn, P, it0, it1)
             
     print(' - Took %0.1f sec for %s day(s)' %

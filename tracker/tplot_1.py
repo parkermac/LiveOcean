@@ -125,6 +125,8 @@ ax.set_ylabel('Latitude')
 ax.plot(lon, lat, '-k', linewidth=.2)
 ax.plot(lon[0,:], lat[0,:], 'og', alpha=.3)
 ax.plot(lon[-1,:], lat[-1,:], 'or', alpha=.3)
+for ip in range(lon.shape[1]):
+    ax.text(lon[-1,ip], lat[-1,ip], ip)
 ax.set_title(indir.strip('/'))
 # looking for bad values
 # zmask = (u==0) & (v==0)
@@ -135,7 +137,7 @@ print('Number of nan salt values = ' + str(nmask.sum()))
 
 # time series
 td = (ot_vec - ot_vec[0])/86400
-tv_list = ['z', 'salt', 'lon']
+tv_list = ['z', 'salt', 'lat']
 ntv = len(tv_list)
 for ii in range(ntv):
     tv = tv_list[ii]

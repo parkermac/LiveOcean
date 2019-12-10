@@ -2,6 +2,9 @@
 Creates and saves KDTrees for a given model run.
 
 Currently hardwired for the cas6 grid.
+
+NOTE: for some reason I have to make the 2D trees individually (meaning
+not in a loop like I do for the 3D trees).  No idea why.
 """
 
 import os, sys
@@ -12,17 +15,15 @@ Ldir['gtagex'] = Ldir['gtag'] + '_lo8b'
 fn = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/f2017.07.04/ocean_his_0001.nc'
 
 import zrfun
-import numpy.random as rand
 from scipy.spatial import cKDTree
 from time import time
 import pickle
-import netCDF4 as nc4
 import numpy as np
 
 outdir0 = Ldir['LOo'] + 'tracker_trees/'
 Lfun.make_dir(outdir0)
 outdir = outdir0 + Ldir['gridname'] + '/'
-Lfun.make_dir(outdir)#, clean=True)
+Lfun.make_dir(outdir, clean=True)
 
 G, S, T = zrfun.get_basic_info(fn)
 h = G['h']
@@ -48,8 +49,8 @@ pickle.dump(xyT_rho_un, open(outdir + 'xyT_rho_un.p', 'wb'))
 pickle.dump(xyT_u, open(outdir + 'xyT_u.p', 'wb'))
 pickle.dump(xyT_v, open(outdir + 'xyT_v.p', 'wb'))
 
-# 3D trees
-if False:
+if True:
+    # 3D trees
     for tag in ['w', 'rho', 'u', 'v']:
         # prepare fields to make the tree
         tt0 = time()
@@ -71,15 +72,19 @@ if False:
             x = G['lon_rho']
             y = G['lat_rho']
             mask = G['mask_rho']
+        
         N,M,L = z.shape
         X = np.tile(x.reshape(1,M,L),[N,1,1])
         Y = np.tile(y.reshape(1,M,L),[N,1,1])
         H = np.tile(hh.reshape(1,M,L),[N,1,1])
         Z = z/H # fractional depth (-1 to 0)
+    
         Mask = np.tile(mask.reshape(1,M,L),[N,1,1])
+    
         xyz = np.array((X[Mask],Y[Mask],Z[Mask])).T
+        
         print('Prepare fields to make tree %0.2f sec' % (time()-tt0))
-        # create the nearest neighbor Tree object
+        # create the nearest neighbor Tree objects
         tt0 = time()
     
         if tag == 'rho':
@@ -94,6 +99,7 @@ if False:
         elif tag == 'w':
             xyzT_w = cKDTree(xyz)
             pickle.dump(xyzT_w, open(outdir + 'xyzT_w.p', 'wb'))
-    
+
         print('Create 3D tree for %s: %0.2f sec' % (tag, time()-tt0))
+        sys.stdout.flush()
     

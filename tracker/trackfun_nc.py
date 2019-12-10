@@ -40,6 +40,7 @@ def write_grid(g_infile, g_outfile):
     dsg.close()
     
 def start_outfile(out_fn, P, NT_full, it0, it1):
+    # This initializes for all anticipated time steps.
     NT, NP = P['lon'].shape
     ds = nc4.Dataset(out_fn, 'w')
     ds.createDimension('Time', NT_full)
@@ -57,6 +58,7 @@ def start_outfile(out_fn, P, NT_full, it0, it1):
     ds.close()
     
 def append_to_outfile(out_fn, P, it0, it1):
+    # This is designed to add one day of data.
     ds = nc4.Dataset(out_fn, 'a')
     NTx, NPx = ds['lon'][:].shape
     for vn in P.keys():

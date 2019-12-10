@@ -6,11 +6,21 @@ based on an experiment name passed by the calling code.
 
 import numpy as np
 
-def make_ic(exp_name):
+def get_exp_info(exp_name):
     
+    EI = {}
     if exp_name == 'fast0': # working on tracker_2
-            gtagex = 'cas6_v3_lo8b'
+            gridname = 'cas6'; tag = 'v3'; ex_name = 'lo8b'
             ic_name = 'jdf0'
+            
+    EI['gridname'] = gridname
+    EI['tag'] = tag
+    EI['ex_name'] = ex_name
+    EI['gtagex'] = gridname + '_' + tag + '_' + ex_name
+    EI['ic_name'] = ic_name
+    return EI
+    
+def get_ic(ic_name, fn00):
     
     # routines to set particle initial locations, all numpy arrays
     #
@@ -36,8 +46,8 @@ def make_ic(exp_name):
         pcs_vec = np.array([-.05])
         
     elif ic_name == 'jdf0': # Mid-Juan de Fuca
-        lonvec = np.linspace(-123.85, -123.6, 40)
-        latvec = np.linspace(48.2, 48.4, 40)
+        lonvec = np.linspace(-123.85, -123.6, 20)
+        latvec = np.linspace(48.2, 48.4, 20)
         lonmat, latmat = np.meshgrid(lonvec, latvec)
         plon_vec = lonmat.flatten()
         plat_vec = latmat.flatten()
@@ -59,4 +69,4 @@ def make_ic(exp_name):
     plat00 = plat_arr.flatten()
     pcs00 = pcs_arr.flatten()
         
-    return (gtagex, ic_name, plon00, plat00, pcs00)
+    return plon00, plat00, pcs00
