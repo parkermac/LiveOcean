@@ -1,24 +1,47 @@
 """
 Creates and saves KDTrees for a given model run.
 
-Currently hardwired for the cas6 grid.
+NOTE: You have to edit this code by hand.
 
 NOTE: for some reason I have to make the 2D trees individually (meaning
 not in a loop like I do for the 3D trees).  No idea why.
+
+Useage:
+
+python make_KDTrees.py (uses defaults)
+
+python make_KDTrees.py -gridname cas6 -gtagex cas6_v3_lo8b -ds 2019.07.04
+(you have to be pointing it to a history file that exists)
+
 """
 
 import os, sys
 sys.path.append(os.path.abspath('../../LiveOcean/alpha'))
 import Lfun
-Ldir = Lfun.Lstart(gridname='cas6', tag='v3')
-Ldir['gtagex'] = Ldir['gtag'] + '_lo8b'
-fn = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/f2017.07.04/ocean_his_0001.nc'
-
 import zrfun
+
 from scipy.spatial import cKDTree
 from time import time
 import pickle
 import numpy as np
+import argparse
+
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# optional command line arguments, can be input in any order
+parser = argparse.ArgumentParser()
+parser.add_argument('-gridname', default='cas6', type=str)
+parser.add_argument('-gtagex', default='cas6_v3_lo8b', type=str)
+parser.add_argument('-ds', default='2019.07.04', type=str)
+# set which roms output directory to look in (refers to Ldir['roms'] or Ldir['roms2'])
+parser.add_argument('-rd', '--roms_dir', default='roms', type=str)
+# valid arguments to pass are: roms, roms2 (see alpha/get_lo_info.sh)
+args = parser.parse_args()
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Ldir = Lfun.Lstart()
+Ldir['gtagex'] = args.gtagex
+Ldir['roms'] = Ldir[args.roms_dir]
+fn = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/f' + args.ds + '/ocean_his_0001.nc'
 
 outdir0 = Ldir['LOo'] + 'tracker_trees/'
 Lfun.make_dir(outdir0)

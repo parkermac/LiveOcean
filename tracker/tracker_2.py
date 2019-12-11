@@ -7,7 +7,7 @@ NOTE: You have to have run make_KDTrees.py for the grid (e.g. cas6) before runni
 
 NOTE: There is some issue, perhaps with garbage collection, which causes
 the loading of NetCDF files to happen slower after running a few times
-interactively from ipython.  It may be that this can be avoided by running
+interactively from ipython.  It appears that this can be avoided by running
 from the terminal as: python tracker_2.py [args].
 
 This program is a driver where you specify:
@@ -15,12 +15,12 @@ This program is a driver where you specify:
 - a release or set of releases within that experiment (start day, etc.)
 
 The main argument you provide is -exp, which is the experiment name, and
-is used by experiments.make_ic() to get the gtagex and initial particle
+is used by experiments_2.get_exp_info() and .get_ic() to get the gtagex and initial particle
 locations.  Other possible commmand line arguments and their defaults
 are explained in the argparse section below.
 
 NOTE: To improve usefulness for people other than me, this driver will
-first look for user_experiments.py and user_trackfun.py before loading
+first look for user_experiments_2.py and user_trackfun_2.py before loading
 my versions.  This allows you to create yout own experiments, and modifications
 to the tracking (e.g. for diurnal depth behavior) while still being able
 to use git pull to update the main code.
@@ -29,8 +29,6 @@ It can be run on its own, or with command line arguments to facilitate
 large, automated jobs, for example in python:
     
 [examples under construction]
-
-From the terminal or a script you would use "python" instead of "run".
 
 """
 
@@ -54,7 +52,6 @@ else:
 reload(exp)
 
 import trackfun_nc as tfnc
-reload(tfnc)
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 def boolean_string(s):
@@ -81,7 +78,7 @@ parser.add_argument('-turb', default=False, type=boolean_string) # include turbu
 parser.add_argument('-wnd', '--windage', default=0, type=float)
 
 # set the starting day
-parser.add_argument('-ds', '--ds_first_day', default='2017.07.04', type=str)
+parser.add_argument('-ds', '--ds_first_day', default='2019.07.04', type=str)
 
 # You can make multiple releases using:
 # number_of_start_days > 1 & days_between_starts
@@ -91,9 +88,11 @@ parser.add_argument('-dtt', '--days_to_track', default=1, type=int)
 
 # number of divisions to make between saves for the integration
 # e.g. if ndiv = 12 and we have hourly saves, we use a 300 sec step
-# for the integration. 300 s seems like a good default value, based on Banas et al.
+# for the integration. 300 s seems like a good default value,
+# based on Banas et al. (2009, CSR RISE paper).
 parser.add_argument('-ndiv', default=12, type=int)
-# You would change TR['sph'] below to have more saves per hour
+parser.add_argument('-sph', default=1, type=int)
+# sph = saves per hour, a new argument to allow more frequent writing of output.
 
 # set which roms output directory to look in (refers to Ldir['roms'] or Ldir['roms2'])
 parser.add_argument('-rd', '--roms_dir', default='roms', type=str)
@@ -105,7 +104,7 @@ TR = args.__dict__
 
 # set dependent fields
 
-TR['sph'] = 4 # saves per hour (no larger than ndiv)
+# make sure sph is no greater than ndiv
 TR['sph'] = np.min((TR['sph'],TR['ndiv']))
 
 # overrides
@@ -113,7 +112,6 @@ if TR['3d']:
     TR['windage'] = 0
 
 # get experiment info, including initial condition
-#TR['gtagex'], ic_name, plon00, plat00, pcs00 = exp.get_exp_info(TR['exp_name'])
 EI = exp.get_exp_info(TR['exp_name'])
 TR['gtagex'] = EI['gtagex']
 TR['gridname'] = EI['gridname']
@@ -123,17 +121,14 @@ TR['ic_name'] = EI['ic_name']
 fn00 = Ldir['roms'] + 'output/' + TR['gtagex'] + '/f' + TR['ds_first_day'] + '/ocean_his_0001.nc'
 TR['fn00'] = fn00
 
-# make sure the output parent directory exists
-outdir00 = Ldir['LOo']
-Lfun.make_dir(outdir00)
-outdir0 = Ldir['LOo'] + 'tracks/'
-Lfun.make_dir(outdir0)
-# and write some info to it in a .csv, for use by trackfun_2.py
-Lfun.dict_to_csv(TR,outdir0 + 'exp_info.csv')
+# pass some info to Ldir
+Ldir['gtagex'] = TR['gtagex']
+Ldir['roms'] = Ldir[TR['roms_dir']]
 
+
+# set the name of the output folder
 out_name = TR['exp_name']
 out_name += '_ndiv' + str(TR['ndiv'])
-
 # modify the output folder name, based on other choices
 if TR['3d']:
     out_name += '_3d'
@@ -144,18 +139,18 @@ if TR['turb']:
 if TR['windage'] > 0:
     out_name += '_wind' + str(int(100*TR['windage']))
 
-# make the list of start days (datetimes)
+# make the list of start days (datetimes) for separate releases
 idt_list = []
 dt = datetime.strptime(TR['ds_first_day'], '%Y.%m.%d')
 for nic in range(TR['number_of_start_days']):
     idt_list.append(dt)
     dt = dt + timedelta(TR['days_between_starts'])
 
-Ldir['gtagex'] = TR['gtagex']
-
-# override directory location for model output
-Ldir['roms'] = Ldir[TR['roms_dir']]
-
+# make sure the output parent directory "tracks" exists
+outdir00 = Ldir['LOo']
+Lfun.make_dir(outdir00)
+outdir0 = Ldir['LOo'] + 'tracks/'
+Lfun.make_dir(outdir0)
 # make the output directory (empty)
 outdir1 = out_name + '/'
 outdir = outdir0 + outdir1
@@ -163,26 +158,27 @@ Lfun.make_dir(outdir, clean=True)
 print(50*'*' + '\nWriting to ' + outdir)
 sys.stdout.flush()
 
-# write a csv file of experiment information
+# and write some info to outdir0 for use by trackfun_2.py
+Lfun.dict_to_csv(TR,outdir0 + 'exp_info.csv')
+# and write the same info to outdir
 Lfun.dict_to_csv(TR, outdir + 'exp_info.csv')
-# NOTE: we have to load this module AFTER we write exp_info.csv
+# NOTE: we have to load this module AFTER we write [outdir0]/exp_info.csv
 # because it uses that information to decide which KDTrees to load.
-if os.path.isfile('user_trackfun.py'):
-    import user_trackfun as tfun
+if os.path.isfile('user_trackfun_2.py'):
+    import user_trackfun_2 as tfun
 else:
     import trackfun_2 as tfun
 reload(tfun)
 
+# get the initial particle location vectors
 plon00, plat00, pcs00 = exp.get_ic(TR['ic_name'], fn00)
 
-# calculate total number of times for NetCDF output
+# calculate total number of times per release for NetCDF output
 NT_full = (TR['sph']*24*TR['days_to_track']) + 1
 
 # step through the releases, one for each start day
 write_grid = True
-
 for idt0 in idt_list:
-    
     tt0 = time.time() # monitor integration time
     
     # name the release file by start day
@@ -192,17 +188,15 @@ for idt0 in idt_list:
     sys.stdout.flush()
     out_fn = outdir + outname
     
-    # we do the calculation in one-day segments
+    # we do the calculation in one-day segments, but write complete
+    # output for a release to a single NetCDF file.
     for nd in range(TR['days_to_track']):
         
         # get or replace the history file list for this day
         idt = idt0 + timedelta(days=nd)
-            
-        # screen output
         idt_str = datetime.strftime(idt,'%Y.%m.%d')
         print(' - working on ' + idt_str)
         sys.stdout.flush()
-            
         fn_list = tfun.get_fn_list(idt, Ldir)
         
         # write the grid file (once per experiment) for plotting
@@ -219,11 +213,9 @@ for idt0 in idt_list:
             plat0 = plat00.copy()
             pcs0 = pcs00.copy()
             # do the tracking
-            P = tfun.get_tracks(fn_list, plon0, plat0, pcs0, TR,
-                               trim_loc=True)
+            P = tfun.get_tracks(fn_list, plon0, plat0, pcs0, TR, trim_loc=True)
             it0 = 0
             it1 = TR['sph']*24 + 1
-            #print('MAIN: it0 = %d, it1 = %d' % ( it0, it1))
             # save the results to NetCDF
             tfnc.start_outfile(out_fn, P, NT_full, it0, it1)
         else: # subsequent days
