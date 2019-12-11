@@ -39,13 +39,11 @@ args = parser.parse_args()
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 Ldir = Lfun.Lstart()
-Ldir['gtagex'] = args.gtagex
 Ldir['roms'] = Ldir[args.roms_dir]
-fn = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/f' + args.ds + '/ocean_his_0001.nc'
-
+fn = Ldir['roms'] + 'output/' + args.gtagex + '/f' + args.ds + '/ocean_his_0001.nc'
 outdir0 = Ldir['LOo'] + 'tracker_trees/'
 Lfun.make_dir(outdir0)
-outdir = outdir0 + Ldir['gridname'] + '/'
+outdir = outdir0 + args.gridname + '/'
 Lfun.make_dir(outdir, clean=True)
 
 G, S, T = zrfun.get_basic_info(fn)
