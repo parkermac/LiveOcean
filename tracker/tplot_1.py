@@ -1,24 +1,15 @@
-
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Plot results of a particle tracking experiment.
 """
 
 # setup
-import os
-import sys
-alp = os.path.abspath('../alpha')
-if alp not in sys.path:
-    sys.path.append(alp)
+import os, sys
+sys.path.append(os.path.abspath('../alpha'))
 import Lfun
-import matplotlib.pyplot as plt
-
-plp = os.path.abspath('../plotting')
-if plp not in sys.path:
-    sys.path.append(plp)
+sys.path.append(os.path.abspath('../plotting'))
 import pfun
 
+import matplotlib.pyplot as plt
 import netCDF4 as nc4
 import numpy as np
 
@@ -56,7 +47,7 @@ rel = rel_list[int(my_nrl)]
 # get Datasets
 dsr = nc4.Dataset(indir0 + indir + rel)
 dsg = nc4.Dataset(indir0 + indir + 'grid.nc')
-    
+
 NT, NP = dsr['lon'].shape
 
 # get a list of datetimes
@@ -67,7 +58,7 @@ dt_list = [Lfun.modtime_to_datetime(ot) for ot in ot_vec]
 lonp = dsg['lon_psi'][:]
 latp = dsg['lat_psi'][:]
 hh = dsg['h'][:]
-maskr = dsg['mask_rho'][:]
+maskr = dsg['mask_rho'][:] # 1=water, 0=land
 #
 u = dsr['u'][:]
 v = dsr['v'][:]
@@ -77,14 +68,13 @@ temp = dsr['temp'][:]
 lon = dsr['lon'][:]
 lat = dsr['lat'][:]
 z = dsr['z'][:]
+cs = dsr['cs'][:]
 zeta = dsr['zeta'][:]
 h = dsr['h'][:]
 
 # subsample output for plotting
-
-npmax = 300
+npmax = 300 # max number of points to plot
 step = np.max((int(NP/npmax),1))
-
 u = u[:,::step]
 v = v[:,::step]
 w = w[:,::step]
@@ -93,16 +83,16 @@ temp = temp[:,::step]
 lon = lon[:,::step]
 lat = lat[:,::step]
 z = z[:,::step]
+cs = cs[:,::step]
 zeta = zeta[:,::step]
 h = h[:,::step]
+NTS, NPS = lon.shape
 
 # PLOTTING
-
-#plt.close('all')
+plt.close('all')
 fig = plt.figure(figsize=(12,8))
 
-# map
-#
+# MAP
 # set domain limits
 if False:
     # plot full domain
@@ -121,23 +111,26 @@ ax.axis(aa)
 pfun.dar(ax)
 ax.set_xlabel('Longitude')
 ax.set_ylabel('Latitude')
-# add the tracks (packed [time, particle])
-ax.plot(lon, lat, '-k', linewidth=.2)
-ax.plot(lon[0,:], lat[0,:], 'og', alpha=.3)
-ax.plot(lon[-1,:], lat[-1,:], 'or', alpha=.3)
-# for ip in range(lon.shape[1]):
-#     ax.text(lon[-1,ip], lat[-1,ip], ip)
 ax.set_title(indir.strip('/'))
-# looking for bad values
-# zmask = (u==0) & (v==0)
-# ax.plot(lon[zmask], lat[zmask], '*r', markersize=12)
-
-nmask = np.isnan(salt)
-print('Number of nan salt values = ' + str(nmask.sum()))
+# add the tracks (packed [time, particle])
+if True:
+    # regular spaghetti plots
+    ax.plot(lon, lat, '-k', linewidth=.2)
+    ax.plot(lon[0,:], lat[0,:], 'og', alpha=.3)
+    ax.plot(lon[-1,:], lat[-1,:], 'or', alpha=.3)
+    # for ip in range(lon.shape[1]):
+    #     ax.text(lon[-1,ip], lat[-1,ip], ip)
+else:
+    # color end position by depth range of unitial position
+    mask_d = z < -20 # deep
+    mask_s = z >= -20 # shallow
+    ax.plot(lon[-1,mask_d[0,:]], lat[-1,mask_d[0,:]], 'ob', alpha=.3)
+    ax.plot(lon[-1,mask_s[0,:]], lat[-1,mask_s[0,:]], 'or', alpha=.3)
 
 # time series
 td = (ot_vec - ot_vec[0])/86400
-tv_list = ['z', 'salt', 'lat']
+#tv_list = ['z', 'salt', 'lat']
+tv_list = ['u', 'v', 'lon', 'lat']
 ntv = len(tv_list)
 for ii in range(ntv):
     tv = tv_list[ii]

@@ -353,15 +353,18 @@ def update_position(dxg, dyg, maskr, V, ZH, S, dt_sec, plon, plat, pcs, surface)
     Plat += pdy_deg
     
     # Keep particles from being trapped on land
-    # 1.5 * minimum grid sizes used when particles approach land boundaries
+    # ## * minimum grid sizes used when particles approach land boundaries
+    # Experiments with "trap0" to explore trapping in the Skokomish
+    # showed that ## = 0.5 is a reasonable choice.
     xy = np.array((Plon,Plat)).T
     pmask = maskr[xyT_rho_un.query(xy, n_jobs=-1)[1]]
     pcond = pmask < maskr_crit # a Boolean mask
     if len(pcond) > 0:
-        rix = np.random.randint(-1,1,len(plon))
-        riy = np.random.randint(-1,1,len(plon))
-        Plon[pcond] = plon[pcond] + 1.5*rix[pcond]*dxg
-        Plat[pcond] = plat[pcond] + 1.5*riy[pcond]*dyg
+        # these randint calls give random vectors of -1,0,1 (note the 2!)
+        rix = np.random.randint(-1,2,len(plon))
+        riy = np.random.randint(-1,2,len(plon))
+        Plon[pcond] = plon[pcond] + 0.5*rix[pcond]*dxg
+        Plat[pcond] = plat[pcond] + 0.5*riy[pcond]*dyg
         
     # move any particles on land to the middle of the nearest good rho point.
     xy = np.array((Plon,Plat)).T

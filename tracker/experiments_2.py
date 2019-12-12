@@ -14,10 +14,20 @@ def get_exp_info(exp_name):
         gridname = 'cas6'; tag = 'v3'; ex_name = 'lo8b'
         ic_name = 'jdf0'
         
+    if exp_name == 'fast1':
+        # working on tracker_2
+        gridname = 'cas6'; tag = 'v3'; ex_name = 'lo8b'
+        ic_name = 'tn0'
+    
     elif exp_name == 'hc3d':
         # 3D Hood Canal release
         gridname = 'cas6'; tag = 'v3'; ex_name = 'lo8b'
         ic_name = 'hc0'
+        
+    elif exp_name == 'trap0':
+        # test of particle trapping in rivers
+        gridname = 'cas6'; tag = 'v3'; ex_name = 'lo8b'
+        ic_name = 'skok'
             
     EI['gridname'] = gridname
     EI['tag'] = tag
@@ -64,23 +74,24 @@ def get_ic(ic_name, fn00):
         if ic_name == 'tn0': # Tacoma Narrows region
             lonvec = np.linspace(-122.65, -122.45, 30)
             latvec = np.linspace(47.2, 47.35, 30)
-            lonmat, latmat = np.meshgrid(lonvec, latvec)
-            plon_vec = lonmat.flatten()
-            plat_vec = latmat.flatten()
             pcs_vec = np.array([-.05])
-        
         elif ic_name == 'jdf0': # Mid-Juan de Fuca
             lonvec = np.linspace(-123.85, -123.6, 20)
             latvec = np.linspace(48.2, 48.4, 20)
-            lonmat, latmat = np.meshgrid(lonvec, latvec)
-            plon_vec = lonmat.flatten()
-            plat_vec = latmat.flatten()
+            pcs_vec = np.array([-.05])
+        elif ic_name == 'skok': # head of the Skokomish River
+            lonvec = np.linspace(-123.171, -123.163, 10)
+            latvec = np.linspace(47.306, 47.312, 10)
             pcs_vec = np.array([-.05])
         # Create full output vectors (each has one value per point).  This
         # code takes each lat, lon location and then assigns it to NSP points
         # corresponding to the vector of pcs values.  However you could write a
         # different version that only released points below a certain depth,
         # or other criterion.
+        lonmat, latmat = np.meshgrid(lonvec, latvec)
+        plon_vec = lonmat.flatten()
+        plat_vec = latmat.flatten()
+        
         if len(plon_vec) != len(plat_vec):
             print('WARNING: Problem with length of initial lat, lon vectors')
         NSP = len(pcs_vec)
