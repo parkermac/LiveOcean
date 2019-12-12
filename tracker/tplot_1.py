@@ -105,7 +105,7 @@ else:
 ax = fig.add_subplot(121)
 zm = -np.ma.masked_where(maskr==0, hh)
 plt.pcolormesh(lonp, latp, zm[1:-1, 1:-1], vmin=-100, vmax=0,
-    cmap='rainbow', alpha=.3)
+    cmap='terrain', alpha=.25)
 pfun.add_coast(ax)
 ax.axis(aa)
 pfun.dar(ax)
@@ -113,7 +113,7 @@ ax.set_xlabel('Longitude')
 ax.set_ylabel('Latitude')
 ax.set_title(indir.strip('/'))
 # add the tracks (packed [time, particle])
-if True:
+if False:
     # regular spaghetti plots
     ax.plot(lon, lat, '-k', linewidth=.2)
     ax.plot(lon[0,:], lat[0,:], 'og', alpha=.3)
@@ -121,16 +121,17 @@ if True:
     # for ip in range(lon.shape[1]):
     #     ax.text(lon[-1,ip], lat[-1,ip], ip)
 else:
-    # color end position by depth range of unitial position
-    mask_d = z < -20 # deep
-    mask_s = z >= -20 # shallow
-    ax.plot(lon[-1,mask_d[0,:]], lat[-1,mask_d[0,:]], 'ob', alpha=.3)
-    ax.plot(lon[-1,mask_s[0,:]], lat[-1,mask_s[0,:]], 'or', alpha=.3)
+    # color end position by depth
+    z1 = z[-1,:]
+    x1 = lon[-1,:]
+    y1 = lat[-1,:]
+    sc_obj = ax.scatter(x1,y1, s=10, c=z1, cmap='rainbow')#,vmin=-20, vmax=5)
+    fig.colorbar(sc_obj)
 
 # time series
 td = (ot_vec - ot_vec[0])/86400
-#tv_list = ['z', 'salt', 'lat']
-tv_list = ['u', 'v', 'lon', 'lat']
+tv_list = ['z', 'salt', 'temp']
+#tv_list = ['u', 'v', 'lon', 'lat']
 ntv = len(tv_list)
 for ii in range(ntv):
     tv = tv_list[ii]
