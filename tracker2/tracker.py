@@ -71,7 +71,7 @@ parser.add_argument('-exp', '--exp_name', default='fast0', type=str)
 # - trapped to the surface
 # - no vertical turbulent diffusion
 parser.add_argument('-3d', default=False, type=boolean_string) # do 3d tracking
-parser.add_argument('-turb', default=False, type=boolean_string) # include turbulence
+parser.add_argument('-laminar', default=False, type=boolean_string) # no turbulence
 
 # windage = a small number: 0 <= windage << 1 (e.g. 0.03)
 # fraction of windspeed added to advection, only for 3d=False
@@ -102,7 +102,9 @@ args = parser.parse_args()
 TR = args.__dict__ 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-# set dependent fields
+# set dependent and default fields
+
+TR['turb'] = False
 
 # make sure sph is no greater than ndiv
 TR['sph'] = np.min((TR['sph'],TR['ndiv']))
@@ -110,6 +112,10 @@ TR['sph'] = np.min((TR['sph'],TR['ndiv']))
 # overrides
 if TR['3d']:
     TR['windage'] = 0
+    TR['turb'] = True # default is that 3d is always turbulent
+    
+if TR['laminar']:
+    TR['turb'] = False
 
 # get experiment info, including initial condition
 EI = exp.get_exp_info(TR['exp_name'])
@@ -133,8 +139,8 @@ if TR['3d']:
     out_name += '_3d'
 elif not TR['3d']:
     out_name += '_surf'
-if TR['turb']:
-    out_name += '_turb'
+if TR['laminar']:
+    out_name += '_laminar'
 if TR['windage'] > 0:
     out_name += '_wind' + str(int(100*TR['windage']))
 

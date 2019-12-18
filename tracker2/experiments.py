@@ -22,7 +22,7 @@ def get_exp_info(exp_name):
     elif exp_name == 'hc3d':
         # 3D Hood Canal release
         gridname = 'cas6'; tag = 'v3'; ex_name = 'lo8b'
-        ic_name = 'hc0'
+        ic_name = 'hc1'
         
     elif exp_name == 'trap0':
         # test of particle trapping in rivers
@@ -65,42 +65,94 @@ def get_ic(ic_name, fn00):
                     plon00 = np.append(plon00, x*np.ones(ns))
                     plat00 = np.append(plat00, y*np.ones(ns))
                     pcs00 = np.append(pcs00, svec)
-    
-    else:
-        # first create three vectors of initial locations
-        # plat00 and plon00 should be the same length,
-        # and the length of pcs00 is however many vertical positions you have at
-        # each lat, lon (expressed as fraction of depth -1 < pcs < 1)
-        if ic_name == 'tn0': # Tacoma Narrows region
-            lonvec = np.linspace(-122.65, -122.45, 30)
-            latvec = np.linspace(47.2, 47.35, 30)
-            pcs_vec = np.array([-.05])
-        elif ic_name == 'jdf0': # Mid-Juan de Fuca
-            lonvec = np.linspace(-123.85, -123.6, 20)
-            latvec = np.linspace(48.2, 48.4, 20)
-            pcs_vec = np.array([-.05])
-        elif ic_name == 'skok': # head of the Skokomish River
-            lonvec = np.linspace(-123.171, -123.163, 10)
-            latvec = np.linspace(47.306, 47.312, 10)
-            pcs_vec = np.array([-.05])
-        # Create full output vectors (each has one value per point).  This
-        # code takes each lat, lon location and then assigns it to NSP points
-        # corresponding to the vector of pcs values.  However you could write a
-        # different version that only released points below a certain depth,
-        # or other criterion.
-        lonmat, latmat = np.meshgrid(lonvec, latvec)
-        plon_vec = lonmat.flatten()
-        plat_vec = latmat.flatten()
+                    
+    elif ic_name == 'hc1': # Hood Canal using TEF "segments"
+        # NOTE: this one requires information about grid indices in certain regions of
+        # the Salish Sea, and is very specific to the analysis in x_tef.
+        # Not for general use.
+        import pickle
+        # select the indir
+        indir0 = '/Users/pm7/Documents/LiveOcean_output/tef/cas6_v3_lo8b_2017.01.01_2017.12.31/'
+        indir = indir0 + 'flux/'
+        # load data
+        ji_dict = pickle.load(open(indir + 'ji_dict.p', 'rb'))
+
+        import zrfun
+        G = zrfun.get_basic_info(fn00, only_G=True)
+        h = G['h']
+        xp = G['lon_rho']
+        yp = G['lat_rho']
         
-        if len(plon_vec) != len(plat_vec):
-            print('WARNING: Problem with length of initial lat, lon vectors')
-        NSP = len(pcs_vec)
-        NXYP = len(plon_vec)
-        plon_arr = plon_vec.reshape(NXYP,1) * np.ones((NXYP,NSP))
-        plat_arr = plat_vec.reshape(NXYP,1) * np.ones((NXYP,NSP))
-        pcs_arr = np.ones((NXYP,NSP)) * pcs_vec.reshape(1,NSP)
-        plon00 = plon_arr.flatten()
-        plat00 = plat_arr.flatten()
-        pcs00 = pcs_arr.flatten()
+        ji_seg = ji_dict['H3']
+        
+        plon_vec = np.array([])
+        plat_vec = np.array([])
+        hh_vec = np.array([])
+        
+        for ji in ji_seg:
+            plon_vec = np.append(plon_vec, xp[ji])
+            plat_vec = np.append(plat_vec, yp[ji])
+            hh_vec = np.append(hh_vec, h[ji])
+    
+        plon00 = np.array([]); plat00 = np.array([]); pcs00 = np.array([])
+    
+        for ii in range(len(plon_vec)):
+            x = plon_vec[ii]
+            y = plat_vec[ii]
+            h10 = 10*np.floor(hh_vec[ii]/10) # depth to closest 10 m (above the bottom)
+            if h10 >= 10:
+                zvec = np.arange(-h10,5,10) # a vector that goes from -h10 to 0 in steps of 10 m
+                svec = zvec/hh_vec[ii]
+                ns = len(svec)
+                if ns > 0:
+                    plon00 = np.append(plon00, x*np.ones(ns))
+                    plat00 = np.append(plat00, y*np.ones(ns))
+                    pcs00 = np.append(pcs00, svec)
+    
+                    
+    # cases that use ic_from_meshgrid
+    elif ic_name == 'tn0': # Tacoma Narrows region
+        lonvec = np.linspace(-122.65, -122.45, 30)
+        latvec = np.linspace(47.2, 47.35, 30)
+        pcs_vec = np.array([-.05])
+        plon00, plat00, pcs00 = ic_from_meshgrid(lonvec, latvec, pcs_vec)
+    elif ic_name == 'jdf0': # Mid-Juan de Fuca
+        lonvec = np.linspace(-123.85, -123.6, 20)
+        latvec = np.linspace(48.2, 48.4, 20)
+        pcs_vec = np.array([-.05])
+        plon00, plat00, pcs00 = ic_from_meshgrid(lonvec, latvec, pcs_vec)
+    elif ic_name == 'skok': # head of the Skokomish River
+        lonvec = np.linspace(-123.171, -123.163, 10)
+        latvec = np.linspace(47.306, 47.312, 10)
+        pcs_vec = np.array([-.05])
+        plon00, plat00, pcs00 = ic_from_meshgrid(lonvec, latvec, pcs_vec)
         
     return plon00, plat00, pcs00
+    
+def ic_from_meshgrid(lonvec, latvec, pcs_vec):
+    # First create three vectors of initial locations (as done in some cases above).
+    # plat00 and plon00 should be the same length, and the length of pcs00 is
+    # however many vertical positions you have at each lat, lon
+    # (expressed as fraction of depth -1 < pcs < 1)
+    #
+    # Then here we create full output vectors (each has one value per point).
+    # This code takes each lat, lon location and then assigns it to NSP points
+    # corresponding to the vector of pcs values.  However you could write a
+    # different version that only released points below a certain depth,
+    # or other criterion.
+    lonmat, latmat = np.meshgrid(lonvec, latvec)
+    plon_vec = lonmat.flatten()
+    plat_vec = latmat.flatten()
+    if len(plon_vec) != len(plat_vec):
+        print('WARNING: Problem with length of initial lat, lon vectors')
+    NSP = len(pcs_vec)
+    NXYP = len(plon_vec)
+    plon_arr = plon_vec.reshape(NXYP,1) * np.ones((NXYP,NSP))
+    plat_arr = plat_vec.reshape(NXYP,1) * np.ones((NXYP,NSP))
+    pcs_arr = np.ones((NXYP,NSP)) * pcs_vec.reshape(1,NSP)
+    plon00 = plon_arr.flatten()
+    plat00 = plat_arr.flatten()
+    pcs00 = pcs_arr.flatten()
+    
+    return plon00, plat00, pcs00
+    

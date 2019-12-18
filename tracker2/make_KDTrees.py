@@ -11,6 +11,7 @@ Useage:
 python make_KDTrees.py (uses defaults)
 
 python make_KDTrees.py -gridname cas6 -gtagex cas6_v3_lo8b -ds 2019.07.04
+
 (you have to be pointing it to a history file that exists)
 
 """

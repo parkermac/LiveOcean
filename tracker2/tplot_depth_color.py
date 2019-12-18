@@ -112,13 +112,15 @@ pfun.dar(ax)
 ax.set_xlabel('Longitude')
 ax.set_ylabel('Latitude')
 ax.set_title(indir.strip('/'))
+
 # add the tracks (packed [time, particle])
-# regular spaghetti plots
-ax.plot(lon, lat, '-k', linewidth=.2)
-ax.plot(lon[0,:], lat[0,:], 'og', alpha=.3)
-ax.plot(lon[-1,:], lat[-1,:], 'or', alpha=.3)
-# for ip in range(lon.shape[1]):
-#     ax.text(lon[-1,ip], lat[-1,ip], ip)
+
+# color end position by depth
+z1 = z[-1,:]
+x1 = lon[-1,:]
+y1 = lat[-1,:]
+sc_obj = ax.scatter(x1,y1, s=10, c=z1, cmap='rainbow')#,vmin=-20, vmax=5)
+fig.colorbar(sc_obj)
 
 # time series
 td = (ot_vec - ot_vec[0])/86400
