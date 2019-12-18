@@ -72,6 +72,7 @@ def get_ic(ic_name, fn00):
         # Not for general use.
         import pickle
         # select the indir
+        import Lfun
         Ldir = Lfun.Lstart()
         indir0 = Ldir['LOo'] + 'tef/cas6_v3_lo8b_2017.01.01_2017.12.31/'
         indir = indir0 + 'flux/'
