@@ -29,7 +29,7 @@ reload(flux_fun)
 outdir00 = Ldir['LOo'] + 'tef/'
 # choose the tef extraction to work with
 item = Lfun.choose_item(outdir00)
-outdir0 = indir0 + item + '/'
+outdir0 = outdir00 + item + '/'
 outdir = outdir0 + 'flux/'
 Lfun.make_dir(outdir)
 
@@ -47,7 +47,7 @@ DA = G['DX'] * G['DY']
 # get the DataFrame of all sections
 sect_df = tef_fun.get_sect_df()
 
-testing = True
+testing = False
 
 # segment definitions, assembled by looking at the figure
 # created by flux_seg_map.py

@@ -72,7 +72,8 @@ def get_ic(ic_name, fn00):
         # Not for general use.
         import pickle
         # select the indir
-        indir0 = '/Users/pm7/Documents/LiveOcean_output/tef/cas6_v3_lo8b_2017.01.01_2017.12.31/'
+        Ldir = Lfun.Lstart()
+        indir0 = Ldir['LOo'] + 'tef/cas6_v3_lo8b_2017.01.01_2017.12.31/'
         indir = indir0 + 'flux/'
         # load data
         ji_dict = pickle.load(open(indir + 'ji_dict.p', 'rb'))
@@ -112,8 +113,8 @@ def get_ic(ic_name, fn00):
                     
         # trim the length of the I.C. vectors to a limited number
         NP = len(plon00)
-        npmax = 1000
-        nstep = int(NP/npmax)
+        npmax = 10000
+        nstep = max(1,int(NP/npmax))
         plon00 = plon00[::nstep]
         plat00 = plat00[::nstep]
         pcs00 = pcs00[::nstep]
