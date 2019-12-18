@@ -83,17 +83,18 @@ def get_ic(ic_name, fn00):
         xp = G['lon_rho']
         yp = G['lat_rho']
         
-        ji_seg = ji_dict['H3']
-        
         plon_vec = np.array([])
         plat_vec = np.array([])
         hh_vec = np.array([])
         
-        for ji in ji_seg:
-            plon_vec = np.append(plon_vec, xp[ji])
-            plat_vec = np.append(plat_vec, yp[ji])
-            hh_vec = np.append(hh_vec, h[ji])
-    
+        seg_list = ['H3','H4','H5','H6','H7','H8']
+        for seg_name in seg_list:
+            ji_seg = ji_dict[seg_name]
+            for ji in ji_seg:
+                plon_vec = np.append(plon_vec, xp[ji])
+                plat_vec = np.append(plat_vec, yp[ji])
+                hh_vec = np.append(hh_vec, h[ji])
+                    
         plon00 = np.array([]); plat00 = np.array([]); pcs00 = np.array([])
     
         for ii in range(len(plon_vec)):
@@ -108,6 +109,14 @@ def get_ic(ic_name, fn00):
                     plon00 = np.append(plon00, x*np.ones(ns))
                     plat00 = np.append(plat00, y*np.ones(ns))
                     pcs00 = np.append(pcs00, svec)
+                    
+        # trim the length of the I.C. vectors to a limited number
+        NP = len(plon00)
+        npmax = 1000
+        nstep = int(NP/npmax)
+        plon00 = plon00[::nstep]
+        plat00 = plat00[::nstep]
+        pcs00 = pcs00[::nstep]
     
                     
     # cases that use ic_from_meshgrid
