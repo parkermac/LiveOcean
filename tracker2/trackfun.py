@@ -2,7 +2,7 @@
 Functions for particle tracking.
 
 Relies on the existence of experiment-specific info in
-LiveOcean_output/tracks/exp_info.csv.
+LiveOcean_output/tracks2/exp_info.csv.
 
 """
 # setup (assume path to alpha set by calling code)
@@ -23,7 +23,7 @@ maskr_crit = 0.5 # (maskr = 1 in water, 0 on land) [0.5 seems good]
 
 # NEW CODE for nearest neighbor interpolation
 Ldir = Lfun.Lstart()
-EI = Lfun.csv_to_dict(Ldir['LOo'] + 'tracks/exp_info.csv')
+EI = Lfun.csv_to_dict(Ldir['LOo'] + 'tracks2/exp_info.csv')
 G, S, T = zrfun.get_basic_info(EI['fn00'])
 Maskr = G['mask_rho'] # True over water
 Masku = G['mask_u'] # True over water

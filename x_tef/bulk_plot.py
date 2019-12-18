@@ -1,18 +1,13 @@
 """
 Plot bulk fluxes as a time series.
 """
-import os
-import sys
-alp = os.path.abspath('../alpha')
-if alp not in sys.path:
-    sys.path.append(alp)
+import os, sys
+sys.path.append(os.path.abspath('../alpha'))
 import Lfun
 import zfun
 Ldir = Lfun.Lstart()
 
-pth = os.path.abspath(Ldir['LO'] + 'plotting')
-if pth not in sys.path:
-    sys.path.append(pth)
+sys.path.append(os.path.abspath(Ldir['LO'] + 'plotting'))
 import pfun
 
 import numpy as np

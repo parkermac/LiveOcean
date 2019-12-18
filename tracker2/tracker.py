@@ -8,19 +8,19 @@ NOTE: You have to have run make_KDTrees.py for the grid (e.g. cas6) before runni
 NOTE: There is some issue, perhaps with garbage collection, which causes
 the loading of NetCDF files to happen slower after running a few times
 interactively from ipython.  It appears that this can be avoided by running
-from the terminal as: python tracker_2.py [args].
+from the terminal as: python tracker.py [args].
 
 This program is a driver where you specify:
 - an experiment (ROMS run + release locations + other choices)
 - a release or set of releases within that experiment (start day, etc.)
 
 The main argument you provide is -exp, which is the experiment name, and
-is used by experiments_2.get_exp_info() and .get_ic() to get the gtagex and initial particle
+is used by experiments.get_exp_info() and .get_ic() to get the gtagex and initial particle
 locations.  Other possible commmand line arguments and their defaults
 are explained in the argparse section below.
 
 NOTE: To improve usefulness for people other than me, this driver will
-first look for user_experiments_2.py and user_trackfun_2.py before loading
+first look for user_experiments.py and user_trackfun.py before loading
 my versions.  This allows you to create yout own experiments, and modifications
 to the tracking (e.g. for diurnal depth behavior) while still being able
 to use git pull to update the main code.
@@ -45,10 +45,10 @@ Ldir = Lfun.Lstart()
 
 from importlib import reload
 
-if os.path.isfile('user_experiments_2.py'):
-    import user_experiments_2 as exp
+if os.path.isfile('user_experiments.py'):
+    import user_experiments as exp
 else:
-    import experiments_2 as exp
+    import experiments as exp
 reload(exp)
 
 import trackfun_nc as tfnc
@@ -125,7 +125,6 @@ TR['fn00'] = fn00
 Ldir['gtagex'] = TR['gtagex']
 Ldir['roms'] = Ldir[TR['roms_dir']]
 
-
 # set the name of the output folder
 out_name = TR['exp_name']
 out_name += '_ndiv' + str(TR['ndiv'])
@@ -149,7 +148,7 @@ for nic in range(TR['number_of_start_days']):
 # make sure the output parent directory "tracks" exists
 outdir00 = Ldir['LOo']
 Lfun.make_dir(outdir00)
-outdir0 = Ldir['LOo'] + 'tracks/'
+outdir0 = Ldir['LOo'] + 'tracks2/'
 Lfun.make_dir(outdir0)
 # make the output directory (empty)
 outdir1 = out_name + '/'
@@ -164,10 +163,10 @@ Lfun.dict_to_csv(TR,outdir0 + 'exp_info.csv')
 Lfun.dict_to_csv(TR, outdir + 'exp_info.csv')
 # NOTE: we have to load this module AFTER we write [outdir0]/exp_info.csv
 # because it uses that information to decide which KDTrees to load.
-if os.path.isfile('user_trackfun_2.py'):
-    import user_trackfun_2 as tfun
+if os.path.isfile('user_trackfun.py'):
+    import user_trackfun as tfun
 else:
-    import trackfun_2 as tfun
+    import trackfun as tfun
 reload(tfun)
 
 # get the initial particle location vectors

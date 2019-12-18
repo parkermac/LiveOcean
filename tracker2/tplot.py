@@ -16,7 +16,7 @@ import numpy as np
 Ldir = Lfun.Lstart()
 
 # Choose an experiment to plot from.
-indir0 = Ldir['LOo'] + 'tracks/'
+indir0 = Ldir['LOo'] + 'tracks2/'
 indir_list_raw = os.listdir(indir0)
 indir_list = []
 for d in indir_list_raw:
