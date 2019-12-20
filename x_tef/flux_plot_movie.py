@@ -59,7 +59,8 @@ tind = aa.index
 if testing:
     tind = tind[:5]
 else:
-    tind = tind[:51]
+    pass
+    #tind = tind[:51]
     
 
 ii = 0
@@ -96,6 +97,11 @@ for tt in tind:
     
     ax1.text(.05,.8, 'Day = %d' % (tt),
         fontweight='bold',fontsize=fs, transform=ax1.transAxes)
+    
+    ax1.text(.95,.5, 'Dashed = Upper Layer',
+        fontsize=fs, horizontalalignment='right', transform=ax1.transAxes)
+    ax1.text(.95,.4, 'Solid = Lower Layer',
+        fontsize=fs, horizontalalignment='right', transform=ax1.transAxes)
     
     if testing:
         plt.show()

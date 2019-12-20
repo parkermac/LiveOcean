@@ -113,7 +113,8 @@ elif 'river' in source:
 if 'ic' in source:
     for seg_name in f.index:
         if source == 'ic_hood_canal':
-            if 'H' in seg_name and '_s' in seg_name:
+            this_seg_list = ['H'+ str(item) for item in range(3,9)]
+            if seg_name[:2] in this_seg_list:
                 jj = int(np.argwhere(f.index==seg_name))
                 ff[jj,jj+4] = 1
                 c[jj] = 1

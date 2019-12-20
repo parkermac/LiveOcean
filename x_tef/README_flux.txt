@@ -139,6 +139,6 @@ Output: LiveOcean_output/tef/[*]/flux/daily_segment_[salinity,volume,net_salt].p
 
 Input: LiveOcean_output/tef/[*]/flux/daily_segment_[net_salt].p
 
-Output: A sscreen plot of the budget vs. time.
+Output: A screen plot of the budget vs. time.
 
 ------------------------------------------------------------------
