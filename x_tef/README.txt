@@ -53,6 +53,8 @@ I think these are defined as:
 Input: LiveOcean_output/tef/[*]/processed/[sect name].p
 
 Output: LiveOcean_output/tef/[*]/bulk/[sect name].p
+These are pickled dicts with keys: ['QQ', 'SS', 'ot', 'qnet_lp', 'fnet_lp', 'ssh_lp']
+where ot is a time vector (seconds since 1/1/1970 as usual), and QQ is a matrix of shape (362, 30) meaning that it is one per day, at Noon, after tidal-averaging, with nan-days on the ends cut off.  The 30 is the number of "bulk" bins, so many might be filled with nan's.
 
 See also: test_bulk_calc.py, debugging code
 

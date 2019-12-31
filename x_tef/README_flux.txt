@@ -91,7 +91,7 @@ Output:LiveOcean_output/tef/[*]/misc_figs/w_plot.png
 * *** flux_engine.py ***
 This is the main piece of code this whole efflux-reflux analysis has been driving toward.  It takes the transport matrix created by flux_get_A.py, and the volumes, and then uses them to do forward calculations of time-dependent tracer fields.  You can control the boundary conditions (where the tracer comes from), and whether it sinks - like organic particles, using command line arguments.
 
-Input: volumss.p and q_df.p created above
+Input: volumes.p and q_df.p created above
 
 Output: indir = LiveOcean_output/tef/[*]/flux/
 	cc.to_pickle(indir + 'cc_' + source + sink_tag + '.p')
