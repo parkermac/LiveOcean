@@ -75,22 +75,5 @@ Input: LiveOcean_output/tef/[*]/extractions/[sect name].nc
 Output: LiveOcean_output/tef/[*]/physical_section_plots/[sect name]/plot_00[01-12].png where each plot is averaged over a month (assumes the extraction it for a year).  These are nice to look at in combination with the TEF time series.
 
 ------------------------------------------------------------------
-
-* process_thalweg_mean.py does the pre-processing required by plot_thalweg_mean.py below.
-
-Input: LiveOcean_output/tef/[*]/bulk/[sect name].p
-
-Output: LiveOcean_output/tef/[*]/thalweg/ThalMean.p
-This is a pickled dict with entries like: ThalMean[ch_str] = (sect_list, q1, q2, qs1, qs2, s1, s2, dist) which are the TEF quantities along pre-defined channels (lists of sections).
-
-------------------------------------------------------------------
-
-* plot_thalweg_mean.py uses ThalMean.p to make a single plot of all the TEF properties..
-
-Input: LiveOcean_output/tef/[*]/thalweg/ThalMean.p
-
-Output: LiveOcean_output/tef/[*]/misc_figs/thalweg_mean.png to make mean values of Qin/Qout, etc. versus along channel distance for a sequence of stations defined by hand in the code.
-
-------------------------------------------------------------------
 ------------------------------------------------------------------
 ------------------------------------------------------------------

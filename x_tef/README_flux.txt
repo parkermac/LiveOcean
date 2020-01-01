@@ -24,10 +24,15 @@ flux_fun.make_dist(x,y) makes vectors of distance along lon,lat vectors x,y
 Input: section "bulk" files like: LiveOcean_output/tef/[*]/bulk/[sect name].nc
 where [*] = cas6_v3_lo8b_2017.01.01_2017.12.31 e.g.
 
-Output: LiveOcean_output/tef/[*]/flux/two_layer.p which is a pickled DataFrame whose index is the section names, and whose columns are: ['q_s', 'q_f', 'f_s', 'f_f', 's_s', 's_f', 'lon', 'lat'].  Here _s and _f indicate that the layer is salty or fresh.  Also we have organized all the fluxes to be positive Eastward or Northward.  The averaging is basically identical to what we did in process_thalweg_mean.py, but here we save the results organized by section instead of the channel lists.
+Output: LiveOcean_output/tef/[*]/flux/two_layer_[season].p which is a pickled DataFrame whose index is the section names, and whose columns are: ['q_s', 'q_f', 'f_s', 'f_f', 's_s', 's_f', 'lon', 'lat'].  Here _s and _f indicate that the layer is salty or fresh.  Also we have organized all the fluxes to be positive Eastward or Northward.  The averaging is over three "seasons" being full=annual, spring=MAM, fall=SON.
 
-NOTE: Typically the time averaging is done over a whole year.  Eventually we may want to do individual months, but this would require a different organization of the output.
+------------------------------------------------------------------
 
+* flux_plot_sections.py makes a plot of transport and salinity at all sections, along with a map, using the results of flux_make_two_layer.py above.
+
+Input: LiveOcean_output/tef/[*]/flux/two_layer_[season].p
+
+Output: LiveOcean_output/tef/[*]/misc_figs/two_layer_[season].png
 ------------------------------------------------------------------
 
 * flux_get_vol.py gets the volume (with SSH = 0) of each segment.  Uses a cute "mine sweeper" like algorithm to find all the unmasked rho-grid cells on the grid between the sections that define a segment.
@@ -135,7 +140,7 @@ Output: LiveOcean_output/tef/[*]/flux/daily_segment_[salinity,volume,net_salt].p
 
 ------------------------------------------------------------------
 
-* flux_salt_budget.py makes a complete salt budget for a user-specified set of segments.
+* flux_salt_budget.py makes a complete volume and salt budget for a user-specified set of segments.
 
 Input: LiveOcean_output/tef/[*]/flux/daily_segment_[net_salt].p
 
