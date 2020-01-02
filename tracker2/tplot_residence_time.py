@@ -1,5 +1,11 @@
 """
-Plot results of a particle tracking experiment.
+Plot results of a particle tracking experiment focused on residence time.
+
+This is aimed at specific experiments realted to the x_tef "flux" code in which
+we release dye in certain "segments" of the Salish Sea.
+
+NOTE: currently hardwired to work on the Hood Canal releases.
+
 """
 
 # setup
@@ -14,6 +20,8 @@ import pfun
 import matplotlib.pyplot as plt
 import netCDF4 as nc4
 import numpy as np
+
+from time import time
 
 Ldir = Lfun.Lstart()
 
@@ -80,7 +88,10 @@ if EI['ic_name'] == 'hc1': # Hood Canal using TEF "segments"
     seg_list = ['H3','H4','H5','H6','H7','H8']
     for seg_name in seg_list:
         ji_list = ji_list + ji_dict[seg_name]
-    #ji_set = set(ji_list)
+    
+# Turn the list of tuples into an array of complex numbers
+ji_arr = np.array(ji_list)
+ji_cvec = ji_arr[:,0] + ji_arr[:,1]*1j
 
 # now find what fraction of the initial condition that is in this list
 # as a test of the method
@@ -94,28 +105,31 @@ NT, NP = lon.shape
 
 day_list = []
 frac_list = []
-for tt in range(0,NT,100):
+for tt in range(0,NT,96):
     x = lon[tt,:]; y = lat[tt,:]
-    this_ji_list = []
-    for p in range(NP):
-        ii = (np.abs(xvec - x[p])).argmin()
-        jj = (np.abs(yvec - y[p])).argmin()
-        this_ji_list.append((jj,ii))
-    #this_ji_set = set(this_ji_list)
+                
+    #tt1 = time()
+    i0, i1, frx = zfun.get_interpolant(x, xvec)
+    j0, j1, fry = zfun.get_interpolant(y, yvec)
+    ii = i0.data + np.round(frx.data)
+    jj = j0.data + np.round(fry.data)
+    iii = ii.astype(int)
+    jjj = jj.astype(int)
+    this_ji_list = list(zip(jjj,iii))
+    #print('Get ji list %0.3f seconds' % (time()-tt1))
+        
+    #tt3 = time()
+    this_ji_cvec = jjj + iii*1j
+    isin_vec = np.isin(this_ji_cvec, ji_cvec)
+    incount = isin_vec.sum()
+    #print('Search ji list alt %0.3f seconds' % (time()-tt3))
     
-    # find the number of particles still in the initial region
-    incount = 0
-    for ji in this_ji_list:
-        if ji in ji_list:
-            incount += 1
-            
     day_list.append(days[tt])
     frac_list.append(incount/len(this_ji_list))
             
-    #print('%0.1f days: Wrong Fraction in initial volume = %0.2f' % (days[tt],len(this_ji_set & ji_set)/len(this_ji_set)))
-    print('%0.1f days: Right Fraction in initial volume = %0.2f' % (days[tt],incount/len(this_ji_list)))
+    print('  %0.1f days: Right Fraction in initial volume = %0.2f' % (days[tt],incount/len(this_ji_list)))
     
-plt.close('all')
+#plt.close('all')
 fig = plt.figure(figsize=(12,8))
 ax = fig.add_subplot(111)
 
@@ -125,6 +139,8 @@ frac_vec = np.array(frac_list)
 ax.plot(day_vec, frac_vec, '-g', linewidth=3)
 ax.grid(True)
 ax.set_ylim(0,1)
+
+ax.set_title(rel)
 
 plt.show()
 

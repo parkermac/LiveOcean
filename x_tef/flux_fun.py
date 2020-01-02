@@ -2,7 +2,16 @@
 Varibles and functions used by the "flux" code.
 """
 import numpy as np
+from datetime import datetime, timedelta
 import zfun # path provided by calling code
+
+# desired time ranges, the "seasons"
+dtr = {}
+dtr['full'] = (datetime(2017,1,1,12,0,0), datetime(2017,12,31,12,0,0))
+dtr['spring'] = (datetime(2017,3,1,12,0,0), datetime(2017,6,1,12,0,0))
+dtr['fall'] = (datetime(2017,9,1,12,0,0), datetime(2017,12,1,12,0,0))
+
+season_list = list(dtr.keys())
 
 # segment definitions, assembled by looking at the figures
 # created by plot_thalweg_mean.py

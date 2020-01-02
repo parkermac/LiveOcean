@@ -22,18 +22,13 @@ sys.path.append(os.path.abspath('../alpha'))
 import Lfun
 import zfun
 
-import tef_fun
+import tef_fun, flux_fun
 from importlib import reload
 reload(tef_fun)
+reload(flux_fun)
 
 # user settings
 testing = False
-
-# desired time ranges
-dtr = {}
-dtr['full'] = (datetime(2017,1,1,12,0,0), datetime(2017,12,31,12,0,0))
-dtr['spring'] = (datetime(2017,3,1,12,0,0), datetime(2017,6,1,12,0,0))
-dtr['fall'] = (datetime(2017,9,1,12,0,0), datetime(2017,12,1,12,0,0))
 
 # get the DataFrame of all sections
 sect_df = tef_fun.get_sect_df()
@@ -57,10 +52,10 @@ if testing == True:
 else:
     sect_name_list = list(sect_df.index)
 
-for season in dtr.keys():
+for season in flux_fun.season_list:
     
-    dt0 = dtr[season][0]
-    dt1 = dtr[season][1]
+    dt0 = flux_fun.dtr[season][0]
+    dt1 = flux_fun.dtr[season][1]
     
     # initialize output DataFrame
     # naming convention part 1: q_, f_, s_ mean volume flux, salt flux, and salinity

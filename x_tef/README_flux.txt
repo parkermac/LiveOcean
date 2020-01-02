@@ -24,7 +24,10 @@ flux_fun.make_dist(x,y) makes vectors of distance along lon,lat vectors x,y
 Input: section "bulk" files like: LiveOcean_output/tef/[*]/bulk/[sect name].nc
 where [*] = cas6_v3_lo8b_2017.01.01_2017.12.31 e.g.
 
-Output: LiveOcean_output/tef/[*]/flux/two_layer_[season].p which is a pickled DataFrame whose index is the section names, and whose columns are: ['q_s', 'q_f', 'f_s', 'f_f', 's_s', 's_f', 'lon', 'lat'].  Here _s and _f indicate that the layer is salty or fresh.  Also we have organized all the fluxes to be positive Eastward or Northward.  The averaging is over three "seasons" being full=annual, spring=MAM, fall=SON.
+Output: LiveOcean_output/tef/[*]/flux/two_layer_[season].p which is a pickled DataFrame whose index is the section names, and whose columns are: ['q_s', 'q_f', 'f_s', 'f_f', 's_s', 's_f', 'lon', 'lat'].  Here _s and _f indicate that the layer is salty or fresh.  Also we have organized all the fluxes to be positive Eastward or Northward.  The averaging is over three "seasons" being:
+- full=annual
+- spring=MAM
+- fall=SON
 
 ------------------------------------------------------------------
 
@@ -33,6 +36,7 @@ Output: LiveOcean_output/tef/[*]/flux/two_layer_[season].p which is a pickled Da
 Input: LiveOcean_output/tef/[*]/flux/two_layer_[season].p
 
 Output: LiveOcean_output/tef/[*]/misc_figs/two_layer_[season].png
+
 ------------------------------------------------------------------
 
 * flux_get_vol.py gets the volume (with SSH = 0) of each segment.  Uses a cute "mine sweeper" like algorithm to find all the unmasked rho-grid cells on the grid between the sections that define a segment.
@@ -66,20 +70,18 @@ Output: LiveOcean_output/tef/[*]/misc_figs/seg_map_simple.png, a graphically app
 
 ------------------------------------------------------------------
 
-* flux_get_A.py is a central and complex part of the flux machinery.  Its job is to take the TEF transports created by flux_make_two_layer.py, and the river flowsm and turn them into efflux-reflux fractions used by the flux engine.
+* flux_get_A.py is a central and complex part of the flux machinery.  Its job is to take the TEF transports created by flux_make_two_layer.py, and the river flows and turn them into efflux-reflux fractions used by the flux engine.
 
-Input: LiveOcean_output/tef/[*]/flux/two_layer.p and...
+Input: LiveOcean_output/tef/[*]/flux/two_layer_[season].p and...
 	river flow extracted over the model year from the forcing (see x_river)
 	flux_fun.segs
 
-Output: LiveOcean_output/tef/[*]/flux/q_df.p a pickled DataFrame where the index is the segment list, but with separate salty and fresh entries, like J1_s and J1_f.  The columns are the same, but also there are four more columns at the start: 'ocean_s', 'ocean_f', 'river_s', 'river_f'. From the comments:
+Output: LiveOcean_output/tef/[*]/flux/q_df_[season].p a pickled DataFrame where the index is the segment list, but with separate salty and fresh entries, like J1_s and J1_f.  The columns are the same, but also there are four more columns at the start: 'ocean_s', 'ocean_f', 'river_s', 'river_f'. From the comments:
 # The way q_df is used in the flux_engine is that the row denotes where net transports are
 # ending up, and the columns denote where the transports are coming from.  Each entry in
 # q_df is a transport (m3/s).  Hence when we multiply a row by the tracer concentrations
 # in each segment and then sum along that row, we get the net flux of tracer into or out of
 # the segment specified by that row.
-
-NOTE: This assumes that the TEF transports have been averaged over a certain time period, typically a year, and this is done when we make two_layer.p.  But the averaging of river flow is done in this code, so you have to make sure that the averaging periods are the same.
 
 NOTE: Look deep in the code for methods of calculation, and hand adjustments to, the efflux-reflux coefficients.
 
@@ -87,20 +89,20 @@ NOTE: Look deep in the code for methods of calculation, and hand adjustments to,
 
 * flux_w_plot.py makes a plot of vertical velocity in all the segments.
 
-Input: volumes.p and q_df.p created above
+Input: volumes.p and q_df_[season].p created above
 
-Output:LiveOcean_output/tef/[*]/misc_figs/w_plot.png
+Output:LiveOcean_output/tef/[*]/misc_figs/w_plot_[season].png
 
 ------------------------------------------------------------------
 
 * *** flux_engine.py ***
 This is the main piece of code this whole efflux-reflux analysis has been driving toward.  It takes the transport matrix created by flux_get_A.py, and the volumes, and then uses them to do forward calculations of time-dependent tracer fields.  You can control the boundary conditions (where the tracer comes from), and whether it sinks - like organic particles, using command line arguments.
 
-Input: volumes.p and q_df.p created above
+Input: volumes.p and q_df_[season].p created above
 
 Output: indir = LiveOcean_output/tef/[*]/flux/
-	cc.to_pickle(indir + 'cc_' + source + sink_tag + '.p')
-	aa.to_pickle(indir + 'aa_' + source + sink_tag + '.p')
+    cc.to_pickle(indir + 'cc_' + source + '_' + season + sink_tag + '.p')
+    aa.to_pickle(indir + 'aa_' + source + '_' + season + sink_tag + '.p')
 	
 Here cc is a DataFrame, same index as q_df, and the columns 'c' and 'ca' are the final (after say 6 years) values of the tracer, and an aging tracer.
 
@@ -108,15 +110,27 @@ Also aa is a DataFrame of a full time-dependent array, which you could use to ca
 
 ------------------------------------------------------------------
 
-* flux_plot_validation.py makes a plot of the steady-state output of the flux engine for the case which is supposed to reproduce the ocean salinity.  This is the only way to test the flux engine and its efflux-reflux coefficients.  It compares the cc_ values to the two_layer.p TEF values.
+* flux_plot_validation.py makes a plot of the steady-state output of the flux engine for the case which is supposed to reproduce the ocean salinity.  This is the only way to test the flux engine and its efflux-reflux coefficients.  It compares the cc_ values to the two_layer_[season].p TEF values.
 
-Input: cc_ocean_salt.p (from flux_engine.py) and two_layer.p
+Input: cc_ocean_salt_[season].p (from flux_engine.py) and two_layer_[season].p
 
-Output: a plot
+Output:LiveOcean_output/tef/[*]/misc_figs/validation_plot_[season].png
+
+NOTE: This is probably only meaningful for the full annual average, because it finds an equilibrated solution.  The seasonal ones are during a time where the mean is changing.
 
 ------------------------------------------------------------------
 
 * flux_plot_cc.py makes a plot of tracer concentration and age from any instance of a cc_ file created by flux_engine.py.
+
+------------------------------------------------------------------
+
+* flux_plot_residence time.py makes a movie out of times saved in any instance of an aa_ file created by flux_engine.py.
+
+Input: any of the "ic" series of flux_engine calculations.
+
+Output: plots.
+
+NOTE: This is currently hardwired to only work with the Hood Canal initial condition.
 
 ------------------------------------------------------------------
 
