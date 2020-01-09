@@ -37,7 +37,7 @@ v_lp_df = pd.read_pickle(indir + 'daily_segment_volume.p')
 sv_lp_df = pd.read_pickle(indir + 'daily_segment_net_salt.p')
 
 # USER set which volume to consider
-which_vol = 'Hood Canal'
+which_vol = 'Salish Sea'
 if which_vol == 'Salish Sea':
     seg_list = list(v_lp_df.columns)
     sect_sign_dict = {'jdf1':1, 'sog5':-1}
@@ -117,7 +117,10 @@ v = v_lp_df[seg_list].sum(axis=1).values
 vol_df.loc[1:-1, 'dV_dt'] = (v[2:] - v[:-2]) / (2*86400)
 vol_df.loc[:,'dV_dt_check'] = vol_df.loc[:,'Qin'] - vol_df.loc[:,'-Qout'] + vol_df.loc[:,'Qr']
 vol_err = (vol_df['dV_dt'] - vol_df['dV_dt_check']).std()
-vol_rel_err = vol_err/vol_df['Qin'].mean()
+#vol_rel_err = vol_err/vol_df['Qin'].mean()
+
+# alternate calculation: mean error / mean Qr
+vol_rel_err = (vol_df['dV_dt'] - vol_df['dV_dt_check']).mean()/qr.mean()
 
 # salt budget
 salt_df = pd.DataFrame(index=sv_lp_df.index, columns=['QSin','-QSout','dSnet_dt','dSnet_dt_check'])
@@ -136,11 +139,11 @@ plt.close('all')
 fig = plt.figure(figsize=(14,7))
 
 ax = fig.add_subplot(121)
-salt_df.plot(ax=ax, grid=True, title=which_vol + ' Salt Budget (g/kg m3/s)')
-ax.text(.05,.9, 'Relative Error = %0.2f%%' % (salt_rel_err*100), transform=ax.transAxes, fontsize=14)
+salt_df.plot(ax=ax, grid=True, title=which_vol + ' Salt Budget (g/kg m3/s)').legend(loc='center')
+ax.text(.05,.9, 'RMSE / Mean QSin = %0.2f%%' % (salt_rel_err*100), transform=ax.transAxes, fontsize=14)
 
 ax = fig.add_subplot(122)
-vol_df.plot(ax=ax, grid=True, title='Volume Budget (m3/s)')
-ax.text(.05,.9, 'Relative Error = %0.2f%%' % (vol_rel_err*100), transform=ax.transAxes, fontsize=14)
+vol_df.plot(ax=ax, grid=True, title='Volume Budget (m3/s)').legend(loc='center')
+ax.text(.05,.9, 'Mean Error / Mean Qr = %0.2f%%' % (vol_rel_err*100), transform=ax.transAxes, fontsize=14)
 
 plt.show()

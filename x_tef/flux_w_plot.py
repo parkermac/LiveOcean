@@ -36,7 +36,7 @@ lw = 3
 fs = 16
 abc = 'abcd'
 
-for season in flux_fun.season_list:
+for season in ['full']: #flux_fun.season_list:
 
     # this is the big DataFrame created by flux_get_A.py
     q_df = pd.read_pickle(indir + 'q_df_' + season + '.p')
@@ -70,8 +70,8 @@ for season in flux_fun.season_list:
         # plotting
         ax.plot(dist, w_up*1e3,'-*r', linewidth=lw)
         ax.plot(dist, w_down*1e3,'-*b', linewidth=lw)
-        # for ii in range(len(dist)):
-        #     ax.text(dist[ii], w_up[ii]*1e3, seg_list[ii], color='r')
+        for ii in range(len(dist)):
+            ax.text(dist[ii], w_up[ii]*1e3, seg_list[ii], color='r')
 
         # formatting and labels
         if ax_counter == 1:
@@ -82,7 +82,8 @@ for season in flux_fun.season_list:
         
         if ax_counter == 2:
             ax.set_ylim(0,.8)
-            ax.text(.05,.3,'Note different\ny-scale',transform=ax.transAxes, fontsize=fs-2, style='italic')
+            ax.text(.05,.3,'Note different\ny-scale',transform=ax.transAxes,
+                fontsize=fs-2, style='italic')
         else:
             ax.set_ylim(0,.08)
     
@@ -92,8 +93,10 @@ for season in flux_fun.season_list:
             ax.set_xlabel('Distance along Channel (km)', fontsize=fs)
         
         if ax_counter == 4:
-            ax.text(.9,.2,'Upwards',color='r',fontweight='bold',transform=ax.transAxes, fontsize=fs, horizontalalignment='right')
-            ax.text(.9,.1,'Downwards',color='b',fontweight='bold',transform=ax.transAxes, fontsize=fs, horizontalalignment='right')
+            ax.text(.9,.2,'Upwards',color='r',fontweight='bold',
+                transform=ax.transAxes, fontsize=fs, horizontalalignment='right')
+            ax.text(.9,.1,'Downwards',color='b',fontweight='bold',
+                transform=ax.transAxes, fontsize=fs, horizontalalignment='right')
 
         if ch == 'Admiralty Inlet to South Sound':
             ch = 'Admiralty Inlet\nto South Sound'
@@ -106,6 +109,6 @@ for season in flux_fun.season_list:
 
     plt.show()
 
-    fig.savefig(outdir + 'w_plot_' + season + '.png')
+    #fig.savefig(outdir + 'w_plot_' + season + '.png')
 
 
