@@ -46,7 +46,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-g', '--gridname', nargs='?', type=str, default='cas6')
 parser.add_argument('-t', '--tag', nargs='?', type=str, default='v3')
 parser.add_argument('-x', '--ex_name', nargs='?', type=str, default='lo8b')
-parser.add_argument('-0', '--date_string0', nargs='?', type=str, default='2017.07.04')
+parser.add_argument('-0', '--date_string0', nargs='?', type=str, default='2019.07.04')
 parser.add_argument('-1', '--date_string1', nargs='?', type=str, default='')
 # arguments that allow you to bypass the interactive choices
 parser.add_argument('-hn', '--his_num', nargs='?', type=int, default=1)

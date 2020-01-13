@@ -43,10 +43,11 @@ seg_dict = flux_fun.short_seg_dict
 
 plt.close('all')
 
-for season in ['full']:#flux_fun.dtr.keys():
+for season in flux_fun.dtr.keys():
 
     df_dict = {}
     #for ch_str in ['Whidbey Basin']:
+    #for ch_str in ['Juan de Fuca to Strait of Georgia']:
     for ch_str in channel_list:
 
             # this is the big DataFrame created by flux_get_A.py
@@ -139,9 +140,12 @@ for season in ['full']:#flux_fun.dtr.keys():
                 i0, i1, fr = zfun.get_interpolant(np.array([0]), qnet_bb)
                 i0 = i0[0]
                 i1 = i1[0]
+                print('i0=%d, i1=%d, fr=%0.2f' % (i0, i1, fr))
                 
-                qnet[0:i0+1] = qnet_aa[0:i0+1]
-                qnet[i1:] = qnet_bb[i1:]
+                # qnet[0:i0+1] = qnet_aa[0:i0+1]
+                # qnet[i1:] = qnet_bb[i1:]
+                qnet[0:i0+1] = qnet_aa[0:i0+1] - (qnet_aa[i0] + fr*(qnet_aa[i1]-qnet_aa[i0]))
+                qnet[i1:] = qnet_bb[i1:] - (qnet_bb[i0] + fr*(qnet_bb[i1]-qnet_bb[i0]))
                 
                 # Now apply the same split to the other vectors
                 qnet_up_aa = np.append(qnet_up_a, 0)
@@ -192,7 +196,7 @@ for season in ['full']:#flux_fun.dtr.keys():
      'Hood Canal':10,
      'Whidbey Basin':10}
 
-    fig = plt.figure(figsize=(14,10))
+    fig = plt.figure(figsize=(11,8))
     fig.suptitle(season.title())
     ii = 1
     for ch_str in channel_dict:
@@ -200,20 +204,32 @@ for season in ['full']:#flux_fun.dtr.keys():
         df = df_dict[ch_str]
 
         ax = fig.add_subplot(3,4,ii)
-        df.plot(x='dist', y=['q_s', 'q_f', 'qnet_up', 'qnet_down', 'qnet'], grid=True, title=ch_str, ax=ax, ylim=(0,qlim_dict[ch_str]))
+        
+        if ii==1:
+            legend=True
+        else:
+            legend=False
+        df.plot(x='dist', y=['q_s', 'q_f', 'qnet_up', 'qnet_down'],#, 'qnet'],
+            grid=True, ax=ax, ylim=(0,qlim_dict[ch_str]), legend=legend)
+        ax.set_title(ch_str, fontsize=8)
         for sn in df.index:
-            ax.text(df.loc[sn,'dist'],df.loc[sn,'q_s'],sn)
+            ax.text(df.loc[sn,'dist'],df.loc[sn,'q_s'],sn, fontsize=6, alpha=.5,
+            horizontalalignment='center')
+        ax.set_xlabel('')
+        ax.set_xticklabels([])
 
         ax = fig.add_subplot(3,4,ii+4)
-        df.plot(x='dist', y=['s_s', 's_f'], grid=True, ax=ax, ylim=(22,34))
+        df.plot(x='dist', y=['s_s', 's_f'], grid=True, ax=ax, ylim=(22,34), legend=legend)
+        ax.set_xlabel('')
+        ax.set_xticklabels([])
 
         ax = fig.add_subplot(3,4,ii+8)
-        df.plot(x='dist', y=['qnet_r'], grid=True, ax=ax, ylim=(0,8))
+        df.plot(x='dist', y=['qnet_r'], grid=True, ax=ax, ylim=(0,8), legend=legend)
 
         ii += 1
 
     plt.show()
 
-    #fig.savefig(outdir + 'Q_up_down_' + season + '.png')
+    fig.savefig(outdir + 'Q_up_down_' + season + '.png')
 
     
