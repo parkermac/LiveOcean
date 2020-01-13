@@ -31,7 +31,7 @@ EX_NAME = Ldir['ex_name'].upper()
 roms_name = 'LO_ROMS'
 
 # account for differences when using biology
-do_bio = True
+do_bio = False
 
 multi_core = True # use more than one core
 
@@ -61,7 +61,7 @@ ndtfast = 20
     
 restart_nrrec = '-1' # '-1' for a non-crash restart file, otherwise '1' or '2'
 his_interval = 3600 # seconds to define and write to history files
-rst_interval = 10 # days between writing to the restart file (e.g. 5)
+rst_interval = 1 # days between writing to the restart file (e.g. 5)
 
 # which forcings to look for
 atm_dir = 'atm1/' # which atm forcing files to use
@@ -166,7 +166,9 @@ if Ldir['start_type'] == 'continuation':
     ini_fullname = out_dir0 + f_string_yesterday + '/' + ininame
 elif Ldir['start_type'] == 'new':
     nrrec = '0' # '0' for a history or ini file
-    ininame = 'ocean_ini' + bio_tag + '.nc' # could be an ini or history file
+    #ininame = 'ocean_ini' + bio_tag + '.nc' # could be an ini or history file
+    ininame = 'ocean_his_0025.nc' # for a hot restart
+    ini_fullname = out_dir0 + f_string_yesterday + '/' + ininame
     ini_fullname = force_dir + ocn_dir + ininame
 
 # END DERIVED VALUES
@@ -193,17 +195,17 @@ f2.close()
 
 ## npzd2o_Banas.in ###########
 
-f = open('npzd2o_Banas_BLANK.in','r')
-bio_dot_in_name = 'npzd2o_Banas.in'
-f3 = open(dot_in_dir + bio_dot_in_name,'w')
-in_varlist = ['force_dir','riv_dir','bio_tag']
-for line in f:
-    for var in in_varlist:
-        if '$'+var+'$' in line:
-            line2 = line.replace('$'+var+'$', str(eval(var)))
-            line = line2
-        else:
-            line2 = line
-    f3.write(line2)
-f.close()
-f3.close()
+# f = open('npzd2o_Banas_BLANK.in','r')
+# bio_dot_in_name = 'npzd2o_Banas.in'
+# f3 = open(dot_in_dir + bio_dot_in_name,'w')
+# in_varlist = ['force_dir','riv_dir','bio_tag']
+# for line in f:
+#     for var in in_varlist:
+#         if '$'+var+'$' in line:
+#             line2 = line.replace('$'+var+'$', str(eval(var)))
+#             line = line2
+#         else:
+#             line2 = line
+#     f3.write(line2)
+# f.close()
+# f3.close()
