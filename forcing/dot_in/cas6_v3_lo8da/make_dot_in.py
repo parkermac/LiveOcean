@@ -169,7 +169,7 @@ elif Ldir['start_type'] == 'new':
     #ininame = 'ocean_ini' + bio_tag + '.nc' # could be an ini or history file
     ininame = 'ocean_his_0025.nc' # for a hot restart
     ini_fullname = out_dir0 + f_string_yesterday + '/' + ininame
-    ini_fullname = force_dir + ocn_dir + ininame
+    #ini_fullname = force_dir + ocn_dir + ininame
 
 # END DERIVED VALUES
 
