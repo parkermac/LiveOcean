@@ -160,9 +160,9 @@ out_dir0 = roms_dir + 'output/' + gtagex + '/'
 out_dir = out_dir0 + f_string + '/'
 
 if Ldir['start_type'] == 'continuation':
-    nrrec = '0' # '-1' for a hot restart
-    #ininame = 'ocean_rst.nc' # for a hot perfect restart
-    ininame = 'ocean_his_0025.nc' # for a hot restart
+    nrrec = '0' # '-1' for a hot restart ???
+    ininame = 'ocean_rst.nc' # for a hot perfect restart
+    #ininame = 'ocean_his_0025.nc' # for a hot restart
     ini_fullname = out_dir0 + f_string_yesterday + '/' + ininame
 elif Ldir['start_type'] == 'new':
     nrrec = '0' # '0' for a history or ini file
