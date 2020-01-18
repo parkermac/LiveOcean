@@ -39,9 +39,18 @@ elif [ $HOME == "/home/parker" ] && [[ $HOSTNAME == *"fjord"* ]] ; then
   roms="/pmr1/parker/LiveOcean_roms/"
   which_matlab="/usr/local/bin/matlab"
     
-# ORIGINAL (and correct) boiler entry
 elif [ $HOME == "/home/parker" ] && [[ $HOSTNAME == *"boiler"* ]] ; then
   lo_env='pm_boiler'
+  parent="/data1/parker/"
+  LO=$parent"LiveOcean/"
+  data="/fjdata1/parker/LiveOcean_data/"
+  LOo=$parent"LiveOcean_output/"
+  roms=$parent"LiveOcean_roms/"
+  roms2="/pmr1/parker/LiveOcean_roms/"
+  which_matlab="/usr/local/bin/matlab"
+  
+elif [ $HOME == "/home/parker" ] && [[ $HOSTNAME == *"perigee"* ]] ; then
+  lo_env='pm_perigee'
   parent="/data1/parker/"
   LO=$parent"LiveOcean/"
   data="/fjdata1/parker/LiveOcean_data/"
