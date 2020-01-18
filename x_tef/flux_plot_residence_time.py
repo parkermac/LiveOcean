@@ -28,7 +28,7 @@ indir = indir0 + item + '/flux/'
 outdir = indir0 + item + '/misc_figs/'
 
 plt.close('all')
-for season in flux_fun.season_list:
+for season in ['full']:#flux_fun.season_list:
     
     # load the DataFrame of time series results of flux_engine.py
     # infile = Lfun.choose_item(indir, tag='aa_', itext='Choose flux engine output file:')
@@ -36,7 +36,9 @@ for season in flux_fun.season_list:
     #     print('Please choose a file from an "ic_" experiment.')
     #     sys.exit()
 
-    infile = 'aa_ic_hood_canal_' + season + '.p'
+    infile = Lfun.choose_item(indir, tag='aa_ic')
+    
+    #infile = 'aa_ic_hood_canal_' + season + '.p'
 
     aa = pd.read_pickle(indir + infile)
 
@@ -53,7 +55,7 @@ for season in flux_fun.season_list:
 
     # make a time series of average tracer in the volume defined
     # by the segments of this experiment
-    if 'ic_hood_canal' in infile:
+    if 'hood_canal' in infile:
         this_seg_list_s = ['H'+ str(item) + '_s' for item in range(3,9)]
         this_seg_list_f = ['H'+ str(item) + '_f' for item in range(3,9)]
         this_seg_list = this_seg_list_s + this_seg_list_f

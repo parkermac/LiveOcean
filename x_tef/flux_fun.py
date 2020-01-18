@@ -11,6 +11,13 @@ dtr['full'] = (datetime(2017,1,1,12,0,0), datetime(2017,12,31,12,0,0))
 dtr['spring'] = (datetime(2017,3,1,12,0,0), datetime(2017,6,1,12,0,0))
 dtr['fall'] = (datetime(2017,9,1,12,0,0), datetime(2017,12,1,12,0,0))
 
+# lists of bins to use for "initial condition" experiments in the flux_engine
+bins_dict = {'hood_canal_inner': ['H'+str(n)+'_s' for n in range(3,9)]
+                                + ['H'+str(n)+'_f' for n in range(3,9)],
+            'hood_canal': ['H'+str(n)+'_s' for n in range(1,9)]
+                                            + ['H'+str(n)+'_f' for n in range(1,9)],
+                            }
+
 season_list = list(dtr.keys())
 
 # segment definitions, assembled by looking at the figures
