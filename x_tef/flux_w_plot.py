@@ -24,6 +24,11 @@ indir0 = Ldir['LOo'] + 'tef/'
 item = Lfun.choose_item(indir0)
 indir = indir0 + item + '/flux/'
 
+# hacky way of getting the year, assumes "item" is of the form:
+# 'cas6_v3_lo8b_2017.01.01_2017.12.31'
+year_str = item.split('_')[-1].split('.')[0]
+year = int(year_str)
+
 outdir = indir0 + item + '/misc_figs/'
 
 # load a Series of the volumes of each segment, created by flux_get_vol.py
@@ -36,7 +41,7 @@ lw = 3
 fs = 16
 abc = 'abcd'
 
-for season in ['full']: #flux_fun.season_list:
+for season in flux_fun.season_list:
 
     # this is the big DataFrame created by flux_get_A.py
     q_df = pd.read_pickle(indir + 'q_df_' + season + '.p')
@@ -76,7 +81,7 @@ for season in ['full']: #flux_fun.season_list:
         # formatting and labels
         if ax_counter == 1:
             ax.set_xlim(-10,410)
-            ax.set_title(season.title(), fontsize=fs)
+            ax.set_title(season.title() + ' ' + year_str, fontsize=fs)
         else:
             ax.set_xlim(-10,180)
         
@@ -109,6 +114,6 @@ for season in ['full']: #flux_fun.season_list:
 
     plt.show()
 
-    #fig.savefig(outdir + 'w_plot_' + season + '.png')
+    fig.savefig(outdir + 'w_plot_' + season + '.png')
 
 

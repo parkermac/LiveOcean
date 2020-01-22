@@ -164,5 +164,11 @@ def get_sta_dict(job_name):
         v3_list_rho = ['rho', 'u', 'v','salt','temp']
         v3_list_w = []
         
+    elif job_name = 'pm_hc_exploration': # for the LiveOcean paper 2020_01
+        sta_dict = {
+        'HCB003': (-123.0096, 47.5379),
+        'HCB010': (-122.8200, 47.6700)
+        }
+        
         
     return sta_dict, v2_list, v3_list_rho, v3_list_w

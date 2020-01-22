@@ -125,7 +125,8 @@ for season in flux_fun.season_list:
         ax1.set_ylim(0, 170)
         ax1.grid(True)
         ax1.set_ylabel('Qin and Qout (1000 m3/s)', fontsize=fs)
-        ax1.set_title(season.title(), fontsize=fs)
+        year_str = indir.split('/')[-3].split('_')[-1].split('.')[0] # brittle!
+        ax1.set_title(season.title() + ' ' + year_str, fontsize=fs)
 
         counter = 0
         for sn in sect_list:
@@ -135,7 +136,7 @@ for season in flux_fun.season_list:
         
         ax2.fill_between(dist, s_s, y2=s_f, color=lcol, alpha=.5)
         ax2.set_xlim(-5,distmax)
-        ax2.set_ylim(21.8,33.2)
+        ax2.set_ylim(21.8,33.5)
         ax2.grid(True)
         ax2.set_xlabel('Distance from Mouth (km)', fontsize=fs)
         ax2.set_ylabel('Salinity', fontsize=fs)

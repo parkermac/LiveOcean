@@ -26,6 +26,9 @@ import pfun
 import tef_fun
 import flux_fun
 
+from importlib import reload
+reload(flux_fun)
+
 def boolean_string(s):
     if s not in ['False', 'True']:
         raise ValueError('Not a valid boolean string')
@@ -55,7 +58,8 @@ print('Running integration with source = ' + source)
 # - river_skagit
 #
 # Initial condition, dye concentration = 1 in a basin
-# - ic_hood_canal
+# - ic_hood_canal_inner
+# - MORE: see flux_fun.ic_seg2_dict
 #
 
 # Input directory
@@ -63,22 +67,30 @@ indir0 = Ldir['LOo'] + 'tef/'
 item = Lfun.choose_item(indir0)
 indir = indir0 + item + '/flux/'
 
+# hacky way of getting the year, assumes "item" is of the form:
+# 'cas6_v3_lo8b_2017.01.01_2017.12.31'
+year_str = item.split('_')[-1].split('.')[0]
+year = int(year_str)
+
+# set ocean salinity BC by year
+if year == 2017:
+    os_jdf = 33.1; os_sog = 30.5
+elif year == 2018:
+    os_jdf = 33.18; os_sog = 30.8
+elif year == 2019:
+    os_jdf = 33.34; os_sog = 31.0
+
 plt.close('all')
 
 # loop over all seasons
-for season in ['full']: #flux_fun.season_list:
+for season in flux_fun.season_list:
     
     print('===== ' + season + ' =====')
 
     # load DateFrames of transport and volume
     q_df = pd.read_pickle(indir + 'q_df_' + season + '.p')
     v_df = pd.read_pickle(indir + 'volumes.p')
-
-    # create Series of two-layer volumes
-    V = pd.Series(index=q_df.index)
-    for seg_name in v_df.index:
-        V[seg_name+'_s'] = 0.8 * v_df.loc[seg_name,'volume m3']
-        V[seg_name+'_f'] = 0.2 * v_df.loc[seg_name,'volume m3']
+    V = flux_fun.get_V(v_df)
     
     # "f" is a DataFrame organized like q_df but whose entries
     # are the forced values of the tracer
@@ -89,14 +101,14 @@ for season in ['full']: #flux_fun.season_list:
     for seg_name in f.index:
         if source == 'ocean_salt':
             if 'J1' in seg_name:
-                f.loc[seg_name,'ocean_s'] = 33.1
+                f.loc[seg_name,'ocean_s'] = os_jdf
             elif 'G6' in seg_name:
-                f.loc[seg_name,'ocean_s'] = 30.5
+                f.loc[seg_name,'ocean_s'] = os_sog
         elif source == 'ocean':
             if 'J1' in seg_name:
                 f.loc[seg_name,'ocean_s'] = 1
             elif 'G6' in seg_name:
-                f.loc[seg_name,'ocean_s'] = 30.5/33.1
+                f.loc[seg_name,'ocean_s'] = os_sog/os_jdf
         elif source == 'river_fraser':
             if 'G3' in seg_name:
                 f.loc[seg_name,'river_f'] = 1
@@ -125,13 +137,15 @@ for season in ['full']: #flux_fun.season_list:
         ff[:,3] = f.loc[:,'river_f'].values # column 3 is the river inflow
     
     if 'ic' in source:
+        seg2_list = flux_fun.ic_seg2_dict[source]
         for seg_name in f.index:
-            if source in ['ic_hood_canal', 'ic0_hood_canal']:
-                this_seg_list = ['H'+ str(item) for item in range(3,9)]
-                if seg_name[:2] in this_seg_list:
-                    jj = int(np.argwhere(f.index==seg_name))
-                    ff[jj,jj+4] = 1
-                    c[jj] = 1
+            if seg_name in seg2_list:
+            # if source in ['ic_hood_canal', 'ic_hood_canal']:
+            #     this_seg_list = ['H'+ str(item) for item in range(3,9)]
+            #     if seg_name[:2] in this_seg_list:
+                jj = int(np.argwhere(f.index==seg_name))
+                ff[jj,jj+4] = 1
+                c[jj] = 1
 
     dt = 3600 #3e3 # time step (seconds)
     nyears = 6
@@ -172,23 +186,24 @@ for season in ['full']: #flux_fun.season_list:
         # here we are updating the concentration array in the segment bins
         # but not in the ocean and river bins
         
+        # NOTE: do this with a flag on the command line instead of ic0 name?
         # here is where will intervene to do a different sort of "ic" experiment
         # to zero-out all concentrations outside of the release bins
-        bin_list = []
-        if 'ic0' in source:
-            for seg_name in this_seg_list:
-                bin_list.append(seg_name + '_s')
-                bin_list.append(seg_name + '_f')
-            bin_list_full = list(q_df.index)
-            ic_filter = np.zeros(NR)
-            # this is a filter of zeros except it it ones where we set the IC
-            for bin in bin_list_full:
-                if bin in bin_list:
-                    ibin = bin_list_full.index(bin)
-                    ic_filter[ibin] = 1
-            # and finally we zero out all the concentrations outside of the IC region
-            ff[:,4:] = np.tile(ic_filter*c,(NR,1))
-            # this overrides the update above
+        # bin_list = []
+        # if 'ic0' in source:
+        #     for seg_name in this_seg_list:
+        #         bin_list.append(seg_name + '_s')
+        #         bin_list.append(seg_name + '_f')
+        #     bin_list_full = list(q_df.index)
+        #     ic_filter = np.zeros(NR)
+        #     # this is a filter of zeros except it it ones where we set the IC
+        #     for bin in bin_list_full:
+        #         if bin in bin_list:
+        #             ibin = bin_list_full.index(bin)
+        #             ic_filter[ibin] = 1
+        #     # and finally we zero out all the concentrations outside of the IC region
+        #     ff[:,4:] = np.tile(ic_filter*c,(NR,1))
+        #     # this overrides the update above
             
         
         # similar calculations to the above but with a tracer that increases
@@ -208,7 +223,7 @@ for season in ['full']: #flux_fun.season_list:
 
     # create and fill the output DataFrame
     #
-    # this one is just the final state
+    # this one is just the final state (useful for age)
     cc = pd.DataFrame(index=q_df.index,columns=['c', 'ca'])
     cc['c'] = c
     cc['ca'] = ca

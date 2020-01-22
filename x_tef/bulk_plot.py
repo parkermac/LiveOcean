@@ -22,13 +22,19 @@ sect_df = tef_fun.get_sect_df()
 from warnings import filterwarnings
 filterwarnings('ignore') # skip some warning messages
 
-year = 2017
+#year = 2017
 
 # choose input and organize output
 Ldir = Lfun.Lstart()
 indir0 = Ldir['LOo'] + 'tef/'
 # choose the tef extraction to process
 item = Lfun.choose_item(indir0)
+
+# hacky way of getting the year, assumes "item" is of the form:
+# 'cas6_v3_lo8b_2017.01.01_2017.12.31'
+year_str = item.split('_')[-1].split('.')[0]
+year = int(year_str)
+
 indir0 = indir0 + item + '/'
 indir = indir0 + 'bulk/'
 sect_list_raw = os.listdir(indir)
@@ -121,7 +127,7 @@ for snp in sect_list:
     import pandas as pd
     td_list = []
     for t in td:
-        td_list.append(datetime(2017,1,1,0,0,0) + timedelta(days=t))
+        td_list.append(datetime(year,1,1,0,0,0) + timedelta(days=t))
     tef_df = pd.DataFrame(index=td_list, columns=['Qin','Qout','Sin','Sout'])
     tef_df.loc[:,'Qin']=Qin
     tef_df.loc[:,'Qout']=Qout
@@ -198,7 +204,7 @@ for snp in sect_list:
     ax = fig.add_subplot(3,3,2)
     ax.plot(td, fnet/1e9, '-g', linewidth=2)
     ax.set_ylabel('Energy Flux (GW)')
-    ax.set_ylim(bottom=0)
+    #ax.set_ylim(bottom=0)
     ax.set_xlim(0,366)
     
     # Surface height

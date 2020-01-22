@@ -124,11 +124,11 @@ NOTE: This is probably only meaningful for the full annual average, because it f
 
 ------------------------------------------------------------------
 
-* flux_plot_residence time.py makes a movie out of times saved in any instance of an aa_ file created by flux_engine.py.
+* flux_residence time.py makes a movie out of times saved in any instance of an aa_ file created by flux_engine.py.
 
 Input: any of the "ic" series of flux_engine calculations.
 
-Output: plots.
+Output: screen output of the residence time.
 
 NOTE: This is currently hardwired to only work with the Hood Canal initial condition.
 

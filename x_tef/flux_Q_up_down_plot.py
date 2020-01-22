@@ -27,6 +27,11 @@ indir0 = Ldir['LOo'] + 'tef/'
 item = Lfun.choose_item(indir0)
 indir = indir0 + item + '/flux/'
 
+# hacky way of getting the year, assumes "item" is of the form:
+# 'cas6_v3_lo8b_2017.01.01_2017.12.31'
+year_str = item.split('_')[-1].split('.')[0]
+year = int(year_str)
+
 outdir = indir0 + item + '/misc_figs/'
 
 # load a Series of the volumes of each segment, created by flux_get_vol.py
@@ -43,7 +48,7 @@ seg_dict = flux_fun.short_seg_dict
 
 plt.close('all')
 
-for season in flux_fun.dtr.keys():
+for season in flux_fun.season_list:
 
     df_dict = {}
     #for ch_str in ['Whidbey Basin']:
@@ -197,7 +202,7 @@ for season in flux_fun.dtr.keys():
      'Whidbey Basin':10}
 
     fig = plt.figure(figsize=(11,8))
-    fig.suptitle(season.title())
+    fig.suptitle(season.title() + ' ' + year_str)
     ii = 1
     for ch_str in channel_dict:
 

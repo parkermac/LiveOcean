@@ -23,10 +23,15 @@ indir0 = Ldir['LOo'] + 'tef/'
 item = Lfun.choose_item(indir0)
 indir = indir0 + item + '/flux/'
 
+# hacky way of getting the year, assumes "item" is of the form:
+# 'cas6_v3_lo8b_2017.01.01_2017.12.31'
+year_str = item.split('_')[-1].split('.')[0]
+year = int(year_str)
+
 outdir = indir0 + item + '/misc_figs/'
 
 plt.close('all')
-for season in flux_fun.season_list:
+for season in ['full']: # this is only valid for the full year - seasons are not in equilibrium
     
     # load the DataFrame of TEF transports and salinities, created by flux_make_two_layer.py
     df_2 = pd.read_pickle(indir + 'two_layer_' + season + '.p')
@@ -52,7 +57,7 @@ for season in flux_fun.season_list:
     
         if ax_counter == 1:
             ax = fig.add_subplot(2,1,ax_counter)
-            ax.set_title(season.title())
+            ax.set_title(season.title() + ' ' + year_str)
         else:
             ax = fig.add_subplot(2,3,ax_counter+2)
         
@@ -118,11 +123,11 @@ for season in flux_fun.season_list:
             if ax_counter == 1:
                 ax.set_ylim(27,34)
             elif ax_counter == 2:
-                ax.set_ylim(27,32)
+                ax.set_ylim(27,32.5)
             elif ax_counter == 3:
-                ax.set_ylim(24,32)
+                ax.set_ylim(24,32.5)
             elif ax_counter == 4:
-                ax.set_ylim(22,32)
+                ax.set_ylim(22,32.5)
             
         else:
             # plots of sbar and sprime

@@ -30,20 +30,28 @@ indir0 = Ldir['LOo'] + 'tef/'
 item = Lfun.choose_item(indir0)
 indir = indir0 + item + '/'
 
+# hacky way of getting the year, assumes "item" is of the form:
+# 'cas6_v3_lo8b_2017.01.01_2017.12.31'
+year_str = item.split('_')[-1].split('.')[0]
+year = int(year_str)
+
+# get desired time ranges of the seasons
+dtr = flux_fun.get_dtr(year)
+
 for season in flux_fun.season_list:
+    
+    print(season)
     
     df = pd.read_pickle(indir + 'flux/two_layer_' + season + '.p')
 
     # Get river flow from the model run, and average over a specified time range.
-    fnr = Ldir['gtag'] + '_2017.01.01_2018.12.31.p'
+    fnr = Ldir['gtag'] + '_' + year_str + '.01.01_' + year_str + '.12.31.p'
     fn = Ldir['LOo'] + 'river/' + fnr
     dfr = pd.read_pickle(fn)
-    
-    dt0 = flux_fun.dtr[season][0] - timedelta(days=.5)
-    dt1 = flux_fun.dtr[season][1] - timedelta(days=.5)
-    
-    # dt0 = datetime(2017,1,1)
-    # dt1 = datetime(2017,12,31)
+
+    dt0 = dtr[season][0] - timedelta(days=.5)
+    dt1 = dtr[season][1] - timedelta(days=.5)
+
     dfrr = dfr.loc[dt0:dt1,:]
     rmean = dfrr.mean() # a series of mean river transports
 
@@ -81,16 +89,16 @@ for season in flux_fun.season_list:
     # the segment specified by that row.
 
     for seg_name in seg_name_list:
-    
+
         if verbose:
             print('\n' + seg_name + ':')
-    
+
         seg = segs[seg_name]
         # seg is a dictionary with info on which TEF sections are on
         # each boundary, and which rivers enter the segment,
         # e.g. segs['J1'] returns:
         # {'S': [], 'N': [], 'W': ['jdf1'], 'E': ['jdf2'], 'R': ['sanjuan', 'hoko']}
-    
+
         # initialize a flag to tell if the segment has river(s)
         has_riv = False
 
@@ -101,7 +109,7 @@ for season in flux_fun.season_list:
             N += len(sect_list) # count up the TEF sections
         if len(seg['R']) > 0:
             N += 1 # the sum of all rivers counts as a single section
-        
+
         # initialize result arrays
         # - inflows
         q = np.nan * np.ones(N)
@@ -113,15 +121,15 @@ for season in flux_fun.season_list:
         Qf = np.zeros(N)
         F = np.nan * np.ones(N)
         S = np.nan * np.ones(N)
-    
+
         # initialize a list of whether inflow is salt or fresh
         q_sal = list(N*'x')
         # initialize a list of whether outflow is salt or fresh
         Q_sal = list(N*'x')
-    
+
         # initialize a list of section names (snl = "section name list")
         snl = list(N*'x') # the 'x' is just a placeholder
-    
+
         # Initialize arrays.
         #
         # Note that the TEF transports in "df" have been pre-processed
@@ -201,10 +209,10 @@ for season in flux_fun.season_list:
                         print(' - has rivers')
                         print('   ' + str(sect_list))
                         print('   Qr = ' + str(int(Qr)))
-    
+
         if verbose:
             print(' - snl = ' + str(snl))
-        
+
         # make adjustments to enforce volume and salt conservation
         dq = q.sum() - Q.sum()
         dqs = f.sum() - F.sum()
@@ -227,7 +235,7 @@ for season in flux_fun.season_list:
             S[:-1] = F[:-1]/Q[:-1]
         else:
             S = F/Q
-        if verbose:    
+        if verbose:
             print(' - Volume Flux adjustment = %0.5f' % (dq/Q.sum()))
             print(' -   Salt Flux adjustment = %0.5f' % (dqs/F.sum()))
 
@@ -236,7 +244,7 @@ for season in flux_fun.season_list:
         # where x is the vector of exchange fractions we are solving for,
         # C is the matrix of incoming fluxes,
         # and y is the vector of outgoing fluxes
-    
+
         def get_A(N, q, Q, f, F, y, A):
             # fill the elements of y:
             for rr in range(N):
@@ -251,10 +259,10 @@ for season in flux_fun.season_list:
             else:
                 A[:] = x.reshape((N,N), order='F')
             return A
-    
+
         if N == 1: # H8 case, only a single section, no rivers
             A = np.array([0], ndmin=2)
-        
+
         else:
             # initialize the system matrices
             C = np.zeros((2*N, 2*N))
@@ -264,12 +272,12 @@ for season in flux_fun.season_list:
             # A is a matrix form of the elements in x, organized as
             # A[incoming section number, outgoing section number], and
             # the vector x is A[:2,:].flatten(order='F')
-    
+
             # fill the elements of C
             Cqf = np.array([ [q[0],q[1]],[f[0],f[1]] ])
             for ii in range(N):
                 C[2*ii:2*ii+2, 2*ii:2*ii+2] = Cqf
-        
+
             # make guesses for A
             for cc in range(N):
                 A[:N-1,cc] = Q[cc]/Q.sum()
@@ -277,9 +285,9 @@ for season in flux_fun.season_list:
                     A[-1,cc] = Qf[cc]/Qf.sum()
                 else:
                     A[-1,cc] = Q[cc]/Q.sum()
-        
+
             yorig = y.copy()
-        
+
             def get_Atyp(N, has_riv):
                 # generate a reasonable guess for cases where we have no
                 # consistemt solutions
@@ -291,7 +299,7 @@ for season in flux_fun.season_list:
                 if has_riv:
                     Atyp[:,-1] = 0
                 return Atyp
-            
+
             if (N == 3):# and has_riv:
                 # iterative method to scan over all possible river distributions
                 # (or section 3 distributions in the case of M4)
@@ -303,7 +311,7 @@ for season in flux_fun.season_list:
                     A[-1,:] = np.array([a20, 1-a20, 0])
                     AA[count,:,:] = get_A(N, q, Q, f, F, yorig, A)
                     count += 1
-                
+
                 good_guess = []
                 for gg in range(NN):
                     if (AA[gg,:,:]>=0).all():
@@ -316,7 +324,7 @@ for season in flux_fun.season_list:
                     A = get_Atyp(N, has_riv)
             else:
                 A = get_A(N, q, Q, f, F, yorig, A)
-        
+
             if (N == 2) and (not has_riv):
                 # check for bad solutions and force them to have set mixing
                 if (A < 0).any():
@@ -326,10 +334,10 @@ for season in flux_fun.season_list:
                         np.set_printoptions(precision=3, suppress=True)
                         print(A)
                     A = get_Atyp(N, has_riv)
-                
+
             if (N == 2) and has_riv:
                 A = np.array([[0,0],[1,0]])
-            
+
         # hand overrides
         if False:
             print('   ** eye override **')
@@ -340,11 +348,11 @@ for season in flux_fun.season_list:
         elif False and seg_name=='J4':
             print('   ** J4 override **')
             A[2,2] = .4
-        elif True and seg_name=='A1':
+        elif False and seg_name=='A1':
             print('   ** A1 override **')
             A[0,0] = .1
             A[1,1] = .6
-            # RESULT: this really helps! 2091.10.29
+            # RESULT: this really helps! 2019.10.29
             # A[0,0] = .1
             # A[1,1] = .6
         elif False:
@@ -360,9 +368,9 @@ for season in flux_fun.season_list:
                 Amean = Atemp.sum()/N
                 for ii in range(N):
                     A[ii,ii] = Amean
-    
+
         # *****************************************************************
-        
+
         # store results in the DataFrame of fluxes used for the flux engine
         def update_q(q_df, q_sal, seg_name, Seg_name, q, Q, sss):
             # transport in from adjoining segment
@@ -380,7 +388,7 @@ for season in flux_fun.season_list:
             elif Q_sal[sss] == 'f':
                 q_df.loc[seg_name+'_f',seg_name+'_f'] -= Q[sss]
             return q_df
-        
+
         sss = 0
         for sect in snl:
             if (seg_name=='J1' and sect=='jdf1') or (seg_name=='G6' and sect=='sog5'):
@@ -401,7 +409,7 @@ for season in flux_fun.season_list:
                                 print(' -- Adjoining segment = ' + Seg_name + ' for ' + sect)
                             q_df = update_q(q_df, q_sal, seg_name, Seg_name, q, Q, sss)
             sss += 1
-        
+
         # add net vertical advection in the section (required for W4)
         qx_s = q_df.loc[seg_name+'_s'].sum() # this use of .loc returns a series
         qx_f = q_df.loc[seg_name+'_f'].sum()
@@ -420,14 +428,14 @@ for season in flux_fun.season_list:
         qx_f = q_df.loc[seg_name+'_f'].sum()
         if np.abs(qx_s + qx_f) > 1:
             print('   @@@@@@@@@@@@ qx warning @@@@@@@@@@@@@@@')
-    
+
         if verbose:
             print(' - Solution matrix A:')
             np.set_printoptions(precision=3, suppress=True)
             print(A)
             print(' - q_sal = ' + str(q_sal))
             print('')
-        
+
     if not testing:
         # save results
         q_df.to_pickle(indir + 'flux/q_df_' + season + '.p')

@@ -4,21 +4,35 @@ Varibles and functions used by the "flux" code.
 import numpy as np
 from datetime import datetime, timedelta
 import zfun # path provided by calling code
+import pandas as pd
 
 # desired time ranges, the "seasons"
-dtr = {}
-dtr['full'] = (datetime(2017,1,1,12,0,0), datetime(2017,12,31,12,0,0))
-dtr['spring'] = (datetime(2017,3,1,12,0,0), datetime(2017,6,1,12,0,0))
-dtr['fall'] = (datetime(2017,9,1,12,0,0), datetime(2017,12,1,12,0,0))
+def get_dtr(year):
+    dtr = {}
+    dtr['full'] = (datetime(year,1,1,12,0,0), datetime(year,12,31,12,0,0))
+    dtr['spring'] = (datetime(year,3,1,12,0,0), datetime(year,6,1,12,0,0))
+    dtr['fall'] = (datetime(year,9,1,12,0,0), datetime(year,12,1,12,0,0))
+    return dtr
 
-# lists of bins to use for "initial condition" experiments in the flux_engine
-bins_dict = {'hood_canal_inner': ['H'+str(n)+'_s' for n in range(3,9)]
-                                + ['H'+str(n)+'_f' for n in range(3,9)],
-            'hood_canal': ['H'+str(n)+'_s' for n in range(1,9)]
-                                            + ['H'+str(n)+'_f' for n in range(1,9)],
+# Lists of 2-layer segments to use for "initial condition" experiments in the flux_engine.
+# The keys should match up with "src" values in flux_engine.py.
+ic_seg2_dict = {'ic_hood_canal_inner': ['H'+str(n)+'_s' for n in range(3,9)]
+                                  + ['H'+str(n)+'_f' for n in range(3,9)],
+            'ic_hood_canal': ['H'+str(n)+'_s' for n in range(1,9)]
+                        + ['H'+str(n)+'_f' for n in range(1,9)],
+            'ic_south_sound': ['S'+str(n)+'_s' for n in range(1,5)]
+                        + ['S'+str(n)+'_f' for n in range(1,5)],
                             }
+                            
+season_list = list(get_dtr(2017).keys())
 
-season_list = list(dtr.keys())
+# create Series of two-layer volumes
+def get_V(v_df):
+    V = pd.Series()
+    for seg_name in v_df.index:
+        V[seg_name+'_s'] = 0.8 * v_df.loc[seg_name,'volume m3']
+        V[seg_name+'_f'] = 0.2 * v_df.loc[seg_name,'volume m3']
+    return V
 
 # segment definitions, assembled by looking at the figures
 # created by plot_thalweg_mean.py
