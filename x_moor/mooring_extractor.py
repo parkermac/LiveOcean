@@ -45,11 +45,11 @@ reload(ml)
 import argparse
 parser = argparse.ArgumentParser()
 # standard arguments
-parser.add_argument('-g', '--gridname', nargs='?', type=str, default='cas4')
-parser.add_argument('-t', '--tag', nargs='?', type=str, default='v2')
-parser.add_argument('-x', '--ex_name', nargs='?', type=str, default='lo6biom')
-parser.add_argument('-0', '--date_string0', nargs='?', type=str, default='2017.07.20')
-parser.add_argument('-1', '--date_string1', nargs='?', type=str, default='2017.07.22')
+parser.add_argument('-g', '--gridname', nargs='?', type=str, default='cas6')
+parser.add_argument('-t', '--tag', nargs='?', type=str, default='v3')
+parser.add_argument('-x', '--ex_name', nargs='?', type=str, default='lo8b')
+parser.add_argument('-0', '--date_string0', nargs='?', type=str, default='2019.07.04')
+parser.add_argument('-1', '--date_string1', nargs='?', type=str, default='2019.07.05')
 parser.add_argument('-lt', '--list_type', nargs='?', type=str, default='hourly')
 # see alpha/Lfun.get_fn_list() for acceptable list_type values
 
