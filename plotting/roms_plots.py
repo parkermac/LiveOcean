@@ -256,6 +256,59 @@ def P_color(in_dict):
         plt.close()
     else:
         plt.show()
+        
+def P_barber(in_dict):
+    # N. Puget Sound Focus for Julie Barber, eventually with particle tracks.
+
+    # START
+    fig = plt.figure(figsize=(14,10)) # or pinfo.figsize for default
+    ds = nc.Dataset(in_dict['fn'])
+    
+    # PLOT CODE
+    vn_list = ['salt', 'temp']
+    aa = [-123.7, -122.1, 47.3, 49.3]
+    ii = 1
+    for vn in vn_list:
+        
+        # things about color limits
+        if in_dict['auto_vlims']:
+            pinfo.vlims_dict[vn] = ()
+        if vn == 'salt':
+            vlims_fac=1
+        elif vn == 'temp':
+            vlims_fac=2.5
+        
+        ax = fig.add_subplot(1, len(vn_list), ii)
+        cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict,
+                cmap=pinfo.cmap_dict[vn], fac=pinfo.fac_dict[vn],
+                aa=aa, vlims_fac=vlims_fac)
+                
+        # Inset colorbar
+        from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+        cbaxes = inset_axes(ax, width="4%", height="40%", loc=1, borderpad=2.5) 
+        fig.colorbar(cs, cax=cbaxes, orientation='vertical')
+        
+        pfun.add_coast(ax)
+        ax.axis(aa)
+        pfun.dar(ax)
+        ax.set_title('Surface %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
+        ax.set_xlabel('Longitude')
+        if ii == 1:
+            ax.set_ylabel('Latitude')
+            pfun.add_info(ax, in_dict['fn'])
+        elif ii == 2:
+            ax.set_yticklabels('')
+            pfun.add_windstress_flower(ax, ds, t_scl=1, t_leglen=0.1, center=(0.2, 0.3), fs=12)
+        ii += 1
+    fig.tight_layout()
+    
+    # FINISH
+    ds.close()
+    if len(in_dict['fn_out']) > 0:
+        plt.savefig(in_dict['fn_out'])
+        plt.close()
+    else:
+        plt.show()
 
 def P_3day(in_dict):
     # Makes a plot like the Chesapeake Hypoxia Forecast Page
@@ -3065,6 +3118,181 @@ def P_tracks_ps(in_dict):
 
     #
     fig.tight_layout()
+
+    # FINISH
+    ds.close()
+    if len(in_dict['fn_out']) > 0:
+        plt.savefig(in_dict['fn_out'])
+        plt.close()
+    else:
+        plt.show()
+        
+        
+def P_tracks_barber(in_dict):
+    # Use trackfun to create surface drifter tracks for Puget Sound.
+    # It automatically makes tracks for as long as there are
+    # hours in the folder.
+    #
+    # NOTE: this is the first particle tracking plotting code to use
+    # the new, faster tracker2.
+    
+    # NOTE: use List type = merhab
+    
+    # START
+    fig = plt.figure(figsize=(16,12))#(10,12))
+
+    # TRACKS
+    import os
+    import sys
+    pth = os.path.abspath('../tracker2')
+    if pth not in sys.path:
+        sys.path.append(pth)
+    import trackfun as tf1#trackfun_1 as tf1
+    import pickle
+    fn = in_dict['fn']
+    gtagex = fn.split('/')[-3]
+    gtx_list = gtagex.split('_')
+    import Lfun
+    Ldir = Lfun.Lstart(gtx_list[0], gtx_list[1])
+    # make a list of history files in this folder,
+    in_dir = fn[:fn.rindex('/')+1]
+    fn_list_raw = os.listdir(in_dir)
+    fn_list = []
+    for item in fn_list_raw:
+        if 'ocean_his' in item:
+            fn_list.append(in_dir + item)
+    fn_list.sort()
+
+    
+    # save the full list to use with the tracking code 
+    fn_list_full = fn_list.copy()
+
+    if in_dict['testing'] == True:
+        fn_list_full = fn_list_full[:11]
+
+    # then trim fn_list to end at the selected hour for this plot
+    fn_list = fn_list[:fn_list.index(fn)+1]
+
+    # and use the CURRENT file for the map field overlay
+    ds = nc.Dataset(in_dict['fn'])
+
+    if len(fn_list) == 2:
+        # only do the tracking at the start
+
+        # Specific release locations
+        rloc_dict = {'Whidbey NW': (-122.749, 48.2927),
+                    'Penn Cove': (-122.695, 48.2309)}
+        count = 0
+        rnp = 1000
+        for rloc in rloc_dict:
+            rx = rloc_dict[rloc][0]
+            ry = rloc_dict[rloc][1]
+            #print('%s %0.3f %0.3f' % (rloc, rx, ry))
+            px00 = rx + 0.01*np.random.randn(rnp)
+            py00 = ry + 0.01*np.random.randn(rnp)
+            if count == 0:
+                plon00 = px00.copy()
+                plat00 = py00.copy()
+            else:
+                plon00 = np.concatenate((plon00, px00.copy()))
+                plat00 = np.concatenate((plat00, py00.copy()))
+            count += 1
+        #
+        pcs00 = np.array([-.05])
+        # make the full IC vectors, which will have equal length
+        # (one value for each particle)
+        NSP = len(pcs00)
+        NXYP = len(plon00)
+        plon0 = plon00.reshape(NXYP,1) * np.ones((NXYP,NSP))
+        plat0 = plat00.reshape(NXYP,1) * np.ones((NXYP,NSP))
+        pcs0 = np.ones((NXYP,NSP)) * pcs00.reshape(1,NSP)
+        plon0 = plon0.flatten()
+        plat0 = plat0.flatten()
+        pcs0 = pcs0.flatten()
+        # DO THE TRACKING
+        import time
+        tt0 = time.time()
+        # NOTE: we use at least ndiv=12 to get advection right in places
+        # like Tacoma Narrows, but we reduce it for testing.
+        # if (Ldir['lo_env'] == 'pm_mac') or (in_dict['testing'] == True):
+        #     ndiv = 1
+        #     print('** using ndiv = 1 **')
+        # else:
+        ndiv = 12
+        TR = {'3d': False, 'rev': False, 'turb': False,
+            'ndiv': ndiv, 'windage': 0, 'sph': 1}
+        P = tf1.get_tracks(fn_list_full, plon0, plat0, pcs0, TR,
+                           trim_loc=True)
+        print('  took %0.1f seconds' % (time.time() - tt0))
+        # and store the output
+        fo = in_dict['fn_out']
+        out_dir = fo[:fo.rindex('/')+1]
+        out_fn = out_dir + 'tracks.p'
+        pickle.dump(P, open(out_fn, 'wb'))
+    else:
+        # load the output on all subsequent days
+        fo = in_dict['fn_out']
+        out_dir = fo[:fo.rindex('/')+1]
+        out_fn = out_dir + 'tracks.p'
+        P = pickle.load(open(out_fn, 'rb'))
+
+    # PLOT CODE
+    
+    #********************* NEW *****************************
+    # PLOT CODE
+    nhour = 3
+    vn_list = ['salt', 'temp']
+    aa = [-123.7, -122.1, 47.3, 49.3]
+    ii = 1
+    for vn in vn_list:
+        
+        # things about color limits
+        if in_dict['auto_vlims']:
+            pinfo.vlims_dict[vn] = ()
+        if vn == 'salt':
+            vlims_fac=1
+        elif vn == 'temp':
+            vlims_fac=2.5
+        
+        ax = fig.add_subplot(1, len(vn_list), ii)
+        cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict,
+                cmap=pinfo.cmap_dict[vn], fac=pinfo.fac_dict[vn],
+                aa=aa, vlims_fac=vlims_fac)
+                
+        # Inset colorbar
+        from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+        cbaxes = inset_axes(ax, width="4%", height="40%", loc=1, borderpad=2.5) 
+        fig.colorbar(cs, cax=cbaxes, orientation='vertical')
+        
+        pfun.add_coast(ax)
+        ax.axis(aa)
+        pfun.dar(ax)
+        ax.set_xlabel('Longitude')
+        if ii == 1:
+            ax.set_ylabel('Latitude')
+            pfun.add_info(ax, in_dict['fn'])
+            ax.set_title('Surface %s and %d hour Particle Tracks' %
+                (pinfo.tstr_dict[vn],nhour))
+        elif ii == 2:
+            ax.set_yticklabels('')
+            pfun.add_windstress_flower(ax, ds, t_scl=1, t_leglen=0.1, center=(0.2, 0.3), fs=12)
+            ax.set_title('Surface %s %s and %d hour Particle Tracks' %
+                (pinfo.tstr_dict[vn],pinfo.units_dict[vn],nhour))
+            
+        # add the tracks
+        t_lw = .5
+        c_end = 'y'; s_end = 2
+        ntt = len(fn_list) -1
+        ntt0 = ntt-nhour
+        if ntt0<0:
+            ntt0 = 0
+        ax.plot(P['lon'][ntt0:ntt+1,:], P['lat'][ntt0:ntt+1,:], '-k', linewidth=t_lw)
+        ax.plot(P['lon'][ntt,:],P['lat'][ntt,:],'*'+c_end,
+                markersize=s_end, alpha = 1, markeredgecolor='k')
+        
+        ii += 1
+    #fig.tight_layout()
+    #*******************************************************
 
     # FINISH
     ds.close()
