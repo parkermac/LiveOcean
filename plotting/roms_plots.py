@@ -3147,12 +3147,14 @@ def P_tracks_barber(in_dict):
     pth = os.path.abspath('../tracker2')
     if pth not in sys.path:
         sys.path.append(pth)
+        
+    EI = Lfun.csv_to_dict(Ldir['LOo'] + 'tracks2/exp_info.csv')
+    EI['fn'] = fn
+    
     import trackfun as tf1#trackfun_1 as tf1
     import pickle
     fn = in_dict['fn']
     
-    EI = Lfun.csv_to_dict(Ldir['LOo'] + 'tracks2/exp_info.csv')
-    EI['fn'] = fn
     
     gtagex = fn.split('/')[-3]
     gtx_list = gtagex.split('_')
