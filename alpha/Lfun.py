@@ -201,7 +201,7 @@ def get_fn_list(list_type, Ldir, date_string0, date_string1, his_num=1):
         fn_list.sort()
         fn_list.pop(0) # remove the first hour
     elif list_type == 'allhours':
-        # a list of all but the first history file in a directory
+        # a list of all the history files in a directory
         in_dir = dir0 + 'f' + date_string0 + '/'
         fn_list_raw = os.listdir(in_dir)
         fn_list = [(in_dir + ff) for ff in fn_list_raw if 'ocean_his' in ff]

@@ -163,12 +163,12 @@ Lfun.make_dir(outdir, clean=True)
 print(50*'*' + '\nWriting to ' + outdir)
 sys.stdout.flush()
 
-# and write some info to outdir0 for use by trackfun_2.py
+# and write some info to outdir0 for use by trackfun.py
 Lfun.dict_to_csv(TR,outdir0 + 'exp_info.csv')
 # and write the same info to outdir
 Lfun.dict_to_csv(TR, outdir + 'exp_info.csv')
 # NOTE: we have to load this module AFTER we write [outdir0]/exp_info.csv
-# because it uses that information to decide which KDTrees to load.
+# because it uses that information to decide which KDTrees to load.  Crude.
 if os.path.isfile('user_trackfun.py'):
     import user_trackfun as tfun
 else:

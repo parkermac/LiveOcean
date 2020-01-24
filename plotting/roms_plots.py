@@ -181,24 +181,26 @@ def P_splash(in_dict):
     # pretty picture for use in Google Earth
 
     # START
-    fig = plt.figure(figsize=(8,12)) # (16,12) or pinfo.figsize for default
+    fig = plt.figure(figsize=(8,12)) # for real
+    #fig = plt.figure(figsize=(8,8)) # for development on laptop
     ds = nc.Dataset(in_dict['fn'])
 
     # PLOT CODE
-    vn = 'salt'
+    vn = 'phytoplankton'
+    # things about color limits
     if in_dict['auto_vlims']:
         pinfo.vlims_dict[vn] = ()
     ax = fig.add_subplot(111)
+    # colormap contenders: brg, nipy_spectral, winter, twilight_shifted, ocean_r
     cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict,
-            cmap=pinfo.cmap_dict[vn], fac=pinfo.fac_dict[vn])
+            cmap='ocean_r', vlims_fac=3)
     pfun.add_coast(ax)
-    ax.axis(pfun.get_aa(ds))
+    ax.axis([-129, -122, 42.5, 51.5])
+    #ax.axis(pfun.get_aa(ds))
     pfun.dar(ax)
     ax.set_axis_off()
     
     fig.tight_layout()
-    
-    
     
     # FINISH
     ds.close()
@@ -3127,7 +3129,6 @@ def P_tracks_ps(in_dict):
     else:
         plt.show()
         
-        
 def P_tracks_barber(in_dict):
     # Use trackfun to create surface drifter tracks for Puget Sound.
     # It automatically makes tracks for as long as there are
@@ -3142,20 +3143,12 @@ def P_tracks_barber(in_dict):
     fig = plt.figure(figsize=(16,12))#(10,12))
 
     # TRACKS
-    import os
-    import sys
-    pth = os.path.abspath('../tracker2')
-    if pth not in sys.path:
-        sys.path.append(pth)
-        
-    EI = Lfun.csv_to_dict(Ldir['LOo'] + 'tracks2/exp_info.csv')
-    EI['fn'] = fn
-    
-    import trackfun as tf1#trackfun_1 as tf1
+    import os, sys
     import pickle
+    
+    # write an abbreviated version of the Experiment Info to LiveOcean_output/tracks2
+    # so that the correct information is available when trackfun is loaded
     fn = in_dict['fn']
-    
-    
     gtagex = fn.split('/')[-3]
     gtx_list = gtagex.split('_')
     import Lfun
@@ -3168,13 +3161,9 @@ def P_tracks_barber(in_dict):
         if 'ocean_his' in item:
             fn_list.append(in_dir + item)
     fn_list.sort()
-
     
     # save the full list to use with the tracking code 
     fn_list_full = fn_list.copy()
-
-    if in_dict['testing'] == True:
-        fn_list_full = fn_list_full[:11]
 
     # then trim fn_list to end at the selected hour for this plot
     fn_list = fn_list[:fn_list.index(fn)+1]
@@ -3184,6 +3173,18 @@ def P_tracks_barber(in_dict):
 
     if len(fn_list) == 2:
         # only do the tracking at the start
+        
+        EI = {
+        'exp_name':'tracks_barber',
+        'gtagex':gtagex,
+        'gridname':Ldir['gridname'],
+        'fn00':fn,
+        }
+        
+        Lfun.dict_to_csv(EI,Ldir['LOo'] + 'tracks2/exp_info.csv')
+    
+        sys.path.append(os.path.abspath('../tracker2'))
+        import trackfun
 
         # Specific release locations
         rloc_dict = {'Whidbey NW': (-122.749, 48.2927),
@@ -3220,14 +3221,14 @@ def P_tracks_barber(in_dict):
         tt0 = time.time()
         # NOTE: we use at least ndiv=12 to get advection right in places
         # like Tacoma Narrows, but we reduce it for testing.
-        # if (Ldir['lo_env'] == 'pm_mac') or (in_dict['testing'] == True):
-        #     ndiv = 1
-        #     print('** using ndiv = 1 **')
-        # else:
-        ndiv = 12
+        if (Ldir['lo_env'] == 'pm_mac') or (in_dict['testing'] == True):
+            ndiv = 1
+            print('** using ndiv = 1 **')
+        else:
+            ndiv = 12
         TR = {'3d': False, 'rev': False, 'turb': False,
             'ndiv': ndiv, 'windage': 0, 'sph': 1}
-        P = tf1.get_tracks(fn_list_full, plon0, plat0, pcs0, TR,
+        P = trackfun.get_tracks(fn_list_full, plon0, plat0, pcs0, TR,
                            trim_loc=True)
         print('  took %0.1f seconds' % (time.time() - tt0))
         # and store the output
