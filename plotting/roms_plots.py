@@ -73,7 +73,7 @@ def P_basic(in_dict):
         elif ii == 2:
             pfun.add_velocity_vectors(ax, ds, in_dict['fn'])
         ii += 1
-    
+    fig.tight_layout()
     # FINISH
     ds.close()
     if len(in_dict['fn_out']) > 0:
@@ -120,7 +120,7 @@ def P_Chl_DO(in_dict):
             pfun.add_windstress_flower(ax, ds)
             pfun.add_velocity_vectors(ax, ds, in_dict['fn'], center=(.8,.85), v_scl=3, v_leglen=1)
         ii += 1
-    #fig.tight_layout()
+    fig.tight_layout()
     
     # FINISH
     ds.close()
@@ -502,7 +502,7 @@ def P_basic_salish(in_dict):
             ax.set_yticklabels([])
         ii += 1
     
-    #fig.tight_layout()
+    fig.tight_layout()
     
     # FINISH
     ds.close()
@@ -554,7 +554,7 @@ def P_Chl_DO_salish(in_dict):
         
         ii += 1
 
-    #fig.tight_layout()
+    fig.tight_layout()
     
     # FINISH
     ds.close()
@@ -3412,7 +3412,7 @@ def P_tracks_barber(in_dict):
                 markersize=s_end, alpha = 1, markeredgecolor='k')
         
         ii += 1
-    #fig.tight_layout()
+    fig.tight_layout()
     #*******************************************************
 
     # FINISH
