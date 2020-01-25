@@ -40,7 +40,7 @@ import pandas as pd
 def P_basic(in_dict):
 
     # START
-    fig = plt.figure(figsize=(12,8)) # (16,12) or pinfo.figsize for default
+    fig = plt.figure(figsize=(18,11)) # (16,12) or pinfo.figsize for default
     ds = nc.Dataset(in_dict['fn'])
 
     # PLOT CODE
@@ -49,9 +49,15 @@ def P_basic(in_dict):
     for vn in vn_list:
         if in_dict['auto_vlims']:
             pinfo.vlims_dict[vn] = ()
+            
+        if vn == 'salt':
+            vlims_fac=1
+        elif vn == 'temp':
+            vlims_fac=2.5
+            
         ax = fig.add_subplot(1, len(vn_list), ii)
         cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict,
-                cmap=pinfo.cmap_dict[vn], fac=pinfo.fac_dict[vn])
+                cmap=pinfo.cmap_dict[vn], fac=pinfo.fac_dict[vn], vlims_fac=vlims_fac)
         fig.colorbar(cs)
         pfun.add_bathy_contours(ax, ds, txt=True)
         pfun.add_coast(ax)
@@ -66,6 +72,53 @@ def P_basic(in_dict):
         elif ii == 2:
             pfun.add_velocity_vectors(ax, ds, in_dict['fn'])
             #pfun.add_velocity_streams(ax, ds, in_dict['fn'])
+        ii += 1
+    #fig.tight_layout()
+    
+    # FINISH
+    ds.close()
+    if len(in_dict['fn_out']) > 0:
+        plt.savefig(in_dict['fn_out'])
+        plt.close()
+    else:
+        plt.show()
+        
+def P_Chl_DO(in_dict):
+
+    # START
+    fig = plt.figure(figsize=(18,11)) # (16,12) or pinfo.figsize for default
+    ds = nc.Dataset(in_dict['fn'])
+
+    # PLOT CODE
+    vn_list = ['phytoplankton', 'oxygen']
+    ii = 1
+    for vn in vn_list:
+        if in_dict['auto_vlims']:
+            pinfo.vlims_dict[vn] = ()
+            
+        ax = fig.add_subplot(1, len(vn_list), ii)
+        if ii == 1:
+            cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict,
+                    cmap='ocean_r', fac=pinfo.fac_dict[vn])
+            ax.set_title('Surface %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
+            pfun.add_bathy_contours(ax, ds, txt=False)
+        elif ii == 2:
+            cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict,
+                    slev=0, cmap='rainbow_r', fac=pinfo.fac_dict[vn])
+            ax.set_title('Bottom %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
+            pfun.add_bathy_contours(ax, ds, txt=True)
+            
+        fig.colorbar(cs)
+        pfun.add_coast(ax)
+        #ax.axis(pfun.get_aa(ds))
+        ax.axis([-129, -122, 42.5, 51.5])
+        pfun.dar(ax)
+        ax.set_xlabel('Longitude')
+        if ii == 1:
+            ax.set_ylabel('Latitude')
+            pfun.add_info(ax, in_dict['fn'])
+            pfun.add_windstress_flower(ax, ds)
+            pfun.add_velocity_vectors(ax, ds, in_dict['fn'], center=(.8,.85), v_scl=3, v_leglen=1)
         ii += 1
     #fig.tight_layout()
     
@@ -405,7 +458,7 @@ def P_3day(in_dict):
 def P_basic_salish(in_dict):
 
     # START
-    fig = plt.figure(figsize=(12,8)) # or pinfo.figsize for default
+    fig = plt.figure(figsize=(18,12)) # or pinfo.figsize for default
     ds = nc.Dataset(in_dict['fn'])
 
     # PLOT CODE
@@ -416,10 +469,12 @@ def P_basic_salish(in_dict):
         if in_dict['auto_vlims']:
             pinfo.vlims_dict[vn] = ()
         ax = fig.add_subplot(1, len(vn_list), ii)
+        
         if vn == 'salt':
-            vlims_fac = .75
-        else:
-            vlims_fac = 2.5
+            vlims_fac=1
+        elif vn == 'temp':
+            vlims_fac=2.5
+            
         cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict,
                 cmap=pinfo.cmap_dict[vn], fac=pinfo.fac_dict[vn],
                 aa=aa, vlims_fac=vlims_fac)
@@ -441,7 +496,7 @@ def P_basic_salish(in_dict):
                 t_leglen=0.1, center=(.25, .3))
         elif ii == 2:
             pfun.add_velocity_vectors(ax, ds, in_dict['fn'],
-                v_scl=20, v_leglen=2, nngrid=100, center=(.1, .1))
+                v_scl=30, v_leglen=2, nngrid=80, center=(.1, .1))
             ax.set_yticklabels([])
         ii += 1
     fig.tight_layout()

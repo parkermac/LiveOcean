@@ -6,9 +6,7 @@ the WRF files in our archive.
 
 # setup
 import os; import sys
-alp = os.path.abspath('../alpha')
-if alp not in sys.path:
-    sys.path.append(alp)
+sys.path.append(os.path.abspath('../alpha'))
 import Lfun
 Ldir = Lfun.Lstart()
 
@@ -17,7 +15,7 @@ import pandas as pd
 if Ldir['lo_env'] == 'pm_mac':
     f_dir0 = Ldir['parent'] + 'LiveOcean_data/wrf/'
 else: 
-    f_dir0 = '/pmraid3/darr/tstwrf/tmpwrf/'
+    f_dir0 = '/pmr2/darr/wrf_crons/wrfout/'
 
 # directory names are like 2012100700
 
@@ -30,7 +28,7 @@ while datetime.now() - dt > timedelta(1):
     fe_list.append(dt.strftime('%Y%m%d') + '00')
     dt = dt + timedelta(1)
     
-clist = ['dir_exists','N_d2','N_d3']
+clist = ['dir_exists','N_d2','N_d3','N_d4']
 f_df = pd.DataFrame(index = fe_list, columns = clist)
 
 # what forecasts exist in the forcing directory
@@ -74,8 +72,19 @@ for item in df_yes.index:
         else:
             flag = 0
     df_yes.ix[item]['N_d3'] = nd
+    
+    flag = 1
+    nd = 0
+    while flag == 1:
+        sd = ('00' + str(nd))[-2:]
+        if ('wrfout.ocean_d4.' + item + '.f' + sd + '.0000') in fl:
+            nd += 1
+        else:
+            flag = 0
+    df_yes.ix[item]['N_d3'] = nd
+    
 
-df_yes_but =  df_yes[(df_yes['N_d2'] < 25) | (df_yes['N_d3'] < 25)]
+df_yes_but =  df_yes[(df_yes['N_d2'] < 25) | (df_yes['N_d3'] < 25) | (df_yes['N_d4'] < 25)]
 
 # make sure that the dates are in order
 df_yes_but = df_yes_but.sort_index()

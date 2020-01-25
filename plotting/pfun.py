@@ -154,7 +154,7 @@ def add_map_field(ax, ds, vn, vlims_dict, slev=-1, cmap='rainbow', fac=1, alpha=
     cs = ax.pcolormesh(x, y, v_scaled, vmin=vlims[0], vmax=vlims[1], cmap=cmap, alpha=alpha)
     return cs
 
-def add_velocity_vectors(ax, ds, fn, v_scl=3, v_leglen=0.5, nngrid=80, zlev='top', center=(.7,.05)):
+def add_velocity_vectors(ax, ds, fn, v_scl=3, v_leglen=0.5, nngrid=80, zlev='top', center=(.8,.05)):
     # v_scl: scale velocity vector (smaller to get longer arrows)
     # v_leglen: m/s for velocity vector legend
     xc = center[0]

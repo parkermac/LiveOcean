@@ -70,7 +70,7 @@ Vu = dict()
 if False:
     list_to_plot = v3_list_rho + v3_list_w + v2_list
 else:
-    list_to_plot = ['zeta', 'z_rho', 'u', 'v', 'salt', 'temp']
+    list_to_plot = ['zeta', 'z_rho', 'salt', 'temp', 'oxygen', 'NO3', 'phytoplankton','sustr', 'svstr']
 # hand edit variables not to look at
 for v in ['CaCO3']:#, 'PH', 'ARAG']:
     try:
