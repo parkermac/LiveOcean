@@ -3357,6 +3357,7 @@ def P_tracks_barber(in_dict):
     
     #********************* NEW *****************************
     # PLOT CODE
+    fs = 14
     nhour = 3
     vn_list = ['salt', 'temp']
     aa = [-123.7, -122.1, 47.3, 49.3]
@@ -3379,22 +3380,25 @@ def P_tracks_barber(in_dict):
         # Inset colorbar
         from mpl_toolkits.axes_grid1.inset_locator import inset_axes
         cbaxes = inset_axes(ax, width="4%", height="40%", loc=1, borderpad=2.5) 
-        fig.colorbar(cs, cax=cbaxes, orientation='vertical')
+        cb = fig.colorbar(cs, cax=cbaxes, orientation='vertical')
+        cb.ax.tick_params(labelsize=fs)
         
         pfun.add_coast(ax)
         ax.axis(aa)
         pfun.dar(ax)
-        ax.set_xlabel('Longitude')
+        ax.set_xlabel('Longitude', fontsize=fs)
+        ax.tick_params(labelsize=fs) # tick labels
+        
         if ii == 1:
-            ax.set_ylabel('Latitude')
-            pfun.add_info(ax, in_dict['fn'])
+            ax.set_ylabel('Latitude', fontsize=fs)
+            pfun.add_info(ax, in_dict['fn'], fs=fs)
             ax.set_title('Surface %s and %d hour Particle Tracks' %
-                (pinfo.tstr_dict[vn],nhour))
+                (pinfo.tstr_dict[vn],nhour), fontsize=fs+2)
         elif ii == 2:
             ax.set_yticklabels('')
             pfun.add_windstress_flower(ax, ds, t_scl=1, t_leglen=0.1, center=(0.2, 0.3), fs=12)
             ax.set_title('Surface %s %s and %d hour Particle Tracks' %
-                (pinfo.tstr_dict[vn],pinfo.units_dict[vn],nhour))
+                (pinfo.tstr_dict[vn],pinfo.units_dict[vn],nhour), fontsize=fs+2)
             
         # add the tracks
         t_lw = .5

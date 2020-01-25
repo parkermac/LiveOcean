@@ -21,6 +21,7 @@ Ldir, Lfun = ffun.intro()
 from datetime import datetime
 start_time = datetime.now()
 import subprocess
+from time import time
 
 # Azure commands
 from azure.storage.blob import BlockBlobService
@@ -52,15 +53,21 @@ def write_to_azure(out_fn, blob_service, containername, out_name):
 print(' - Creating wesite images for ' + Ldir['date_string'])
 os.chdir(Ldir['LO'] + 'plotting/')
 
+# NOTE 2020.01.24: P_tracks_MERHAB is just for Ryan, it does not go to the website
 #P_list = ['P_3day', 'P_tracks_MERHAB', 'P_merhab2', 'P_tracks_ps', 'P_willapa_omega']
 P_list_1 = ['P_tracks_MERHAB', 'P_merhab2', 'P_willapa_omega']
 P_list_2 = ['P_basic', 'P_Chl_DO', 'P_basic_salish', 'P_Chl_DO_salish', 'P_tracks_barber']
 
+
 #P_list = P_list_1 + P_list_2
-P_list = P_list_2
-# NOTE 2020.01.24: P_tracks_MERHAB is just for Ryan, it does not go to the website
+#P_list = P_list_2
+P_list = ['P_basic','P_Chl_DO']
 
 for P_name in P_list:
+    
+    tt0 = time()
+    
+    print('\n  -- working on %s' % (P_name))
     
     if P_name in ['P_tracks_MERHAB', 'P_merhab2', 'P_tracks_barber']:
         lt = 'merhab'
@@ -78,11 +85,12 @@ for P_name in P_list:
                   '-pt', P_name,'-mov', do_mov]
     proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-    print('\n-main: screen output from subprocess-')
-    print(proc.stdout.decode())
-    print('\n-main: errors from subprocess-')
-    # for some reason the ffmpeg output ends up in stderr
-    print(proc.stderr.decode())
+    if False:
+        print('\n-main: screen output from subprocess-')
+        print(proc.stdout.decode())
+        print('\n-main: errors from subprocess-')
+        # for some reason the ffmpeg output ends up in stderr
+        print(proc.stderr.decode())
     
     if P_name == 'P_3day':
         fn = Ldir['LOo'] + 'plots/' + lt + '_' + P_name + '_' + Ldir['gtagex'] + '/plot_0000.png'
@@ -92,6 +100,8 @@ for P_name in P_list:
         out_fn = P_name + '.mp4'
         
     result = write_to_azure(fn, blob_service, containername, out_fn)
+    
+    print('  -- took %0.1f seconds' % (tt0-time()))
     
 #%% prepare for finale
 import collections
