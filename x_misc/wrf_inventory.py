@@ -60,6 +60,16 @@ for dt in fdt_list:
 f_df_no = f_df[f_df['dir_exists']=='no']
 f_df_yes = f_df[f_df['dir_exists']=='yes']
 
+print(50*'=')
+print('Number of days with missing forecasts = %d' % (len(f_df_no)))
+print('\n' + 50*'=')
+
+print('*** Monthly Statistics ***')
+# print out monthly statistics
+pd.set_option('display.max_rows', 1000)
+fm_df_yes = f_df_yes.resample('M').mean()
+print(fm_df_yes)
+
 
 
 
