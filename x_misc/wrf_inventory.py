@@ -43,7 +43,7 @@ f_df['dir_exists'] = 'no'
 
 for item in f_list:
     if item in fe_list:
-        f_df.ix[item,'dir_exists'] = 'YES'
+        f_df.loc[item,'dir_exists'] = 'YES'
         
 df_yes = f_df[f_df['dir_exists']=='YES']
 df_no = f_df[f_df['dir_exists']=='no']
@@ -61,7 +61,7 @@ for item in df_yes.index:
             nd += 1
         else:
             flag = 0
-    df_yes.ix[item]['N_d2'] = nd
+    df_yes.loc[item]['N_d2'] = nd
        
     flag = 1
     nd = 0
@@ -71,7 +71,7 @@ for item in df_yes.index:
             nd += 1
         else:
             flag = 0
-    df_yes.ix[item]['N_d3'] = nd
+    df_yes.loc[item]['N_d3'] = nd
     
     flag = 1
     nd = 0
@@ -81,7 +81,7 @@ for item in df_yes.index:
             nd += 1
         else:
             flag = 0
-    df_yes.ix[item]['N_d3'] = nd
+    df_yes.loc[item]['N_d4'] = nd
     
 
 df_yes_but =  df_yes[(df_yes['N_d2'] < 25) | (df_yes['N_d3'] < 25) | (df_yes['N_d4'] < 25)]
