@@ -52,12 +52,17 @@ def write_to_azure(out_fn, blob_service, containername, out_name):
 print(' - Creating wesite images for ' + Ldir['date_string'])
 os.chdir(Ldir['LO'] + 'plotting/')
 
-P_list = ['P_3day', 'P_tracks_MERHAB', 'P_merhab2', 'P_tracks_ps', 'P_willapa_omega']
+#P_list = ['P_3day', 'P_tracks_MERHAB', 'P_merhab2', 'P_tracks_ps', 'P_willapa_omega']
+P_list_1 = ['P_tracks_MERHAB', 'P_merhab2', 'P_willapa_omega'
+P_list_2 = ['P_basic', 'P_Chl_DO', 'P_basic_salish', 'P_Chl_DO_salish', 'P_tracks_barber']
+
+#P_list = P_list_1 + P_list_2
+P_list = P_list_2
 # NOTE 2020.01.24: P_tracks_MERHAB is just for Ryan, it does not go to the website
 
 for P_name in P_list:
     
-    if P_name in ['P_tracks_MERHAB', 'P_merhab2', 'P_tracks_ps']:
+    if P_name in ['P_tracks_MERHAB', 'P_merhab2', 'P_tracks_barber']:
         lt = 'merhab'
     else:
         lt = 'forecast'

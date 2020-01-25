@@ -45,35 +45,34 @@ def P_basic(in_dict):
 
     # PLOT CODE
     vn_list = ['salt', 'temp']
+    fs = 14
     ii = 1
     for vn in vn_list:
         if in_dict['auto_vlims']:
             pinfo.vlims_dict[vn] = ()
-            
         if vn == 'salt':
             vlims_fac=1
         elif vn == 'temp':
             vlims_fac=2.5
-            
         ax = fig.add_subplot(1, len(vn_list), ii)
         cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict,
                 cmap=pinfo.cmap_dict[vn], fac=pinfo.fac_dict[vn], vlims_fac=vlims_fac)
-        fig.colorbar(cs)
+        cb = fig.colorbar(cs)
+        cb.ax.tick_params(labelsize=fs)
         pfun.add_bathy_contours(ax, ds, txt=True)
         pfun.add_coast(ax)
         ax.axis(pfun.get_aa(ds))
         pfun.dar(ax)
-        ax.set_title('Surface %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
-        ax.set_xlabel('Longitude')
+        ax.set_title('Surface %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]), fontsize=fs+2)
+        ax.set_xlabel('Longitude', fontsize=fs)
+        ax.tick_params(labelsize=fs) # tick labels
         if ii == 1:
-            ax.set_ylabel('Latitude')
-            pfun.add_info(ax, in_dict['fn'])
+            ax.set_ylabel('Latitude', fontsize=fs)
+            pfun.add_info(ax, in_dict['fn'], fs=fs)
             pfun.add_windstress_flower(ax, ds)
         elif ii == 2:
             pfun.add_velocity_vectors(ax, ds, in_dict['fn'])
-            #pfun.add_velocity_streams(ax, ds, in_dict['fn'])
         ii += 1
-    #fig.tight_layout()
     
     # FINISH
     ds.close()
@@ -91,32 +90,33 @@ def P_Chl_DO(in_dict):
 
     # PLOT CODE
     vn_list = ['phytoplankton', 'oxygen']
+    fs = 14
     ii = 1
     for vn in vn_list:
         if in_dict['auto_vlims']:
             pinfo.vlims_dict[vn] = ()
-            
         ax = fig.add_subplot(1, len(vn_list), ii)
         if ii == 1:
             cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict,
                     cmap='ocean_r', fac=pinfo.fac_dict[vn])
-            ax.set_title('Surface %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
+            ax.set_title('Surface %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]), fontsize=fs+2)
             pfun.add_bathy_contours(ax, ds, txt=False)
         elif ii == 2:
             cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict,
                     slev=0, cmap='rainbow_r', fac=pinfo.fac_dict[vn])
-            ax.set_title('Bottom %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
+            ax.set_title('Bottom %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]), fontsize=fs+2)
             pfun.add_bathy_contours(ax, ds, txt=True)
-            
-        fig.colorbar(cs)
+        cb = fig.colorbar(cs)
+        cb.ax.tick_params(labelsize=fs)
         pfun.add_coast(ax)
         #ax.axis(pfun.get_aa(ds))
         ax.axis([-129, -122, 42.5, 51.5])
         pfun.dar(ax)
-        ax.set_xlabel('Longitude')
+        ax.set_xlabel('Longitude', fontsize=fs)
+        ax.tick_params(labelsize=fs) # tick labels
         if ii == 1:
-            ax.set_ylabel('Latitude')
-            pfun.add_info(ax, in_dict['fn'])
+            ax.set_ylabel('Latitude', fontsize=fs)
+            pfun.add_info(ax, in_dict['fn'], fs=fs)
             pfun.add_windstress_flower(ax, ds)
             pfun.add_velocity_vectors(ax, ds, in_dict['fn'], center=(.8,.85), v_scl=3, v_leglen=1)
         ii += 1
@@ -464,6 +464,7 @@ def P_basic_salish(in_dict):
     # PLOT CODE
     vn_list = ['salt', 'temp']
     aa = [-124, -122, 47, 49]
+    fs = 14
     ii = 1
     for vn in vn_list:
         if in_dict['auto_vlims']:
@@ -482,16 +483,17 @@ def P_basic_salish(in_dict):
         from mpl_toolkits.axes_grid1.inset_locator import inset_axes
         cbaxes = inset_axes(ax, width="4%", height="40%", loc='upper right', borderpad=3) 
         cb = fig.colorbar(cs, cax=cbaxes, orientation='vertical')
-        # cb.ax.tick_params(labelsize=fs1-2)
-        #fig.colorbar(cs)
+        cb.ax.tick_params(labelsize=fs)
         pfun.add_coast(ax)
         ax.axis(aa)
         pfun.dar(ax)
-        ax.set_title('Surface %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
-        ax.set_xlabel('Longitude')
+        ax.set_title('Surface %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]), fontsize=fs+2)
+        ax.set_xlabel('Longitude', fontsize=fs)
+        ax.tick_params(labelsize=fs) # tick labels
+        
         if ii == 1:
-            ax.set_ylabel('Latitude')
-            pfun.add_info(ax, in_dict['fn'])
+            ax.set_ylabel('Latitude', fontsize=fs)
+            pfun.add_info(ax, in_dict['fn'], fs=fs)
             pfun.add_windstress_flower(ax, ds, t_scl=.6,
                 t_leglen=0.1, center=(.25, .3))
         elif ii == 2:
@@ -499,7 +501,60 @@ def P_basic_salish(in_dict):
                 v_scl=30, v_leglen=2, nngrid=80, center=(.1, .1))
             ax.set_yticklabels([])
         ii += 1
-    fig.tight_layout()
+    
+    #fig.tight_layout()
+    
+    # FINISH
+    ds.close()
+    if len(in_dict['fn_out']) > 0:
+        plt.savefig(in_dict['fn_out'])
+        plt.close()
+    else:
+        plt.show()
+        
+def P_Chl_DO_salish(in_dict):
+
+    # START
+    fig = plt.figure(figsize=(18,12)) # or pinfo.figsize for default
+    ds = nc.Dataset(in_dict['fn'])
+
+    # PLOT CODE
+    vn_list = ['phytoplankton', 'oxygen']
+    aa = [-124, -122, 47, 49]
+    fs = 14
+    ii = 1
+    for vn in vn_list:
+        if in_dict['auto_vlims']:
+            pinfo.vlims_dict[vn] = ()
+        ax = fig.add_subplot(1, len(vn_list), ii)
+        if ii == 1:
+            cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict,
+                    cmap='ocean_r', fac=pinfo.fac_dict[vn])
+            ax.set_title('Surface %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]), fontsize=fs+2)
+        elif ii == 2:
+            cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict,
+                    slev=0, cmap='rainbow_r', fac=pinfo.fac_dict[vn])
+            ax.set_title('Bottom %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]), fontsize=fs+2)
+            ax.set_yticklabels([])
+        # Inset colorbar
+        from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+        cbaxes = inset_axes(ax, width="4%", height="40%", loc='upper right', borderpad=3) 
+        cb = fig.colorbar(cs, cax=cbaxes, orientation='vertical')
+        cb.ax.tick_params(labelsize=fs)
+        pfun.add_coast(ax)
+        ax.axis(aa)
+        pfun.dar(ax)
+        ax.set_xlabel('Longitude', fontsize=fs)
+        ax.tick_params(labelsize=fs) # tick labels
+        
+        if ii == 1:
+            ax.set_ylabel('Latitude', fontsize=fs)
+            pfun.add_info(ax, in_dict['fn'], fs=fs)
+            
+        
+        ii += 1
+
+    #fig.tight_layout()
     
     # FINISH
     ds.close()
