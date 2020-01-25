@@ -68,6 +68,7 @@ print('\n' + 50*'=')
 print('*** Monthly Statistics ***')
 # print out monthly statistics
 pd.set_option('display.max_rows', 1000)
+pd.options.display.float_format = '{:,.0f}'.format
 fm_df_yes = f_df_yes.resample('M').mean()
 print(fm_df_yes)
 
