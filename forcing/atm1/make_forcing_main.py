@@ -45,7 +45,7 @@ if Ldir['lo_env'] == 'pm_mac':
     sys.path.append(os.path.abspath('../../plotting'))
     import pfun
 else:
-    wrf_dir = '/pmr2/darr/wrf_crons/wrfout/'
+    wrf_dir = '/data1/darr/wrf_crons/wrfout/'
     testing = False
     
 # creat list of hours

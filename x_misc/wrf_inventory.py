@@ -16,7 +16,7 @@ from datetime import datetime, timedelta
 if Ldir['lo_env'] == 'pm_mac':
     f_dir0 = Ldir['data'] + 'wrf/'
 else: 
-    f_dir0 = '/pmr2/darr/wrf_crons/wrfout/'
+    f_dir0 = '/data1/darr/wrf_crons/wrfout/'
 
 
 #expected dates
