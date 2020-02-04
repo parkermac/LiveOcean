@@ -26,9 +26,7 @@ import os
 import sys
 import argparse
 from datetime import datetime, timedelta
-alp = os.path.abspath('../alpha')
-if alp not in sys.path:
-    sys.path.append(alp)
+sys.path.append(os.path.abspath('../alpha'))
 from importlib import reload
 import Lfun
 import roms_plots; reload(roms_plots)

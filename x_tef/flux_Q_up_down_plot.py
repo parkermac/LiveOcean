@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pickle
 import pandas as pd
+import netCDF4 as nc
 
 import os; import sys
 sys.path.append(os.path.abspath('../alpha'))
@@ -34,6 +35,21 @@ year = int(year_str)
 
 outdir = indir0 + item + '/misc_figs/'
 
+# Working toward something like ubar/c, we want to get the average depth, and width
+# of each section
+sect_df = tef_fun.get_sect_df()
+# H, B, and A are mean depth, width, and area of each section [m or m2]
+hba_df = pd.DataFrame(index=sect_df.index, columns=['H','B','A'])
+for sect_name in hba_df.index:
+    ds = nc.Dataset(indir0 + item + '/extractions/' + sect_name + '.nc')
+    H = ds['h'][:].mean()
+    A = ds['DA0'][:].sum()
+    B = A/H
+    hba_df.loc[sect_name,'H'] = H
+    hba_df.loc[sect_name,'B'] = B
+    hba_df.loc[sect_name,'A'] = A
+    ds.close()
+
 # load a Series of the volumes of each segment, created by flux_get_vol.py
 v_df = pd.read_pickle(indir + 'volumes.p')
 # index is ['J1', 'J2', 'J3',...
@@ -48,7 +64,7 @@ seg_dict = flux_fun.short_seg_dict
 
 plt.close('all')
 
-for season in flux_fun.season_list:
+for season in ['full']:#flux_fun.season_list:
 
     df_dict = {}
     #for ch_str in ['Whidbey Basin']:
@@ -200,6 +216,15 @@ for season in flux_fun.season_list:
      'Admiralty Inlet to South Sound':100,
      'Hood Canal':10,
      'Whidbey Basin':10}
+     
+     # add column for theoretical Qe
+    for ch_str in channel_dict:
+        df = df_dict[ch_str]
+        df.loc[:,'q_e'] = (hba_df.loc[df.index,'B']**(2/3)
+            * (1/4)**(1/3)
+            * (hba_df.loc[df.index,'H']/6)
+            * (1000*df.loc[:,'qnet_r'])**(1/3)) / 1000
+     
 
     fig = plt.figure(figsize=(11,8))
     fig.suptitle(season.title() + ' ' + year_str)
@@ -214,7 +239,7 @@ for season in flux_fun.season_list:
             legend=True
         else:
             legend=False
-        df.plot(x='dist', y=['q_s', 'q_f', 'qnet_up', 'qnet_down'],#, 'qnet'],
+        df.plot(x='dist', y=['q_s', 'q_f', 'qnet_up', 'qnet_down', 'q_e'],#, 'qnet'],
             grid=True, ax=ax, ylim=(0,qlim_dict[ch_str]), legend=legend)
         ax.set_title(ch_str, fontsize=8)
         for sn in df.index:
@@ -235,6 +260,6 @@ for season in flux_fun.season_list:
 
     plt.show()
 
-    fig.savefig(outdir + 'Q_up_down_' + season + '.png')
+    #fig.savefig(outdir + 'Q_up_down_' + season + '.png')
 
     

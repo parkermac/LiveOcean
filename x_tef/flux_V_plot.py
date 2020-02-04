@@ -47,7 +47,7 @@ for ch in ch_list:
         seg_list.reverse()
             
     # make vectors of volume
-    vs = v_df.loc[seg_list,'volume m3'].values
+    vs = v_df.loc[seg_list,'volume m3'].to_numpy()
     hs = vs**(1/3)
     hs = hs/1e3
 
