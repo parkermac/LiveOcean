@@ -2,6 +2,10 @@
 Extract multiple mooring-like records.
 The input is structured to conform with layer_extractor.py.
 
+Should be a bit faster than mooring_extractor.py because we
+skip all the interpolation and just use a model cell that is
+near the station, and don't bother interpolating u, and v perfectly.
+
 NOTE: when specifying a negative longitude or latitude from the command line
 you have to do it like:
         -lon " -124.5"
@@ -12,8 +16,6 @@ Example call from the command line:
 run mooring_extractor.py -sn Dabob -lon " -122.85" -lat 47.7
 
 """
-
-verbose = False
 
 # setup
 import os, sys
@@ -42,6 +44,11 @@ else:
     import moor_lists as ml
 reload(ml)
 
+def boolean_string(s):
+    if s not in ['False', 'True']:
+        raise ValueError('Not a valid boolean string')
+    return s == 'True' # note use of ==
+
 # command line arguments
 import argparse
 parser = argparse.ArgumentParser()
@@ -52,6 +59,7 @@ parser.add_argument('-x', '--ex_name', nargs='?', type=str, default='lo8b')
 parser.add_argument('-0', '--date_string0', nargs='?', type=str, default='2019.07.04')
 parser.add_argument('-1', '--date_string1', nargs='?', type=str, default='2019.07.05')
 parser.add_argument('-lt', '--list_type', nargs='?', type=str, default='hourly')
+parser.add_argument('-v', '--verbose', default=False, type=boolean_string)
 # see alpha/Lfun.get_fn_list() for acceptable list_type values
 
 # Mooring arguments.  You MUST supply all arguments for either (1) or (2)
@@ -65,6 +73,7 @@ parser.add_argument('-lat', '--lat_str', nargs='?', type=str, default='')
 parser.add_argument('-jn', '--job_name', nargs='?', type=str, default='blank')
 
 args = parser.parse_args()
+verbose = args.verbose
 
 # get list of history files to plot
 Ldir = Lfun.Lstart(args.gridname, args.tag)
@@ -128,14 +137,13 @@ yvec = lat[:,0].flatten()
 
 # automatically correct for moorings that are on land
 # Note that this only checks rho points - what if a u or v point is masked?
+ji_dict = {}
 for sta in sta_dict.keys():
     xy = sta_dict[sta]
     slon = xy[0]
     slat = xy[1]
-    i0, i1, frx = zfun.get_interpolant(np.array([float(slon)]), xvec)
-    j0, j1, fry = zfun.get_interpolant(np.array([float(slat)]), yvec)
-    i0 = int(i0)
-    j0 = int(j0)
+    i0 = zfun.find_nearest_ind(xvec, slon)
+    j0 = zfun.find_nearest_ind(yvec, slat)
     # find indices of nearest good point
     # Note: tha mask in G is Boolean, not 0, 1, but testing with 1 or 0 works.
     if mask[j0,i0] == 1:
@@ -147,15 +155,13 @@ for sta in sta_dict.keys():
         newlat = yvec[j0]
         print(' Replacing (%0.3f,%0.3f) with (%0.3f,%0.3f)' % (slon, slat, newlon, newlat))
         sta_dict[sta] = (newlon, newlat)
-
-# get interpolants
-itp_dict = mfun.get_itp_dict(sta_dict, G)
+    ji_dict[sta] = (j0, i0)
 
 tt0 = time()
 # INITIALIZATION
 ds = nc.Dataset(fn)
 # generating some lists
-v0_list = ['h', 'lon_rho', 'lat_rho', 'lon_u', 'lat_u', 'lon_v', 'lat_v']
+v0_list = ['h', 'lon_rho', 'lat_rho']
 v1_list = ['ocean_time']
 if limit_lists == True:
     pass # use definitions from above
@@ -193,29 +199,29 @@ for sta_name in sta_dict.keys():
     out_fn = out_fn_dict[sta_name]
     mfun.start_netcdf(out_fn, N, NT, v0_list, v1_list, v2_list,
         v3_list_rho, v3_list_w, V_long_name, V_units)
-# save static variables
-for sta_name in sta_dict.keys():
-    out_fn = out_fn_dict[sta_name]
-    Xi0, Yi0, Xi1, Yi1, Aix, Aiy = itp_dict[sta_name]
-    for vv in v0_list:
-        xi01, yi01, aix, aiy = mfun.get_its(ds, vv, Xi0, Yi0, Xi1, Yi1, Aix, Aiy)
-        vvtemp = ds.variables[vv][yi01, xi01].squeeze()
-        foo = nc.Dataset(out_fn, 'a')
-        foo[vv][:] =   ( aiy*((aix*vvtemp).sum(-1)) ).sum(-1)
-        foo.close()
-ds.close()
-# END OF INITIALIZATION
-if verbose:
-    print(' -- initialization took %0.2f seconds' % (time()-tt0))
-
-# EXTRACT TIME-DEPENDENT FIELDS
-
+        
 # open all output files into a dict
 foo_dict = {}
 for sta_name in sta_dict.keys():
     out_fn = out_fn_dict[sta_name]
     foo = nc.Dataset(out_fn, 'a')
     foo_dict[sta_name] = foo
+        
+# save static variables
+for sta_name in sta_dict.keys():
+    out_fn = out_fn_dict[sta_name]
+    for vv in v0_list:
+        j0, i0 = ji_dict[sta_name]
+        foo = foo_dict[sta_name]
+        foo[vv][:] = ds[vv][j0, i0]
+ds.close()
+
+# END OF INITIALIZATION
+if verbose:
+    print(' -- initialization took %0.2f seconds' % (time()-tt0))
+
+# EXTRACT TIME-DEPENDENT FIELDS
+
 
 count = 0
 for fn in fn_list:
@@ -230,34 +236,18 @@ for fn in fn_list:
         
     for sta_name in sta_dict.keys():
         tt2 = time()
-        out_fn = out_fn_dict[sta_name]
-        
         foo = foo_dict[sta_name]
-        
-        #foo = nc.Dataset(out_fn, 'a')
-        Xi0, Yi0, Xi1, Yi1, Aix, Aiy = itp_dict[sta_name]
         for vv in v1_list:
-            vtemp = ds.variables[vv][:].squeeze()
-            foo[vv][count] = vtemp
+            j0, i0 = ji_dict[sta_name]
+            foo[vv][count] = ds[vv][0]
         for vv in v2_list:
-            xi01, yi01, aix, aiy = mfun.get_its(ds, vv, Xi0, Yi0, Xi1, Yi1, Aix, Aiy)
-            vvtemp = ds.variables[vv][:, yi01, xi01].squeeze()
-            vtemp = ( aiy*((aix*vvtemp).sum(-1)) ).sum(-1)
-            foo[vv][count] = vtemp
-        for vv in v3_list_rho:
-            xi01, yi01, aix, aiy = mfun.get_its(ds, vv, Xi0, Yi0, Xi1, Yi1, Aix, Aiy)
-            vvtemp = ds.variables[vv][:, :, yi01, xi01].squeeze()
-            vtemp = ( aiy*((aix*vvtemp).sum(-1)) ).sum(-1)
-            foo[vv][count,:] = vtemp
-        for vv in v3_list_w:
-            xi01, yi01, aix, aiy = mfun.get_its(ds, vv, Xi0, Yi0, Xi1, Yi1, Aix, Aiy)
-            vvtemp = ds.variables[vv][:, :, yi01, xi01].squeeze()
-            vtemp = ( aiy*((aix*vvtemp).sum(-1)) ).sum(-1)
-            foo[vv][count,:] = vtemp
-        #foo.close()
+            j0, i0 = ji_dict[sta_name]
+            foo[vv][count] = ds[vv][0, j0, i0]
+        for vv in v3_list_rho + v3_list_w:
+            foo[vv][count,:] = ds[vv][0,:,j0,i0]
+            
         if verbose:
             print(' ... station took %0.2f seconds' % (time()-tt2))
-        
     count += 1
     ds.close()
     

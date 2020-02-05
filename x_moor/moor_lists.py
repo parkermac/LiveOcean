@@ -17,6 +17,11 @@ def get_sta_dict(job_name):
             'wbc': (-123.9516, 46.6290)
             }
             
+    elif job_name == 'dev': # RISE North ()
+        sta_dict = {
+            'rise_n': (-124.5, 47.0)
+            }
+            
     elif job_name == 'kd_array': # Kathy Donohue, Slow Slip related 2018_09
         sta_dict = {
             'kda00': (-125.155750, 44.447250),

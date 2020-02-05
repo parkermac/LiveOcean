@@ -26,7 +26,7 @@ parser.add_argument('-src', '--source', nargs='?', type=str, default='ic_hood_ca
 args = parser.parse_args()
 source = args.source
 
-testing = False
+testing = True
 
 print(source)
 if 'ic_' not in source:
@@ -61,7 +61,7 @@ def color_scaling(val):
     val_scaled = 1 + np.log10(val + 1e-8)/3
     return val_scaled
 
-for season in ['spring', 'fall']:#flux_fun.season_list:
+for season in ['spring']:#, 'fall']:#flux_fun.season_list:
     
     outdir0 = indir0 + item + '/movies/'
     Lfun.make_dir(outdir0)
@@ -91,6 +91,15 @@ for season in ['spring', 'fall']:#flux_fun.season_list:
     mc = mean_c.values
     ind_ef = np.argwhere(mc < 1/np.e)[0]
     tres = td[ind_ef]
+    
+    # also load the A matrix to allow us to calculate the "unrefluxed"
+    # residence time
+    q_df = pd.read_pickle(indir + 'q_df_' + season + '.p')
+    if source == 'ic_hood_canal_inner':
+        qin = q_df.loc['H3_s','H2_s']
+    else:
+        print('unsupported source')
+    tres_alt = (net_V/qin)/86400
     
     
     if testing == False:
