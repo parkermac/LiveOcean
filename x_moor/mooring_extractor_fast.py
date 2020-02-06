@@ -159,7 +159,7 @@ for sta in sta_dict.keys():
 
 tt0 = time()
 # INITIALIZATION
-ds = nc.Dataset(fn)
+ds = nc.Dataset(fn,'r')
 # generating some lists
 v0_list = ['h', 'lon_rho', 'lat_rho']
 v1_list = ['ocean_time']
@@ -228,7 +228,7 @@ for fn in fn_list:
     
     tt1 = time()
     
-    ds = nc.Dataset(fn)
+    ds = nc.Dataset(fn, 'r')
     
     if np.mod(count,24)==0:
         print(' working on %d of %d' % (count, NT))
