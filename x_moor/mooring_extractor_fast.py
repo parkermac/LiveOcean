@@ -240,10 +240,10 @@ for fn in fn_list:
         foo = foo_dict[sta_name]
         for vv in v1_list:
             val = ds[vv][0]
-            foo[vv][count] = val
+            foo[vv][count] = val.data
         for vv in v2_list:
             val = ds[vv][0, j0, i0]
-            foo[vv][count] = val
+            foo[vv][count] = val.data
         # for vv in v3_list_rho + v3_list_w:
         #     val = ds[vv][0,:,j0,i0]
         #     #foo[vv][count,:] = val
