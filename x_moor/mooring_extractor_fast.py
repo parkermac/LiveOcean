@@ -239,14 +239,14 @@ for fn in fn_list:
         tt2 = time()
         foo = foo_dict[sta_name]
         for vv in v1_list:
-            val = ds[vv][0]
-            foo[vv][count] = val.data
+            val = ds[vv][0].data
+            foo[vv][count] = val
         for vv in v2_list:
-            val = ds[vv][0, j0, i0]
-            foo[vv][count] = val.data
-        # for vv in v3_list_rho + v3_list_w:
-        #     val = ds[vv][0,:,j0,i0]
-        #     #foo[vv][count,:] = val
+            val = ds[vv][0, j0, i0].data
+            foo[vv][count] = val
+        for vv in v3_list_rho + v3_list_w:
+            val = ds[vv][0,:,j0,i0].data
+            foo[vv][count,:] = val
         if verbose:
             print(' ... station took %0.2f seconds' % (time()-tt2))
     count += 1
