@@ -235,17 +235,18 @@ for fn in fn_list:
         sys.stdout.flush()
         
     for sta_name in sta_dict.keys():
+        j0, i0 = ji_dict[sta_name]
         tt2 = time()
         foo = foo_dict[sta_name]
         for vv in v1_list:
-            j0, i0 = ji_dict[sta_name]
-            foo[vv][count] = ds[vv][0]
+            val = ds[vv][0]
+            #foo[vv][count] = val
         for vv in v2_list:
-            j0, i0 = ji_dict[sta_name]
-            foo[vv][count] = ds[vv][0, j0, i0]
+            val = ds[vv][0, j0, i0]
+            #foo[vv][count] = val
         for vv in v3_list_rho + v3_list_w:
-            foo[vv][count,:] = ds[vv][0,:,j0,i0]
-            
+            val = ds[vv][0,:,j0,i0]
+            #foo[vv][count,:] = val
         if verbose:
             print(' ... station took %0.2f seconds' % (time()-tt2))
     count += 1
