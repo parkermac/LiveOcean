@@ -13,8 +13,6 @@ run mooring_extractor.py -sn Dabob -lon " -122.85" -lat 47.7
 
 """
 
-verbose = False
-
 # setup
 import os, sys
 sys.path.append(os.path.abspath('../alpha'))
@@ -42,6 +40,11 @@ else:
     import moor_lists as ml
 reload(ml)
 
+def boolean_string(s):
+    if s not in ['False', 'True']:
+        raise ValueError('Not a valid boolean string')
+    return s == 'True' # note use of ==
+
 # command line arguments
 import argparse
 parser = argparse.ArgumentParser()
@@ -52,6 +55,7 @@ parser.add_argument('-x', '--ex_name', nargs='?', type=str, default='lo8b')
 parser.add_argument('-0', '--date_string0', nargs='?', type=str, default='2019.07.04')
 parser.add_argument('-1', '--date_string1', nargs='?', type=str, default='2019.07.05')
 parser.add_argument('-lt', '--list_type', nargs='?', type=str, default='hourly')
+parser.add_argument('-v', '--verbose', default=False, type=boolean_string)
 # see alpha/Lfun.get_fn_list() for acceptable list_type values
 
 # Mooring arguments.  You MUST supply all arguments for either (1) or (2)
@@ -65,14 +69,14 @@ parser.add_argument('-lat', '--lat_str', nargs='?', type=str, default='')
 parser.add_argument('-jn', '--job_name', nargs='?', type=str, default='blank')
 
 args = parser.parse_args()
+verbose = args.verbose
 
 # get list of history files to plot
 Ldir = Lfun.Lstart(args.gridname, args.tag)
 Ldir['gtagex'] = Ldir['gtag'] + '_' + args.ex_name
 fn_list = Lfun.get_fn_list(args.list_type, Ldir, args.date_string0, args.date_string1)
 
-# specify list of moorings to work on
-
+# specify list of variables to work on
 limit_lists = False # default is to get all variables
 # Initialize lists of varibles to get.  If you leave them empty
 # then the calling code will get everything.
@@ -219,22 +223,16 @@ for sta_name in sta_dict.keys():
 
 count = 0
 for fn in fn_list:
-    
     tt1 = time()
-    
     ds = nc.Dataset(fn)
     
     if np.mod(count,24)==0:
         print(' working on %d of %d' % (count, NT))
         sys.stdout.flush()
-        
+    
     for sta_name in sta_dict.keys():
         tt2 = time()
-        out_fn = out_fn_dict[sta_name]
-        
         foo = foo_dict[sta_name]
-        
-        #foo = nc.Dataset(out_fn, 'a')
         Xi0, Yi0, Xi1, Yi1, Aix, Aiy = itp_dict[sta_name]
         for vv in v1_list:
             vtemp = ds.variables[vv][:].squeeze()
@@ -254,26 +252,20 @@ for fn in fn_list:
             vvtemp = ds.variables[vv][:, :, yi01, xi01].squeeze()
             vtemp = ( aiy*((aix*vvtemp).sum(-1)) ).sum(-1)
             foo[vv][count,:] = vtemp
-        #foo.close()
         if verbose:
             print(' ... station took %0.2f seconds' % (time()-tt2))
-        
+    
     count += 1
     ds.close()
-    
+
     if verbose:
         print(' -- this history file took %0.2f seconds' % (time()-tt1))
     
-
 # END OF EXTRACTING TIME-DEPENDENT FIELDS
 
 # create z_rho and z_w (has to be done after we have zeta)
 for sta_name in sta_dict.keys():
-    out_fn = out_fn_dict[sta_name]
-    
     foo = foo_dict[sta_name]
-    
-    #foo = nc.Dataset(out_fn, 'a')
 
     zeta = foo['zeta'][:].squeeze()
     hh = foo['h'][:] * np.ones_like(zeta)
@@ -289,7 +281,6 @@ for sta_name in sta_dict.keys():
     v_var.units = 'm'
     v_var[:] = z_w.T
     
-    #foo.close()
 # close all output files
 for sta_name in sta_dict.keys():
     foo_dict[sta_name].close()

@@ -15,6 +15,17 @@ Example call from the command line:
 
 run mooring_extractor.py -sn Dabob -lon " -122.85" -lat 47.7
 
+RESULT: this actually runs 3x SLOWER than mooring_extractor when I use
+nco.read_cdf.  BUT it runs about 2x FASTER than mooring_extractor when
+I use my usual netCDF4 calls to get the data.  This is consistent with
+the fact that we pull out less data.  The only drawback is that it has the
+crude interpolation issues mentioned above.
+
+ACTION: I need to test a bit more on the linux machines so that I can
+start with fresh piles of history files each time - otherwise some clever
+thing in python makes the code run unnaturally fast, making performance testing
+hard.
+
 """
 
 # setup
@@ -27,13 +38,13 @@ start_time = datetime.now()
 import zfun
 import zrfun
 import netCDF4 as nc
-
 from time import time
-
 from importlib import reload
-
 import moor_fun as mfun
 reload(mfun)
+
+# from nco import Nco
+# nco = Nco()
 
 # Load the module that defines mooring lists.  First look for a
 # "user_" one that you can put in this directory, copying the
@@ -240,12 +251,15 @@ for fn in fn_list:
         foo = foo_dict[sta_name]
         for vv in v1_list:
             val = ds[vv][0].data
+            #val = nco.read_cdf(fn).variables[vv][0]
             foo[vv][count] = val
         for vv in v2_list:
             val = ds[vv][0, j0, i0].data
+            #val = nco.read_cdf(fn).variables[vv][0, j0, i0]
             foo[vv][count] = val
         for vv in v3_list_rho + v3_list_w:
             val = ds[vv][0,:,j0,i0].data
+            #val = nco.read_cdf(fn).variables[vv][0, :, j0, i0]
             foo[vv][count,:] = val
         if verbose:
             print(' ... station took %0.2f seconds' % (time()-tt2))

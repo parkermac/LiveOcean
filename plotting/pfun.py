@@ -185,8 +185,8 @@ def add_velocity_vectors(ax, ds, fn, v_scl=3, v_leglen=0.5, nngrid=80, zlev='top
     daax = aaa[1] - aaa[0]
     daay = aaa[3] - aaa[2]
     axrat = np.cos(np.deg2rad(aaa[2])) * daax / daay
-    x = np.linspace(aaa[0], aaa[1], round(nngrid * axrat))
-    y = np.linspace(aaa[2], aaa[3], nngrid)
+    x = np.linspace(aaa[0], aaa[1], int(round(nngrid * axrat)))
+    y = np.linspace(aaa[2], aaa[3], int(nngrid))
     xx, yy = np.meshgrid(x, y)
     # interpolate to regular grid
     uu = ui(x, y)

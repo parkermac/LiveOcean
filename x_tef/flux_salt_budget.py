@@ -58,7 +58,7 @@ river_list = []
 for seg_name in seg_list:
     seg = flux_fun.segs[seg_name]
     river_list = river_list + seg['R']
-riv_df = pd.read_pickle(Ldir['LOo'] + 'river/' + 'cas6_v3_2017.01.01_2018.12.31.p')
+riv_df = pd.read_pickle(Ldir['LOo'] + 'river/' + 'cas6_v3_2017.01.01_2017.12.31.p')
 riv_df.index += timedelta(days=0.5)
 riv_df = riv_df.loc[sv_lp_df.index, river_list]
     

@@ -18,17 +18,15 @@ import tef_fun
 import flux_fun
 
 # select the indir
-indir0 = Ldir['LOo'] + 'tef/cas6_v3_lo8b_2017.01.01_2017.12.31/'
-indir = indir0 + 'flux/'
+indir = Ldir['LOo'] + 'tef/flux_engine/cas6_v3_lo8b/'
 
 # load the DataFrame of results of flux_engine.py
-infile = Lfun.choose_item(indir, tag='cc_', itext='Choose flux engine output file:')
+infile = Lfun.choose_item(indir, tag='AGE', itext='Choose flux engine output file:')
 cc = pd.read_pickle(indir + infile)
 cc.loc[:,'age'] = 365*cc.loc[:,'ca']/cc.loc[:,'c']
 
 # load a Series of the volumes of each segment, created by flux_get_vol.py
-v_df = pd.read_pickle(indir + 'volumes.p')
-
+v_df = pd.read_pickle(Ldir['LOo'] + 'tef/cas6_v3_lo8b_2017.01.01_2017.12.31/flux/volumes.p')
 
 #plt.close('all')
 fig = plt.figure(figsize=(13,8))
@@ -71,7 +69,7 @@ for ch in flux_fun.channel_dict.keys():
         ax2.text(dist[ii], cc.loc[vs[ii],'age'], seg_list[ii], color=color,
         horizontalalignment='center', verticalalignment='bottom', fontsize=fs-3)
         
-    ax2.text(.05, .75-ch_counter*.11, ch, color=color,
+    ax2.text(.05, .85-ch_counter*.11, ch, color=color,
         transform=ax2.transAxes, fontsize=fs, fontweight='bold',
         bbox=dict(facecolor='w',edgecolor='w', alpha=0.8))
     
@@ -93,7 +91,7 @@ ax2.set_xlabel('Distance from Mouth of JdF (km)', fontsize=fs)
 ax1.tick_params(labelsize=fs-2) 
 ax2.tick_params(labelsize=fs-2)
 
-ttext = infile.replace('cc_','').replace('.p','').replace('_',' ').title()
+ttext = infile.replace('S_','').replace('.p','').replace('_',' ')
 ax1.set_title('Source: ' + ttext, fontsize=fs)
 
 plt.show()

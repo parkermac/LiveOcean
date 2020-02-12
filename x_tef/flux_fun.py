@@ -16,11 +16,11 @@ def get_dtr(year):
 
 # Lists of 2-layer segments to use for "initial condition" experiments in the flux_engine.
 # The keys should match up with "src" values in flux_engine.py.
-ic_seg2_dict = {'ic_hood_canal_inner': ['H'+str(n)+'_s' for n in range(3,9)],
+ic_seg2_dict = {'IC_HoodCanalInner': ['H'+str(n)+'_s' for n in range(3,9)],
                                   #+ ['H'+str(n)+'_f' for n in range(3,9)],
-            'ic_hood_canal': ['H'+str(n)+'_s' for n in range(1,9)],
-            'ic_south_sound': ['S'+str(n)+'_s' for n in range(1,5)],
-            'ic_sog': ['G'+str(n)+'_s' for n in range(1,7)],
+            'IC_HoodCanal': ['H'+str(n)+'_s' for n in range(1,9)],
+            'IC_SouthSound': ['S'+str(n)+'_s' for n in range(1,5)],
+            'IC_SoG': ['G'+str(n)+'_s' for n in range(1,7)],
                             }
                             
 season_list = list(get_dtr(2017).keys())
