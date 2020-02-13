@@ -19,8 +19,8 @@ testing = False
 import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('-g', '--gridname', nargs='?', type=str, default='cas6')
-parser.add_argument('-t', '--tag', nargs='?', type=str, default='v2')
-parser.add_argument('-x', '--ex_name', nargs='?', type=str, default='lo8')
+parser.add_argument('-t', '--tag', nargs='?', type=str, default='v3')
+parser.add_argument('-x', '--ex_name', nargs='?', type=str, default='lo8b')
 parser.add_argument('-y', '--year', nargs='?', type=int, default=2017)
 parser.add_argument('-ds', '--data_source', nargs='?', type=str, default='ecology')
 args = parser.parse_args()
