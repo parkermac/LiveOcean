@@ -27,6 +27,7 @@ fs = 13
 vn = 'temp'; vmin=8; vmax=20
 cmap = 'RdYlBu_r'#'cubehelix'#'ocean'
 aaf = [-125.3, -122.1, 46.8, 50.3] # focus domain
+station = 'HCB010' # 010 or 003
 
 # get map fields
 fn = Ldir['roms'] + 'output/cas6_v3_lo8b/f2019.07.04/ocean_his_0020.nc'
@@ -51,7 +52,7 @@ for year in [2017, 2018, 2019]:
 # get mooring record
 mfn = (Ldir['LOo'] +
     'moor/cas6_v3_lo8b_2017.01.01_2019.12.31/' +
-    'HCB010_hourly.nc')
+    station + '_hourly.nc')
 m_ds = nc.Dataset(mfn)
 mlon = m_ds['lon_rho'][:]
 mlat = m_ds['lat_rho'][:]
@@ -99,9 +100,12 @@ ax.set_xlabel('Longitude (deg)', size=fs)
 ax.set_ylabel('Latitude (deg)', size=fs)
 pfun.draw_box(ax, aaf, linestyle='-', color='k', alpha=.3, linewidth=3, inset=0)
 ax.set_title('(a) Full Model Domain', size=fs)
-ah = ax.text(-126.27,48.65,'Vancouver\nIsland',size=fs-2,style='italic',rotation=-45)
-ax.text(-124,46.1,'Washington',size=fs-2,style='italic',rotation=-45)
-ax.text(-123.7,44.2,'Oregon',size=fs-2,style='italic',rotation=-45)
+ah = ax.text(-125.456,49.4768,'Vancouver\nIsland',size=fs-2,
+    style='italic',ha='center',va='center',rotation=-45)
+ax.text(-123.072,46.7866,'Washington',size=fs-2,
+    style='italic',ha='center',va='center',rotation=-45)
+ax.text(-122.996,44.5788,'Oregon',size=fs-2,
+    style='italic',ha='center',va='center',rotation=-45)
     
 # focus map
 ax = fig.add_subplot(132)
@@ -121,8 +125,18 @@ for yy in y:
     hh = ax.plot([aaf[1]-.08, aaf[1]],[yy,yy],'-k', lw=lwt)
 ax.set_xlabel('Longitude (deg)', size=fs)
 # add mooring location
-ax.plot(mlon, mlat, 'sk', ms=4)
+ax.plot(mlon, mlat, 'o', ms=10, markerfacecolor='g', markeredgecolor='k')
 ax.set_title('(b) Salish Sea', size=fs)
+# add labels
+ax.text(-122.682,49.335,'Fraser\nRiver',size=fs-2,
+    style='italic',ha='center',va='center',rotation=0)
+ax.text(-123.785,49.2528,'Strait of Georgia',size=fs-2,
+    style='italic',ha='center',va='center',rotation=-30)
+ax.text(-123.434,48.2381,'Juan de Fuca',size=fs-2,
+    style='italic',ha='center',va='center',rotation=-0)
+ax.text(-123.314,47.6143,'Puget\nSound',size=fs-2,
+    style='italic',ha='center',va='center',rotation=+55)
+
 
 dt0 = datetime(2017,1,1,0)
 dt1 = datetime(2020,1,1,0)
@@ -147,6 +161,25 @@ ax = fig.add_subplot(339)
 md_df.plot(y=['salt_bot', 'salt_top'], label=['Bottom Salinity', 'Surface Salinity'],
     ax=ax, legend=True, xlim=(dt0,dt1), grid=True)
 ax.text(.05, .1, '(e)', size=fs, transform=ax.transAxes)
+#
+# add observations
+S = pd.DataFrame(columns=['S_bot', 'S_top'])
+indir = '/Users/pm7/Documents/ptools_data/ecology/'
+for year in [2017, 2018, 2019]:
+    Casts = pd.read_pickle(indir + 'Casts_' + str(year) + '.p')
+    casts = Casts[Casts['Station']==station]
+    casts = casts.set_index('Date')
+    casts = casts[['Salinity', 'Z']]
+    # identify a single cast by its DATE
+    calldates = casts.index
+    dates = calldates.unique() # a short list of unique dates (1 per cast)
+    for dd in dates:
+        # NOTE the brackets around [dd] keep the result as a DataFrame even if
+        # we are only pulling out a single row.
+        ca = casts.loc[[dd],:]
+        S.loc[dd,'S_bot'] = ca.iloc[0].Salinity
+        S.loc[dd,'S_top'] = ca.iloc[-1].Salinity
+S.plot(ax=ax, style='*', legend=False)
 
 #fig.tight_layout()
 plt.show()
