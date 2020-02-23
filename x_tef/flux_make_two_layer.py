@@ -51,11 +51,18 @@ if testing == True:
     sect_name_list = ['hc3','hc4']
 else:
     sect_name_list = list(sect_df.index)
+    
+# hacky way of getting the year, assumes "item" is of the form:
+# 'cas6_v3_lo8b_2017.01.01_2017.12.31'
+year_str = item.split('_')[-1].split('.')[0]
+year = int(year_str)
 
 for season in flux_fun.season_list:
     
-    dt0 = flux_fun.dtr[season][0]
-    dt1 = flux_fun.dtr[season][1]
+    dtr = flux_fun.get_dtr(year)
+    
+    dt0 = dtr[season][0]
+    dt1 = dtr[season][1]
     
     # initialize output DataFrame
     # naming convention part 1: q_, f_, s_ mean volume flux, salt flux, and salinity

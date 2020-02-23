@@ -64,6 +64,7 @@ print('Running integration with source = ' + source)
 # - S_FraserRiver
 # - S_DeschutesRiver
 # - S_SkagitRiver
+# - S_AllRiver
 #
 # Initial condition, dye concentration = 1 in part of a basin
 # - IC_HoodCanalInner
@@ -77,7 +78,7 @@ if source == 'S_OceanSalt':
     # decreasing like it may for a singel season.
     season_list = ['full']
 else:
-    season_list = ['spring', 'fall']
+    season_list = ['winter','spring','summer','fall']
 
 # Input directory
 indir0 = Ldir['LOo'] + 'tef/'

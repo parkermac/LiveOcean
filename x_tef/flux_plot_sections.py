@@ -35,7 +35,12 @@ indir0 = Ldir['LOo'] + 'tef/'
 item = Lfun.choose_item(indir0)
 indir = indir0 + item + '/flux/'
 
-outdir = indir0 + item + '/misc_figs/'
+# hacky way of getting the year, assumes "item" is of the form:
+# 'cas6_v3_lo8b_2017.01.01_2017.12.31'
+year_str = item.split('_')[-1].split('.')[0]
+year = int(year_str)
+
+outdir = indir0 + '/tef_all_sections/'
 Lfun.make_dir(outdir)
 
 def plotit(ax, sect_df, sect_list, lcol, qsign):
@@ -122,7 +127,7 @@ for season in flux_fun.season_list:
         ax1.plot(dist,np.abs(q_s),'-', color=lcol,linewidth=lw, label=ch_str)
         ax1.plot(dist,np.abs(q_f),'-', color=lcol,linewidth=lw, label=ch_str)
         ax1.set_xlim(-5,distmax)
-        ax1.set_ylim(0, 170)
+        ax1.set_ylim(0, 200)
         ax1.grid(True)
         ax1.set_ylabel('Qin and Qout (1000 m3/s)', fontsize=fs)
         year_str = indir.split('/')[-3].split('_')[-1].split('.')[0] # brittle!
@@ -136,7 +141,7 @@ for season in flux_fun.season_list:
         
         ax2.fill_between(dist, s_s, y2=s_f, color=lcol, alpha=.5)
         ax2.set_xlim(-5,distmax)
-        ax2.set_ylim(21.8,33.5)
+        ax2.set_ylim(21.5,34)
         ax2.grid(True)
         ax2.set_xlabel('Distance from Mouth (km)', fontsize=fs)
         ax2.set_ylabel('Salinity', fontsize=fs)
@@ -160,6 +165,6 @@ for season in flux_fun.season_list:
         qsign = np.sign(q_s)
         plotit(ax3, sect_df, sect_list, lcol, qsign)
 
-    plt.show()
-    fig.savefig(outdir + 'all_sections_' + season + '.png')
+    #plt.show()
+    fig.savefig(outdir + 'all_sections_' + year_str + '_' + season + '.png')
     

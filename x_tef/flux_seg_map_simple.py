@@ -35,6 +35,9 @@ indir = indir0 + 'flux/'
 outdir = indir0 + 'misc_figs/'
 Lfun.make_dir(outdir)
 
+# get the DataFrame of all sections
+sect_df = tef_fun.get_sect_df()
+
 # load data
 bathy_dict = pickle.load(open(indir + 'bathy_dict.p', 'rb'))
 ji_dict = pickle.load(open(indir + 'ji_dict.p', 'rb'))
@@ -52,8 +55,8 @@ ax = fig.add_subplot(111)
 aa0 = [-125.5, -122, 46.7, 50.4]
 
 ch_list = list(flux_fun.seg_dict.keys())
-if testing:
-    ch_list = [ch_list[0]]
+# if testing:
+#     ch_list = [ch_list[0]]
 
 # colors
 clist = flux_fun.clist
@@ -81,12 +84,19 @@ for ch in ch_list:
     ax.text(.05, .3-jj*.05, ch, color=clist[jj],
         transform=ax.transAxes, fontsize=18, fontweight='bold')
     jj += 1
+
+# add sections and segments
+for sn in sect_df.index:
+    x0, x1, y0, y1, landward = sect_df.loc[sn,:]
+    xx = (x0+x1)/2; yy = (y0+y1)/2
+    ax.plot([x0,x1], [y0,y1], '-', color='brown', linewidth=2)
     
 ax.set_axis_off()
 fig.tight_layout()
 plt.show()
 
-fig.savefig(outdir + 'seg_map_simple.png')
+if testing == False:
+    fig.savefig(outdir + 'seg_map_simple.png')
     
 
 

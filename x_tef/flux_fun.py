@@ -10,8 +10,12 @@ import pandas as pd
 def get_dtr(year):
     dtr = {}
     dtr['full'] = (datetime(year,1,1,12,0,0), datetime(year,12,31,12,0,0))
-    dtr['spring'] = (datetime(year,3,1,12,0,0), datetime(year,6,1,12,0,0))
-    dtr['fall'] = (datetime(year,9,1,12,0,0), datetime(year,12,1,12,0,0))
+    # dtr['spring'] = (datetime(year,3,1,12,0,0), datetime(year,6,1,12,0,0)) # MAM
+    # dtr['fall'] = (datetime(year,9,1,12,0,0), datetime(year,12,1,12,0,0)) # SON
+    dtr['winter'] = (datetime(year,1,1,12,0,0), datetime(year,3,31,12,0,0)) # JFM
+    dtr['spring'] = (datetime(year,4,1,12,0,0), datetime(year,6,30,12,0,0)) # AMJ
+    dtr['summer'] = (datetime(year,7,1,12,0,0), datetime(year,9,30,12,0,0)) # JAS
+    dtr['fall'] = (datetime(year,10,1,12,0,0), datetime(year,12,31,12,0,0)) # OMD
     return dtr
 
 # Lists of 2-layer segments to use for "initial condition" experiments in the flux_engine.

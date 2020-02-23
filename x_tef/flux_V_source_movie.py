@@ -2,6 +2,8 @@
 Code to plot the volumes of the Salish Sea in a graphically compelling way
 that we could use for movies of the flux_engine results.
 
+This version is designed for steady sources like rivers, so not Tres info.
+
 """
 
 # imports
@@ -29,7 +31,8 @@ outdir0 = outdir00 + 'cas6_v3_lo8b/'
 Lfun.make_dir(outdir0)
 
 # load the DataFrame of results of flux_engine.py
-infile = Lfun.choose_item(indir, tag='IC_', itext='Choose flux engine output file:')
+infile = Lfun.choose_item(indir, tag='S_', exclude_tag='AGE',
+    itext='Choose flux engine output file:')
 aa = pd.read_pickle(indir + infile)
 this_run = infile.replace('.p','')
 print(this_run)
@@ -41,33 +44,10 @@ source = olist[0] + '_' + olist[1]
 year_str = olist[2]
 season = olist[3]
 
-# # required command line arguments, can be input in any order
-# parser = argparse.ArgumentParser()
-# parser.add_argument('-src', '--source', nargs='?', type=str, default='ic_hood_canal_inner')
-# args = parser.parse_args()
-# source = args.source
 
 testing = False
 
-# print(source)
-# if 'ic_' not in source:
-#     print(' -- Error: neet to run with an ic_ source --')
-#     sys.exit()
-#
-# # Input directory
-# indir0 = Ldir['LOo'] + 'tef/'
-# item = Lfun.choose_item(indir0)
-# indir = indir0 + item + '/flux/'
-#
-# # hacky way of getting the year, assumes "item" is of the form:
-# # 'cas6_v3_lo8b_2017.01.01_2017.12.31'
-# year_str = item.split('_')[-1].split('.')[0]
-# year = int(year_str)
-#
-# print(item)
-
 # ==============================================================
-
 
 # load a Series of the volumes of each segment, created by flux_get_vol.py
 v_df = pd.read_pickle(Ldir['LOo'] + 'tef/cas6_v3_lo8b_2017.01.01_2017.12.31/flux/volumes.p')
@@ -79,50 +59,10 @@ cmap = get_cmap('cool') # 'YlOrRd'
 # get rgba using cmap(0-255)
 
 def color_scaling(val):
-    val_scaled = 1 + np.log10(val + 1e-8)/3
+    val_scaled = 1 + np.log10(val*20 + 1e-8)/3
     return val_scaled
 
-# outdir0 = indir0 + item + '/movies/'
-# Lfun.make_dir(outdir0)
-#
-# outdir = outdir0 + source + '_' + season + '/'
-# Lfun.make_dir(outdir, clean=True)
-
-    
-# infile = 'aa_' + source + '_' + season + '.p'
-# aa = pd.read_pickle(indir + infile)
 day_list = list(aa.index)
-
-# calculate the e-folding time for this release
-seg2_list = flux_fun.ic_seg2_dict[source]
-this_aa = aa.loc[:,seg2_list]
-this_V = V[seg2_list]
-net_V = this_V.sum()
-this_net_aa = this_aa.copy()
-for sn in this_V.index:
-    VV = this_V[sn]
-    this_net_aa.loc[:,sn] = this_net_aa.loc[:,sn] * VV
-# make a series of mean concentration in the volume
-mean_c = pd.Series(0, index=this_aa.index)
-mean_c = this_net_aa.sum(axis=1) / net_V
-# find e-folding time
-td = mean_c.index.values
-mc = mean_c.values
-ind_ef = np.argwhere(mc < 1/np.e)[0]
-tres = td[ind_ef]
-
-# also load the A matrix to allow us to calculate the "unrefluxed"
-# residence time
-q_df = pd.read_pickle(Ldir['LOo'] +
-    'tef/cas6_v3_lo8b_' + year_str + '.01.01_' + year_str + '.12.31/flux/q_df_' + season + '.p')
-if source == 'IC_HoodCanalInner':
-    qin = q_df.loc['H3_s','H2_s']
-else:
-    print('unsupported source')
-tres_alt = (net_V/qin)/86400
-print('\n' + source + ' ' + season)
-print('Non-reflux residence time = %0.1f days' % (tres_alt))
-
 
 if testing == False:
     day_list_short = day_list[:51:5]
@@ -159,7 +99,6 @@ for ii in range(len(day_list_short)):
         seg_list = flux_fun.short_seg_dict[ch].copy()
         
         color = flux_fun.clist[jj]
-        
 
         if ch in ['Hood Canal', 'Whidbey Basin']:
             seg_list.reverse()
@@ -182,8 +121,8 @@ for ii in range(len(day_list_short)):
             c_f = aa.loc[day,seg+'_f']
             
             # let's convert to log10 scaling
-            cc_s = color_scaling(c_s)#1 + np.log10(c_s + 1e-8)/3
-            cc_f = color_scaling(c_f)#1 + np.log10(c_f + 1e-8)/3
+            cc_s = color_scaling(c_s)
+            cc_f = color_scaling(c_f)
             
             x0 = x00 + dist[ii]
             x1 = x00 + dist[ii+1]
@@ -223,23 +162,18 @@ for ii in range(len(day_list_short)):
         ax.fill([x0,x1,x1,x0],[y0,y0,y1,y1], color=cmap(int(val_scaled*255)), alpha=.8)
         ax.text((x0+x1)/2, y0+.2, ('%0.3f' % (val)),
             ha='center', size=12)
-    add_scalebox(40, -16, 1)
-    add_scalebox(45, -16, .1)
-    add_scalebox(50, -16, .01)
-    add_scalebox(55, -16, .001)
-    ax.text(47.5, -15, 'Concentration Scale', ha='center', size=13, style='italic')
+    #add_scalebox(40, -16, 1)
+    add_scalebox(45, -16, .05)
+    add_scalebox(50, -16, .005)
+    add_scalebox(55, -16, .005)
+    ax.text(50, -15, 'Concentration Scale', ha='center', size=13, style='italic')
     
     # add text
     ax.set_title(this_run,
         size=14, style='italic', weight='bold')
     ax.text(-1, -3, 'Pacific\nOcean', ha='right', size=16)
     ax.text(55, -3, 'Johnstone\nStrait', ha='left', size=13)
-    ax.text(0, -8, 'Day = %s' % (str(int(day))), size=18, weight='bold')
-    ax.text(0, -17, 'Residence time = %s days' % (str(int(tres))),
-        size=16, weight='bold', style='italic')
-    ax.text(0, -18, 'Residence time = %s days (without reflux)' % (str(int(tres_alt))),
-        size=14, style='italic')
-    
+    ax.text(0, -8, 'Day = %s' % (str(int(day))), size=18, weight='bold')    
 
     # plot connecting lines
     lw = 3
@@ -251,7 +185,6 @@ for ii in range(len(day_list_short)):
 
     ax.set_axis_off()
     
-
     if testing:
         plt.show()
     else:

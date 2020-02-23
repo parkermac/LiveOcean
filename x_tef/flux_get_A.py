@@ -1,5 +1,6 @@
 """
-Calculate efflux-reflux coefficients, and then create the transport matrix used in flux_engine.py.
+Calculate efflux-reflux coefficients, and then create
+the transport matrix used in flux_engine.py.
 """
 
 # imports
