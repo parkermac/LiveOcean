@@ -209,7 +209,7 @@ def get_fn_list(list_type, Ldir, date_string0, date_string1, his_num=1):
     
     return fn_list
     
-def choose_item(indir, tag='', itext='** Choose item from list **'):
+def choose_item(indir, tag='', exclude_tag='', itext='** Choose item from list **'):
     print('\n%s\n' % (itext))
     ilist_raw = os.listdir(indir)
     ilist_raw.sort()
@@ -217,6 +217,12 @@ def choose_item(indir, tag='', itext='** Choose item from list **'):
         ilist = [item for item in ilist_raw if item[0] != '.']
     else:
         ilist = [item for item in ilist_raw if tag in item]
+        
+    if len(exclude_tag) == 0:
+        pass
+    else:
+        ilist = [item for item in ilist if exclude_tag not in item]
+    
     Nitem = len(ilist)
     idict = dict(zip(range(Nitem), ilist))
     for ii in range(Nitem):
