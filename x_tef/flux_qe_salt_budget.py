@@ -38,19 +38,23 @@ sv_lp_df = pd.read_pickle(indir + 'daily_segment_net_salt.p')
 
 # USER set which volume to consider
 which_vol = 'Puget Sound'
+
 if which_vol == 'Salish Sea':
     seg_list = list(v_lp_df.columns)
-    sect_sign_dict = {'jdf1':1, 'sog5':-1}
+    seg_list = seg_list[1:]
+    sect_sign_dict = {'jdf2':1, 'sog5':-1}
 elif which_vol == 'Puget Sound':
     seg_list = flux_fun.ssA + flux_fun.ssM + flux_fun.ssT + flux_fun.ssS + flux_fun.ssW + flux_fun.ssH
     seg_list = seg_list[1:]
     sect_sign_dict = {'ai2':1, 'dp':1}
 elif which_vol == 'Hood Canal':
     seg_list = flux_fun.ssH
-    sect_sign_dict = {'hc1':1}
+    seg_list = seg_list[1:]
+    sect_sign_dict = {'hc2':1}
 elif which_vol == 'South Sound':
     seg_list = flux_fun.ssT + flux_fun.ssS
-    sect_sign_dict = {'tn1':1}
+    seg_list = seg_list[1:]
+    sect_sign_dict = {'tn2':1}
 
 sv_lp_df = sv_lp_df[seg_list]
 
@@ -111,11 +115,20 @@ for sn in sect_sign_dict.keys():
     tef_df_dict[sn] = get_fluxes(sn, in_sign=in_sign)
     
 # hack to get dsdx
-if which_vol == 'Puget Sound':
+if which_vol == 'Salish Sea':
+    df1 = get_fluxes('jdf1')
+    df3 = get_fluxes('jdf3')
+elif which_vol == 'Puget Sound':
     df1 = get_fluxes('ai1')
     df3 = get_fluxes('ai3')
-    dsdx = (df1['Sin']+df1['Sout'])/2-(df3['Sin']+df3['Sout'])/2
-    dissip = df1['fnet']-df3['fnet']
+elif which_vol == 'South Sound':
+    df1 = get_fluxes('tn1')
+    df3 = get_fluxes('tn3')
+elif which_vol == 'Hood Canal':
+    df1 = get_fluxes('hc1')
+    df3 = get_fluxes('hc3')
+dsdx = (df1['Sin']+df1['Sout'])/2-(df3['Sin']+df3['Sout'])/2
+dissip = df1['fnet']-df3['fnet']
 
 # volume budget
 vol_df = pd.DataFrame(index=sv_lp_df.index, columns=['Qin','-Qout', 'Qr','dV_dt','dV_dt_check'])
@@ -165,17 +178,17 @@ sf_df['dSdx'] = dsdx
 plt.close('all')
 fig = plt.figure(figsize=(20,10))
 
-ax = plt.subplot2grid((1,3), (0,0), colspan=2)
+#ax = plt.subplot2grid((1,3), (0,0), colspan=2)
+ax = fig.add_subplot(211)
 sf_df[['QeDS','-QrSbar','dSnet_dt','Error']].plot(ax=ax, grid=True,
-    title=which_vol + ' Salt Budget (g/kg m3/s)')
-ii = 3
+    title=which_vol + ' Salt Budget (g/kg m3/s)', legend=False)
+legh = ax.legend(labels=['$Q_e \Delta S$', '$-Q_R S_{bar}$', '$d S_{net} / dt$','Error'])
+ii = 4
 for frc in ['Forcing', 'Dissipation', 'dSdx']:
-    ax = fig.add_subplot(3,3,ii)
+    ax = fig.add_subplot(2,3,ii)
     sf_df.plot(x=frc, y='QeDS', ax=ax, grid=True, style='og', markersize=2)
     ax.set_xlabel('')
     ax.text(.05,.9,frc, transform=ax.transAxes)
-    ii += 3
-
-
+    ii += 1
 
 plt.show()

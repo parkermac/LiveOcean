@@ -1,7 +1,8 @@
 """
 A tool to extract hourly time series of salinity and volume in the segments.
 
-Performance: takes 1.5 sec per save (3.6 hours per year) on my mac.  This relies
+Performance: takes 1.5 sec per save (3.6 hours per year) on my mac,
+and about 50 percent faster on perigee.  This relies
 on creating i_dict and j_dict of indices used for fancy indexing in the segment loop.
 The alternate version takes about 15 times longer.
 
