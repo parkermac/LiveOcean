@@ -1,8 +1,7 @@
 """
 A tool to extract hourly time series of salinity and volume in the segments.
 
-Performance: takes 1.5 sec per save (3.6 hours per year) on my mac,
-and about 50 percent faster on perigee.  This relies
+Performance: takes 1.5 sec per save (3.6 hours per year) on my mac.  This relies
 on creating i_dict and j_dict of indices used for fancy indexing in the segment loop.
 The alternate version takes about 15 times longer.
 
@@ -47,7 +46,8 @@ Ldir['date_string0'] = ds0; Ldir['date_string1'] = ds1
 dt0 = datetime.strptime(ds0, '%Y.%m.%d'); dt1 = datetime.strptime(ds1, '%Y.%m.%d')
 ndays = (dt1-dt0).days + 1
 print('Working on:')
-print(Ldir['gtagex'] + '_' + ds0 + '_' + ds1 +'\n')
+outname = Ldir['gtagex'] + '_' + ds0 + '_' + ds1
+print(outname +'\n')
 
 # get list of history files to process
 fn_list = Lfun.get_fn_list('hourly', Ldir, ds0, ds1)
@@ -61,14 +61,19 @@ h = G['h']
 DA = G['DX'] * G['DY']
 DA3 = DA.reshape((1,G['M'],G['L']))
 
-# select input/output location
-indir0 = Ldir['LOo'] + 'tef/cas6_v3_lo8b_2017.01.01_2017.12.31/'
-indir = indir0 + 'flux/'
+# set input/output location
+indir0 = Ldir['LOo'] + 'tef/'
+voldir = indir0 + 'volumes_' + Ldir['gridname'] + '/'
+#
+outdir0 = indir0 + outname + '/'
+Lfun.make_dir(outdir0)
+outdir = outdir0 + 'flux/'
+Lfun.make_dir(outdir)
 
 # load DataFrame of volume and associated dicts
-v_df = pd.read_pickle(indir + 'volumes.p')
-bathy_dict = pickle.load(open(indir + 'bathy_dict.p', 'rb'))
-ji_dict = pickle.load(open(indir + 'ji_dict.p', 'rb'))
+v_df = pd.read_pickle(voldir + 'volumes.p')
+bathy_dict = pickle.load(open(voldir + 'bathy_dict.p', 'rb'))
+ji_dict = pickle.load(open(voldir + 'ji_dict.p', 'rb'))
 
 seg_list = list(v_df.index)
 verbose = False
@@ -146,8 +151,8 @@ for fn in fn_list:
                 
     print('  ** took %0.1f sec' % (time()-tt0))
 
-s_out_fn = indir + 'hourly_segment_salinity.p'
-v_out_fn = indir + 'hourly_segment_volume.p'
+s_out_fn = outdir + 'hourly_segment_salinity.p'
+v_out_fn = outdir + 'hourly_segment_volume.p'
 s_df.to_pickle(s_out_fn)
 v_df.to_pickle(v_out_fn)
     

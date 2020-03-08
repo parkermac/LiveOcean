@@ -29,18 +29,18 @@ from importlib import reload
 reload(flux_fun)
 
 # select the indir
-indir0 = Ldir['LOo'] + 'tef/cas6_v3_lo8b_2017.01.01_2017.12.31/'
-indir = indir0 + 'flux/'
-
-outdir = indir0 + 'misc_figs/'
+indir0 = Ldir['LOo'] + 'tef/'
+voldir = indir0 + 'volumes_' + Ldir['gridname'] + '/'
+# and set the outdir
+outdir = indir0 + 'misc_figs_' + Ldir['gridname'] + '/'
 Lfun.make_dir(outdir)
 
 # get the DataFrame of all sections
 sect_df = tef_fun.get_sect_df()
 
 # load data
-bathy_dict = pickle.load(open(indir + 'bathy_dict.p', 'rb'))
-ji_dict = pickle.load(open(indir + 'ji_dict.p', 'rb'))
+bathy_dict = pickle.load(open(voldir + 'bathy_dict.p', 'rb'))
+ji_dict = pickle.load(open(voldir + 'ji_dict.p', 'rb'))
 
 h = bathy_dict['h']
 xp = bathy_dict['xp']

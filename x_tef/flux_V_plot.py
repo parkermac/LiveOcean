@@ -17,13 +17,14 @@ Ldir = Lfun.Lstart(gridname='cas6', tag='v3')
 import flux_fun
 
 # select the indir
-indir0 = Ldir['LOo'] + 'tef/cas6_v3_lo8b_2017.01.01_2017.12.31/'
-indir = indir0 + 'flux/'
-
-outdir = indir0 + 'misc_figs/'
+indir0 = Ldir['LOo'] + 'tef/'
+voldir = indir0 + 'volumes_' + Ldir['gridname'] + '/'
+# and set the outdir
+outdir = indir0 + 'misc_figs_' + Ldir['gridname'] + '/'
+Lfun.make_dir(outdir)
 
 # load a DataFrame of the volumes of each segment, created by flux_get_vol.py
-v_df = pd.read_pickle(indir + 'volumes.p')
+v_df = pd.read_pickle(voldir + 'volumes.p')
 # index is ['J1', 'J2', 'J3',...
 # columns are ['volume m3', 'area m2', 'lon', 'lat']
 

@@ -26,11 +26,9 @@ import flux_fun
 reload(flux_fun)
 
 # select output location
-outdir00 = Ldir['LOo'] + 'tef/'
-# choose the tef extraction to work with
-item = Lfun.choose_item(outdir00)
-outdir0 = outdir00 + item + '/'
-outdir = outdir0 + 'flux/'
+outdir0 = Ldir['LOo'] + 'tef/'
+Lfun.make_dir(outdir0)
+outdir = outdir0 + 'volumes_' + Ldir['gridname'] + '/'
 Lfun.make_dir(outdir)
 
 fng = Ldir['grid'] + 'grid.nc'

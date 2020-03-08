@@ -43,14 +43,14 @@ Output: LiveOcean_output/tef/[*]/misc_figs/two_layer_[season].png
 
 Input: flux_fun.segs, the model grid (hard wired in the code to be cas6), and sect_df = tef_fun.get_sect_df().
 
-Output: LiveOcean_output/tef/[*]/flux/...
+Output: LiveOcean_output/tef/volumes_cas6/...
 	volumes.p a pickled DataFrame with segment names for the index and columns: ['volume m3', 'area m2', 'lon', 'lat']
 	bathy_dict.p pickled dict of the grid bathy, for plotting
 	ji_dict.p pickled dict (keys = segment names) of the ji indices of each segment area, also for plotting
 	
 * flux_V_plot.py makes a simple plot of the segment volumes represented as rectangles:
-	LiveOcean_output/tef/[*]/misc_figs/volume_plot.png
-	Eventually this might be an interestng framework for plotting the transports used in the flux engine.
+	LiveOcean_output/tef/misc_figs_cas6/volume_plot.png
+	Eventually this might be an interesting framework for plotting the transports used in the flux engine.
 	
 ------------------------------------------------------------------
 
@@ -58,7 +58,7 @@ Output: LiveOcean_output/tef/[*]/flux/...
 
 Input: grid, rivers, sections and segments (from volumes.py)
 
-Output: LiveOcean_output/tef/[*]/misc_figs/seg_map_full.png and seg_map_focus.py which are useful for seeing how each segment is related to its defining sections and rivers.  Must be consistent with flux_fun.segs.
+Output: LiveOcean_output/tef/misc_figs_cas6/seg_map_full.png and seg_map_focus.py which are useful for seeing how each segment is related to its defining sections and rivers.  Must be consistent with flux_fun.segs.
 
 ------------------------------------------------------------------
 
@@ -66,7 +66,7 @@ Output: LiveOcean_output/tef/[*]/misc_figs/seg_map_full.png and seg_map_focus.py
 
 Input: the output of flux_get_vol.py
 
-Output: LiveOcean_output/tef/[*]/misc_figs/seg_map_simple.png, a graphically appealing plot showing the four basins defined by our "channels" as a colorful map.
+Output: LiveOcean_output/tef/misc_figs_cas6/seg_map_simple.png, a graphically appealing plot showing the four basins defined by our "channels" as a colorful map.
 
 ------------------------------------------------------------------
 
