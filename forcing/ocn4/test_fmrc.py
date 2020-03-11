@@ -11,7 +11,7 @@ from socket import timeout
 import time
 from datetime import datetime, timedelta
 
-testing = True
+testing = False
 
 # specify output file
 fn_out = 'test.nc'
@@ -68,6 +68,8 @@ else:
         '&time_start='+dstr0+'&time_end='+dstr1+'&timeStride=8' +
         '&addLatLon=true&accept=netcdf4')
     # RESULT: the new version (and the old version) seem to work fine.
+
+print(url) # helpful for debuggin by Michael McDonald
 
 # get the data and save as a netcdf file
 counter = 1
