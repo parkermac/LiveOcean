@@ -158,6 +158,7 @@ Output: LiveOcean_output/tef/[*]/flux/daily_segment_[salinity,volume,net_salt].p
 
 Input: LiveOcean_output/tef/[*]/flux/daily_segment_[net_salt].p
 
-Output: A screen plot of the budget vs. time.
+Output: A screen plot of the budget vs. time, and a saved png such as:
+LiveOcean_output/tef/salt_budget_plots/salt_budget_2018_Salish_Sea.png
 
 ------------------------------------------------------------------
