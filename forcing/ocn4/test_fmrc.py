@@ -69,7 +69,7 @@ else:
         '&addLatLon=true&accept=netcdf4')
     # RESULT: the new version (and the old version) seem to work fine.
 
-print(url) # helpful for debuggin by Michael McDonald
+print(url) # helpful for debugging by Michael McDonald
 
 # get the data and save as a netcdf file
 counter = 1

@@ -85,6 +85,8 @@ def get_data(this_dt, fn_out, nd_f):
         '&north='+str(north)+'&south='+str(south)+'&west='+str(west)+'&east='+str(east) +
         '&time_start='+dstr0+'&time_end='+dstr1+'&timeStride=8' +
         '&addLatLon=true&accept=netcdf4')
+        
+    print(url)
 
     # get the data and save as a netcdf file
     counter = 1
