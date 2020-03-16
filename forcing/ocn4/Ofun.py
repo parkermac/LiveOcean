@@ -345,7 +345,7 @@ def convert_extraction_oneday(fn):
     if testing == True:
         var_list = ['surf_el']
     else:
-        var_list = ['surf_el,water_temp,salinity,water_u,water_v']
+        var_list = ['surf_el','water_temp','salinity','water_u','water_v']
         
     # get the dynamical variables
     tt0 = time.time()
