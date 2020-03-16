@@ -38,7 +38,7 @@ run make_forcing_main.py -g cas6 -t v1 -r backfill -d 2016.12.15
 - the switch to do this is hardwired to a day: 2016.12.15
 
 # today's forecast
-run make_forcing_main.py -g cas6 -t v1 -r forecast
+run make_forcing_main.py -g cas6 -t v3 -r forecast
 
 
 """
@@ -89,24 +89,75 @@ if (Ldir['run_type'] == 'forecast'):
     h_out_dir = Ldir['LOogf_fd']
     Lfun.make_dir(h_out_dir, clean=True)
     try:
-        data_fn_out =  h_out_dir + 'data.nc'
-        nd_f = np.ceil(Ldir['forecast_days'])
-        # this call goes and gets the hycom forecast data from the web,
-        # and saves it in the file "data_out_fn".
-        Ofun.get_data(this_dt, data_fn_out, nd_f)
-        ds = nc.Dataset(data_fn_out)
-        NT = len(ds['time'][:])
-        ds.close()
-        for iit in range(NT):
-            a = dict()
-            a = Ofun.convert_extraction(data_fn_out, iit)
-            dts = datetime.strftime(a['dt'], '%Y.%m.%d')
-            out_fn = h_out_dir + 'h' + dts + '.p'
-            pickle.dump(a, open(out_fn, 'wb'))
-        h_in_dir = h_out_dir
-        h_list0 = os.listdir(h_in_dir)
-        h_list0.sort()
-        h_list = [item for item in h_list0 if item[0] == 'h']
+        if False:
+            # OLD VERSION
+            data_fn_out =  h_out_dir + 'data.nc'
+            nd_f = np.ceil(Ldir['forecast_days'])
+            # this call goes and gets the hycom forecast data from the web,
+            # and saves it in the file "data_out_fn".
+            Ofun.get_data(this_dt, data_fn_out, nd_f)
+            ds = nc.Dataset(data_fn_out)
+            NT = len(ds['time'][:])
+            ds.close()
+            for iit in range(NT):
+                a = dict()
+                a = Ofun.convert_extraction(data_fn_out, iit)
+                dts = datetime.strftime(a['dt'], '%Y.%m.%d')
+                out_fn = h_out_dir + 'h' + dts + '.p'
+                pickle.dump(a, open(out_fn, 'wb'))
+            h_in_dir = h_out_dir
+            h_list0 = os.listdir(h_in_dir)
+            h_list0.sort()
+            h_list = [item for item in h_list0 if item[0] == 'h']
+        else:
+            # NEW VERSION one day at a time
+            testing = False
+            
+            # form list of days to get
+            nd_f = np.ceil(Ldir['forecast_days'])
+            dt0 = this_dt - timedelta(days=2)
+            if testing == True:
+                dt1 = this_dt + timedelta(days=1)
+            else:
+                dt1 = this_dt + timedelta(days=int(nd_f) + 2)
+            dt_list_full = []
+            dtff = dt0
+            while dtff <= dt1:
+                dt_list_full.append(dtff)
+                dtff = dtff + timedelta(days=1)
+            # check results
+            print('List of days to get:')
+            for item in dt_list_full:
+                print(' %s' % (item.strftime('%Y-%m-%d-T00:00:00Z')))
+            print('Expected limits:')
+            # put them in ncss format
+            dstr0 = dt0.strftime('%Y-%m-%d-T00:00:00Z')
+            dstr1 = dt1.strftime('%Y-%m-%d-T00:00:00Z')
+            print('- dt0 = ' + dstr0)
+            print('- dt1 = ' + dstr1)
+            
+            # get HYCOM files for each day
+            hnc_list = []
+            for dtff in dt_list_full:
+                data_fn_out =  h_out_dir + 'h' + dtff.strftime('%Y.%m.%d')+ '.nc'
+                hnc_list.append(data_fn_out)
+                print(data_fn_out)
+                sys.stdout.flush()
+                # this call goes and gets the hycom forecast data from the web,
+                # and saves it in the file "data_fn_out".
+                Ofun.get_data_oneday(dtff, data_fn_out)
+                
+                # then convert the format
+                a = Ofun.convert_extraction_oneday(data_fn_out)
+                out_fn = h_out_dir + 'h' + dtff.strftime('%Y.%m.%d') + '.p'
+                pickle.dump(a, open(out_fn, 'wb'))
+                sys.stdout.flush()
+                
+            h_in_dir = h_out_dir
+            h_list0 = os.listdir(h_in_dir)
+            h_list0.sort()
+            h_list = [item for item in h_list0 if item[0] == 'h' and item[-2:] == '.p']
+            
     except:
         print('- error getting forecast files')
         planB = True

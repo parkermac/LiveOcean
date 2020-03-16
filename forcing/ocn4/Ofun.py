@@ -22,6 +22,105 @@ import hfun
 import zfun
 import zrfun
 
+def get_data_oneday(this_dt, fn_out):
+    """"
+    Code to get hycom data using the new FMRC_best file. It gets only a single time,
+    per the new guidance from Michael McDonald at HYCOM, 202.03.16.
+    """
+
+    import os
+    import netCDF4 as nc
+
+    from urllib.request import urlretrieve
+    from urllib.error import URLError
+    from socket import timeout
+    import time
+    from datetime import datetime, timedelta
+
+    testing = False
+
+    # get rid of the old version, if it exists
+    try:
+        os.remove(fn_out)
+    except OSError:
+        pass # assume error was because the file did not exist
+
+    dstr = this_dt.strftime('%Y.%m.%d')
+    print('Working on ' + dstr)
+    
+    # time string in HYCOM format
+    dstr_hy = this_dt.strftime('%Y-%m-%d-T00:00:00Z')
+    
+    
+    # specify spatial limits
+    aa = hfun.aa
+    north = aa[3]
+    south = aa[2]
+    west = aa[0] + 360
+    east = aa[1] + 360
+
+    if testing == True:
+        var_list = 'surf_el'
+    else:
+        var_list = 'surf_el,water_temp,salinity,water_u,water_v'
+
+    # create the request url (added new url 2019.12.06)
+    url = ('https://ncss.hycom.org/thredds/ncss/GLBy0.08/expt_93.0/FMRC/GLBy0.08_930_FMRC_best.ncd'+
+        '?var='+var_list +
+        '&north='+str(north)+'&south='+str(south)+'&west='+str(west)+'&east='+str(east) +
+        '&time_start='+dstr_hy+'&time_end='+dstr_hy +
+        '&addLatLon=true&accept=netcdf4')
+        
+    print(url)
+
+    # get the data and save as a netcdf file
+    counter = 1
+    got_file = False
+    while (counter <= 3) and (got_file == False):
+        print('Attempting to get data, counter = ' + str(counter))
+        tt0 = time.time()
+        try:
+            (a,b) = urlretrieve(url,fn_out)
+            # a is the output file name
+            # b is a message you can see with b.as_string()
+        except URLError as e:
+            if hasattr(e, 'reason'):
+                print(' *We failed to reach a server.')
+                print(' -Reason: ', e.reason)
+            elif hasattr(e, 'code'):
+                print(' *The server couldn\'t fulfill the request.')
+                print(' -Error code: ', e.code)
+        except timeout:
+            print(' *Socket timed out')
+        else:
+            got_file = True
+            print(' Worked fine')
+        print(' -took %0.1f seconds' % (time.time() - tt0))
+        counter += 1
+
+    # check results
+    ds = nc.Dataset(fn_out)
+    print('\nVariables:')
+    for vn in ds.variables:
+        print('- '+vn)
+    # get time info for the forecast
+    t = ds['time'][0]
+    if isinstance(t, np.ma.MaskedArray):
+        th = t.data
+    else:
+        th = t
+    tu = ds['time'].units
+    # e.g. 'hours since 2018-11-20 12:00:00.000 UTC'
+    # Warning: Brittle code below!
+    ymd = tu.split()[2]
+    hmss = tu.split()[3]
+    hms = hmss.split('.')[0]
+    hycom_dt0 = datetime.strptime(ymd + ' ' + hms, '%Y-%m-%d %H:%M:%S')
+    this_dt = hycom_dt0 + timedelta(days=(th/24))
+    print('Target time = ' + dstr)
+    print('Actual time = ' + this_dt.strftime('%Y-%m-%d-T00:00:00Z'))
+    ds.close()
+
 def get_data(this_dt, fn_out, nd_f):
     """"
     Code to get hycom data using the new FMRC_best file.
@@ -201,6 +300,82 @@ def get_hnc_short_list(this_dt, Ldir):
             hnc_short_list.append(fn)
             
     return hnc_short_list
+
+def convert_extraction_oneday(fn):
+    
+    testing = False
+    
+    # initialize an output dict
+    out_dict = dict()
+    ds = nc.Dataset(fn)
+    
+    print('opening ' + fn)
+    
+    # get time info for the forecast
+    t = ds['time'][0]
+    if isinstance(t, np.ma.MaskedArray):
+        th = t.data
+    else:
+        th = t
+    tu = ds['time'].units
+    # e.g. 'hours since 2018-11-20 12:00:00.000 UTC'
+    # Warning: Brittle code below!
+    ymd = tu.split()[2]
+    hmss = tu.split()[3]
+    hms = hmss.split('.')[0]
+    hycom_dt0 = datetime.strptime(ymd + ' ' + hms, '%Y-%m-%d %H:%M:%S')
+    this_dt = hycom_dt0 + timedelta(days=(th/24))
+    out_dict['dt'] = this_dt # datetime time of this snapshot
+    print('- for dt = ' + str(this_dt))
+    
+    if testing == False:
+        # create z from the depth
+        depth = ds.variables['depth'][:]
+        z = -depth[::-1] # you reverse an axis with a -1 step!
+        out_dict['z'] = z
+        N = len(z)
+        
+    # get full coordinates (vectors for the plaid grid)
+    lon = ds.variables['lon'][:] - 360  # convert from 0:360 to -360:0 format
+    lat = ds.variables['lat'][:]    
+    # and save them   
+    out_dict['lon'] = lon
+    out_dict['lat'] = lat
+    
+    if testing == True:
+        var_list = ['surf_el']
+    else:
+        var_list = ['surf_el,water_temp,salinity,water_u,water_v']
+        
+    # get the dynamical variables
+    tt0 = time.time()
+    for var_name in var_list:
+        # Get the variables, renaming to be consistent with what we want,
+        # and pack bottom to top
+        np.warnings.filterwarnings('ignore') # suppress warning related to nans in fields
+        if var_name == 'surf_el':
+            ssh = ds['surf_el'][0, :, :]
+            out_dict['ssh'] = ssh
+        elif var_name == 'water_temp':
+            t3d = ds['water_temp'][0, :, :, :]
+            t3d = t3d[::-1, :, :] # pack bottom to top
+            out_dict['t3d'] = t3d
+        elif var_name == 'salinity':
+            s3d = ds['salinity'][0, :, :, :]
+            s3d = s3d[::-1, :, :]
+            out_dict['s3d'] = s3d
+        elif var_name == 'water_u':
+            u3d = ds['water_u'][0, :, :, :]
+            u3d = u3d[::-1, :, :]
+            out_dict['u3d'] = u3d
+        elif var_name == 'water_v':
+            v3d = ds['water_v'][0, :, :, :]
+            v3d = v3d[::-1, :, :] # pack bottom to top
+            out_dict['v3d'] = v3d
+        # print('  %0.2f sec to get %s' % ((time.time() - tt0), var_name))
+    ds.close()
+    
+    return out_dict # the keys of this dictionary are separate variables
 
 def convert_extraction(fn, iit):
     # initialize an output dict
