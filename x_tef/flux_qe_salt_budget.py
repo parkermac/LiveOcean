@@ -171,6 +171,8 @@ salt_df['-QrSbar'] = -salt_df['Qr'] * salt_df['Sbar']
 
 sf_df = salt_df[['QeDS','-QrSbar','dSnet_dt']]
 sf_df['Error'] = sf_df['dSnet_dt'] - sf_df['QeDS'] - sf_df['-QrSbar']
+# convert to 1000 g/kg m3/s
+sf_df = sf_df/1000
 sf_df['Forcing'] = (dsdx**3 / dissip)
 sf_df['Dissipation'] = dissip
 sf_df['dSdx'] = dsdx
@@ -180,15 +182,31 @@ fig = plt.figure(figsize=(20,10))
 
 #ax = plt.subplot2grid((1,3), (0,0), colspan=2)
 ax = fig.add_subplot(211)
-sf_df[['QeDS','-QrSbar','dSnet_dt','Error']].plot(ax=ax, grid=True,
-    title=which_vol + ' Salt Budget (g/kg m3/s)', legend=False)
+sf_df[['QeDS','-QrSbar','dSnet_dt','Error']].plot(ax=ax, grid=True, legend=False)
+ax.set_title('%s Salt Budget $(10^{3}\ g\ kg^{-1}\ m^{3}s^{-1})$' % (which_vol))
+ax.set_xlim(sf_df.index[0], sf_df.index[-1])
 legh = ax.legend(labels=['$Q_e \Delta S$', '$-Q_R S_{bar}$', '$d S_{net} / dt$','Error'])
+
+# get some things for correlations
+QeDS = pd.to_numeric(sf_df['QeDS']).to_numpy()
+dSdx = pd.to_numeric(sf_df['dSdx']).to_numpy()
+Dissipation = pd.to_numeric(sf_df['Dissipation']).to_numpy()
+Forcing = pd.to_numeric(sf_df['Forcing']).to_numpy()
+rf = np.corrcoef(QeDS, Forcing)[0,1]
+rd = np.corrcoef(QeDS, Dissipation)[0,1]
+rs = np.corrcoef(QeDS, dSdx)[0,1]
+rdict = {'Forcing':rf, 'Dissipation':rd, 'dSdx':rs}
+
 ii = 4
 for frc in ['Forcing', 'Dissipation', 'dSdx']:
     ax = fig.add_subplot(2,3,ii)
-    sf_df.plot(x=frc, y='QeDS', ax=ax, grid=True, style='og', markersize=2)
+    sf_df.plot(x=frc, y='QeDS', ax=ax, grid=True, style='og', markersize=2, legend=False)
     ax.set_xlabel('')
-    ax.text(.05,.9,frc, transform=ax.transAxes)
+    if ii == 4:
+        ax.set_ylabel('$Q_e \Delta S\ (10^{3}\ g\ kg^{-1}\ m^{3}s^{-1})$')
+    r = rdict[frc]
+    ax.text(.05, .9, '$r^{2}=%0.2f$' % (r*r), transform=ax.transAxes)
+    ax.set_xlabel(frc)
     ii += 1
 
 plt.show()

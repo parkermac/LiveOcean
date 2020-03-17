@@ -155,10 +155,29 @@ Output: LiveOcean_output/tef/[*]/flux/daily_segment_[salinity,volume,net_salt].p
 ------------------------------------------------------------------
 
 * flux_salt_budget.py makes a complete volume and salt budget for a user-specified set of segments.
+These budgets are of the form:
+	dSnet/dt = QSin + QSout, and
+	dV/dt = Qin + Qout + Qr
+They are mainly useful for knowing that the budgets add up in each of the basins and years to reasonable accuracy.  The values plotted are daily (tidally averaged).
 
 Input: LiveOcean_output/tef/[*]/flux/daily_segment_[net_salt].p
 
 Output: A screen plot of the budget vs. time, and a saved png such as:
 LiveOcean_output/tef/salt_budget_plots/salt_budget_2018_Salish_Sea.png
 
+------------------------------------------------------------------
+
+* flux_qe_salt_budget.py is like flux_salt_budget.py above, but it is more focused on dynamics controlling things at a sill.  Like flux_salt_budget.py it plots daily (tidally averaged) values over a year.
+It plots a rearranged salt budget of the form:
+	dSnet/dt = Qe*DS - Qr*Sbar
+where Qe is like (Qin-Qout)/2, and Sbar is like (Sin + Sout)/2, and these are exact recombinations of the terms in flux_salt_budget.py.
+
+The budget is for the segments landward of a section like ai2, and then we calculate some quantities that MAY control the exchange flow salt flux (Qe*DS) at that segment, such as dSbar/dx (calculated from ai1 and ai3 for example), as well as the net tidal dissipation between those sections (calculated as the difference of net tidal energy flux) which is a proxy for Kv.  These various possible controls are plotted as scatterplots.
+
+------------------------------------------------------------------
+
+* flux_netsalt_vs_qr.py is also like flux_salt_budget.py above, but it seeks to shed light on what controls the variability of mean salinity in a chosen basin.  It plots monthly averages of mean salinity in the basin over THREE YEARS, accompanied by scatterplots of this net salt versus (lagged) net riverflow and Sin.  The tree years is interesting becasue there is a large trend in average salinity over that time.
+
+------------------------------------------------------------------
+------------------------------------------------------------------
 ------------------------------------------------------------------

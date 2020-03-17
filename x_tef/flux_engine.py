@@ -82,6 +82,7 @@ else:
 
 # Input directory
 indir0 = Ldir['LOo'] + 'tef/'
+voldir = indir0 + 'volumes_' + Ldir['gridname'] + '/'
 
 # Output directory
 outdir0 = indir0 + 'flux_engine/'
@@ -117,7 +118,7 @@ for year in [2017, 2018, 2019]:
         
         # load DateFrames of transport and volume
         q_df = pd.read_pickle(indir + 'q_df_' + season + '.p')
-        v_df = pd.read_pickle(indir + 'volumes.p')
+        v_df = pd.read_pickle(voldir + 'volumes.p')
         V = flux_fun.get_V(v_df)
     
         # "f" is a DataFrame organized like q_df but whose entries

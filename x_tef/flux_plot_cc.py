@@ -18,7 +18,9 @@ import tef_fun
 import flux_fun
 
 # select the indir
-indir = Ldir['LOo'] + 'tef/flux_engine/cas6_v3_lo8b/'
+indir0 = Ldir['LOo'] + 'tef/'
+indir = indir0 + 'flux_engine/cas6_v3_lo8b/'
+voldir = indir0 + 'volumes_' + Ldir['gridname'] + '/'
 
 outdir = Ldir['LOo'] + 'tef/cc_plots/'
 Lfun.make_dir(outdir)
@@ -36,8 +38,8 @@ for infile in ilist:
     cc.loc[:,'age'] = 365*cc.loc[:,'ca']/cc.loc[:,'c']
 
     # load a Series of the volumes of each segment, created by flux_get_vol.py
-    v_df = pd.read_pickle(Ldir['LOo'] + 'tef/cas6_v3_lo8b_2017.01.01_2017.12.31/flux/volumes.p')
-
+    v_df = pd.read_pickle(voldir + 'volumes.p')
+    
     plt.close('all')
     fig = plt.figure(figsize=(13,8))
     ax1 = fig.add_subplot(121)
@@ -88,7 +90,10 @@ for infile in ilist:
     
         ch_counter += 1
     
-    ax1.set_ylim(0,20)
+    if 'S_Ocean' in infile:
+        ax1.set_ylim(75,102)
+    else:
+        ax1.set_ylim(0,20)
     ax2.set_ylim(0, 800)
 
     ax1.set_xlim(-10,410)

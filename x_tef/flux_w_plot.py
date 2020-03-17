@@ -23,6 +23,7 @@ import flux_fun
 indir0 = Ldir['LOo'] + 'tef/'
 item = Lfun.choose_item(indir0)
 indir = indir0 + item + '/flux/'
+voldir = indir0 + 'volumes_' + Ldir['gridname'] + '/'
 
 # hacky way of getting the year, assumes "item" is of the form:
 # 'cas6_v3_lo8b_2017.01.01_2017.12.31'
@@ -32,7 +33,7 @@ year = int(year_str)
 outdir = indir0 + item + '/misc_figs/'
 
 # load a Series of the volumes of each segment, created by flux_get_vol.py
-v_df = pd.read_pickle(indir + 'volumes.p')
+v_df = pd.read_pickle(voldir + 'volumes.p')
 # index is ['J1', 'J2', 'J3',...
 # columns are ['volume m3', 'area m2', 'lon', 'lat']
 
