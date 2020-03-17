@@ -901,15 +901,15 @@ def P_vort(in_dict):
     u = ds['u'][0, -1, :, :]
     v = ds['v'][0, -1, :, :]
     G = zrfun.get_basic_info(in_dict['fn'], only_G=True)
-    dive = ((np.diff(u, axis=1)/G['DX'][:, 1:-1])[1:-1, :]
-            + (np.diff(v, axis = 0)/G['DY'][1:-1, :])[:, 1:-1])   
+    # dive = ((np.diff(u, axis=1)/G['DX'][:, 1:-1])[1:-1, :]
+    #         + (np.diff(v, axis = 0)/G['DY'][1:-1, :])[:, 1:-1])
     x = G['lon_psi'] # matrix
     y = G['lat_psi'] # matrix
     dxp = zfun.interp2(x, y, G['lon_rho'], G['lat_rho'], G['DX'])
     dyp = zfun.interp2(x, y, G['lon_rho'], G['lat_rho'], G['DY'])
     vort = np.diff(v, axis=1)/dxp - np.diff(u, axis=0)/dyp
     aa = pfun.get_aa(ds)
-    scl = 5e-3
+    scl = 1e-4
 
     # plot
     ax = fig.add_subplot(111)

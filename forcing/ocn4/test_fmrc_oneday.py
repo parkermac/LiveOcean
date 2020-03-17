@@ -47,6 +47,5 @@ hmss = tu.split()[3]
 hms = hmss.split('.')[0]
 hycom_dt0 = datetime.strptime(ymd + ' ' + hms, '%Y-%m-%d %H:%M:%S')
 this_dt = hycom_dt0 + timedelta(days=(th/24))
-
 print('Target time = ' + dstr)
 print('Actual time = ' + this_dt.strftime('%Y-%m-%d-T00:00:00Z'))

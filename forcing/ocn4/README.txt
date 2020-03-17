@@ -6,6 +6,8 @@ For backfill it will use an archive of files of similar format, available from l
 
 2019.05.21 The new method Ofun.get_interpolated_alt() makes extensive use of nearest neighbor interpolation and the results is that the code is substantially faster: 1 min vs. 7 min for a cas6 backfill day.
 
+2020.03.16 I added some new methods to Ofun.py to make it get HYCOM FMRC files one day at a time.
+
 ===============================================================================
 * make_forcing_main.py is the main driver, similar in basic construction and usage to all the code of the same name in other forcing folders (e.g. riv2, tide1, atm).
 
@@ -14,7 +16,7 @@ Input: command line arguments tell it what to do - specifically which gridname_t
 Output: LiveOcean_output/[gtag]/[f_string]/ocn4/...
 (1) Info/process_status.csv and screen_out.txt (great for debugging)
 (2) Data/...
-- data.nc (all the hycom data for this period - only for the new FMRC_best forecast)
+- h[data_string].nc (all the hycom data for this period - only for the new FMRC_best forecast)
 - coord_dict.p (pickled dict of coordinate vectors - just like in hycom1)
 - h[data_string].p (pickled dict of fields for a day - for a forecast there will be 8 of these, 6 for backfill)
 - fh[date_string].p (time filterd version of h[].p files - for a forecast there will be 4 of these, 2 for backfill)
