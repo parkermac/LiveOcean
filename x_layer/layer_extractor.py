@@ -35,11 +35,11 @@ layer_name = 'zeta' # name to control choices in code
 import argparse
 parser = argparse.ArgumentParser()
 # standard arguments
-parser.add_argument('-g', '--gridname', nargs='?', type=str, default='cas4')
-parser.add_argument('-t', '--tag', nargs='?', type=str, default='v2')
-parser.add_argument('-x', '--ex_name', nargs='?', type=str, default='lo6biom')
-parser.add_argument('-0', '--date_string0', nargs='?', type=str, default='2017.07.20')
-parser.add_argument('-1', '--date_string1', nargs='?', type=str, default='2017.07.22')
+parser.add_argument('-g', '--gridname', nargs='?', type=str, default='cas6')
+parser.add_argument('-t', '--tag', nargs='?', type=str, default='v3')
+parser.add_argument('-x', '--ex_name', nargs='?', type=str, default='lo8b')
+parser.add_argument('-0', '--date_string0', nargs='?', type=str, default='2019.07.04')
+parser.add_argument('-1', '--date_string1', nargs='?', type=str, default='2019.07.05')
 parser.add_argument('-lt', '--list_type', nargs='?', type=str, default=list_type)
 # layer specific arguments
 parser.add_argument('-ln', '--layer_name', nargs='?', type=str, default=layer_name)
@@ -92,6 +92,14 @@ elif args.layer_name == 'bottom':
     vn_list_2d_uv_t = ['bustr', 'bvstr']
     vn_list_3d_uv_t = ['u', 'v']
     vn_list_2d_custom = ['zlay']
+elif args.layer_name == 'bottom_DO':
+    nlay = 0
+    vn_list_2d_t = []
+    vn_list_3d_t = ['salt', 'temp','oxygen']
+    vn_list_3d_t_custom = []
+    vn_list_2d_uv_t = ['sustr', 'svstr']
+    vn_list_3d_uv_t = []
+    vn_list_2d_custom = []
 elif args.layer_name == 'svar':
     # a custom extraction of vertically integrated "mixing" in the
     # sense of destruction of salinity variance

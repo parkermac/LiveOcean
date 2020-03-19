@@ -35,7 +35,7 @@ Output: LiveOcean_output/tef/[*]/flux/two_layer_[season].p which is a pickled Da
 
 Input: LiveOcean_output/tef/[*]/flux/two_layer_[season].p
 
-Output: LiveOcean_output/tef/[*]/misc_figs/two_layer_[season].png
+Output: LiveOcean_output/tef/tef_all_sections/all_sections_[year]_[season].png
 
 ------------------------------------------------------------------
 
