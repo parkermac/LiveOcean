@@ -64,11 +64,19 @@ def get_data_oneday(this_dt, fn_out):
     else:
         var_list = 'surf_el,water_temp,salinity,water_u,water_v'
 
+    # template for url from Michael MacDonald March 2020
+    """
+    https://ncss.hycom.org/thredds/ncss/GLBy0.08/expt_93.0/FMRC/GLBy0.08_930_FMRC_best.ncd
+    ?var=surf_el,water_temp,salinity,water_u,water_v
+    &north=53&south=39&west=229&east=239
+    &time=2020-03-11-T00:00:00Z
+    &addLatLon=true&accept=netcdf4
+    """
     # create the request url (added new url 2019.12.06)
     url = ('https://ncss.hycom.org/thredds/ncss/GLBy0.08/expt_93.0/FMRC/GLBy0.08_930_FMRC_best.ncd'+
         '?var='+var_list +
         '&north='+str(north)+'&south='+str(south)+'&west='+str(west)+'&east='+str(east) +
-        '&time_start='+dstr_hy+'&time_end='+dstr_hy +
+        '&time='+dstr_hy +
         '&addLatLon=true&accept=netcdf4')
         
     print(url)
