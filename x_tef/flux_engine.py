@@ -75,7 +75,7 @@ if source == 'S_OceanSalt':
     # this one is meant only for validation, and the validation is only
     # meaningful when we are averaging over a time when the mean state of
     # the system is approximately cyclic, not steadily increasing or
-    # decreasing like it may for a singel season.
+    # decreasing like it may for a single season.
     season_list = ['full']
 else:
     season_list = ['winter','spring','summer','fall']

@@ -30,6 +30,7 @@ ic_seg2_dict = {'IC_HoodCanalInner': ['H'+str(n)+'_s' for n in range(3,9)],
 season_list = list(get_dtr(2017).keys())
 
 # create Series of two-layer volumes
+# this is the one place to specify the ratio volume in the "salty" and "fresh" layers
 def get_V(v_df):
     V = pd.Series()
     for seg_name in v_df.index:

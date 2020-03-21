@@ -101,12 +101,12 @@ This is the main piece of code this whole efflux-reflux analysis has been drivin
 Input: volumes.p and q_df_[season].p created above
 
 Output: indir = LiveOcean_output/tef/[*]/flux/
-    cc.to_pickle(indir + 'cc_' + source + '_' + season + sink_tag + '.p')
-    aa.to_pickle(indir + 'aa_' + source + '_' + season + sink_tag + '.p')
+    cc.to_pickle(indir + 'cc_' + source + '_' + season + sink_tag + '.p') # FINAL STATE WITH AGE
+    aa.to_pickle(indir + 'aa_' + source + '_' + season + sink_tag + '.p') # TIME DEPENDENT STATE
 	
-Here cc is a DataFrame, same index as q_df, and the columns 'c' and 'ca' are the final (after say 6 years) values of the tracer, and an aging tracer.
+- cc is a DataFrame, same index as q_df, and the columns 'c' and 'ca' are the final (after say 6 years) values of the tracer, and an aging tracer.
 
-Also aa is a DataFrame of a full time-dependent array, which you could use to calculate residence times in experiments where you are setting up an initial condition.  For aa the index is time, and the columns are the q_df indices.
+ - aa is a DataFrame of a full time-dependent array, which you could use to calculate residence times in experiments where you are setting up an initial condition.  For aa the index is time, and the columns are the q_df indices.
 
 ------------------------------------------------------------------
 
@@ -126,15 +126,19 @@ NOTE: This is probably only meaningful for the full annual average, because it f
 
 * flux_residence time.py makes a movie out of times saved in any instance of an aa_ file created by flux_engine.py.
 
-Input: any of the "ic" series of flux_engine calculations.
+Input: all of the "IC_" series of flux_engine calculations.
 
 Output: screen output of the residence time.
 
-NOTE: This is currently hardwired to only work with the Hood Canal initial condition.
-
 ------------------------------------------------------------------
 
-* flux_plot_movie.py makes a movie out of times saved in any instance of an aa_ file created by flux_engine.py.
+* flux_V_movie.py makes a movie from one of the S_ or IC_ runs, including information about residence time (with and without reflux).  The graphical format is the series of volume rectangles as in flux_V_plot.py.
+
+Input: any of the "IC_" series of flux_engine runs, e.g. [run] = IC_HoodCanalInner_2018_fall
+
+Output: LiveOcean_output/tef/movies/[gtagex]/[run]/movie.mp4
+
+NOTE: for IC_ runs this currently only supports: source == 'IC_HoodCanalInner' (needed for calculation of unrefluxed residence time).
 
 ------------------------------------------------------------------
 
