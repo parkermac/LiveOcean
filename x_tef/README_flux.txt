@@ -162,9 +162,9 @@ Output: LiveOcean_output/tef/[*]/flux/daily_segment_[salinity,volume,net_salt].p
 These budgets are of the form:
 	dSnet/dt = QSin + QSout, and
 	dV/dt = Qin + Qout + Qr
-They are mainly useful for knowing that the budgets add up in each of the basins and years to reasonable accuracy.  The values plotted are daily (tidally averaged).
+They are mainly useful for knowing that the budgets add up in each of the basins and years to reasonable accuracy.  The values plotted are DAILY (tidally averaged).
 
-Input: LiveOcean_output/tef/[*]/flux/daily_segment_[net_salt].p
+Input: LiveOcean_output/tef/[*]/flux/daily_segment_[volume,net_salt].p
 
 Output: A screen plot of the budget vs. time, and a saved png such as:
 LiveOcean_output/tef/salt_budget_plots/salt_budget_2018_Salish_Sea.png
@@ -180,7 +180,7 @@ The budget is for the segments landward of a section like ai2, and then we calcu
 
 ------------------------------------------------------------------
 
-* flux_netsalt_vs_qr.py is also like flux_salt_budget.py above, but it seeks to shed light on what controls the variability of mean salinity in a chosen basin.  It plots monthly averages of mean salinity in the basin over THREE YEARS, accompanied by scatterplots of this net salt versus (lagged) net riverflow and Sin.  The tree years is interesting becasue there is a large trend in average salinity over that time.
+* flux_3year_salt.py is also like flux_salt_budget.py above, but it seeks to shed light on what controls the variability of mean salinity in a chosen basin.  It plots MONTHLY averages of mean salinity in the basin over THREE YEARS, along with other info like the TEF terms and a salt budget.
 
 ------------------------------------------------------------------
 ------------------------------------------------------------------

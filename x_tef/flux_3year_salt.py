@@ -82,10 +82,6 @@ for year in [2017, 2018, 2019]:
     indir00 = Ldir['LOo'] + 'tef/'
     indir0 = indir00 + run_name + '/'
 
-    # outdir = indir00 + 'salt_budget_plots/'
-    # Lfun.make_dir(outdir)
-    # outname = outdir + 'salt_budget_' + year_str + '_' + which_vol.replace(' ','_') + '.png'
-
     # load low passed segment volume and net salt DataFrames
     v_lp_df = pd.read_pickle(indir0 + 'flux/daily_segment_volume.p')
     sv_lp_df = pd.read_pickle(indir0 + 'flux/daily_segment_net_salt.p')
@@ -139,56 +135,90 @@ for year in [2017, 2018, 2019]:
     sn = sv_lp_df.sum(axis=1).values
     sm = sn/v
     salt_df.loc[:, 'Snet'] = sn
+    salt_df.loc[1:-1, 'dSnet_dt'] = ((sn[2:] - sn[:-2])/(2*86400))/1000
     salt_df.loc[:,'Smean'] = sm
     salt_df['Sin'] = salt_df['QSin'] / vol_df['Qin']
+    salt_df['Sout'] = salt_df['-QSout'] / vol_df['-Qout']
     
     # combined
-    combined_df = pd.DataFrame(index=sv_lp_df.index, columns=['Qr','Smean','Sin'])
+    combined_df = pd.DataFrame(index=sv_lp_df.index)
     combined_df['Smean'] = salt_df['Smean']
+    combined_df['dSnet_dt'] = salt_df['dSnet_dt']
     combined_df['Sin'] = salt_df['Sin']
-    combined_df['Qr'] = vol_df['Qr']
+    combined_df['Sout'] = salt_df['Sout']
+    combined_df['QSin'] = salt_df['QSin']/1000
+    combined_df['-QSout'] = salt_df['-QSout']/1000
+    combined_df['Qr'] = vol_df['Qr']/1000
+    combined_df['Qin'] = vol_df['Qin']/1000
+    combined_df['-Qout'] = vol_df['-Qout']/1000
     
     if yy == 0:
-        all_years_df0 = combined_df.copy()
-        print(all_years_df0.columns)
+        all_years_df = combined_df.copy()
     else:
-        all_years_df0 = all_years_df0.append(combined_df)
+        all_years_df = all_years_df.append(combined_df)
         
     yy += 1
     
+
+# add a few more columns to plot in a different way
+all_years_df['Qe'] = (all_years_df['Qin'] + all_years_df['-Qout'])/2
+all_years_df['Qrr'] = (all_years_df['-Qout'] - all_years_df['Qin'])
+all_years_df['DS'] = all_years_df['QSin']/all_years_df['Qin'] - all_years_df['-QSout']/all_years_df['-Qout']
+all_years_df['Sbar'] = (all_years_df['QSin']/all_years_df['Qin'] + all_years_df['-QSout']/all_years_df['-Qout'])/2
+all_years_df['QeDS'] = all_years_df['Qe'] * all_years_df['DS']
+all_years_df['-QrSbar'] = -all_years_df['Qrr'] * all_years_df['Sbar']
+
 # Fix a problem where .resample() would drop the Sin column
 # because it was somhow not numeric
-all_years_df0['Sin'] = pd.to_numeric(all_years_df0['Sin'])
-# NOTE: I think .to_numeric() operates on Series, so we only do one
-# column at a time.
-all_years_df = all_years_df0.resample('M').mean()
+for cn in all_years_df.columns:
+    all_years_df[cn] = pd.to_numeric(all_years_df[cn])
+# NOTE: I think .to_numeric() operates on Series, so we only do one column at a time.
+all_years_df = all_years_df.resample('M', loffset='-15d').mean()
 
-qrr = all_years_df['Qr'].to_numpy()
-qrr_lagged = qrr.copy() * np.nan
-lag = 2
-qrr_lagged[lag:] = qrr[:-lag]
-all_years_df.loc[:,'Qr_lagged'] = qrr_lagged
+# plotting
 
 plt.close('all')
-fig = plt.figure(figsize=(14,7))
+fig = plt.figure(figsize=(14,8))
+
+tx = .05
+ty = .9
+ty2 = .05
+fs = 14
+lw = 3
+dt0 = datetime(2017,1,1)
+dt1 = datetime(2020,1,1)
 
 ax = fig.add_subplot(221)
-all_years_df['Smean'].plot(ax=ax, legend=False, grid=True)
-ax.set_ylabel('Smean')
-
-ax = fig.add_subplot(223)
-all_years_df[['Qr', 'Qr_lagged']].plot(ax=ax, grid=True)
-ax.set_ylabel('Qr')
+all_years_df[['Smean', 'Sin','Sout']].plot(ax=ax, grid=True, color=['purple','r','orange'], linewidth=lw)
+ax.legend(labels=['$S_{mean}$','$S_{in}$','$S_{out}$'], loc='lower right')
+ax.text(tx, ty, '(a) ' + which_vol + ' Salinities $(g/kg)$', size=fs, transform=ax.transAxes)
+ax.set_xticklabels([])
+ax.set_xticklabels([], minor=True)
+ax.set_xlim(dt0, dt1)
 
 ax = fig.add_subplot(222)
-all_years_df.plot(x='Qr', y = 'Smean', style='ob', ax=ax, label='regular')
-all_years_df.plot(x='Qr_lagged', y = 'Smean', style='or', ax=ax, label='lagged by ' + str(lag) + ' months')
-ax.set_xlabel('Qr')
-ax.set_ylabel('Smean')
-ax.set_title(which_vol)
+all_years_df[['Qin', '-Qout']].plot(ax=ax, grid=True, color=['r','orange'], linewidth=lw)
+ax.legend(labels=['$Q_{in}$','$-Q_{out}$'], loc='lower right')
+ax.set_ylim(bottom=0)
+ax.text(tx, ty2, '(b) Exchange Flow $(10^{3}\ m^{3}s^{-1})$', size=fs, transform=ax.transAxes)
+ax.set_xticklabels([])
+ax.set_xticklabels([], minor=True)
+ax.set_xlim(dt0, dt1)
+
+ax = fig.add_subplot(223)
+all_years_df['Qr'].plot(ax=ax, grid=True, legend=False, color='c', linewidth=lw)
+ax.set_ylim(bottom=0)
+ax.text(tx, ty2, '(c) Net River Flow $(10^{3}\ m^{3}s^{-1})$', size=fs, transform=ax.transAxes)
+ax.set_xlim(dt0, dt1)
 
 ax = fig.add_subplot(224)
-all_years_df.plot(x='Sin', y = 'Smean', style='*g', ax=ax)
+all_years_df[['dSnet_dt','QeDS', '-QrSbar']].plot(ax=ax, grid=True, color=['peru','b','g'], linewidth=lw)
+ax.legend(labels=['$d S_{net} / dt$','$Q_e \Delta S$', '$-Q_R S_{bar}$'], loc='upper right')
+ax.text(tx, ty, '(d) Salt Budget Terms $(g/kg\ 10^{3}\ m^{3}s^{-1})$', size=fs, transform=ax.transAxes)
+ax.set_xlim(dt0, dt1)
+
+fig.tight_layout()
+
 
 plt.show()
 

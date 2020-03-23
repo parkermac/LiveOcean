@@ -37,7 +37,7 @@ v_lp_df = pd.read_pickle(indir + 'daily_segment_volume.p')
 sv_lp_df = pd.read_pickle(indir + 'daily_segment_net_salt.p')
 
 # USER set which volume to consider
-which_vol = 'Puget Sound'
+which_vol = 'Hood Canal'
 
 if which_vol == 'Salish Sea':
     seg_list = list(v_lp_df.columns)
