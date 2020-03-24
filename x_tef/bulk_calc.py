@@ -66,6 +66,7 @@ for snp in sect_list:
     tef_q = tef_ex['tef_q']
     tef_qs = tef_ex['tef_qs']
     qnet = tef_ex['qnet']
+    qabs = np.abs(qnet)
     fnet = tef_ex['fnet']
     ssh = tef_ex['ssh']
 
@@ -75,6 +76,7 @@ for snp in sect_list:
         tef_q_lp = zfun.filt_godin_mat(tef_q)
         tef_qs_lp = zfun.filt_godin_mat(tef_qs)
         qnet_lp = zfun.filt_godin(qnet)
+        qabs_lp = zfun.filt_godin(qabs)
         fnet_lp = zfun.filt_godin(fnet)
         ssh_lp = zfun.filt_godin(ssh)
         pad = 36
@@ -85,6 +87,7 @@ for snp in sect_list:
         tef_q_lp = zfun.filt_hanning_mat(tef_q, n=nfilt)
         tef_qs_lp = zfun.filt_hanning_mat(tef_qs, n=nfilt)
         qnet_lp = zfun.filt_hanning(qnet, n=nfilt)
+        qabs_lp = zfun.filt_hanning(qabs, n=nfilt)
         fnet_lp = zfun.filt_hanning(fnet, n=nfilt)
         ssh_lp = zfun.filt_hanning(ssh, n=nfilt)
         pad = int(np.ceil(nfilt/2))
@@ -94,6 +97,7 @@ for snp in sect_list:
     tef_qs_lp = tef_qs_lp[pad:-(pad+1):24, :]
     ot = ot[pad:-(pad+1):24]
     qnet_lp = qnet_lp[pad:-(pad+1):24]
+    qabs_lp = qabs_lp[pad:-(pad+1):24]
     fnet_lp = fnet_lp[pad:-(pad+1):24]
     ssh_lp = ssh_lp[pad:-(pad+1):24]
 
@@ -190,6 +194,7 @@ for snp in sect_list:
         bulk['SS'] = SS
         bulk['ot'] = ot
         bulk['qnet_lp'] = qnet_lp
+        bulk['qabs_lp'] = qabs_lp
         bulk['fnet_lp'] = fnet_lp
         bulk['ssh_lp'] = ssh_lp
         pickle.dump(bulk, open(out_fn, 'wb'))

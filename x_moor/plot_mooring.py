@@ -18,7 +18,7 @@ from importlib import reload
 reload(Lfun)
 
 auto_lims = True
-low_pass = True
+low_pass = False
 
 # set limits
 lim_dict = {'temp': (0, 20),
@@ -67,7 +67,7 @@ V = dict()
 Vu = dict()
 
 # choose what to plot
-if False:
+if True:
     list_to_plot = v3_list_rho + v3_list_w + v2_list
 else:
     list_to_plot = ['zeta', 'z_rho', 'salt', 'temp', 'oxygen', 'NO3', 'phytoplankton','sustr', 'svstr']
@@ -99,7 +99,7 @@ NR, NC = zfun.get_rc(NP)
 fig, axes = plt.subplots(nrows=NR, ncols=NC, figsize=(13,8),
                          squeeze=False, sharex=True)
 
-if True:
+if False:
     # mdays = Lfun.modtime_to_mdate_vec(V['ocean_time'])
     # days = mdates.num2date(mdays) # list of datetimes of data
     # For some reason the code above was throwing a timezone error

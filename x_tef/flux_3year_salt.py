@@ -19,8 +19,8 @@ import numpy as np
 import pickle
 import pandas as pd
 from datetime import datetime, timedelta
-import argparse
 
+import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('-g', '--gridname', type=str, default='cas6')
 parser.add_argument('-t', '--tag', type=str, default='v3')

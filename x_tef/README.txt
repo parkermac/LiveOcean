@@ -43,7 +43,7 @@ I think these are defined as:
 	sbins the salinity bin centers
 	ot ocean time (sec from 1/1/1970)
 	qnet section integrated transport (m3/s)
-	fnet section integrated tidal energy flux (units?)
+	fnet section integrated tidal energy flux (Watts)
 	ssh section averaged ssh (m)
 	
 ------------------------------------------------------------------
