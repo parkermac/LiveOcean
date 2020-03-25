@@ -5,13 +5,103 @@ import numpy as np
 from datetime import datetime, timedelta
 import zfun # path provided by calling code
 import pandas as pd
+import Lfun
+import pickle
+
+from warnings import filterwarnings
+filterwarnings('ignore') # skip some warning messages
+# associated with lines like QQp[QQ<=0] = np.nan
+
+def get_fluxes(indir, sect_name, in_sign=1):
+    # form time series of net 2-layer transports into (+) and out of (-) the volume
+    bulk = pickle.load(open(indir + 'bulk/' + sect_name + '.p', 'rb'))
+    QQ = bulk['QQ']
+    SS = bulk['SS']
+    ot = bulk['ot']
+    dt2 = []
+    for tt in ot:
+        dt2.append(Lfun.modtime_to_datetime(tt))
+    # separate inflowing and outflowing transports
+    QQp = QQ.copy()
+    QQp[QQ<=0] = np.nan
+    QQm = QQ.copy()
+    QQm[QQ>=0] = np.nan
+    # form two-layer versions of Q and S
+    if in_sign == 1:
+        Qin = np.nansum(QQp, axis=1)
+        QSin = np.nansum(QQp*SS, axis=1)
+        Qout = np.nansum(QQm, axis=1)
+        QSout = np.nansum(QQm*SS, axis=1)
+    elif in_sign == -1:
+        Qin = -np.nansum(QQm, axis=1)
+        QSin = -np.nansum(QQm*SS, axis=1)
+        Qout = -np.nansum(QQp, axis=1)
+        QSout = -np.nansum(QQp*SS, axis=1)
+    Sin = QSin/Qin
+    Sout = QSout/Qout
+    fnet = bulk['fnet_lp'] # net tidal energy flux
+    qabs = bulk['qabs_lp'] # low pass of absolute value of net transport
+    tef_df = pd.DataFrame(index=dt2)
+    tef_df['Qin']=Qin
+    tef_df['Qout']=Qout
+    tef_df['QSin']=QSin
+    tef_df['QSout']=QSout
+    tef_df['Sin']=Sin
+    tef_df['Sout']=Sout
+    tef_df['Ftide'] = fnet * in_sign
+    tef_df['Qtide'] = qabs
+    return tef_df
+    
+def get_budgets(sv_lp_df, v_lp_df, riv_df, tef_df_dict, seg_list):
+    # volume budget
+    vol_df = pd.DataFrame(0, index=sv_lp_df.index, columns=['Qin','-Qout', 'Qtide'])
+    for sect_name in tef_df_dict.keys():
+        df = tef_df_dict[sect_name]
+        vol_df['Qin'] = vol_df['Qin'] + df['Qin']
+        vol_df['-Qout'] = vol_df['-Qout'] - df['Qout']
+        vol_df['Qtide'] = vol_df['Qtide'] + df['Qtide']
+    vol_df['Qr'] = riv_df.sum(axis=1)
+    v = v_lp_df.sum(axis=1).to_numpy()
+    vol_df.loc[:,'V'] = v
+    vol_df.loc[1:-1, 'dV_dt'] = (v[2:] - v[:-2]) / (2*86400)
+    vol_df['Error'] = vol_df['dV_dt'] - vol_df.loc[:,'Qin'] + vol_df.loc[:,'-Qout'] - vol_df.loc[:,'Qr']
+    vol_rel_err = vol_df['Error'].mean()/vol_df['Qr'].mean()
+
+    # salt budget
+    salt_df = pd.DataFrame(0, index=sv_lp_df.index, columns=['QSin','-QSout','Ftide'])
+    for sect_name in tef_df_dict.keys():
+        df = tef_df_dict[sect_name]
+        salt_df['QSin'] = salt_df['QSin'] + df['QSin']
+        salt_df['-QSout'] = salt_df['-QSout'] - df['QSout']
+        salt_df['Ftide'] = salt_df['Ftide'] + df['Ftide']
+    sn = sv_lp_df[seg_list].sum(axis=1).values
+    salt_df.loc[1:-1, 'dSnet_dt'] = (sn[2:] - sn[:-2]) / (2*86400)
+    salt_df['Smean'] = sv_lp_df.sum(axis=1)/vol_df['V']
+    salt_df['Error'] = salt_df['dSnet_dt'] - salt_df['QSin'] + salt_df['-QSout']
+    salt_rel_err = salt_df['Error'].mean()/salt_df['QSin'].mean()
+    # add a few more columns to plot in a different way
+    salt_df['Qe'] = (vol_df['Qin'] + vol_df['-Qout'])/2
+    salt_df['Qnet'] = (vol_df['-Qout'] - vol_df['Qin'])
+    salt_df['Sin'] = salt_df['QSin']/vol_df['Qin']
+    salt_df['Sout'] = salt_df['-QSout']/vol_df['-Qout']
+    salt_df['DS'] = salt_df['Sin'] - salt_df['Sout']
+    salt_df['Sbar'] = (salt_df['QSin']/vol_df['Qin'] + salt_df['-QSout']/vol_df['-Qout'])/2
+    salt_df['QeDS'] = salt_df['Qe'] * salt_df['DS']
+    salt_df['-QrSbar'] = -salt_df['Qnet'] * salt_df['Sbar']
+    salt_rel_err_qe = salt_df['Error'].mean()/salt_df['QeDS'].mean()
+
+    # make sure everything is numeric
+    for cn in vol_df.columns:
+        vol_df[cn] = pd.to_numeric(vol_df[cn])
+    for cn in salt_df.columns:
+        salt_df[cn] = pd.to_numeric(salt_df[cn])
+        
+    return vol_df, salt_df, vol_rel_err, salt_rel_err, salt_rel_err_qe
 
 # desired time ranges, the "seasons"
 def get_dtr(year):
     dtr = {}
     dtr['full'] = (datetime(year,1,1,12,0,0), datetime(year,12,31,12,0,0))
-    # dtr['spring'] = (datetime(year,3,1,12,0,0), datetime(year,6,1,12,0,0)) # MAM
-    # dtr['fall'] = (datetime(year,9,1,12,0,0), datetime(year,12,1,12,0,0)) # SON
     dtr['winter'] = (datetime(year,1,1,12,0,0), datetime(year,3,31,12,0,0)) # JFM
     dtr['spring'] = (datetime(year,4,1,12,0,0), datetime(year,6,30,12,0,0)) # AMJ
     dtr['summer'] = (datetime(year,7,1,12,0,0), datetime(year,9,30,12,0,0)) # JAS
