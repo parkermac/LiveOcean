@@ -31,7 +31,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-g', '--gridname', type=str, default='cas6')
 parser.add_argument('-t', '--tag', type=str, default='v3')
 parser.add_argument('-x', '--ex_name', type=str, default='lo8b')
-parser.add_argument('-y', '--year', type=int, default=2018)
+parser.add_argument('-y', '--year', type=int, default=2017)
 parser.add_argument('-v', '--volume', type=str, default='Puget Sound')
 args = parser.parse_args()
 which_vol = args.volume
@@ -93,7 +93,7 @@ vol_df, salt_df, vol_rel_err, salt_rel_err, salt_rel_err_qe = flux_fun.get_budge
     sv_lp_df, v_lp_df, riv_df, tef_df_dict, seg_list)
 
 plt.close('all')
-fig = plt.figure(figsize=(20,10))
+fig = plt.figure(figsize=(15,10))
 
 ax = fig.add_subplot(111)
 salt_df[['dSnet_dt','-QrSbar','QeDS','Error']].plot(ax=ax, grid=True, legend=False)

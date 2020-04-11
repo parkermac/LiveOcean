@@ -173,10 +173,12 @@ LiveOcean_output/tef/salt_budget_plots/salt_budget_2018_Salish_Sea.png
 
 * flux_qe_salt_budget.py is like flux_salt_budget.py above, but it is more focused on dynamics controlling things at a sill.  Like flux_salt_budget.py it plots daily (tidally averaged) values over a year.
 It plots a rearranged salt budget of the form:
-	dSnet/dt = Qe*DS - Qr*Sbar
+	dSnet/dt = -Qr*Sbar + Qe*DS 
 where Qe is like (Qin-Qout)/2, and Sbar is like (Sin + Sout)/2, and these are exact recombinations of the terms in flux_salt_budget.py.
 
-The budget is for the segments landward of a section like ai2, and then we calculate some quantities that MAY control the exchange flow salt flux (Qe*DS) at that segment, such as dSbar/dx (calculated from ai1 and ai3 for example), as well as the net tidal dissipation between those sections (calculated as the difference of net tidal energy flux) which is a proxy for Kv.  These various possible controls are plotted as scatterplots.
+------------------------------------------------------------------
+
+* flux_sill_dyn.py uses much of the same information as in flux_qe_salt_budget.py above, but the terms are for the segments in the middle of a sill like ai2, and then we calculate some quantities that MAY control the exchange flow salt flux (Qe*DS) at that segment, such as dSbar/dx (calculated from ai1 and ai3 for example), as well as the net tidal dissipation between those sections (calculated as the difference of net tidal energy flux) which is a proxy for Kv.  These various possible controls are plotted as scatterplots.  Works with DAILY values for a year.
 
 ------------------------------------------------------------------
 
