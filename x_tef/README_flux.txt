@@ -185,5 +185,11 @@ where Qe is like (Qin-Qout)/2, and Sbar is like (Sin + Sout)/2, and these are ex
 * flux_3year_salt.py is also like flux_salt_budget.py above, but it seeks to shed light on what controls the variability of mean salinity in a chosen basin.  It plots MONTHLY averages of mean salinity in the basin over THREE YEARS, along with other info like the TEF terms and a salt budget.
 
 ------------------------------------------------------------------
+* flux_plot_sections.py makes maps of year-averaged tidal energy flux and net transport
+at all sections
+
+Input: section "bulk" files
+
+Output: ...LiveOcean_output/tef/misc_figs_cas6/Tide_and_Qnet_[year].png
 ------------------------------------------------------------------
 ------------------------------------------------------------------
