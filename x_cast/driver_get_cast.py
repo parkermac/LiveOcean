@@ -65,7 +65,7 @@ elif data_source == 'woac':
     Casts = pd.read_pickle(dir0 + 'Casts_' + str(year) + '.p')
     
 # trim the station list as desired
-sta_list = [sta for sta in sta_df.index if 'SOG' in sta]
+sta_list = [sta for sta in sta_df.index]# if 'SOG' in sta]
 
 if 'ecology' in data_source:
     for station in sta_list:
