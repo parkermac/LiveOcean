@@ -30,10 +30,6 @@ def get_data_oneday(this_dt, fn_out):
 
     import os
     import netCDF4 as nc
-
-    # from urllib.request import urlretrieve
-    # from urllib.error import URLError
-    # from socket import timeout
     import time
     from datetime import datetime, timedelta
 
@@ -46,8 +42,6 @@ def get_data_oneday(this_dt, fn_out):
         pass # assume error was because the file did not exist
 
     dstr = this_dt.strftime('%Y.%m.%d')
-    # print('Working on ' + dstr)
-    
     # time string in HYCOM format
     dstr_hy = this_dt.strftime('%Y-%m-%d-T00:00:00Z')
     
@@ -76,37 +70,8 @@ def get_data_oneday(this_dt, fn_out):
         '?var='+var_list +
         '&north='+str(north)+'&south='+str(south)+'&west='+str(west)+'&east='+str(east) +
         '&time='+dstr_hy +
-        '&addLatLon=true&accept=netcdf4')
-    
+        '&addLatLon=true&accept=netcdf4')    
     print(url)
-
-    # if False:
-    #     # get the data and save as a netcdf file
-    #     counter = 1
-    #     got_file = False
-    #     while (counter <= 3) and (got_file == False):
-    #         print('Attempting to get data, counter = ' + str(counter))
-    #         tt0 = time.time()
-    #         try:
-    #             (a,b) = urlretrieve(url,fn_out)
-    #             # a is the output file name
-    #             # b is a message you can see with b.as_string()
-    #         except URLError as e:
-    #             if hasattr(e, 'reason'):
-    #                 print(' *We failed to reach a server.')
-    #                 print(' -Reason: ', e.reason)
-    #             elif hasattr(e, 'code'):
-    #                 print(' *The server couldn\'t fulfill the request.')
-    #                 print(' -Error code: ', e.code)
-    #         except timeout:
-    #             print(' *Socket timed out')
-    #         else:
-    #             got_file = True
-    #             print(' Worked fine')
-    #         print(' -took %0.1f seconds' % (time.time() - tt0))
-    #         counter += 1
-    # else:
-    
     # new version 2020.04.22 using requests
     counter = 1
     got_file = False
@@ -125,148 +90,6 @@ def get_data_oneday(this_dt, fn_out):
         counter += 1
         print(' - took %0.1f seconds' % (time.time() - tt0))
         sys.stdout.flush()
-            
-    # # check results
-    # ds = nc.Dataset(fn_out)
-    # print('\nVariables:')
-    # for vn in ds.variables:
-    #     print('- '+vn)
-    # # get time info for the forecast
-    # t = ds['time'][0]
-    # if isinstance(t, np.ma.MaskedArray):
-    #     th = t.data
-    # else:
-    #     th = t
-    # tu = ds['time'].units
-    # # e.g. 'hours since 2018-11-20 12:00:00.000 UTC'
-    # # Warning: Brittle code below!
-    # ymd = tu.split()[2]
-    # hmss = tu.split()[3]
-    # hms = hmss.split('.')[0]
-    # hycom_dt0 = datetime.strptime(ymd + ' ' + hms, '%Y-%m-%d %H:%M:%S')
-    # this_dt = hycom_dt0 + timedelta(days=(th/24))
-    # print('Target time = ' + dstr)
-    # print('Actual time = ' + this_dt.strftime('%Y-%m-%d-T00:00:00Z'))
-    # ds.close()
-
-def get_data(this_dt, fn_out, nd_f):
-    """"
-    Code to get hycom data using the new FMRC_best file.
-    """
-
-    import os
-    import netCDF4 as nc
-
-    from urllib.request import urlretrieve
-    from urllib.error import URLError
-    from socket import timeout
-    import time
-    from datetime import datetime, timedelta
-
-    testing = False
-
-    # specify output file
-    # get rid of the old version, if it exists
-    try:
-        os.remove(fn_out)
-    except OSError:
-        pass # assume error was because the file did not exist
-
-    # specify time limits
-    # get today's  date string in LO format
-    
-    #dstr00 = datetime.now().strftime('%Y.%m.%d')
-    dstr00 = this_dt.strftime('%Y.%m.%d')
-    
-    print('Working on ' + dstr00)
-    # get time limits for forecast
-    dt00 = datetime.strptime(dstr00, '%Y.%m.%d')
-    dt0 = dt00 - timedelta(days=2)
-    if testing == True:
-        dt1 = dt00 - timedelta(days=1)
-    else:
-        dt1 = dt00 + timedelta(days=int(nd_f) + 2)
-    # put them in ncss format
-    dstr0 = dt0.strftime('%Y-%m-%d-T00:00:00Z')
-    dstr1 = dt1.strftime('%Y-%m-%d-T00:00:00Z')
-    print('- dt0 = ' + dstr0)
-    print('- dt1 = ' + dstr1)
-    
-    # specify spatial limits
-    aa = hfun.aa
-    #aa = hfun.get_extraction_limits()
-    north = aa[3]
-    south = aa[2]
-    west = aa[0] + 360
-    east = aa[1] + 360
-
-    if testing == True:
-        var_list = 'surf_el'
-    else:
-        var_list = 'surf_el,water_temp,salinity,water_u,water_v'
-
-    # create the request url (added new url 2019.12.06)
-    #url = ('http://ncss.hycom.org/thredds/ncss/grid/GLBy0.08/expt_93.0/data/forecasts/FMRC_best.ncd'+
-    url = ('https://ncss.hycom.org/thredds/ncss/GLBy0.08/expt_93.0/FMRC/GLBy0.08_930_FMRC_best.ncd'+
-        '?var='+var_list +
-        '&north='+str(north)+'&south='+str(south)+'&west='+str(west)+'&east='+str(east) +
-        '&time_start='+dstr0+'&time_end='+dstr1+'&timeStride=8' +
-        '&addLatLon=true&accept=netcdf4')
-        
-    print(url)
-
-    # get the data and save as a netcdf file
-    counter = 1
-    got_file = False
-    while (counter <= 3) and (got_file == False):
-        print('Attempting to get data, counter = ' + str(counter))
-        tt0 = time.time()
-        try:
-            (a,b) = urlretrieve(url,fn_out)
-            # a is the output file name
-            # b is a message you can see with b.as_string()
-        except URLError as e:
-            if hasattr(e, 'reason'):
-                print(' *We failed to reach a server.')
-                print(' -Reason: ', e.reason)
-            elif hasattr(e, 'code'):
-                print(' *The server couldn\'t fulfill the request.')
-                print(' -Error code: ', e.code)
-        except timeout:
-            print(' *Socket timed out')
-        else:
-            got_file = True
-            print(' Worked fine')
-        print(' -took %0.1f seconds' % (time.time() - tt0))
-        counter += 1
-
-    # check results
-    ds = nc.Dataset(fn_out)
-    print('\nVariables:')
-    for vn in ds.variables:
-        print('- '+vn)
-    print('Times:')
-    htime = ds['time'][:]
-    # get time info for the forecast
-    t = ds['time'][:]
-    tu = ds['time'].units
-    # e.g. 'hours since 2018-11-20 12:00:00.000 UTC'
-    # Warning: Brittle code below!
-    ymd = tu.split()[2]
-    hmss = tu.split()[3]
-    hms = hmss.split('.')[0]
-    hycom_dt0 = datetime.strptime(ymd + ' ' + hms, '%Y-%m-%d %H:%M:%S')
-    # make a list of datetimes that are in the forecast
-    hycom_dt_list = [] # datetimes
-    hycom_iit_list = [] # indices
-    iit = 0
-    for th in t: # assume t is sorted
-        this_dt = hycom_dt0 + timedelta(th/24)
-        hycom_dt_list.append(this_dt)
-        print('- '+str(this_dt))
-        hycom_iit_list.append(iit)
-        iit += 1
-    ds.close()
 
 def get_hnc_short_list(this_dt, Ldir):
     # initial experiment list
@@ -376,7 +199,6 @@ def convert_extraction_oneday(fn):
         var_list = ['surf_el','water_temp','salinity','water_u','water_v']
         
     # get the dynamical variables
-    tt0 = time.time()
     for var_name in var_list:
         # Get the variables, renaming to be consistent with what we want,
         # and pack bottom to top
@@ -400,72 +222,6 @@ def convert_extraction_oneday(fn):
             v3d = ds['water_v'][0, :, :, :]
             v3d = v3d[::-1, :, :] # pack bottom to top
             out_dict['v3d'] = v3d
-        # print('  %0.2f sec to get %s' % ((time.time() - tt0), var_name))
-    ds.close()
-    
-    return out_dict # the keys of this dictionary are separate variables
-
-def convert_extraction(fn, iit):
-    # initialize an output dict
-    out_dict = dict()
-    ds = nc.Dataset(fn)
-    
-    print('opening ' + fn)
-    print('- for iit = ' + str(iit))
-    
-    # get datetime
-    t = ds['time'][iit]
-    tu = ds['time'].units
-    # e.g. 'hours since 2018-11-20 12:00:00.000 UTC'
-    # Warning: Brittle code below!
-    ymd = tu.split()[2]
-    hmss = tu.split()[3]
-    hms = hmss.split('.')[0]
-    hycom_dt0 = datetime.strptime(ymd + ' ' + hms, '%Y-%m-%d %H:%M:%S')
-    dt = hycom_dt0 + timedelta(days=t/24)
-    out_dict['dt'] = dt # datetime time of this snapshot
-    
-    print('- for dt = ' + str(dt))
-    
-    # create z from the depth
-    depth = ds.variables['depth'][:]
-    z = -depth[::-1] # you reverse an axis with a -1 step!
-    out_dict['z'] = z
-    N = len(z)
-        
-    # get full coordinates (vectors for the plaid grid)
-    lon = ds.variables['lon'][:] - 360  # convert from 0:360 to -360:0 format
-    lat = ds.variables['lat'][:]    
-    # and save them   
-    out_dict['lon'] = lon
-    out_dict['lat'] = lat
-        
-    # get the dynamical variables
-    tt0 = time.time()
-    for var_name in ['surf_el', 'water_temp', 'salinity', 'water_u', 'water_v']:
-        # Get the variables, renaming to be consistent with what we want,
-        # and pack bottom to top
-        np.warnings.filterwarnings('ignore') # suppress warning related to nans in fields
-        if var_name == 'surf_el':
-            ssh = ds['surf_el'][iit, :, :]
-            out_dict['ssh'] = ssh
-        elif var_name == 'water_temp':
-            t3d = ds['water_temp'][iit, :, :, :]
-            t3d = t3d[::-1, :, :] # pack bottom to top
-            out_dict['t3d'] = t3d
-        elif var_name == 'salinity':
-            s3d = ds['salinity'][iit, :, :, :]
-            s3d = s3d[::-1, :, :]
-            out_dict['s3d'] = s3d
-        elif var_name == 'water_u':
-            u3d = ds['water_u'][iit, :, :, :]
-            u3d = u3d[::-1, :, :]
-            out_dict['u3d'] = u3d
-        elif var_name == 'water_v':
-            v3d = ds['water_v'][iit, :, :, :]
-            v3d = v3d[::-1, :, :] # pack bottom to top
-            out_dict['v3d'] = v3d
-        # print('  %0.2f sec to get %s' % ((time.time() - tt0), var_name))
     ds.close()
     
     return out_dict # the keys of this dictionary are separate variables
@@ -721,65 +477,6 @@ def get_zr(G, S, vn):
         print('Unknown variable name for get_zr: ' + vn)
     return zr
 
-def get_interpolated(G, S, b, lon, lat, z, N):
-    # OBSOLETE (and slow!)
-    
-    # start input dict
-    c = dict()
-    # 2D fields
-    for vn in ['ssh', 'ubar', 'vbar']:
-        tt0 = time.time()
-        xr, yr = get_xyr(G, vn)
-        Mr, Lr = xr.shape
-        u = b[vn]
-        uu = zfun.interp_scattered_on_plaid(xr, yr, lon, lat, u)
-        uu = np.reshape(uu, xr.shape)
-        if np.isnan(uu).any():
-            print('Warning: nans in output array for ' + vn)
-        else:
-            c[vn] = uu
-        print(' --' + vn + ' xy interpolation took %0.1f seconds' % (time.time() - tt0))
-        
-    # 3D fields
-    for vn in ['theta', 's3d', 'u3d', 'v3d']:
-        tt0 = time.time()
-        xr, yr = get_xyr(G, vn)
-        zr = get_zr(G, S, vn)
-        Nr, Mr, Lr = zr.shape
-        v = b[vn]
-        # create an intermediate array, which is on the ROMS lon, lat grid
-        # but has the HyCOM vertical grid
-        # get interpolants
-        xi0, xi1, xf = zfun.get_interpolant(xr, lon, extrap_nan=True)
-        yi0, yi1, yf = zfun.get_interpolant(yr, lat, extrap_nan=True)
-        # bi linear interpolation
-        u00 = v[:,yi0,xi0]
-        u10 = v[:,yi1,xi0]
-        u01 = v[:,yi0,xi1]
-        u11 = v[:,yi1,xi1]
-        vi = (1-yf)*((1-xf)*u00 + xf*u01) + yf*((1-xf)*u10 + xf*u11)
-        vi = vi.reshape((N, Mr, Lr))
-        print(' --' + vn + ' xy interpolation took %0.1f seconds' % (time.time() - tt0))
-        
-        tt0 = time.time()
-        # make interpolants to go from the HyCOM vertical grid to the
-        # ROMS vertical grid
-        I0, I1, FR = zfun.get_interpolant(zr, z, extrap_nan=True)
-        zrs = zr.shape    
-        vif = vi.flatten()
-        LL = np.tile(np.arange(Lr), Mr*Nr)
-        MM = np.tile(np.repeat(np.arange(Mr), Lr), Nr)
-        f0 = LL + MM*Lr + I0*Mr*Lr
-        f1 = LL + MM*Lr + I1*Mr*Lr
-        vv = (1-FR)*vif[f0] + FR*vif[f1]
-        vv = vv.reshape(zrs)
-        if np.isnan(vv).any():
-            print('Warning: nans in output array for ' + vn)
-        else:
-            c[vn] = vv
-        print(' --' + vn + ' z interpolation took %0.1f seconds' % (time.time() - tt0))
-    return c
-
 def get_zinds(h, S, z):
     # Precalculate the array of indices to go from HYCOM z to ROMS z.
     # This just finds the vertical index in HYCOM z for each ROMS z_rho
@@ -813,7 +510,6 @@ def get_interpolated_alt(G, S, b, lon, lat, z, N, zinds):
     c = {}
     
     # precalculate useful arrays that are used for horizontal interpolation
-    tt0 = time.time()
     if isinstance(lon, np.ma.MaskedArray):
         lon = lon.data
     if isinstance(lat, np.ma.MaskedArray):
@@ -823,10 +519,8 @@ def get_interpolated_alt(G, S, b, lon, lat, z, N, zinds):
     XYr = np.array((G['lon_rho'].flatten(), G['lat_rho'].flatten())).T
     h = G['h']
     IMr = cKDTree(XYin).query(XYr)[1]
-    # print(' --create IMr tree took %0.1f seconds' % (time.time() - tt0))
     
     # 2D fields
-    tt0 = time.time()
     for vn in ['ssh', 'ubar', 'vbar']:
         vv = b[vn].flatten()[IMr].reshape(h.shape)
         if vn == 'ubar':
@@ -835,51 +529,36 @@ def get_interpolated_alt(G, S, b, lon, lat, z, N, zinds):
             vv = (vv[:-1,:] + vv[1:,:])/2
         vvc = vv.copy()
         # always a good idea to make sure dict entries are not just pointers
-        # to arrays that might be changed later, hent the .copy()
+        # to arrays that might be changed later, hence the .copy()
         c[vn] = vvc
         checknan(vvc)
-    # print(' --2d var xy interpolation took %0.1f seconds' % (time.time() - tt0))
         
     # 3D fields
-    verbose = False
     # create intermediate arrays which are on the ROMS lon_rho, lat_rho grid
     # but have the HYCOM vertical grid (N layers)
     F = np.nan * np.ones(((N,) + h.shape))
     vi_dict = {}
     for vn in ['theta', 's3d', 'u3d', 'v3d']:
-        tt0 = time.time()
         FF = F.copy()
         for nn in range(N):
             vin = b[vn][nn,:,:].flatten()
             FF[nn,:,:] = vin[IMr].reshape(h.shape)
-        if verbose:
-            print('==== FF for ' + vn)
-            print(FF[:,10,10])
         checknan(FF)
         vi_dict[vn] = FF
-    # print(' --3d var xy interpolation took %0.1f seconds' % (time.time() - tt0))
     
     # do the vertical interpolation from HYCOM to ROMS z positions
     for vn in ['theta', 's3d', 'u3d', 'v3d']:
-        tt0 = time.time()
         vi = vi_dict[vn]
-        if verbose:
-            print('==== vi for ' + vn)
-            print(vi[:,10,10])
         hinds = np.indices((S['N'], G['M'], G['L']))
         vvf = vi[zinds, hinds[1].flatten(), hinds[2].flatten()]
         vv = vvf.reshape((S['N'], G['M'], G['L']))
         vvc = vv.copy()
-        if verbose:
-            print('==== vvc for ' + vn)
-            print(vvc[:,10,10])
         if vn == 'u3d':
             vvc = (vvc[:,:,:-1] + vvc[:,:,1:])/2
         elif vn == 'v3d':
             vvc = (vvc[:,:-1,:] + vvc[:,1:,:])/2
         checknan(vvc)
         c[vn] = vvc
-        # print(' --' + vn + ' z interpolation took %0.1f seconds' % (time.time() - tt0))
     return c
 
 
