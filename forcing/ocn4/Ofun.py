@@ -31,9 +31,9 @@ def get_data_oneday(this_dt, fn_out):
     import os
     import netCDF4 as nc
 
-    from urllib.request import urlretrieve
-    from urllib.error import URLError
-    from socket import timeout
+    # from urllib.request import urlretrieve
+    # from urllib.error import URLError
+    # from socket import timeout
     import time
     from datetime import datetime, timedelta
 
@@ -46,11 +46,10 @@ def get_data_oneday(this_dt, fn_out):
         pass # assume error was because the file did not exist
 
     dstr = this_dt.strftime('%Y.%m.%d')
-    print('Working on ' + dstr)
+    # print('Working on ' + dstr)
     
     # time string in HYCOM format
     dstr_hy = this_dt.strftime('%Y-%m-%d-T00:00:00Z')
-    
     
     # specify spatial limits
     aa = hfun.aa
@@ -78,56 +77,77 @@ def get_data_oneday(this_dt, fn_out):
         '&north='+str(north)+'&south='+str(south)+'&west='+str(west)+'&east='+str(east) +
         '&time='+dstr_hy +
         '&addLatLon=true&accept=netcdf4')
-        
+    
     print(url)
 
-    # get the data and save as a netcdf file
+    # if False:
+    #     # get the data and save as a netcdf file
+    #     counter = 1
+    #     got_file = False
+    #     while (counter <= 3) and (got_file == False):
+    #         print('Attempting to get data, counter = ' + str(counter))
+    #         tt0 = time.time()
+    #         try:
+    #             (a,b) = urlretrieve(url,fn_out)
+    #             # a is the output file name
+    #             # b is a message you can see with b.as_string()
+    #         except URLError as e:
+    #             if hasattr(e, 'reason'):
+    #                 print(' *We failed to reach a server.')
+    #                 print(' -Reason: ', e.reason)
+    #             elif hasattr(e, 'code'):
+    #                 print(' *The server couldn\'t fulfill the request.')
+    #                 print(' -Error code: ', e.code)
+    #         except timeout:
+    #             print(' *Socket timed out')
+    #         else:
+    #             got_file = True
+    #             print(' Worked fine')
+    #         print(' -took %0.1f seconds' % (time.time() - tt0))
+    #         counter += 1
+    # else:
+    
+    # new version 2020.04.22 using requests
     counter = 1
     got_file = False
+    import requests
     while (counter <= 3) and (got_file == False):
-        print('Attempting to get data, counter = ' + str(counter))
+        print(' - Attempting to get data, counter = ' + str(counter))
         tt0 = time.time()
         try:
-            (a,b) = urlretrieve(url,fn_out)
-            # a is the output file name
-            # b is a message you can see with b.as_string()
-        except URLError as e:
-            if hasattr(e, 'reason'):
-                print(' *We failed to reach a server.')
-                print(' -Reason: ', e.reason)
-            elif hasattr(e, 'code'):
-                print(' *The server couldn\'t fulfill the request.')
-                print(' -Error code: ', e.code)
-        except timeout:
-            print(' *Socket timed out')
-        else:
-            got_file = True
-            print(' Worked fine')
-        print(' -took %0.1f seconds' % (time.time() - tt0))
+            r = requests.get(url)
+            if r.ok:
+                with open(fn_out,'wb') as f:
+                    f.write(r.content)
+                got_file = True
+        except:
+            print(' - error using requests')
         counter += 1
-
-    # check results
-    ds = nc.Dataset(fn_out)
-    print('\nVariables:')
-    for vn in ds.variables:
-        print('- '+vn)
-    # get time info for the forecast
-    t = ds['time'][0]
-    if isinstance(t, np.ma.MaskedArray):
-        th = t.data
-    else:
-        th = t
-    tu = ds['time'].units
-    # e.g. 'hours since 2018-11-20 12:00:00.000 UTC'
-    # Warning: Brittle code below!
-    ymd = tu.split()[2]
-    hmss = tu.split()[3]
-    hms = hmss.split('.')[0]
-    hycom_dt0 = datetime.strptime(ymd + ' ' + hms, '%Y-%m-%d %H:%M:%S')
-    this_dt = hycom_dt0 + timedelta(days=(th/24))
-    print('Target time = ' + dstr)
-    print('Actual time = ' + this_dt.strftime('%Y-%m-%d-T00:00:00Z'))
-    ds.close()
+        print(' - took %0.1f seconds' % (time.time() - tt0))
+        sys.stdout.flush()
+            
+    # # check results
+    # ds = nc.Dataset(fn_out)
+    # print('\nVariables:')
+    # for vn in ds.variables:
+    #     print('- '+vn)
+    # # get time info for the forecast
+    # t = ds['time'][0]
+    # if isinstance(t, np.ma.MaskedArray):
+    #     th = t.data
+    # else:
+    #     th = t
+    # tu = ds['time'].units
+    # # e.g. 'hours since 2018-11-20 12:00:00.000 UTC'
+    # # Warning: Brittle code below!
+    # ymd = tu.split()[2]
+    # hmss = tu.split()[3]
+    # hms = hmss.split('.')[0]
+    # hycom_dt0 = datetime.strptime(ymd + ' ' + hms, '%Y-%m-%d %H:%M:%S')
+    # this_dt = hycom_dt0 + timedelta(days=(th/24))
+    # print('Target time = ' + dstr)
+    # print('Actual time = ' + this_dt.strftime('%Y-%m-%d-T00:00:00Z'))
+    # ds.close()
 
 def get_data(this_dt, fn_out, nd_f):
     """"
@@ -317,7 +337,7 @@ def convert_extraction_oneday(fn):
     out_dict = dict()
     ds = nc.Dataset(fn)
     
-    print('opening ' + fn)
+    # print('opening ' + fn)
     
     # get time info for the forecast
     t = ds['time'][0]
@@ -334,7 +354,7 @@ def convert_extraction_oneday(fn):
     hycom_dt0 = datetime.strptime(ymd + ' ' + hms, '%Y-%m-%d %H:%M:%S')
     this_dt = hycom_dt0 + timedelta(days=(th/24))
     out_dict['dt'] = this_dt # datetime time of this snapshot
-    print('- for dt = ' + str(this_dt))
+    # print('- for dt = ' + str(this_dt))
     
     if testing == False:
         # create z from the depth
@@ -498,7 +518,7 @@ def time_filter(in_dir, h_list, out_dir, Ldir):
             dts = out_name.strip('fh').strip('.p')
             dt = datetime.strptime(dts, '%Y.%m.%d')
             aa['dt'] = dt
-            print('   ' + out_name)
+            # print('   ' + out_name)
             pickle.dump(aa, open(out_dir + out_name, 'wb'))
     else:
         print('--Using block average')
@@ -520,14 +540,14 @@ def time_filter(in_dir, h_list, out_dir, Ldir):
         # saving the first file
         out_name0 = 'fh' + dts0 + '.p' 
         aa['dt'] = dt0           
-        print('   ' + out_name0)
+        # print('   ' + out_name0)
         pickle.dump(aa, open(out_dir + out_name0, 'wb'))
         # saving the last file
         dt1 = dt0 + timedelta(days=nd)
         dts1 = datetime.strftime(dt1, '%Y.%m.%d')
         out_name1 = 'fh' + dts1 + '.p'            
         aa['dt'] = dt1           
-        print('   ' + out_name1)
+        # print('   ' + out_name1)
         pickle.dump(aa, open(out_dir + out_name1, 'wb'))
 
 def get_coords(in_dir):
@@ -618,7 +638,7 @@ def get_extrapolated(in_fn, L, M, N, X, Y, lon, lat, z, Ldir, add_CTD=False):
         elif vn == 's3d':
             v0 = np.nanmax(v)
         if vn in ['t3d', 's3d']:
-            print(' -- extrapolating ' + vn)
+            # print(' -- extrapolating ' + vn)
             if add_CTD==False:
                 for k in range(N):
                     fld = v[k, :, :]
@@ -636,7 +656,7 @@ def get_extrapolated(in_fn, L, M, N, X, Y, lon, lat, z, Ldir, add_CTD=False):
                         xyorig=xyorig,fldorig=fldorig,fld0=v0)
                     V[vn][k, :, :] = fldf
         elif vn in ['u3d', 'v3d']:
-            print(' -- extrapolating ' + vn)
+            # print(' -- extrapolating ' + vn)
             vv = v.copy()
             vv = np.ma.masked_where(np.isnan(vv), vv)
             vv[vv.mask] = 0
@@ -803,7 +823,7 @@ def get_interpolated_alt(G, S, b, lon, lat, z, N, zinds):
     XYr = np.array((G['lon_rho'].flatten(), G['lat_rho'].flatten())).T
     h = G['h']
     IMr = cKDTree(XYin).query(XYr)[1]
-    print(' --create IMr tree took %0.1f seconds' % (time.time() - tt0))
+    # print(' --create IMr tree took %0.1f seconds' % (time.time() - tt0))
     
     # 2D fields
     tt0 = time.time()
@@ -818,7 +838,7 @@ def get_interpolated_alt(G, S, b, lon, lat, z, N, zinds):
         # to arrays that might be changed later, hent the .copy()
         c[vn] = vvc
         checknan(vvc)
-    print(' --2d var xy interpolation took %0.1f seconds' % (time.time() - tt0))
+    # print(' --2d var xy interpolation took %0.1f seconds' % (time.time() - tt0))
         
     # 3D fields
     verbose = False
@@ -837,7 +857,7 @@ def get_interpolated_alt(G, S, b, lon, lat, z, N, zinds):
             print(FF[:,10,10])
         checknan(FF)
         vi_dict[vn] = FF
-    print(' --3d var xy interpolation took %0.1f seconds' % (time.time() - tt0))
+    # print(' --3d var xy interpolation took %0.1f seconds' % (time.time() - tt0))
     
     # do the vertical interpolation from HYCOM to ROMS z positions
     for vn in ['theta', 's3d', 'u3d', 'v3d']:
@@ -859,7 +879,7 @@ def get_interpolated_alt(G, S, b, lon, lat, z, N, zinds):
             vvc = (vvc[:,:-1,:] + vvc[:,1:,:])/2
         checknan(vvc)
         c[vn] = vvc
-        print(' --' + vn + ' z interpolation took %0.1f seconds' % (time.time() - tt0))
+        # print(' --' + vn + ' z interpolation took %0.1f seconds' % (time.time() - tt0))
     return c
 
 
