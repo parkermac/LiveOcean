@@ -78,6 +78,7 @@ def get_data_oneday(this_dt, fn_out):
     import requests
     while (counter <= 3) and (got_file == False):
         print(' - Attempting to get data, counter = ' + str(counter))
+        time.sleep(10) # pause before each request
         tt0 = time.time()
         try:
             r = requests.get(url)
