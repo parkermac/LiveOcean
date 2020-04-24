@@ -1,5 +1,7 @@
 """
 Plots mooring records as pcolormesh fields C(t,z).
+
+Currently oriented around NPZD variables.
 """
 
 # setup
