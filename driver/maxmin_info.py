@@ -13,14 +13,10 @@ from datetime import datetime, timedelta
 import netCDF4 as nc4
 import numpy as np
 
-alp = os.path.abspath('../alpha')
-if alp not in sys.path:
-    sys.path.append(alp)
+sys.path.append(os.path.abspath('../alpha'))
 import Lfun
 
-plp = os.path.abspath('../plotting')
-if plp not in sys.path:
-    sys.path.append(plp)
+sys.path.append(os.path.abspath('../plotting'))
 from importlib import reload
 import pfun; reload(pfun)
 

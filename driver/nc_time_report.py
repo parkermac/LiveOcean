@@ -13,17 +13,14 @@ args = parser.parse_args()
 
 # setup
 from datetime import datetime
-import os; import sys
-alp = os.path.abspath('../alpha')
-if alp not in sys.path:
-    sys.path.append(alp)
+import os, sys
+sys.path.append(os.path.abspath('../alpha'))
 import Lfun
 Ldir = Lfun.Lstart(args.gridname, args.tag)
 
 yr = args.date_string[:4]
 mo = args.date_string[5:7]
 dy = args.date_string[-2:]
-
 
 f_dt = datetime(int(yr),int(mo),int(dy)) # NOTE: should make this an input argument
 

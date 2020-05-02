@@ -10,6 +10,15 @@ import shutil
 # this bit of magic lets us know where this program lives
 # and so allows us to find get_lo_info.sh and lo_info.csv
 alp = os.path.dirname(os.path.realpath(__file__))
+alp_user = alp.replace('LiveOcean','LiveOcean_user')
+upath = alp_user.replace('/alpha','')
+
+# Checking on things
+# These all have the usual linux path format of no final "/".
+# print('alp = ' + alp)
+# print('alp_user = ' + alp_user)
+# print('upath = ' + upath)
+# In contrast, in the paths I save in Ldir we do have a final "/"
 
 def Lstart(gridname='BLANK', tag='BLANK'):
     """
@@ -24,8 +33,8 @@ def Lstart(gridname='BLANK', tag='BLANK'):
     Ldir = dict()
     Ldir['gridname'] = gridname
     Ldir['tag'] = tag
-    if os.path.isfile(alp + '/user_get_lo_info.sh'): 
-        subprocess.call([alp + '/user_get_lo_info.sh'])
+    if os.path.isfile(alp_user + '/get_lo_info.sh'): 
+        subprocess.call([alp_user + '/get_lo_info.sh'])
     else:
         subprocess.call([alp + '/get_lo_info.sh'])
     Ldir_temp = csv_to_dict(alp + '/lo_info.csv')
@@ -34,6 +43,7 @@ def Lstart(gridname='BLANK', tag='BLANK'):
     Ldir['gtag'] = Ldir['gridname'] + '_' + Ldir['tag']
     Ldir['grid'] = Ldir['data'] + 'grids/' + Ldir['gridname'] + '/'
     Ldir['forecast_days'] = 3
+    Ldir['LOu'] = upath + '/'
     return Ldir
 
 def make_dir(dirname, clean=False):

@@ -9,14 +9,11 @@ Check for missing low_pass files.
 """
 
 #%% setup
-import os
-import sys
+import os, sys
 import argparse
 from datetime import datetime, timedelta
 
-alp = os.path.abspath('../alpha')
-if alp not in sys.path:
-    sys.path.append(alp)
+sys.path.append(os.path.abspath('../alpha'))
 import Lfun
 
 # get command line arguments, if any

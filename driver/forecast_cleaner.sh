@@ -7,5 +7,5 @@
 rm /data1/parker/LiveOcean_roms/output/cas6_v3_lo8b/f*/ocean_his_002[6-9].nc
 rm /data1/parker/LiveOcean_roms/output/cas6_v3_lo8b/f*/ocean_his_00[3-7][0-9].nc
 
-rm /data1/parker/LiveOcean_roms/output/sj0_v0_lo8nest/f*/ocean_his_002[6-9].nc
-rm /data1/parker/LiveOcean_roms/output/sj0_v0_lo8nest/f*/ocean_his_00[3-7][0-9].nc
+# rm /data1/parker/LiveOcean_roms/output/sj0_v0_lo8nest/f*/ocean_his_002[6-9].nc
+# rm /data1/parker/LiveOcean_roms/output/sj0_v0_lo8nest/f*/ocean_his_00[3-7][0-9].nc

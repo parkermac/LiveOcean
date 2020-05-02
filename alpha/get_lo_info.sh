@@ -6,12 +6,12 @@
 # any of the LiveOcean code (python, matlab, or shellscripts).
 
 # In order to facilitate having other users be able to use the LiveOcean
-# code, the calling code will always look for user_get_lo_info.sh first
-# and only execute this one if user_get_lo_info.sh does not exist.
+# code, the calling code will always look for LiveOcean_user/get_lo_info.sh first
+# and only execute this one if the _user version does not exist.
 
-# user_get_lo_info.sh will not be part of the repo code base.  Instead a user
+# LiveOcean_user/get_lo_info.sh will not be part of the repo code base.  Instead a user
 # should copy this code to that name and make any edits there by hand.
-# Then their user_get_lo_info.sh will not be overwritten when using git pull
+# Then their get_lo_info.sh will not be overwritten when using git pull
 
 # This script is intended to be called by Lfun.Lstart() as
 # well as the driver shellscripts.  The goal is to centralize the specification
@@ -77,8 +77,7 @@ elif [ $HOME == "/usr/lusers/pmacc" ] || [ $HOME == "/usr/lusers/darrd" ] ; then
   roms=$parent"LiveOcean_roms/"
   which_matlab="/usr/local/bin/matlab"
 
-# If none of the above apply ASSUME that we are on fjord.  This would
-# be the case if somone from the group was running check_all_results.py.
+# If none of the above apply ASSUME that we are on fjord.
 else
   lo_env='pm_fjord'
   parent="/data1/parker/"
@@ -89,7 +88,6 @@ else
   which_matlab="/usr/local/bin/matlab"
   
 fi
-
 
 # write info to a temporary file for use by other programs
 outfile=$LO"alpha/lo_info.csv"

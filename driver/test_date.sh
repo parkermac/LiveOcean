@@ -3,8 +3,8 @@
 # Code to test the date increment and decrement functions
 
 # run the code to put the environment into a csv
-if [ -e ../alpha/user_get_lo_info.sh ] ; then
-  ../alpha/user_get_lo_info.sh
+if [ -e ../../LiveOcean_user/alpha/get_lo_info.sh ] ; then
+  ../../LiveOcean_user/alpha/get_lo_info.sh
 else
   ../alpha/get_lo_info.sh
 fi
