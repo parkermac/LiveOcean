@@ -34,7 +34,9 @@ reload(mfun)
 # Load the module that defines mooring lists.  First look for a
 # "user_" one that you can put in this directory, copying the
 # format in moor_lists.py.
-if os.path.isfile('user_moor_lists.py'):
+
+if os.path.isfile(Ldir['LOu'] + 'x_moor/user_moor_lists.py'):
+    sys.path.append(os.path.abspath(Ldir['LOu'] + 'x_moor'))
     import user_moor_lists as ml
 else:
     import moor_lists as ml

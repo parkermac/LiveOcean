@@ -1,7 +1,7 @@
 """
 Code for particle tracking, designed for ROMS output.  This new version
 makes extensive use of nearest-neighbor KDTree algorithms for interpolation.
-This results is significantly (36x) faster runtimes compared with tracker_1.py.
+This results is significantly (36x) faster runtimes compared with tracker/tracker_1.py.
 
 NOTE: You have to have run make_KDTrees.py for the grid (e.g. cas6) before running.
 
@@ -20,8 +20,11 @@ locations.  Other possible commmand line arguments and their defaults
 are explained in the argparse section below.
 
 NOTE: To improve usefulness for people other than me, this driver will
-first look for user_experiments.py and user_trackfun.py before loading
-my versions.  This allows you to create yout own experiments, and modifications
+first look for:
+- LiveOcean_user/tracker2/user_experiments.py and
+- LiveOcean_user/tracker2/user_trackfun.py
+before loading my versions.
+This allows you to create yout own experiments, and modifications
 to the tracking (e.g. for diurnal depth behavior) while still being able
 to use git pull to update the main code.
 
@@ -45,13 +48,17 @@ Ldir = Lfun.Lstart()
 
 from importlib import reload
 
-if os.path.isfile('user_experiments.py'):
+if os.path.isfile(Ldir['LOu'] + 'tracker2/user_experiments.py'):
+    sys.path.append(os.path.abspath(Ldir['LOu'] + 'tracker2'))
     import user_experiments as exp
 else:
     import experiments as exp
 reload(exp)
 
 import trackfun_nc as tfnc
+
+# The import of trackfun or user_trackfun is done later in this program,
+# about 100 lines down.
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 def boolean_string(s):
@@ -169,7 +176,9 @@ Lfun.dict_to_csv(TR,outdir0 + 'exp_info.csv')
 Lfun.dict_to_csv(TR, outdir + 'exp_info.csv')
 # NOTE: we have to load this module AFTER we write [outdir0]/exp_info.csv
 # because it uses that information to decide which KDTrees to load.  Crude.
-if os.path.isfile('user_trackfun.py'):
+
+if os.path.isfile(Ldir['LOu'] + 'tracker2/user_trackfun.py'):
+    sys.path.append(os.path.abspath(Ldir['LOu'] + 'tracker2'))
     import user_trackfun as tfun
 else:
     import trackfun as tfun

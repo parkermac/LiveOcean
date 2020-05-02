@@ -1,6 +1,6 @@
 **** Information and directions for the tracker2 code ****
 
-This code is designed to be a flexible, and heopefully fast, tool for doing particle tracking experiments using saved history files from ROMS.  It assumes that you save fields hourly, and that the file structure follows LiveOcean standards (hours 0-24, numbered 00[01-25]) in a single folder named by date, e.g. f2019.12.18.  Along the way it often relies on some of the LiveOcean code machinery, such as LiveOcean/alpha/Lfun.py.  I suspect that it could be made more general with only a little work, but I won't do that now.  The old version of tracker relied extensively on the assumption that the underlying grid was "plaid."  This new code instead uses nearest neighbor for most everything and so might work with more complex ROMS grids, but that is untested.
+This code is designed to be a flexible, and hopefully fast, tool for doing particle tracking experiments using saved history files from ROMS.  It assumes that you save fields hourly, and that the file structure follows LiveOcean standards (hours 0-24, numbered 00[01-25]) in a single folder named by date, e.g. f2019.12.18.  Along the way it often relies on some of the LiveOcean code machinery, such as LiveOcean/alpha/Lfun.py.  I suspect that it could be made more general with only a little work, but I won't do that now.  The old version of tracker relied extensively on the assumption that the underlying grid was "plaid."  This new code instead uses nearest neighbor for most everything and so might work with more complex ROMS grids, but that is untested.
 
 Steps to run a particle tracking experiment:
 
@@ -16,7 +16,7 @@ You only need to do this once for a given gridname.
 
 ============================================================================
 
-2. Create a copy of experiments.py called "user_experiments.py".  You will be able to edit this, and the code will look for it first.  It will not be overwritten by "git pull".
+2. Create a copy of experiments.py called "LiveOcean_user/tracker2/user_experiments.py".  You will be able to edit this, and the code will look for it first.
 
 Then to create the initial positions of your release you make new entries in:
 
@@ -45,7 +45,7 @@ NOTE: the default is to save output every hour, even though the underlying calcu
 
 ============================================================================
 
-4. Plot the results using tplot.py as a first generic tool.  Copy this to a new name to start making your own plotting tool.
+4. Plot the results using tplot.py as a first generic tool.  Copy this to a new name in LiveOcean_user/tracker2 to start making your own plotting tool.
 
 Run from ipython on your laptop, because it creates a screen plot.  It will prompt you to choose the output you want to plot.
 
@@ -59,7 +59,7 @@ trackfun_nc.py handles creating and appending to the NetCDF output files
 
 trackfun.py is the real heart of the program.  It is a module of functions that does all steps of an experiment, typically in one-day chunks as orchestrated by the calling code tracker.py.
 
-NOTE: tracker.py will automatically look first for "user_trackfun.py" which is a placeholder name in case you want to make your own edited version of the functions to do something exotic like adding diurnal cycling behavoior to particles.
+NOTE: tracker.py will automatically look first for "LiveOcean_user/tracker2/user_trackfun.py" which is a placeholder name in case you want to make your own edited version of the functions to do something exotic like adding diurnal cycling behavoior to particles.
 
 LIMITATIONS: Currently the code is hardwired to only save time series of particle positions, velocity, salinity and temperature.  I will need to do a bit more work to simplify adding more tracers.
 

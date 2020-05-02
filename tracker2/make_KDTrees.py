@@ -6,13 +6,13 @@ NOTE: You have to edit this code by hand.
 NOTE: for some reason I have to make the 2D trees individually (meaning
 not in a loop like I do for the 3D trees).  No idea why.
 
-Useage:
+Usage:
 
 python make_KDTrees.py (uses defaults)
 
 python make_KDTrees.py -gridname cas6 -gtagex cas6_v3_lo8b -ds 2019.07.04
 
-(you have to be pointing it to a history file that exists)
+(** you have to be pointing it to a history file that exists **)
 
 """
 
