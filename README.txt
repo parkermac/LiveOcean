@@ -46,14 +46,63 @@ LiveOcean_roms
 -------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------
 
-* alpha/ contains top level code used by many programs.  In...
+* alpha/ contains top level code used by many programs.  Of greatest importance are get_lo_info.sh and Lfun.py.  There are also some of my own utility modules:
+- zfun is for common tasks like tidal filtering
+- zrfun is full of functions specific to working with ROMS files
 
 =====================================================================================
-=====================================================================================
-=====================================================================================
+
+* co2sys/ is the MATLAB program CO2SYS.m and some wrappers I use for running it.
+
 =====================================================================================
 
-* the x_[*]/ folders are all specific extraction, meant to operate on existing ROMS output, or the piles of forcing files that went into making them.  They write their output to LiveOcean_output/[*].
+* driver/ has all the drivers, mainly shell scripts (.sh) that you use to control pre- and post-processing operations.
+
+=====================================================================================
+
+* forcing/ has sub-folders for each of the individual pre- and post-processing jobs.  These are quite modular, and can be introduced to the forcing for a ROMS run just by changing a line in the dot_in file.  Each type of forcing (e.g. ocn4) typically has its own README and the same architecture: a primary program called make_forcing_main.py, and sometimes a subsidiary program, make_forcing_worker.m if MATLAB is needed.
+
+The folder forcing/dot_in has sub-folders, one for each run (e.g. cas6_v3_lo8b) where the code and template for generating the ROMS .in file for a given day are kept.
+
+Most of the code in forcing shares some input ant output structure that is contained in forcing_functions.py.  For exmaple, this is the one place where we define acceptable command line inputs for each of the make_forcing_main.py. programs.
+
+=====================================================================================
+
+* plotting/ has code for plotting ROMS output.  The main program you use is pan_plot.py which accepts many arguments to decide which run to plot, what plotting code to use, time range, movie output, etc.  Needs a README!
+
+=====================================================================================
+
+* shared/ has folders of MATLAB modules like the seawater routines.
+
+=====================================================================================
+
+* superplot/ has code for the specific plotting task of making the year-long public-friendly movies on the LO website.
+
+=====================================================================================
+
+* tracker/ is particle tracking code code.  Mostly obsolete at this point.
+
+=====================================================================================
+
+* tracker2/ is the current particle tracking code, which is significantly faster becasue of extensive use of nearest-neighbor search using pre-created search trees.
+
+=====================================================================================
+
+* the x_[*]/ folders are all specific types of extraction code, meant to operate on existing ROMS output, or the piles of forcing files that went into making them.  They write their output to LiveOcean_output/[*].
+
+- x_cast/ can very quickly make CTD cast-like extractions at a list of times and places.  A bit cludgey because it is hard-wired to look in some of my ptools_data directories to find observational records in a specific format that it then uses for locations and dates to extract.
+
+- x_layer/ is a nice generic tool for quickly extracting layers over many history files and putting them in one NetCDF file.
+
+- x_misc/ is not-so-generic extraction tools I keep for specific jobs.
+
+- x_moor/ is for mooring extractions.  Has good capability to accept user-defined lists.
+
+- x_river/ extracts river time series from LO forcing files
+
+- x_svar/ is for salinity variance-related extractions.
+
+- x_tef/ is for TEF extractions and subsequent analysis.  Currently (2020.05.02) very well organized but has a lot of ongoing development becasue it is central to a paper I am writing.
 
 =====================================================================================
 =====================================================================================
