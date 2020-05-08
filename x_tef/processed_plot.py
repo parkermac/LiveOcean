@@ -38,7 +38,7 @@ indir = indir0 + 'processed/'
 
 sect_list = list(sect_df.index)
 if testing:
-    sect_list = ['ss1']
+    sect_list = ['ai2','tn2']
 
 plt.close('all')
 
@@ -59,12 +59,27 @@ for sn in sect_list:
     slo = 26
     shi = 34
     
+    islo = (np.abs(sbins-slo)).argmin()
+    ishi = (np.abs(sbins-shi)).argmin()
+    it0 = (np.abs(day - t0)).argmin()
+    it1 = (np.abs(day - t1)).argmin()
+    sbins = sbins[islo:ishi]
+    day = day[it0:it1]
+    qnet = qnet[it0:it1]
+    q = q[it0:it1, islo:ishi]
+    qf = qf[it0:it1, islo:ishi]
+    
     ax = fig.add_subplot(311)
     scl = qnet.std()/20
     cs = ax.pcolormesh(day, sbins, q.T, cmap='bwr', vmin=-scl, vmax=scl)
     #fig.colorbar(cs, ax=ax)
     ax.axis([t0, t1, slo, shi])
     ax.grid(True)
+    ax.set_ylabel('Salinity')
+    ax.set_title(sn)
+    ax.text(.05,.8,
+    'Raw Transport in Salinity Bins\nColor scale is +/- %d (m3/s / (.001psu))' % (scl),
+    transform = ax.transAxes)
 
     ax = fig.add_subplot(312)
     scl = qnet.std()/100
@@ -72,10 +87,16 @@ for sn in sect_list:
     #fig.colorbar(cs, ax=ax)
     ax.axis([t0, t1, slo, shi])
     ax.grid(True)
+    ax.set_ylabel('Salinity')
+    ax.text(.05,.8,
+    'Tidally averaged Transport in Salinity Bins\nColor scale is +/- %d (m3/s / (.001psu))' % (scl),
+    transform = ax.transAxes)
     
     ax = fig.add_subplot(313)
-    ax.plot(day, qnet/1000, '-', color='orange')
+    ax.plot(day, qnet/1000, '-', color='g')
     ax.set_xlim(t0, t1)
     ax.grid(True)
+    ax.set_xlabel('Yearday')
+    ax.set_ylabel('Qnet (1000 m3/s)')
     
 plt.show()

@@ -22,12 +22,14 @@ import matplotlib.pyplot as plt
 
 # plotting choices
 lwt = .5 # line thickness for grid resolution ticks
-fs = 13
+fs = 16
+fs2 = fs*0.8
 #vn = 'salt'; vmin=20; vmax=33
 vn = 'temp'; vmin=8; vmax=20
 cmap = 'RdYlBu_r'#'cubehelix'#'ocean'
 aaf = [-125.3, -122.1, 46.8, 50.3] # focus domain
 station = 'HCB010' # 010 or 003
+fcol = 'darkgreen' # Fraser River color
 
 # get map fields
 fn = Ldir['roms'] + 'output/cas6_v3_lo8b/f2019.07.04/ocean_his_0020.nc'
@@ -70,10 +72,9 @@ m_df = m_df.iloc[:-1,:]
 # and make daily averages
 md_df = m_df.resample('1D').mean()
 
-
 # PLOTTING
 plt.close('all')
-fig = plt.figure(figsize=(14,7))
+fig = plt.figure(figsize=(16,8))
 
 # full map
 ax = fig.add_subplot(131)
@@ -99,12 +100,13 @@ for yy in y:
 ax.set_xlabel('Longitude (deg)', size=fs)
 ax.set_ylabel('Latitude (deg)', size=fs)
 pfun.draw_box(ax, aaf, linestyle='-', color='k', alpha=.3, linewidth=3, inset=0)
-ax.set_title('(a) Full Model Domain', size=fs)
-ah = ax.text(-125.456,49.4768,'Vancouver\nIsland',size=fs-2,
+ax.text(.97,.97,'(a) Full Model Domain\nand SST', ha='right', va='top', size=fs,
+    transform=ax.transAxes, bbox=dict(facecolor='w', edgecolor='None', alpha=.6))
+ah = ax.text(-125.456,49.4768,'Vancouver\nIsland',size=fs2,
     style='italic',ha='center',va='center',rotation=-45)
-ax.text(-123.072,46.7866,'Washington',size=fs-2,
+ax.text(-123.072,46.7866,'Washington',size=fs2,
     style='italic',ha='center',va='center',rotation=-45)
-ax.text(-122.996,44.5788,'Oregon',size=fs-2,
+ax.text(-122.996,44.5788,'Oregon',size=fs2,
     style='italic',ha='center',va='center',rotation=-45)
     
 # focus map
@@ -125,42 +127,47 @@ for yy in y:
     hh = ax.plot([aaf[1]-.08, aaf[1]],[yy,yy],'-k', lw=lwt)
 ax.set_xlabel('Longitude (deg)', size=fs)
 # add mooring location
-ax.plot(mlon, mlat, 'o', ms=10, markerfacecolor='g', markeredgecolor='k')
-ax.set_title('(b) Salish Sea', size=fs)
+ax.plot(mlon, mlat, '*', ms=15, markerfacecolor='w', markeredgecolor='k')
+ax.plot(mlon, mlat, 'o', ms=3, markerfacecolor='r', markeredgecolor='r')
+ax.text(.97,.97,'(b) Salish Sea', ha='right', va='top', size=fs, transform=ax.transAxes)
 # add labels
-ax.text(-122.682,49.335,'Fraser\nRiver',size=fs-2,
-    style='italic',ha='center',va='center',rotation=0)
-ax.text(-123.785,49.2528,'Strait of Georgia',size=fs-2,
+ax.text(-122.682,49.335,'Fraser\nRiver',size=fs2,
+    style='italic',ha='center',va='center',rotation=0, color=fcol)
+ax.text(-123.785,49.2528,'Strait of Georgia',size=fs2,
     style='italic',ha='center',va='center',rotation=-30)
-ax.text(-123.434,48.2381,'Juan de Fuca',size=fs-2,
+ax.text(-123.434,48.2381,'Juan de Fuca',size=fs2,
     style='italic',ha='center',va='center',rotation=-0)
-ax.text(-123.314,47.6143,'Puget\nSound',size=fs-2,
+ax.text(-123.314,47.6143,'Puget\nSound',size=fs2,
     style='italic',ha='center',va='center',rotation=+55)
-
 
 dt0 = datetime(2017,1,1,0)
 dt1 = datetime(2020,1,1,0)
 
 # river time series
 ax = fig.add_subplot(333)
-hh = r_df.plot(y='fraser', label='Fraser R. (1000 m3/s)', ax=ax, legend=True,
-    xlim=(dt0,dt1), ylim=(0,15), grid=True, style='-g')
+hh = r_df.plot(y='fraser', ax=ax, legend=False,
+    xlim=(dt0,dt1), ylim=(0,15), grid=True, style='-', color=fcol)
 ax.set_xticklabels([])
 ax.set_xticklabels([], minor=True)
-ax.text(.05, .8, '(c)', size=fs, transform=ax.transAxes)
+ax.text(.02, .8, '(c) Fraser R. [$1000\ m^{3}s^{-1}$]', size=fs, transform=ax.transAxes, color=fcol)
+ax.tick_params(labelsize=fs) # tick labels
 
 # wind time series
 ax = fig.add_subplot(336)
-md_df.plot(y='svstr', label='N-S Windstress (Pa)', ax=ax, legend=True, xlim=(dt0,dt1), grid=True, style='-c')
+md_df.plot(y='svstr', ax=ax, legend=False, xlim=(dt0,dt1), grid=True, style='-k')
 ax.set_xticklabels([])
 ax.set_xticklabels([], minor=True)
-ax.text(.05, .1, '(d)', size=fs, transform=ax.transAxes)
+ax.text(.02, .1, '(d) N-S Windstress [$Pa$]', size=fs, transform=ax.transAxes)
+ax.tick_params(labelsize=fs) # tick labels
 
 # salinity time series
 ax = fig.add_subplot(339)
 md_df.plot(y=['salt_bot', 'salt_top'], label=['Bottom Salinity', 'Surface Salinity'],
-    ax=ax, legend=True, xlim=(dt0,dt1), grid=True)
-ax.text(.05, .1, '(e)', size=fs, transform=ax.transAxes)
+    ax=ax, legend=False, xlim=(dt0,dt1), grid=True, color=['r', 'b'])
+ax.text(.02, .1, '(e) Surface and Bottom Salinity',
+    size=fs, transform=ax.transAxes)
+ax.tick_params(labelsize=fs) # tick labels
+ax.tick_params(labelsize=fs2, which='minor') # minor tick labels
 #
 # add observations
 S = pd.DataFrame(columns=['S_bot', 'S_top'])
@@ -179,9 +186,9 @@ for year in [2017, 2018, 2019]:
         ca = casts.loc[[dd],:]
         S.loc[dd,'S_bot'] = ca.iloc[0].Salinity
         S.loc[dd,'S_top'] = ca.iloc[-1].Salinity
-S.plot(ax=ax, style='*', legend=False)
+S.plot(ax=ax, style='*', legend=False, grid=True, color=['r', 'b'])
 
-#fig.tight_layout()
+fig.tight_layout()
 plt.show()
 
 ds.close()

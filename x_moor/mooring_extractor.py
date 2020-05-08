@@ -17,6 +17,7 @@ run mooring_extractor.py -sn Dabob -lon " -122.85" -lat 47.7
 import os, sys
 sys.path.append(os.path.abspath('../alpha'))
 import Lfun
+Ldir = Lfun.Lstart()
 import numpy as np
 from datetime import datetime, timedelta
 start_time = datetime.now()
