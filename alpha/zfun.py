@@ -327,9 +327,11 @@ def earth_rad(lat_deg):
     return RE
 
 def ll2xy(lon, lat, lon0, lat0):
-    # This converts lon, lat into meters relative to lon0, lat0.
-    # It should work for lon, lat scalars or arrays.
-    # NOTE: lat and lon are in degrees!!
+    """
+    This converts lon, lat into meters relative to lon0, lat0.
+    It should work for lon, lat scalars or arrays.
+    NOTE: lat and lon are in degrees!!
+    """
     R = earth_rad(lat0)
     clat = np.cos(np.pi*lat0/180)
     x = R * clat * np.pi * (lon - lon0) / 180
