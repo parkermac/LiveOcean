@@ -92,6 +92,14 @@ elif args.layer_name == 'bottom':
     vn_list_2d_uv_t = ['bustr', 'bvstr']
     vn_list_3d_uv_t = ['u', 'v']
     vn_list_2d_custom = ['zlay']
+elif args.layer_name == 'surface':
+    nlay = -1
+    vn_list_2d_t = ['zeta']
+    vn_list_3d_t = ['salt', 'temp']
+    vn_list_3d_t_custom = []
+    vn_list_2d_uv_t = ['sustr', 'svstr']
+    vn_list_3d_uv_t = ['u', 'v']
+    vn_list_2d_custom = []
 elif args.layer_name == 'bottom_DO':
     nlay = 0
     vn_list_2d_t = []
