@@ -28,7 +28,7 @@ fs2 = fs*0.8
 vn = 'temp'; vmin=8; vmax=20
 cmap = 'RdYlBu_r'#'cubehelix'#'ocean'
 aaf = [-125.3, -122.1, 46.8, 50.3] # focus domain
-station = 'HCB010' # 010 or 003
+station = 'SAR003' # 010 or 003
 fcol = 'darkgreen' # Fraser River color
 
 # get map fields
@@ -54,7 +54,7 @@ for year in [2017, 2018, 2019]:
 # get mooring record
 mfn = (Ldir['LOo'] +
     'moor/cas6_v3_lo8b_2017.01.01_2019.12.31/' +
-    station + '_hourly.nc')
+    station + '_daily.nc')
 m_ds = nc.Dataset(mfn)
 mlon = m_ds['lon_rho'][:]
 mlat = m_ds['lat_rho'][:]
@@ -68,9 +68,9 @@ m_df.loc[:,'svstr'] = m_ds['svstr'][:]
 m_df.loc[:,'salt_top'] = m_ds['salt'][:,-1] # top salinity
 m_df.loc[:,'salt_bot'] = m_ds['salt'][:,0] # bottom salinity
 # remove 1/1/2020
-m_df = m_df.iloc[:-1,:]
+md_df = m_df.iloc[:-1,:]
 # and make daily averages
-md_df = m_df.resample('1D').mean()
+#md_df = m_df.resample('1D').mean()
 
 # PLOTTING
 plt.close('all')
@@ -78,7 +78,7 @@ fig = plt.figure(figsize=(16,8))
 
 # full map
 ax = fig.add_subplot(131)
-ax.pcolormesh(lon[6:-6,6:],lat[6:-6,6:],v[6:-6,6:], cmap=cmap, vmin=vmin, vmax=vmax)
+cs = ax.pcolormesh(lon[6:-6,6:],lat[6:-6,6:],v[6:-6,6:], cmap=cmap, vmin=vmin, vmax=vmax)
 nudge_alpha = .1
 ax.pcolormesh(lon[:,:6],lat[:,:6],v[:,:6], cmap=cmap, vmin=vmin, vmax=vmax, alpha=nudge_alpha)
 ax.pcolormesh(lon[:6,:],lat[:6,:],v[:6,:], cmap=cmap, vmin=vmin, vmax=vmax, alpha=nudge_alpha)
@@ -87,6 +87,11 @@ pfun.add_bathy_contours(ax, ds, txt=False)
 pfun.add_coast(ax)
 ax.axis(pfun.get_aa(ds))
 pfun.dar(ax)
+# Inset colorbar
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+cbaxes = inset_axes(ax, width="4%", height="40%", loc='lower left', borderpad=3) 
+cb = fig.colorbar(cs, cax=cbaxes, orientation='vertical')
+cb.ax.tick_params(labelsize=fs)
 ax.set_xticks([-130, -126, -122])
 ax.set_yticks([42, 44, 46, 48, 50, 52])
 ax.tick_params(labelsize=fs) # tick labels
