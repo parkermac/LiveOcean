@@ -23,8 +23,8 @@ reload(tef_fun)
 import flux_fun
 reload(flux_fun)
 
-testing = False
-verbose = False
+testing = True
+verbose = True
 
 # Input directory
 indir0 = Ldir['LOo'] + 'tef/'
@@ -39,7 +39,12 @@ year = int(year_str)
 # get desired time ranges of the seasons
 dtr = flux_fun.get_dtr(year)
 
-for season in flux_fun.season_list:
+if testing:
+    season_list = ['full']
+else:
+    season_list = flux_fun.season_list
+    
+for season in season_list:
     
     print(season)
     
@@ -62,11 +67,13 @@ for season in flux_fun.season_list:
 
     # Create list of all segments to work on.
     seg_name_list_full = list(segs.keys())
-    # We need the full list because inflows come from neighboring segments.
-    if testing == True:
-        seg_name_list = ['M1']
-    else:
-         seg_name_list = seg_name_list_full
+    # # We need the full list because inflows come from neighboring segments.
+    # if testing == True:
+    #     seg_name_list = ['M1']
+    # else:
+    #      seg_name_list = seg_name_list_full
+    seg_name_list = seg_name_list_full
+
 
     # Initialize a DataFrame to store the fluxes "q" used to drive the flux engine
     sl2 = []
