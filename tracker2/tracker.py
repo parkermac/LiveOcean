@@ -72,6 +72,8 @@ parser = argparse.ArgumentParser()
 # Set the experiment name
 # (details set in experiments.py, or, if it exists, user_experiments.py)
 parser.add_argument('-exp', '--exp_name', default='fast0', type=str)
+parser.add_argument('-clb', '--clobber', default=False, type=boolean_string)
+# overwrite existing output folder if clobber == True
 
 # These are False unless the flags are used with the argument True
 # so if you do NOT use these flags the run will be:
@@ -158,14 +160,21 @@ for nic in range(TR['number_of_start_days']):
     idt_list.append(dt)
     dt = dt + timedelta(TR['days_between_starts'])
 
-# make sure the output parent directory "tracks" exists
+# make sure the output parent directory "tracks2" exists
 outdir00 = Ldir['LOo']
 Lfun.make_dir(outdir00)
 outdir0 = Ldir['LOo'] + 'tracks2/'
 Lfun.make_dir(outdir0)
+
 # make the output directory (empty)
 outdir1 = out_name + '/'
 outdir = outdir0 + outdir1
+if os.path.isdir(outdir):
+    if args.clobber:
+        pass # continue and overwrite if clobber is True
+    else:
+        print('Warning: output directory exists - rename if you want to keep it!!')
+        sys.exit()
 Lfun.make_dir(outdir, clean=True)
 print(50*'*' + '\nWriting to ' + outdir)
 sys.stdout.flush()
@@ -174,9 +183,10 @@ sys.stdout.flush()
 Lfun.dict_to_csv(TR,outdir0 + 'exp_info.csv')
 # and write the same info to outdir
 Lfun.dict_to_csv(TR, outdir + 'exp_info.csv')
+
+# Load the trackfun module.
 # NOTE: we have to load this module AFTER we write [outdir0]/exp_info.csv
 # because it uses that information to decide which KDTrees to load.  Crude.
-
 if os.path.isfile(Ldir['LOu'] + 'tracker2/user_trackfun.py'):
     sys.path.append(os.path.abspath(Ldir['LOu'] + 'tracker2'))
     import user_trackfun as tfun
