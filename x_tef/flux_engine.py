@@ -91,7 +91,7 @@ outdir = outdir0 + Ldir['gtagex'] + '/'
 Lfun.make_dir(outdir)
 
 plt.close('all')
-for year in [2017, 2018, 2019]:
+for year in [2017]:#[2017, 2018, 2019]:
     
     date_range = str(year) + '.01.01_' + str(year) + '.12.31'
     extraction_name = Ldir['gtagex'] + '_' + date_range

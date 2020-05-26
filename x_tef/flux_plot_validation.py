@@ -22,6 +22,7 @@ import flux_fun
 indir0 = Ldir['LOo'] + 'tef/'
 item = Lfun.choose_item(indir0)
 indir = indir0 + item + '/flux/'
+indir2 = indir0 + 'flux_engine/'
 
 # hacky way of getting the year, assumes "item" is of the form:
 # 'cas6_v3_lo8b_2017.01.01_2017.12.31'
@@ -46,7 +47,7 @@ for season in ['full']: # this is only valid for the full year - seasons are not
     #       {'S': [], 'N': [], 'W': ['jdf1'], 'E': ['jdf2'], 'R': ['sanjuan', 'hoko']},...
 
     # load the DataFrame of results of flux_engine.py
-    cc = pd.read_pickle(indir + 'cc_ocean_salt_' + season + '.p')
+    cc = pd.read_pickle(indir2 + 'cas6_v3_lo8b/S_OceanSalt_' + str(year) +'_'+ season + '_AGE.p')
     # index is ['J1_s', 'J1_f',... = (*)
     # columns are ['c', 'v', 'netq']
 

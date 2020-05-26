@@ -386,9 +386,11 @@ for season in season_list:
             if q_sal[sss] == 's':
                 q_df.loc[seg_name+'_s',Seg_name+'_s'] += q[sss]*(1-A[sss,sss])
                 q_df.loc[seg_name+'_f',seg_name+'_s'] += q[sss] * A[sss,sss]
+                #q_df.loc[seg_name+'_f',Seg_name+'_s'] += q[sss] * A[sss,sss] # NEW
             elif q_sal[sss] == 'f':
                 q_df.loc[seg_name+'_f',Seg_name+'_f'] += q[sss]*(1-A[sss,sss])
                 q_df.loc[seg_name+'_s',seg_name+'_f'] += q[sss] * A[sss,sss]
+                #q_df.loc[seg_name+'_s',Seg_name+'_f'] += q[sss] * A[sss,sss] # NEW
             # transport out to adjoining segment
             # in this case the column (where tracer comes from) is the segment itself
             if Q_sal[sss] == 's':
@@ -444,7 +446,7 @@ for season in season_list:
             print(' - q_sal = ' + str(q_sal))
             print('')
 
-    if not testing:
+    if True:#not testing:
         # save results
         q_df.to_pickle(indir + 'flux/q_df_' + season + '.p')
         
