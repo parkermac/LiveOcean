@@ -43,7 +43,7 @@ def get_tc_rn(df):
             tc_rn = 'nanaimo'
         else:
             tc_rn = rn
-        df.ix[rn, 'tc_rn'] = tc_rn
+        df.loc[rn, 'tc_rn'] = tc_rn
     return df
     
 def get_qt(df, dt_ind, yd_ind, Ldir, dt1, days):
@@ -60,17 +60,17 @@ def get_qt(df, dt_ind, yd_ind, Ldir, dt1, days):
         qt_df = pd.DataFrame(index=dt_ind,
                              columns=['clim','his','usgs','ec','nws','final',
                                       'temperature'])
-        rs = df.ix[rn] # a Series with info for this river
+        rs = df.loc[rn] # a Series with info for this river
         riv = river_class.River(rn, rs)
         # Get climatology (using squeeze=True returns a Series)
         clim = pd.read_csv(Ldir['data'] + 'rivers/Data_clim/' + rn + '.csv',
                         header=None, index_col=0, squeeze=True)
-        qt_clim_yd = clim.ix[yd_ind] # clip just the needed values
+        qt_clim_yd = clim.loc[yd_ind] # clip just the needed values
         # Get T climatology (using squeeze=True returns a Series)
         tc_rn = df.loc[rn, 'tc_rn']
         T_clim = pd.read_csv(Ldir['data'] + 'rivers/Data_T_clim/' + tc_rn + '.csv',
                         header=None, index_col=0, squeeze=True)
-        T_clim_yd = T_clim.ix[yd_ind] # clip just the needed values
+        T_clim_yd = T_clim.loc[yd_ind] # clip just the needed values
         # start to populate the qt DataFrame
         qt_df['clim'] = pd.Series(index=dt_ind, data=qt_clim_yd.values)
 
@@ -126,8 +126,8 @@ def get_qt(df, dt_ind, yd_ind, Ldir, dt1, days):
             # needed for analytical cases
             pass
         # check results and fill with extrapolation (ffill) or climatology
-        if False: # introduce errors for testing
-            qt_df.ix[-3:, 'final'] = np.nan
+        # if False: # introduce errors for testing
+        #     qt_df.loc[-3:, 'final'] = np.nan
         if ( pd.isnull(qt_df['final'].values).any() and
                 not pd.isnull(qt_df['final'].values).all() ):
             qt_df['final'] = qt_df['final'].ffill(axis=0)
@@ -199,7 +199,7 @@ def write_to_nc(out_fn, S, df, qt_df_dict, dt_ind):
     v_var = foo.createVariable('river_direction', float, ('river'))
     count = 0
     for rn in df.index:
-        v_var[count] = df.ix[rn, 'idir']
+        v_var[count] = df.loc[rn, 'idir']
         count += 1
     v_var.long_name = 'river runoff direction'
     v_var.flag_values = "0, 1"
@@ -209,10 +209,10 @@ def write_to_nc(out_fn, S, df, qt_df_dict, dt_ind):
     v_var = foo.createVariable('river_Xposition', float, ('river'))
     count = 0
     for rn in df.index:
-        if df.ix[rn, 'idir'] == 0:
-            v_var[count] = df.ix[rn, 'col_py'] + 1
-        elif df.ix[rn, 'idir'] == 1:
-            v_var[count] = df.ix[rn, 'col_py']
+        if df.loc[rn, 'idir'] == 0:
+            v_var[count] = df.loc[rn, 'col_py'] + 1
+        elif df.loc[rn, 'idir'] == 1:
+            v_var[count] = df.loc[rn, 'col_py']
         count += 1
     v_var.long_name = 'river XI-position'
     v_var.LuvSrc_True_meaning = "i point index of U or V face source/sink"
@@ -221,10 +221,10 @@ def write_to_nc(out_fn, S, df, qt_df_dict, dt_ind):
     v_var = foo.createVariable('river_Eposition', float, ('river'))
     count = 0
     for rn in df.index:
-        if df.ix[rn, 'idir'] == 0:
-            v_var[count] = df.ix[rn, 'row_py']
-        if df.ix[rn, 'idir'] == 1:
-            v_var[count] = df.ix[rn, 'row_py'] + 1
+        if df.loc[rn, 'idir'] == 0:
+            v_var[count] = df.loc[rn, 'row_py']
+        if df.loc[rn, 'idir'] == 1:
+            v_var[count] = df.loc[rn, 'row_py'] + 1
         count += 1
     v_var.long_name = 'river ETA-position'
     v_var.LuvSrc_True_meaning = "j point index of U or V face source/sink"
@@ -235,7 +235,7 @@ def write_to_nc(out_fn, S, df, qt_df_dict, dt_ind):
     for rn in df.index:
         qt_df = qt_df_dict[rn]
         flow = qt_df['final'].values
-        v_var[:, count] = flow * df.ix[rn, 'isign']
+        v_var[:, count] = flow * df.loc[rn, 'isign']
         count += 1
     v_var.long_name = 'river runoff vertically integrated mass transport'
     v_var.positive = "LuvSrc=T flow in positive u,v direction, LwSrc=T flow into RHO-cell"
