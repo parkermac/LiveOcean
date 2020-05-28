@@ -80,7 +80,7 @@ def get_qt(df, dt_ind, yd_ind, Ldir, dt1, days):
                         + rn + '.p')
             if dt1 <= his.index[-1]:
                 # fill with historical data if the timing is right
-                qt_df['his'] = his.loc[dt_ind]
+                qt_df['his'] = his.reindex(dt_ind)
                 qt_df['final'] = qt_df['his']
                 print(' filled from historical')
             else:
@@ -92,7 +92,7 @@ def get_qt(df, dt_ind, yd_ind, Ldir, dt1, days):
                         # debugging
                         #print(riv.qt)
                         riv.qt = riv.qt.tz_localize(tz=None)
-                        qt_df['nws'] = riv.qt.loc[dt_ind]
+                        qt_df['nws'] = riv.qt.reindex(dt_ind)
                         qt_df['final'] = qt_df['nws']
                         print(' filled from nws forecast')
                 elif pd.notnull(rs.usgs):
@@ -101,7 +101,7 @@ def get_qt(df, dt_ind, yd_ind, Ldir, dt1, days):
                         # debugging
                         #print(riv.qt)
                         riv.qt = riv.qt.tz_localize(tz=None)
-                        qt_df['usgs'] = riv.qt.loc[dt_ind]
+                        qt_df['usgs'] = riv.qt.reindex(dt_ind)
                         qt_df['final'] = qt_df['usgs']
                         print(' filled from usgs')
                         
@@ -117,9 +117,10 @@ def get_qt(df, dt_ind, yd_ind, Ldir, dt1, days):
                             print(' request was out of range for ec')
                         else:
                             # debugging
-                            #print(riv.qt)
+                            # print(riv.qt)
+                            # print(dt_ind)
                             riv.qt = riv.qt.tz_localize(tz=None)
-                            qt_df['ec'] = riv.qt.loc[dt_ind]
+                            qt_df['ec'] = riv.qt.reindex(dt_ind)
                             qt_df['final'] = qt_df['ec']
                             print(' filled from ec')
         except FileNotFoundError:
