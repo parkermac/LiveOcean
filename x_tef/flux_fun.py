@@ -229,6 +229,7 @@ short_seg_dict = {'Juan de Fuca to Strait of Georgia': ssJ + ssG,
             
 # colors to associate with each channel (the keys in channel_ and seg_dict)
 clist = ['blue', 'red', 'olive', 'orange']
+c_dict = dict(zip(channel_list, clist))
 
 def make_dist(x,y):
     NS = len(x)
