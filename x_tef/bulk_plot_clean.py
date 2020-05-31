@@ -193,4 +193,4 @@ for sect_name in sect_list:
     else:
         plt.close()
 
-plt.show()
+plt.rcdefaults()
