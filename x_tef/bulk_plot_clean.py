@@ -42,7 +42,7 @@ else:
     sect_list = list(sect_df.index)
 
 # PLOTTING
-lw=3
+lw=2
 fs=16
 ms = 20
 alpha = .5
@@ -124,15 +124,10 @@ for sect_name in sect_list:
 
     # Salinity vs. Time (color by Transport)
     ax = fig.add_subplot(211)
-    if False:
-        ax.plot(Time[QQ>0], SS[QQ>0], 'or', alpha=alpha)
-        ax.plot(Time[QQ<0], SS[QQ<0], 'ob', alpha=alpha)
-    else:
-        ax.scatter(Time, SS, s=np.abs(qscl*QQp/(1000*qlim)), c='r', alpha=alpha)
-        ax.scatter(Time, SS, s=np.abs(qscl*QQm/(1000*qlim)), c='b', alpha=alpha)
-    # add two-layer versions
     tef_mean_df.plot(x='yd', y = 'Sin', style='-*r', ax=ax, legend=False, mfc='w', ms=ms, lw=lw)
     tef_mean_df.plot(x='yd', y = 'Sout', style='-*b', ax=ax, legend=False, mfc='w', ms=ms, lw=lw)
+    ax.scatter(Time, SS, s=np.abs(qscl*QQp/(1000*qlim)), c='r', alpha=alpha)
+    ax.scatter(Time, SS, s=np.abs(qscl*QQm/(1000*qlim)), c='b', alpha=alpha)
 
     ax.set_title('Section = ' + sect_name + ': Positive is ' + dir_str)
     ax.set_xlim(0,366)
@@ -146,18 +141,13 @@ for sect_name in sect_list:
 
     # Tranport vs. Time
     ax = fig.add_subplot(212)
-    if False:
-        ax.plot(Time, QQp/1e3, 'or', alpha=alpha)
-        ax.plot(Time, QQm/1e3, 'ob', alpha=alpha)
-    else:
-        ax.scatter(Time, QQp/1e3, s=np.abs(qscl*QQp/(1000*qlim)), c='r', alpha=alpha)
-        ax.scatter(Time, QQm/1e3, s=np.abs(qscl*QQm/(1000*qlim)), c='b', alpha=alpha)
-    # add two-layer versions
     this_yd = tef_mean_df.loc[:,'yd'].to_numpy()
     this_qin = tef_mean_df.loc[:,'Qin'].to_numpy()/1e3
     this_qout = tef_mean_df.loc[:,'Qout'].to_numpy()/1e3
     ax.plot(this_yd, this_qin, '-*r', mfc='w', ms=ms, lw=lw)
     ax.plot(this_yd, this_qout, '-*b', mfc='w', ms=ms, lw=lw)
+    ax.scatter(Time, QQp/1e3, s=np.abs(qscl*QQp/(1000*qlim)), c='r', alpha=alpha)
+    ax.scatter(Time, QQm/1e3, s=np.abs(qscl*QQm/(1000*qlim)), c='b', alpha=alpha)
 
     ax.plot([0, 366], [0,0], '-k', )
 

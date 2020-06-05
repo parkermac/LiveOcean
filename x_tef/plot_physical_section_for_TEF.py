@@ -27,7 +27,7 @@ sect_df = tef_fun.get_sect_df()
 
 indir0 = Ldir['LOo'] + 'tef/'
 indir = indir0 + 'cas6_v3_lo8b_2017.01.01_2017.12.31/extractions/'
-sect_name = 'jdf3'
+sect_name = 'ai3' # ai1, ai4, jdf3
 fn = indir + sect_name + '.nc'
 
 save_fig = True
@@ -93,7 +93,14 @@ h_offset = 3
 
 fig = plt.figure(figsize=(18,6))
 
+U1= 35; U2 = 100
+
 for ii in [1,2,3]:
+    
+    if sect_name in ['jdf3', 'ai4']:
+        pass
+    elif sect_name in ['ai1']:
+        U1 = 35; U2 = 150
 
     if ii == 1:
         mm = 7
@@ -103,18 +110,18 @@ for ii in [1,2,3]:
         # form time means
         qq = q[it0:it1,:,:].mean(axis=0)
         ss = salt[it0:it1,:,:].mean(axis=0)
-        U = 35
+        U = U1
     elif ii == 2:
         iit = it0+h_offset
         qq = q[iit,:,:]
         ss = salt[iit,:,:]
-        U = 100
+        U = U2
         this_dt = dt[iit]
     elif ii == 3:
         iit = it0+h_offset+6
         qq = q[iit,:,:]
         ss = salt[iit,:,:]
-        U = 100
+        U = U2
         this_dt = dt[iit]
 
     ax = fig.add_subplot(1,3,ii)
@@ -128,7 +135,7 @@ for ii in [1,2,3]:
     if ii == 1:
         ax.text(0.5, 0.03, 'Positive is ' + dir_str, transform=ax.transAxes,
         ha='center', va='center', style='italic')
-        ax.text(0.5, 0.08, 'Section = ' + sect_name, transform=ax.transAxes,
+        ax.text(0.5, 0.09, 'Section = ' + sect_name, transform=ax.transAxes,
         ha='center', va='center', style='italic')
         ax.set_title('(a) Monthly Mean Velocity $[cm\ s^{-1}]$')
         ax.set_ylabel('Z [m]')
@@ -143,6 +150,15 @@ for ii in [1,2,3]:
     if sect_name == 'jdf3':
         ax.set_xticks([48.2, 48.3])
         ax.set_ylim(-200,0)
+    elif sect_name == 'ai1':
+        ax.set_xticks([48.16, 48.2])
+        ax.set_ylim(-80,0)
+    elif sect_name == 'ai3':
+        ax.set_xticks([-122.7, -122.6])
+        ax.set_ylim(-150,0)
+    elif sect_name == 'ai4':
+        ax.set_xticks([47.92, 47.94, 47.96])
+        ax.set_ylim(-150,0)
     ax.set_xlabel(xlab)
     
     

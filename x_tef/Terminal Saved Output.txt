@@ -1,0 +1,120 @@
+Last login: Fri Jun  5 08:25:53 on ttys000
+
+The default interactive shell is now zsh.
+To update your account to use zsh, please run `chsh -s /bin/zsh`.
+For more details, please visit https://support.apple.com/kb/HT208050.
+Parkers-MacBook-Pro:~ pm7$ cdlo
+Parkers-MacBook-Pro:LiveOcean pm7$ cd x_tef
+Parkers-MacBook-Pro:x_tef pm7$ ipy
+Python 3.7.6 (default, Jan  8 2020, 13:42:34) 
+Type 'copyright', 'credits' or 'license' for more information
+IPython 7.12.0 -- An enhanced Interactive Python. Type '?' for help.
+Using matplotlib backend: MacOSX
+
+In [1]: run flux_salt_budget                                                                                  
+---------------------------------------------------------------------------
+AttributeError                            Traceback (most recent call last)
+~/Documents/LiveOcean/x_tef/flux_salt_budget.py in <module>
+     36 #parser.add_argument('-v', '--volume', type=str, default='Puget Sound')
+     37 args = parser.parse_args()
+---> 38 which_vol = args.volume
+     39 
+     40 # Get Ldir
+
+AttributeError: 'Namespace' object has no attribute 'volume'
+
+In [2]: run flux_salt_budget                                                                                  
+
+In [3]: run flux_salt_budget                                                                                  
+
+In [4]: err_df_vol                                                                                            
+Out[4]: 
+     Salish Sea Puget Sound Hood Canal
+2017  -0.428706    0.811125  -0.939761
+2018   -0.38439    0.655994    2.44747
+2019  -0.445902     1.11165   -1.09737
+
+In [5]: err_df_salt                                                                                           
+Out[5]: 
+      Salish Sea Puget Sound Hood Canal
+2017  -0.0196722   0.0311289 -0.0570307
+2018  -0.0209132   0.0312994  0.0238152
+2019 -0.00736105   0.0380114 -0.0263995
+
+In [6]: err_df_salt.mean()                                                                                    
+Out[6]: 
+Salish Sea    -0.015982
+Puget Sound    0.033480
+Hood Canal    -0.019872
+dtype: float64
+
+In [7]: err_df_vol.mean()                                                                                     
+Out[7]: 
+Salish Sea    -0.419666
+Puget Sound    0.859590
+Hood Canal     0.136779
+dtype: float64
+
+In [8]: run plot_physical_section_for_TEF                                                                     
+Saving figure to:
+/Users/pm7/Documents/LiveOcean_output/tef/misc_figs_cas6/TEF_physical_section_ai4.png
+
+In [9]: run plot_physical_section_for_TEF                                                                     
+Saving figure to:
+/Users/pm7/Documents/LiveOcean_output/tef/misc_figs_cas6/TEF_physical_section_ai4.png
+
+In [10]: run plot_physical_section_for_TEF                                                                    
+Saving figure to:
+/Users/pm7/Documents/LiveOcean_output/tef/misc_figs_cas6/TEF_physical_section_ai1.png
+
+In [11]: run plot_physical_section_for_TEF                                                                    
+Saving figure to:
+/Users/pm7/Documents/LiveOcean_output/tef/misc_figs_cas6/TEF_physical_section_ai1.png
+
+In [12]: run plot_physical_section_for_TEF                                                                    
+Saving figure to:
+/Users/pm7/Documents/LiveOcean_output/tef/misc_figs_cas6/TEF_physical_section_ai1.png
+
+In [13]: run plot_physical_section_for_TEF                                                                    
+Saving figure to:
+/Users/pm7/Documents/LiveOcean_output/tef/misc_figs_cas6/TEF_physical_section_ai1.png
+
+In [14]: run plot_physical_section_for_TEF                                                                    
+Saving figure to:
+/Users/pm7/Documents/LiveOcean_output/tef/misc_figs_cas6/TEF_physical_section_ai1.png
+
+In [15]: run plot_physical_section_for_TEF                                                                    
+Saving figure to:
+/Users/pm7/Documents/LiveOcean_output/tef/misc_figs_cas6/TEF_physical_section_ai4.png
+
+In [16]: run plot_physical_section_for_TEF                                                                    
+Saving figure to:
+/Users/pm7/Documents/LiveOcean_output/tef/misc_figs_cas6/TEF_physical_section_ai2.png
+---------------------------------------------------------------------------
+NameError                                 Traceback (most recent call last)
+~/Documents/LiveOcean/x_tef/plot_physical_section_for_TEF.py in <module>
+    109         qq = q[it0:it1,:,:].mean(axis=0)
+    110         ss = salt[it0:it1,:,:].mean(axis=0)
+--> 111         U = U1
+    112     elif ii == 2:
+    113         iit = it0+h_offset
+
+NameError: name 'U1' is not defined
+
+In [17]: run plot_physical_section_for_TEF                                                                    
+Saving figure to:
+/Users/pm7/Documents/LiveOcean_output/tef/misc_figs_cas6/TEF_physical_section_ai2.png
+
+In [18]: run plot_physical_section_for_TEF                                                                    
+Saving figure to:
+/Users/pm7/Documents/LiveOcean_output/tef/misc_figs_cas6/TEF_physical_section_ai3.png
+
+In [19]: run plot_physical_section_for_TEF                                                                    
+Saving figure to:
+/Users/pm7/Documents/LiveOcean_output/tef/misc_figs_cas6/TEF_physical_section_ai3.png
+
+In [20]: run plot_physical_section_for_TEF                                                                    
+Saving figure to:
+/Users/pm7/Documents/LiveOcean_output/tef/misc_figs_cas6/TEF_physical_section_ai3.png
+
+In [21]:                                                                                                      

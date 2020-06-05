@@ -1,5 +1,5 @@
 """
-Code to make a nice plot for Figure 1 of the first LiveOcean paper.
+Code to make a nice plot for intro figures of the first LiveOcean paper.
 
 """
 
@@ -25,6 +25,9 @@ import netCDF4 as nc
 import pickle
 import pandas as pd
 import matplotlib.pyplot as plt
+
+# output location (assume it exists)
+out_dir = Ldir['parent'] + 'LiveOcean_NOTES/Figures Slides Movies/'
 
 # plotting choices
 fs = 18
@@ -139,185 +142,201 @@ def add_sta_loc(ax, moor_df, ctd_df, tide_df, mm=6, do_leg=False):
 # PLOTTING
 plt.rc('font', size=fs)
 plt.close('all')
-fig = plt.figure(figsize=(16,11))
 
-# -------------- FULL MAP -----------------------------------------------
+for add_stations in [True, False]:
+    
+    fig = plt.figure(figsize=(16,11))
 
-ax = fig.add_subplot(121)
-cs = ax.pcolormesh(lon[6:-6,6:],lat[6:-6,6:],v[6:-6,6:], cmap=cmap, vmin=vmin, vmax=vmax)
-nudge_alpha = .1
-ax.pcolormesh(lon[:,:6],lat[:,:6],v[:,:6], cmap=cmap, vmin=vmin, vmax=vmax, alpha=nudge_alpha)
-ax.pcolormesh(lon[:6,:],lat[:6,:],v[:6,:], cmap=cmap, vmin=vmin, vmax=vmax, alpha=nudge_alpha)
-ax.pcolormesh(lon[-6:,:],lat[-6:,:],v[-6:,:], cmap=cmap, vmin=vmin, vmax=vmax, alpha=nudge_alpha)
-pfun.add_bathy_contours(ax, ds, txt=False)
-pfun.add_coast(ax)
-ax.axis(pfun.get_aa(ds))
-pfun.dar(ax)
+    # -------------- FULL MAP -----------------------------------------------
+
+    ax = fig.add_subplot(121)
+    cs = ax.pcolormesh(lon[6:-6,6:],lat[6:-6,6:],v[6:-6,6:], cmap=cmap, vmin=vmin, vmax=vmax)
+    nudge_alpha = .1
+    ax.pcolormesh(lon[:,:6],lat[:,:6],v[:,:6], cmap=cmap, vmin=vmin, vmax=vmax, alpha=nudge_alpha)
+    ax.pcolormesh(lon[:6,:],lat[:6,:],v[:6,:], cmap=cmap, vmin=vmin, vmax=vmax, alpha=nudge_alpha)
+    ax.pcolormesh(lon[-6:,:],lat[-6:,:],v[-6:,:], cmap=cmap, vmin=vmin, vmax=vmax, alpha=nudge_alpha)
+    pfun.add_bathy_contours(ax, ds, txt=False)
+    pfun.add_coast(ax)
+    ax.axis(pfun.get_aa(ds))
+    pfun.dar(ax)
+
+    if add_stations:
+        add_sta_loc(ax, moor_df, ctd_df, tide_df, do_leg=True)
+
+    # Inset colorbar
+    from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+    cbaxes = inset_axes(ax, width="4%", height="40%", loc='lower left', borderpad=3) 
+    cb = fig.colorbar(cs, cax=cbaxes, orientation='vertical')
+
+    ax.text(.08, .53, r'SST $[^\circ C]$', transform=ax.transAxes)
+    ax.text(.08, .03, dstr, size=fs2, transform=ax.transAxes, style='italic')
+
+    ax.set_xticks([-130, -126, -122])
+    ax.set_yticks([42, 44, 46, 48, 50, 52])
+
+    # add ticks for grid spacing
+    x = lon[0,::10]
+    y = lat[::10,0]
+    for xx in x:
+        ax.plot([xx,xx],[42,42.12],'-k',alpha=.5)
+    for yy in y:
+        ax.plot([-122.18, -122],[yy,yy],'-k',alpha=.5)
+    
+    ax.set_xlabel('Longitude')
+    ax.set_ylabel('Latitude')
+
+    pfun.draw_box(ax, aaf, linestyle='-', color='k', alpha=.3, linewidth=3, inset=0)
+
+    ax.text(.93,.97,'(a) Full Model Domain', ha='right', va='top', weight='bold',
+        transform=ax.transAxes, bbox=dict(facecolor='w', edgecolor='None', alpha=.6))
+    
+    ah = ax.text(-125.456,49.4768,'Vancouver\nIsland', size=fs2,
+        style='italic',ha='center',va='center',rotation=-45)
+    ax.text(-123.072,46.7866,'Washington', size=fs2,
+        style='italic',ha='center',va='center',rotation=-45)
+    ax.text(-122.996,44.5788,'Oregon', size=fs2,
+        style='italic',ha='center',va='center',rotation=-45)
+
+    # -------------- FOCUS MAP -----------------------------------------------
+
+    ax = fig.add_subplot(122)
+    ax.pcolormesh(lon,lat,v, cmap=cmap, vmin=vmin, vmax=vmax)
+    pfun.add_coast(ax)
+    ax.axis(aaf)
+    pfun.dar(ax)
+
+    ax.set_xticks([-125, -124, -123])
+    ax.set_yticks([47, 48, 49, 50])
+
+    # add ticks for grid spacing
+    x = lon[0,::4]
+    y = lat[::4,0]
+    for xx in x:
+        ax.plot([xx,xx],[aaf[2],aaf[2]+.06],'-k',alpha=.5)
+    for yy in y:
+        hh = ax.plot([aaf[1]-.08, aaf[1]],[yy,yy],'-k',alpha=.5)
+    
+    ax.set_xlabel('Longitude')
+
+    if add_stations:
+        add_sta_loc(ax, moor_df, ctd_df, tide_df)
+
+    # larger station marks
+    if add_stations:
+        
+        nud = -.01
+        sta = 'Seattle'
+        x = tide_df.loc[sta,'Longitude']
+        y = tide_df.loc[sta,'Latitude']
+        ax.plot(x,y,'sw', mec='g', ms=14)
+        ax.text(x,y+nud,'T',size=fs3,ha='center',va='center', weight='bold')
+
+        sta = 'SAR003'
+        x = ctd_df.loc[sta,'Longitude']
+        y = ctd_df.loc[sta,'Latitude']
+        ax.plot(x,y,'*w', mec='b', ms=24)
+        ax.text(x,y+nud,'C',size=fs3,ha='center',va='center', weight='bold')
+
+        sta = 'KL027'
+        x = moor_df.loc[sta,'Longitude']
+        y = moor_df.loc[sta,'Latitude']
+        ax.plot(x,y,'ow', mec='r', ms=17)
+        ax.text(x,y+nud,'M',size=fs3,ha='center',va='center', weight='bold')
+
+        sta = 'PUG1718'
+        x = moor_df.loc[sta,'Longitude']
+        y = moor_df.loc[sta,'Latitude']
+        ax.plot(x,y,'ow', mec='r', ms=17)
+        ax.text(x,y+nud,'V',size=fs3,ha='center',va='center', weight='bold')
+
+    ax.text(.93,.97,'(b) Salish Sea', ha='right', va='top', size=fs,
+        transform=ax.transAxes, weight='bold')
+
+    # add labels
+    ax.text(-122.682,49.335,'Fraser\nRiver',size=fs2,
+        style='italic',ha='center',va='center',rotation=0)
+    ax.text(-123.785,49.2528,'Strait of Georgia',size=fs2,
+        style='italic',ha='center',va='center',rotation=-30)
+    ax.text(-123.434,48.2381,'Juan de Fuca',size=fs2,
+        style='italic',ha='center',va='center',rotation=-0)
+    ax.text(-123.3,47.6143,'Puget\nSound',size=fs2,
+        style='italic',ha='center',va='center',rotation=+55)
+    ax.text(-122.3,48.48,'Skagit\nRiver',size=fs3,
+        style='italic',ha='center',va='center',
+        bbox=dict(facecolor='w', edgecolor='None',alpha=.5))
+    ax.text(-123.173,48.4457,'Haro\nStrait',size=fs3,
+        style='italic',ha='center',va='center',
+        bbox=dict(facecolor='w', edgecolor='None',alpha=.3))
+        
+    fig.tight_layout()
+    if add_stations:
+        fig.savefig(out_dir + 'Fig_1_stations.png')
+    else:
+        fig.savefig(out_dir + 'Fig_1_no_stations.png')
+        
 ds.close()
 
-add_sta_loc(ax, moor_df, ctd_df, tide_df, do_leg=True)
-
-# Inset colorbar
-from mpl_toolkits.axes_grid1.inset_locator import inset_axes
-cbaxes = inset_axes(ax, width="4%", height="40%", loc='lower left', borderpad=3) 
-cb = fig.colorbar(cs, cax=cbaxes, orientation='vertical')
-
-ax.text(.08, .53, r'SST $[^\circ C]$', transform=ax.transAxes)
-ax.text(.08, .03, dstr, size=fs2, transform=ax.transAxes, style='italic')
-
-ax.set_xticks([-130, -126, -122])
-ax.set_yticks([42, 44, 46, 48, 50, 52])
-
-# add ticks for grid spacing
-x = lon[0,::10]
-y = lat[::10,0]
-for xx in x:
-    ax.plot([xx,xx],[42,42.12],'-k',alpha=.5)
-for yy in y:
-    ax.plot([-122.18, -122],[yy,yy],'-k',alpha=.5)
-    
-ax.set_xlabel('Longitude')
-ax.set_ylabel('Latitude')
-
-pfun.draw_box(ax, aaf, linestyle='-', color='k', alpha=.3, linewidth=3, inset=0)
-
-ax.text(.93,.97,'(a) Full Model Domain', ha='right', va='top', weight='bold',
-    transform=ax.transAxes, bbox=dict(facecolor='w', edgecolor='None', alpha=.6))
-    
-ah = ax.text(-125.456,49.4768,'Vancouver\nIsland', size=fs2,
-    style='italic',ha='center',va='center',rotation=-45)
-ax.text(-123.072,46.7866,'Washington', size=fs2,
-    style='italic',ha='center',va='center',rotation=-45)
-ax.text(-122.996,44.5788,'Oregon', size=fs2,
-    style='italic',ha='center',va='center',rotation=-45)
-
-# -------------- FOCUS MAP -----------------------------------------------
-
-ax = fig.add_subplot(122)
-ax.pcolormesh(lon,lat,v, cmap=cmap, vmin=vmin, vmax=vmax)
-pfun.add_coast(ax)
-ax.axis(aaf)
-pfun.dar(ax)
-
-ax.set_xticks([-125, -124, -123])
-ax.set_yticks([47, 48, 49, 50])
-
-# add ticks for grid spacing
-x = lon[0,::4]
-y = lat[::4,0]
-for xx in x:
-    ax.plot([xx,xx],[aaf[2],aaf[2]+.06],'-k',alpha=.5)
-for yy in y:
-    hh = ax.plot([aaf[1]-.08, aaf[1]],[yy,yy],'-k',alpha=.5)
-    
-ax.set_xlabel('Longitude')
-
-add_sta_loc(ax, moor_df, ctd_df, tide_df)
-
-# larger station marks
-nud = -.01
-sta = 'Seattle'
-x = tide_df.loc[sta,'Longitude']
-y = tide_df.loc[sta,'Latitude']
-ax.plot(x,y,'sw', mec='g', ms=12)
-ax.text(x,y+nud,'1',size=fs3,ha='center',va='center')
-
-sta = 'SAR003'
-x = ctd_df.loc[sta,'Longitude']
-y = ctd_df.loc[sta,'Latitude']
-ax.plot(x,y,'*w', mec='b', ms=22)
-ax.text(x,y+nud,'2',size=fs3,ha='center',va='center')
-
-sta = 'KL027'
-x = moor_df.loc[sta,'Longitude']
-y = moor_df.loc[sta,'Latitude']
-ax.plot(x,y,'ow', mec='r', ms=15)
-ax.text(x,y+nud,'3',size=fs3,ha='center',va='center')
-
-sta = 'PUG1718'
-x = moor_df.loc[sta,'Longitude']
-y = moor_df.loc[sta,'Latitude']
-ax.plot(x,y,'ow', mec='r', ms=15)
-ax.text(x,y+nud,'4',size=fs3,ha='center',va='center')
-
-ax.text(.93,.97,'(b) Salish Sea', ha='right', va='top', size=fs,
-    transform=ax.transAxes, weight='bold')
-
-# add labels
-ax.text(-122.682,49.335,'Fraser\nRiver',size=fs2,
-    style='italic',ha='center',va='center',rotation=0)
-ax.text(-123.785,49.2528,'Strait of Georgia',size=fs2,
-    style='italic',ha='center',va='center',rotation=-30)
-ax.text(-123.434,48.2381,'Juan de Fuca',size=fs2,
-    style='italic',ha='center',va='center',rotation=-0)
-ax.text(-123.3,47.6143,'Puget\nSound',size=fs2,
-    style='italic',ha='center',va='center',rotation=+55)
-ax.text(-122.3,48.48,'Skagit\nRiver',size=fs3,
-    style='italic',ha='center',va='center',
-    bbox=dict(facecolor='w', edgecolor='None',alpha=.5))
-ax.text(-123.173,48.4457,'Haro\nStrait',size=fs3,
-    style='italic',ha='center',va='center',
-    bbox=dict(facecolor='w', edgecolor='None',alpha=.3))
-
 # ============== SECOND FIGURE ==========================================
-if False:
 
-    fig2 = plt.figure(figsize=(12,12))
+fig2 = plt.figure(figsize=(12,12))
 
-    dt0 = datetime(2017,1,1,0)
-    dt1 = datetime(2020,1,1,0)
+dt0 = datetime(2017,1,1,0)
+dt1 = datetime(2020,1,1,0)
 
-    # -------------- RIVER TIME SERIES --------------------------------------
+# -------------- RIVER TIME SERIES --------------------------------------
 
-    ax = fig2.add_subplot(311)
-    r_df.plot(y='fraser', ax=ax, legend=False,
-        xlim=(dt0,dt1), ylim=(0,12), grid=False, style='-k')
-    ax.set_xticks([])
-    ax.set_xticks([], minor=True)
-    # ax.set_xticklabels([])
-    # ax.set_xticklabels([], minor=True)
-    ax.vlines([datetime(2018,1,1),datetime(2019,1,1)],0,15, alpha=.5)
+ax = fig2.add_subplot(311)
+r_df.plot(y='fraser', ax=ax, legend=False,
+    xlim=(dt0,dt1), ylim=(0,12), grid=False, style='-k')
+ax.set_xticks([])
+ax.set_xticks([], minor=True)
+# ax.set_xticklabels([])
+# ax.set_xticklabels([], minor=True)
+ax.vlines([datetime(2018,1,1),datetime(2019,1,1)],0,15, alpha=.5)
 
-    ax.text(.95, .8, '(a) Fraser River [$1000\ m^{3}s^{-1}$]',
-        transform=ax.transAxes, weight='bold', ha='right',
-        bbox=dict(facecolor='w', edgecolor='None'))
+ax.text(.95, .8, '(a) Fraser River [$1000\ m^{3}s^{-1}$]',
+    transform=ax.transAxes, weight='bold', ha='right',
+    bbox=dict(facecolor='w', edgecolor='None'))
 
-    # -------------- RIVER 2 TIME SERIES ------------------------------------
+# -------------- RIVER 2 TIME SERIES ------------------------------------
 
-    ax = fig2.add_subplot(312)
-    r_df.plot(y='skagit', ax=ax, legend=False,
-        xlim=(dt0,dt1), ylim=(0,2.5), grid=False, style='-k')
-    ax.set_xticks([])
-    ax.set_xticks([], minor=True)
-    # ax.set_xticklabels([])
-    # ax.set_xticklabels([], minor=True)
-    ax.vlines([datetime(2018,1,1),datetime(2019,1,1)],0,15, alpha=.5)
+ax = fig2.add_subplot(312)
+r_df.plot(y='skagit', ax=ax, legend=False,
+    xlim=(dt0,dt1), ylim=(0,2.5), grid=False, style='-k')
+ax.set_xticks([])
+ax.set_xticks([], minor=True)
+# ax.set_xticklabels([])
+# ax.set_xticklabels([], minor=True)
+ax.vlines([datetime(2018,1,1),datetime(2019,1,1)],0,15, alpha=.5)
 
-    ax.text(.95, .8, '(b) Skagit River [$1000\ m^{3}s^{-1}$]',
-        transform=ax.transAxes, weight='bold', ha='right',
-        bbox=dict(facecolor='w', edgecolor='None'))
+ax.text(.95, .8, '(b) Skagit River [$1000\ m^{3}s^{-1}$]',
+    transform=ax.transAxes, weight='bold', ha='right',
+    bbox=dict(facecolor='w', edgecolor='None'))
 
-    # -------------- SALINITY TIME SERIES --------------------------------------
-    ax = fig2.add_subplot(313)
-    m_df.plot(y=['salt_bot', 'salt_top'], label=['Bottom Salinity', 'Surface Salinity'],
-        ax=ax, legend=False, xlim=(dt0,dt1), grid=False, color=['r', 'b'], alpha=.5)
-    ax.text(.95, .1, '(c) Whidbey Basin Surface and Bottom Salinity',
-        weight='bold', transform=ax.transAxes, ha='right',
-        bbox=dict(facecolor='w', edgecolor='None',alpha=.5))
+# -------------- SALINITY TIME SERIES --------------------------------------
+ax = fig2.add_subplot(313)
+m_df.plot(y=['salt_bot', 'salt_top'], label=['Bottom Salinity', 'Surface Salinity'],
+    ax=ax, legend=False, xlim=(dt0,dt1), grid=False, color=['r', 'b'], alpha=.5)
+ax.text(.95, .1, '(c) Whidbey Basin Surface and Bottom Salinity',
+    weight='bold', transform=ax.transAxes, ha='right',
+    bbox=dict(facecolor='w', edgecolor='None',alpha=.5))
 
-    # add observations
-    o_df.plot(ax=ax, style='*', legend=False, grid=False, color=['r', 'b'], ylim=(10,35))
+# add observations
+o_df.plot(ax=ax, style='*', legend=False, grid=False, color=['r', 'b'], ylim=(10,35))
 
-    ax.set_xticks([datetime(2017,1,1),datetime(2017,7,1),datetime(2018,1,1),
-        datetime(2018,7,1),datetime(2019,1,1),datetime(2019,7,1),datetime(2019,12,31)])
-    ax.set_xticklabels(['','2017','','2018','','2019',''], rotation=0,
-        fontdict={'horizontalalignment':'center'})
+ax.set_xticks([datetime(2017,1,1),datetime(2017,7,1),datetime(2018,1,1),
+    datetime(2018,7,1),datetime(2019,1,1),datetime(2019,7,1),datetime(2019,12,31)])
+ax.set_xticklabels(['','2017','','2018','','2019',''], rotation=0,
+    fontdict={'horizontalalignment':'center'})
 
-    ax.vlines([datetime(2018,1,1),datetime(2019,1,1)],10,35, alpha=.5)
+ax.vlines([datetime(2018,1,1),datetime(2019,1,1)],10,35, alpha=.5)
 
 
-#fig.tight_layout()
+fig2.tight_layout()
+fig2.savefig(out_dir + 'Fig_2.png')
+
 plt.show()
+
 plt.rcdefaults()
 
 

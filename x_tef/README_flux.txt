@@ -37,6 +37,12 @@ Input: LiveOcean_output/tef/[*]/flux/two_layer_[season].p
 
 Output: LiveOcean_output/tef/tef_all_sections/all_sections_[year]_[season].png
 
+..................................
+
+* flux_plot_sections_clean.py is  a version of this that makes plots for the first paper.
+
+Output: LiveOcean_output/tef/tef_all_sections_clean/all_sections_[year]_[season].png
+
 ------------------------------------------------------------------
 
 * flux_get_vol.py gets the volume (with SSH = 0) of each segment.  Uses a cute "mine sweeper" like algorithm to find all the unmasked rho-grid cells on the grid between the sections that define a segment.

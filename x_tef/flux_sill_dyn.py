@@ -62,7 +62,8 @@ voldir = indir00 + 'volumes_' + Ldir['gridname'] + '/'
 v_df = pd.read_pickle(voldir + 'volumes.p')
 
 plt.close('all')
-for which_vol in ['Salish Sea', 'Puget Sound', 'Hood Canal', 'South Sound', 'Strait of Georgia']:
+#for which_vol in ['Salish Sea', 'Puget Sound', 'Hood Canal', 'South Sound', 'Strait of Georgia']:
+for which_vol in ['Puget Sound']:
 
     # load low passed segment volume and net salt DataFrames
     v_lp_df = pd.read_pickle(indir + 'daily_segment_volume.p')
@@ -78,8 +79,10 @@ for which_vol in ['Salish Sea', 'Puget Sound', 'Hood Canal', 'South Sound', 'Str
     elif which_vol == 'Puget Sound':
         seg_list = (flux_fun.ssA + flux_fun.ssM + flux_fun.ssT
             + flux_fun.ssS + flux_fun.ssW + flux_fun.ssH)
-        seg_list = seg_list[1:]
-        sect_sign_dict = {'ai2':1}
+        # seg_list = seg_list[1:]
+        # sect_sign_dict = {'ai2':1}
+        seg_list = seg_list[3:]
+        sect_sign_dict = {'ai4':1}
     elif which_vol == 'Hood Canal':
         seg_list = flux_fun.ssH
         seg_list = seg_list[1:]
@@ -120,9 +123,11 @@ for which_vol in ['Salish Sea', 'Puget Sound', 'Hood Canal', 'South Sound', 'Str
         sill_name = 'Western Strait of Juan de Fuca'
     
     elif which_vol == 'Puget Sound':
-        sea_sect = 'ai1'; land_sect = 'ai3'
-        sea_seg = 'A1'; land_seg = 'A2'
-        sill_name = 'Admiralty Inlet'
+        # sea_sect = 'ai1'; land_sect = 'ai3'
+        # sea_seg = 'A1'; land_seg = 'A2'
+        sea_sect = 'ai3'; land_sect = 'mb1'
+        sea_seg = 'A3'; land_seg = 'M1'
+        sill_name = 'Admiralty Inlet South'
     
     elif which_vol == 'South Sound':
         sea_sect = 'tn1'; land_sect = 'tn3'

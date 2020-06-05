@@ -66,6 +66,20 @@ Input: LiveOcean_output/tef/[*]/bulk/[sect name].p
 
 Output: LiveOcean_output/tef/[*]/bulk_plots/[sect name].p
 
+................................................
+
+* bulk_plot_clean.py is similar but the plots just have S and Q vs time, simpler for the first paper.  You need to edit the code to run for other years.
+
+Input: LiveOcean_output/tef/[*]/bulk/[sect name].p
+
+Output: LiveOcean_output/tef/[*]/bulk_plots_clean/[sect name].p
+
+For 2017 note this screen output:
+	Warning: sign logic breakdown! sog3
+	Warning: sign logic breakdown! sog4
+	Warning: sign logic breakdown! sog5
+	Warning: sign logic breakdown! hc7
+
 ------------------------------------------------------------------
 
 * plot_physical_section.py plots a user-selected section as time-averaged properties in x/y-z space, just like a standard Eulerian average.
@@ -73,6 +87,14 @@ Output: LiveOcean_output/tef/[*]/bulk_plots/[sect name].p
 Input: LiveOcean_output/tef/[*]/extractions/[sect name].nc
 
 Output: LiveOcean_output/tef/[*]/physical_section_plots/[sect name]/plot_00[01-12].png where each plot is averaged over a month (assumes the extraction it for a year).  These are nice to look at in combination with the TEF time series.
+
+........................................
+
+* plot_physical_section_for_TEF.py is similar but it makes plots more specific to the first paper, or for a talk where you want to motivate the use of TEF.
+
+Input: LiveOcean_output/tef/[*]/extractions/[sect name].nc
+
+Output: LiveOcean_output/tef/misc_figs_cas6/TEF_physical_section_[sect name].png the left panel is averaged over a month (assumes the extraction it for a year) and panels 2 and 3 are snapshots that try to be around max flood and max ebb.
 
 ------------------------------------------------------------------
 ------------------------------------------------------------------

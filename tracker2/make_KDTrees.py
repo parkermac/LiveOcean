@@ -1,8 +1,6 @@
 """
 Creates and saves KDTrees for a given model run.
 
-NOTE: You have to edit this code by hand.
-
 NOTE: for some reason I have to make the 2D trees individually (meaning
 not in a loop like I do for the 3D trees).  No idea why.
 
