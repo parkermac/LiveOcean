@@ -19,6 +19,7 @@ import matplotlib.pyplot as plt
 import pickle
 import pandas as pd
 from datetime import datetime, timedelta
+import netCDF4 as nc
 
 import tef_fun
 import flux_fun
@@ -28,16 +29,21 @@ sect_df = tef_fun.get_sect_df()
 
 testing = False
 
+do_Eulerian = False
+
 year = 2017
 year_str = str(year)
 indir0 = Ldir['LOo'] + 'tef/'
 indir = indir0 + 'cas6_v3_lo8b_' + year_str + '.01.01_' + year_str + '.12.31/'
 
-outdir = indir + 'bulk_plots_clean/'
+if do_Eulerian:
+    outdir = indir + 'bulk_plots_clean_E/'
+else:
+    outdir = indir + 'bulk_plots_clean/'
 Lfun.make_dir(outdir)
 
 if testing:
-    sect_list = ['jdf3']
+    sect_list = ['ai3']
 else:
     sect_list = list(sect_df.index)
 
@@ -53,6 +59,46 @@ plt.close('all')
 for sect_name in sect_list:
     
     fn = indir + 'bulk/' + sect_name + '.p'
+    
+    if do_Eulerian:
+        # also get the raw extraction to calculate the Eulerian version
+        fnr = indir + 'extractions/' + sect_name + '.nc'
+        ds = nc.Dataset(fnr)
+        z0 = ds['z0'][:]
+        da0 = ds['DA0'][:]
+        lon = ds['lon'][:]
+        lat = ds['lat'][:]
+        # get time axis for indexing
+        ot = ds['ocean_time'][:]
+        dt = []
+        for tt in ot:
+            dt.append(Lfun.modtime_to_datetime(tt))
+        tind = np.arange(len(dt))
+        dt_ser = pd.Series(index=dt, data=tind)
+        # time variable fields
+        q = ds['q'][:]
+        salt = ds['salt'][:]
+        ds.close()
+        qin_list = []
+        qout_list = []
+        sin_list = []
+        sout_list = []
+        for mm in range(12):
+            dt_mo = dt_ser[dt_ser.index.month == mm+1]
+            it0 = dt_mo[0]
+            it1 = dt_mo[-1]
+            # form time means
+            qq = q[it0:it1,:,:].mean(axis=0)
+            ss = salt[it0:it1,:,:].mean(axis=0)
+            qqss = qq*ss
+            qqin = qq[qq>=0].sum()
+            qqout = qq[qq<0].sum()
+            ssin = qqss[qq>=0].sum()/qqin
+            ssout = qqss[qq<0].sum()/qqout
+            qin_list.append(qqin)
+            qout_list.append(qqout)
+            sin_list.append(ssin)
+            sout_list.append(ssout)
 
     # some information about direction
     x0, x1, y0, y1, landward = sect_df.loc[sect_name,:]
@@ -103,7 +149,6 @@ for sect_name in sect_list:
     QQm = QQ.copy()
     QQm[QQ>=0] = np.nan
 
-
     # ---------------------------------------------------------
 
     tef_df = flux_fun.get_fluxes(indir, sect_name, in_sign=1)
@@ -113,6 +158,13 @@ for sect_name in sect_list:
     # consistent with the averaging
     tef_mean_df.index -= timedelta(days=15)
     tef_mean_df.loc[:,'yd'] = tef_mean_df.index.dayofyear
+    
+    if do_Eulerian:
+        # add Eulerian stuff
+        tef_mean_df['Qin_E'] = qin_list
+        tef_mean_df['Qout_E'] = qout_list
+        tef_mean_df['Sin_E'] = sin_list
+        tef_mean_df['Sout_E'] = sout_list
 
     # ---------------------------------------------------------
 
@@ -126,6 +178,9 @@ for sect_name in sect_list:
     ax = fig.add_subplot(211)
     tef_mean_df.plot(x='yd', y = 'Sin', style='-*r', ax=ax, legend=False, mfc='w', ms=ms, lw=lw)
     tef_mean_df.plot(x='yd', y = 'Sout', style='-*b', ax=ax, legend=False, mfc='w', ms=ms, lw=lw)
+    if do_Eulerian:
+        tef_mean_df.plot(x='yd', y = 'Sin_E', style='--r', ax=ax, legend=False, lw=lw)
+        tef_mean_df.plot(x='yd', y = 'Sout_E', style='--b', ax=ax, legend=False, lw=lw)
     ax.scatter(Time, SS, s=np.abs(qscl*QQp/(1000*qlim)), c='r', alpha=alpha)
     ax.scatter(Time, SS, s=np.abs(qscl*QQm/(1000*qlim)), c='b', alpha=alpha)
 
@@ -146,6 +201,11 @@ for sect_name in sect_list:
     this_qout = tef_mean_df.loc[:,'Qout'].to_numpy()/1e3
     ax.plot(this_yd, this_qin, '-*r', mfc='w', ms=ms, lw=lw)
     ax.plot(this_yd, this_qout, '-*b', mfc='w', ms=ms, lw=lw)
+    if do_Eulerian:
+        this_qin_E = tef_mean_df.loc[:,'Qin_E'].to_numpy()/1e3
+        this_qout_E = tef_mean_df.loc[:,'Qout_E'].to_numpy()/1e3
+        ax.plot(this_yd, this_qin_E, '--r', lw=lw)
+        ax.plot(this_yd, this_qout_E, '--b', lw=lw)
     ax.scatter(Time, QQp/1e3, s=np.abs(qscl*QQp/(1000*qlim)), c='r', alpha=alpha)
     ax.scatter(Time, QQm/1e3, s=np.abs(qscl*QQm/(1000*qlim)), c='b', alpha=alpha)
 

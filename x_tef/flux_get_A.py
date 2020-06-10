@@ -446,7 +446,7 @@ for season in season_list:
             print(' - q_sal = ' + str(q_sal))
             print('')
 
-    if True:#not testing:
+    if not testing:
         # save results
         q_df.to_pickle(indir + 'flux/q_df_' + season + '.p')
         
