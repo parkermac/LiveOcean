@@ -81,7 +81,7 @@ def get_data_oneday(this_dt, fn_out):
         time.sleep(10) # pause before each request
         tt0 = time.time()
         try:
-            r = requests.get(url, timeout=5)
+            r = requests.get(url, timeout=60)
             if r.ok:
                 with open(fn_out,'wb') as f:
                     f.write(r.content)
