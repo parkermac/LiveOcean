@@ -90,6 +90,7 @@ def get_data_oneday(this_dt, fn_out):
             print(' - error using requests')
         counter += 1
         print(' - took %0.1f seconds' % (time.time() - tt0))
+        print(datetime.now())
         sys.stdout.flush()
 
 def get_hnc_short_list(this_dt, Ldir):
