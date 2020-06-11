@@ -87,9 +87,12 @@ def get_data_oneday(this_dt, fn_out):
                     f.write(r.content)
                 got_file = True
                 r.close()
-        except:
-            print(' - error using requests')
-            print(' - status code = ' + str(r.status_code))
+            elif not r.ok:
+                print(' - Failed with status code:')
+                print(r.status_code)
+        except Exception as e:
+            print(' - Exception from requests:')
+            print('   ' + e)
         counter += 1
         print(' - took %0.1f seconds' % (time.time() - tt0))
         print(datetime.now())
