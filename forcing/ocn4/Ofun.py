@@ -92,7 +92,7 @@ def get_data_oneday(this_dt, fn_out):
                 print(r.status_code)
         except Exception as e:
             print(' - Exception from requests:')
-            print('   ' + e)
+            print(e)
         counter += 1
         print(' - took %0.1f seconds' % (time.time() - tt0))
         print(datetime.now())
