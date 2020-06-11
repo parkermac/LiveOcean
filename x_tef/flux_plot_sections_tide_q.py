@@ -29,7 +29,6 @@ reload(flux_fun)
 # User choices
 year = 2018
 year_str = str(year)
-testing = True
 
 # input
 run_name = Ldir['gtagex']+'_'+year_str+'.01.01_'+year_str+'.12.31'
@@ -43,12 +42,57 @@ out_fn = indir00 + 'misc_figs_' + Ldir['gridname'] + '/Tide_and_Qnet_' + year_st
 # colors
 clist = flux_fun.clist
 
+# angles along the thalweg that are nominally "landward"
+# meant to be consistent with landward sign in sect_df
+th_dict = {
+    'jdf1': -15,
+    'jdf2': -15,
+    'jdf3': -5,
+    'jdf4': 0,
+    'sog1': 135,
+    'sog2': 160,
+    'sog3': 150,
+    'sog4': 100,
+    'sog5': 90,
+    'sji1': 90,
+    'sji2': 100,
+    'dp': 0,
+    'ai1': -45,
+    'ai2': -60,
+    'ai3': -60,
+    'ai4': -30,
+    'wb1': 80,
+    'wb2': 135,
+    'wb3': 90,
+    'wb4': 30,
+    'hc1': -80,
+    'hc2': -120,
+    'hc3': -150,
+    'hc4': -135,
+    'hc5': -130,
+    'hc6': -90,
+    'hc7': 20,
+    'hc8': 30,
+    'mb1': -90,
+    'mb2': -100,
+    'mb3': -75,
+    'mb4': -80,
+    'mb5': -135,
+    'tn1': -80,
+    'tn2': -90,
+    'tn3': -100,
+    'ss1': -135,
+    'ss2': 135,
+    'ss3': -135,
+}
+
 # get the DataFrame of all sections
 sect_df = tef_fun.get_sect_df()
 sect_list = list(sect_df.index)
 
-# if testing:
-#     sect_list = [sect_list[0]]
+# omit some sections for clarity
+sect_list.remove('tn1')
+sect_list.remove('tn3')
     
 df = pd.DataFrame(index=sect_list)
 for sn in sect_list:
@@ -98,42 +142,49 @@ for sn in df.index:
     logQ = np.log10(np.abs(Q) + 1)
     sgnF = np.sign(landward*F)
     sgnQ = np.sign(landward*Q)
-    scl = 20 # a vector of length 1 will be 1/scl of the length of the y-axis
-    if sdir == 'EW':
-        vf0 = 0; vf1 = sgnF
-        vq0 = 0; vq1 = sgnQ
-    elif sdir == 'NS':
-        vf0 = sgnF; vf1 = 0
-        vq0 = sgnQ; vq1 = 0
-        
-    do_text = True
+    scl = 40 # a vector of length 1 will be 1/scl of the length of the y-axis
+    if False:
+        if sdir == 'EW':
+            vf0 = 0; vf1 = sgnF
+            vq0 = 0; vq1 = sgnQ
+        elif sdir == 'NS':
+            vf0 = sgnF; vf1 = 0
+            vq0 = sgnQ; vq1 = 0
+    else:
+        sth = np.sin(np.pi*th_dict[sn]/180)
+        cth = np.cos(np.pi*th_dict[sn]/180)
+        if landward == 1:
+            vf0 = cth*sgnF*logF; vf1 = sth*sgnF*logF
+            vq0 = cth*sgnQ*logQ; vq1 = sth*sgnQ*logQ
+        elif landward == -1:
+            vf0 = -cth*sgnF*logF; vf1 = -sth*sgnF*logF
+            vq0 = -cth*sgnQ*logQ; vq1 = -sth*sgnQ*logQ
+                
+    aq = .5
+    ffs = .7*fs
     ax1.quiver(sx,sy, vf0, vf1, scale=scl, scale_units='height',
-        headwidth=0, headlength=0, linewidths=1, color=cf)
-    ax1.plot(sx,sy, 'ok', markersize=10*logF, markerfacecolor='None', markeredgecolor=cf)
-    if do_text:
-        ax1.text(sx, sy+.04, str(int(np.abs(F))), ha='center', va='center', size=.5*fs,
-        weight='bold', color=cf, alpha=.8)
-        
-    ax2.quiver(sx,sy, vf0, vf1, scale=scl, scale_units='height',
-        headwidth=0, headlength=0, linewidths=1, color=cf)
-    ax2.plot(sx,sy, 'ok', markersize=10*logF, markerfacecolor='None', markeredgecolor=cf)
-    if do_text and sx > x00 and sy < y11:
-        ax2.text(sx, sy+.02, str(int(np.abs(F))), ha='center', va='center', size=.5*fs,
-        weight='bold', color=cf, alpha=.8)
+        linewidths=1, color=cf, alpha=aq)
+    if sx < x00 or sy > y11:
+        ax1.text(sx, sy+.04, str(int(np.abs(F))), ha='center', va='center', size=ffs,
+            weight='bold', color=cf, alpha=1)
+
+    if sx > x00 and sy < y11:
+        ax2.quiver(sx,sy, vf0, vf1, scale=scl, scale_units='height',
+            linewidths=1, color=cf, alpha=aq)
+        ax2.text(sx, sy+.02, str(int(np.abs(F))), ha='center', va='center', size=ffs,
+        weight='bold', color=cf, alpha=1)
 
     ax3.quiver(sx,sy, vq0, vq1, scale=scl, scale_units='height',
-        headwidth=0, headlength=0, linewidths=1, color=cq)
-    ax3.plot(sx,sy, 'ok', markersize=10*logQ, markerfacecolor='None', markeredgecolor=cq)
-    if do_text:
-        ax3.text(sx, sy+.04, str(int(np.abs(Q))), ha='center', va='center', size=.5*fs,
-        weight='bold', color=cq, alpha=.8)
+        linewidths=1, color=cq, alpha=aq)
+    if sx < x00 or sy > y11:
+        ax3.text(sx, sy+.04, str(int(np.abs(Q))), ha='center', va='center', size=ffs,
+            weight='bold', color=cq, alpha=1)
 
-    ax4.quiver(sx,sy, vq0, vq1, scale=scl, scale_units='height',
-        headwidth=0, headlength=0, linewidths=1, color=cq)
-    ax4.plot(sx,sy, 'ok', markersize=10*logQ, markerfacecolor='None', markeredgecolor=cq)
-    if do_text and sx > x00 and sy < y11:
-        ax4.text(sx, sy+.02, str(int(np.abs(Q))), ha='center', va='center', size=.5*fs,
-        weight='bold', color=cq, alpha=.8)
+    if sx > x00 and sy < y11:
+        ax4.quiver(sx,sy, vq0, vq1, scale=scl, scale_units='height',
+            linewidths=1, color=cq, alpha=aq)
+        ax4.text(sx, sy+.02, str(int(np.abs(Q))), ha='center', va='center', size=ffs,
+        weight='bold', color=cq, alpha=1)
 
 pfun.add_coast(ax1, color='gray')
 ax1.axis(aaS)
@@ -143,11 +194,8 @@ ax1.tick_params(labelsize=.8*fs)
 ax1.text(.95,.9,'(a)', size=fs, transform=ax1.transAxes, ha='right', weight='bold')
 ax1.set_ylabel('Latitude', size=.8*fs)
 ax1.set_xticks([-125, -124, -123, -122])
-for FF in [1, 100, 10000]:
-    ax1.plot(-125, 47.5, 'o', markersize=10*np.log10(np.abs(FF) + 1),
-    markerfacecolor='None', markeredgecolor=cf)
-ax1.text(-125.4, 47.15, 'Tidal Energy Flux\n(1, 100, 10000) [MW]',
-    ha='left', va='center', size=.6*fs)
+ax1.text(.05,.05,'Tidal energy Flux $[MW]$', size=.8*fs, transform=ax1.transAxes,
+    weight='bold', color=cf)
 
 pfun.add_coast(ax2, color='gray')
 ax2.axis(aaP)
@@ -165,13 +213,10 @@ ax3.tick_params(labelsize=.8*fs)
 ax3.text(.95,.9,'(c)', size=fs, transform=ax3.transAxes, ha='right', weight='bold')
 ax3.set_xlabel('Longitude', size=.8*fs)
 ax3.set_ylabel('Latitude', size=.8*fs)
-for QQ in [1, 100, 10000]:
-    ax3.plot(-125, 47.5, 'o', markersize=10*np.log10(np.abs(QQ) + 1),
-    markerfacecolor='None', markeredgecolor=cq)
-ax3.text(-125.4, 47.15, 'Volume Transport\n(1, 100, 10000) [$m^{3}s^{-1}$]',
-    ha='left', va='center', size=.6*fs)
 ax3.set_xticks([-125, -124, -123, -122])
 ax3.set_xticklabels([-125, -124, -123, -122])
+ax3.text(.05,.05,'Volume Flux $[m^{3}s^{-1}]$', size=.8*fs, transform=ax3.transAxes,
+    weight='bold', color=cq)
 
 pfun.add_coast(ax4, color='gray')
 ax4.axis(aaP)
