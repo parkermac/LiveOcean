@@ -86,11 +86,14 @@ def get_data_oneday(this_dt, fn_out):
                 with open(fn_out,'wb') as f:
                     f.write(r.content)
                 got_file = True
+                r.close()
         except:
             print(' - error using requests')
+            print(' - status code = ' + str(r.status_code))
         counter += 1
         print(' - took %0.1f seconds' % (time.time() - tt0))
         print(datetime.now())
+        print('')
         sys.stdout.flush()
 
 def get_hnc_short_list(this_dt, Ldir):
