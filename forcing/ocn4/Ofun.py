@@ -76,12 +76,12 @@ def get_data_oneday(this_dt, fn_out):
     counter = 1
     got_file = False
     import requests
-    while (counter <= 1) and (got_file == False):
+    while (counter <= 3) and (got_file == False):
         print(' - Attempting to get data, counter = ' + str(counter))
         time.sleep(10) # pause before each request
         tt0 = time.time()
         try:
-            r = requests.get(url, timeout=700)
+            r = requests.get(url, timeout=200)
             if r.ok:
                 with open(fn_out,'wb') as f:
                     f.write(r.content)
