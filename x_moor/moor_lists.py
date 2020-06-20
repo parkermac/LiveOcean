@@ -17,6 +17,13 @@ def get_sta_dict(job_name):
             'wbc': (-123.9516, 46.6290)
             }
             
+    elif job_name == 'alma':
+        sta_dict = {
+            'NANOOS_ORCA_Carr_Inlet': (-122.730000,47.2800),
+            'NANOOS_ORCA_Point_Wells': (-122.397200,47.7612),
+            'NANOOS_ORCA_Dabob_Bay': (-122.8033,47.8028)
+            }
+            
     elif job_name == 'shelf_moorings_mccabe':
         sta_dict = {
                     'CA015': (-124.756833,48.166300),

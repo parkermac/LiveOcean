@@ -21,14 +21,14 @@
 # defaults
 roms2="BLANK"
 
-if [ $HOME == "/Users/pm7" ] ; then
+if [ $HOME == "/Users/pm8" ] ; then
   lo_env='pm_mac'
   parent=$HOME"/Documents/"
   LO=$parent"LiveOcean/"
   data=$parent"LiveOcean_data/"
   LOo=$parent"LiveOcean_output/"
   roms=$parent"LiveOcean_roms/"
-  which_matlab="/Applications/MATLAB_R2017a.app/bin/matlab"
+  which_matlab="/Applications/MATLAB_R2020a.app/bin/matlab"
   
 elif [ $HOME == "/home/parker" ] && [[ $HOSTNAME == *"fjord"* ]] ; then
   lo_env='pm_fjord'
