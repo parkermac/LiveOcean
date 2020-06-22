@@ -242,5 +242,45 @@ def choose_item(indir, tag='', exclude_tag='', itext='** Choose item from list *
         my_choice = 0
     my_item = idict[int(my_choice)]
     return my_item
+    
+def copy_to_azure(input_filename, output_filename, container_name, Ldir):
+    """
+    Copy the file to azure, and return the URL to access the file.
+    Use the new azure module structure from "pip install azure-storage-blob".
+    2020_06
+    """
+    # get the blob_service
+    from azure.storage.blob import BlobServiceClient
+    from azure.storage.blob import PublicAccess
+    azu_dict = csv_to_dict(Ldir['data'] + 'accounts/azure_pm_2015.05.25.csv')
+    account = azu_dict['account']
+    key = azu_dict['key']
+    connection_string = ('DefaultEndpointsProtocol=https' +
+        ';AccountName=' + account +
+        ';AccountKey=' + key + 
+        ';EndpointSuffix=core.windows.net')
+    blob_service = BlobServiceClient.from_connection_string(conn_str=connection_string)
+    # create the container if needed
+    try:
+        blob_service.create_container(container_name, public_access=PublicAccess.Container)
+    except:
+        # assume error is because container exists
+        pass
+    # write it to Azure and return a dict of information
+    az_dict = {}
+    try:
+        from azure.storage.blob import BlobClient
+        blob = BlobClient.from_connection_string(conn_str=connection_string,
+            container_name=container_name, blob_name=output_filename)
+        with open(input_filename, 'rb') as data:
+            blob.upload_blob(data, overwrite=True)
+        az_dict['result'] = 'success'
+        az_url = ('https://pm2.blob.core.windows.net/'
+            + container_name + '/' + output_filename)
+        az_dict['az_url'] = az_url # URL to get the file
+    except Exception as e:
+        az_dict['result'] = 'fail'
+        az_dict['exception'] = str(e)
+    return az_dict
 
 

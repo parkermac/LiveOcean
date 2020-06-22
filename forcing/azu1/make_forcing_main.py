@@ -1,10 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Jul  7 14:34:50 2017
-
-@author: PM5
-
 This is the main program for pushing files to AZURE.
 
 For testing on my mac run in ipython as
@@ -27,51 +23,23 @@ start_time = datetime.now()
 
 print(' - Pushing selected files to Azure for ' + Ldir['date_string'])
 f_string = 'f' + Ldir['date_string']
-
-# Azure commands
-from azure.storage.blob import BlockBlobService
-from azure.storage.blob import PublicAccess
 ff_string = f_string.replace('.','') # azure does not like dots in container names
-# account name and key
-azu_dict = Lfun.csv_to_dict(Ldir['data'] + 'accounts/azure_pm_2015.05.25.csv')
-account = azu_dict['account']
-key = azu_dict['key']
-containername = ff_string
-# get a handle to the account
-blob_service = BlockBlobService(account_name=account, account_key=key)
-blob_service.create_container(containername)
-blob_service.set_container_acl(containername, public_access=PublicAccess.Container)
+container_name = ff_string
 
 # input directory
 in_dir = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/' + f_string + '/'
-# output files
-out_list = ['ocean_surface.nc', 'low_passed_UBC.nc']
 
-def write_to_azure(out_fn, blob_service, containername, outname):
-    # write it to Azure
-    try:
-        bname = open(out_fn, 'rb')
-        blob_service.create_blob_from_stream(containername, out_name, bname)
-        print('done putting ' + out_name)
-        bname.close()
-        result = 'success'
-    except:
-        # could be FileNotFoundError from open, or an Azure error
-        print(' - Unable to write ' + out_name + ' to Azure')
+# files to copy to azure
+file_list = ['ocean_surface.nc', 'low_passed_UBC.nc']
+
+result = 'success'
+for output_filename in file_list:
+    input_filename = in_dir + output_filename
+    az_dict = Lfun.copy_to_azure(input_filename, output_filename, container_name, Ldir)
+    if az_dict['result'] == 'fail':
         result = 'fail'
-    return result
-
-result_list = []
-for out_name in out_list:
-    out_fn = in_dir + out_name
-    result_list.append(write_to_azure(out_fn, blob_service, containername, out_name))
-    
-try:
-    ii = result_list.index('fail')
-    result = 'fail'
-    print(ii)
-except ValueError: # no fails in list
-    result = 'success'
+        print('Failed to copy to Azure:')
+        print(output_filename)
         
 #%% prepare for finale
 import collections
@@ -84,7 +52,7 @@ dt_sec = (end_time - start_time).seconds
 result_dict['total_seconds'] = str(dt_sec)
 result_dict['result'] = result
 
-#%% ************** END CASE-SPECIFIC CODE *****************
+# ************** END CASE-SPECIFIC CODE *****************
 
 ffun.finale(result_dict, Ldir, Lfun)
 

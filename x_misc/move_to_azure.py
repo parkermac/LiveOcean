@@ -20,9 +20,6 @@ To test it try:
 python move_to_azure.py
 - will move the testfile to azure and return its URL to the screen
 
-2020.06.20 Recoded to use new azure module structure from
-pip install azure-storage-blob
-
 """
 
 import argparse
@@ -33,6 +30,8 @@ pth = os.path.abspath('../alpha')
 if pth not in sys.path:
     sys.path.append(pth)
 import Lfun
+from importlib import reload
+reload(Lfun)
 Ldir = Lfun.Lstart()
 
 # Command line arguments
@@ -64,43 +63,13 @@ print('\n*** Pushing selected file to Azure ***\n')
 print(' - path to input file: ' + input_filename)
 print(' - output filename: ' + output_filename)
 
-# Azure commands
+az_dict = Lfun.copy_to_azure(input_filename, output_filename, container_name, Ldir)
 
-# get the blob_service
-from azure.storage.blob import BlobServiceClient
-from azure.storage.blob import PublicAccess
-azu_dict = Lfun.csv_to_dict(Ldir['data'] + 'accounts/azure_pm_2015.05.25.csv')
-account = azu_dict['account']
-key = azu_dict['key']
-connection_string = ('DefaultEndpointsProtocol=https' +
-    ';AccountName=' + account +
-    ';AccountKey=' + key + 
-    ';EndpointSuffix=core.windows.net')
-blob_service = BlobServiceClient.from_connection_string(conn_str=connection_string)
-
-# create the container if needed
-try:
-    blob_service.create_container(container_name, public_access=PublicAccess.Container)
-except:
-    # assume error is because container exists
-    pass
-
-# write it to Azure
-try:
-    from azure.storage.blob import BlobClient
-    blob = BlobClient.from_connection_string(conn_str=connection_string,
-        container_name=container_name, blob_name=output_filename)
-    with open(input_filename, 'rb') as data:
-        blob.upload_blob(data, overwrite=True)
-    
-    print('\n*** success ***')
-    az_url = ('https://pm2.blob.core.windows.net/'
-        + container_name + '/' + output_filename)
+if az_dict['result'] =='success':
     print('\nUSE THIS URL TO ACCESS THE FILE\n')
-    print(az_url)
-except Exception as e:
-    print('Exception:')
-    print(e)
-
+    print(az_dict['az_url'])
+elif az_dict['result'] =='fail':
+    print('\nEXCEPTION\n')
+    print(az_dict['exception'])
 print('\n' + 50*'*')
 
