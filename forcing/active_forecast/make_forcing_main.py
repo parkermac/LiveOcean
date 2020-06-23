@@ -23,32 +23,7 @@ start_time = datetime.now()
 import subprocess
 from time import time
 
-# Azure commands
-from azure.storage.blob import BlockBlobService
-from azure.storage.blob import PublicAccess
-# account name and key
-azu_dict = Lfun.csv_to_dict(Ldir['data'] + 'accounts/azure_pm_2015.05.25.csv')
-account = azu_dict['account']
-key = azu_dict['key']
-containername = 'active-forecast'
-# get a handle to the account
-blob_service = BlockBlobService(account_name=account, account_key=key)
-blob_service.create_container(containername)
-blob_service.set_container_acl(containername, public_access=PublicAccess.Container)
-
-def write_to_azure(out_fn, blob_service, containername, out_name):
-    # write it to Azure
-    try:
-        bname = open(out_fn, 'rb')
-        blob_service.create_blob_from_stream(containername, out_name, bname)
-        print('done putting ' + out_name)
-        bname.close()
-        result = 'success'
-    except:
-        # could be FileNotFoundError from open, or an Azure error
-        print(' - Unable to write ' + out_name + ' to Azure')
-        result = 'fail'
-    return result
+container_name = 'active-forecast'
 
 print(' - Creating wesite images for ' + Ldir['date_string'])
 os.chdir(Ldir['LO'] + 'plotting/')
@@ -63,6 +38,7 @@ P_list = P_list_1 + P_list_2
 #P_list = P_list_2
 #P_list = ['P_basic','P_Chl_DO']
 
+result = 'success'
 for P_name in P_list:
     
     tt0 = time()
@@ -98,8 +74,17 @@ for P_name in P_list:
     else:
         fn = Ldir['LOo'] + 'plots/' + lt + '_' + P_name + '_' + Ldir['gtagex'] + '/movie.mp4'
         out_fn = P_name + '.mp4'
-        
-    result = write_to_azure(fn, blob_service, containername, out_fn)
+    
+    #result = write_to_azure(fn, blob_service, containername, out_fn)
+    
+    input_filename = fn #in_dir + output_filename
+    output_filename = out_fn
+    
+    az_dict = Lfun.copy_to_azure(input_filename, output_filename, container_name, Ldir)
+    if az_dict['result'] == 'fail':
+        result = 'fail'
+        print('Failed to copy to Azure:')
+        print(output_filename)
     
     print('  -- took %0.1f seconds' % (tt0-time()))
     
