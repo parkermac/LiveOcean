@@ -40,9 +40,18 @@ ch_list = list(flux_fun.short_seg_dict.keys())
 
 xy = {}
 
+
+print('Total Volume = %d' % (v_df.loc[:,'volume m3'].sum()/1e9))
+print('')
+
 jj = 0
 for ch in ch_list:
     seg_list = flux_fun.short_seg_dict[ch].copy()
+    
+    # print volume information to screen
+    print(ch)
+    print('Volume = %d' % (v_df.loc[seg_list,'volume m3'].sum()/1e9))
+    print('')
     
     if ch in ['Hood Canal', 'Whidbey Basin']:
         seg_list.reverse()
@@ -87,6 +96,6 @@ ax.plot([xy['W4'][0],xy['J4'][0]], [xy['W4'][1],xy['J4'][1]], '-ok', linewidth=l
 ax.set_axis_off()
 plt.show()
 
-fig.savefig(outdir + 'volume_plot.png')
+#fig.savefig(outdir + 'volume_plot.png')
 
 

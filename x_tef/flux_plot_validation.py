@@ -20,14 +20,21 @@ import flux_fun
 
 # Input directory
 indir0 = Ldir['LOo'] + 'tef/'
-item = Lfun.choose_item(indir0)
-indir = indir0 + item + '/flux/'
-indir2 = indir0 + 'flux_engine/'
 
-# hacky way of getting the year, assumes "item" is of the form:
-# 'cas6_v3_lo8b_2017.01.01_2017.12.31'
-year_str = item.split('_')[-1].split('.')[0]
-year = int(year_str)
+if False:
+    item = Lfun.choose_item(indir0)
+    indir = indir0 + item + '/flux/'
+    indir2 = indir0 + 'flux_engine/'
+    # hacky way of getting the year, assumes "item" is of the form:
+    # 'cas6_v3_lo8b_2017.01.01_2017.12.31'
+    year_str = item.split('_')[-1].split('.')[0]
+    year = int(year_str)
+else:
+    year = 2017
+    year_str = str(year)
+    item = 'cas6_v3_lo8b_'+year_str+'.01.01_'+year_str+'.12.31'
+    indir = indir0 + item + '/flux/'
+    indir2 = indir0 + 'flux_engine/'
 
 outdir = indir0 + item + '/misc_figs/'
 

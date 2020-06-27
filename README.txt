@@ -17,7 +17,7 @@ Some assumptions that are baked into the code:
 + The software architecture is designed to be as modular as possible.  For example, to do a run with a different version of ROMS, you would only need to change the ex_name.
 
 + In general, all the drivers and primary code accept fairly consistent command line arguments.  This allows the code to be run for different cases and on different machines without editing.
-An example of running the ocn4 driver shellscript on boiler:
+An example of running the ocn4 driver shell-script on boiler:
   ./driver_forcing2.sh -g cas6 -t v3 -f ocn4 -r forecast > ./dlog_638_ocn4_a &
 An example of running the plotting code in ipython:
   run pan_plot.py -g sj0 -t v0 -x lo8nest -0 2019.08.03
@@ -64,7 +64,7 @@ LiveOcean_roms
 
 The folder forcing/dot_in has sub-folders, one for each run (e.g. cas6_v3_lo8b) where the code and template for generating the ROMS .in file for a given day are kept.
 
-Most of the code in forcing shares some input ant output structure that is contained in forcing_functions.py.  For exmaple, this is the one place where we define acceptable command line inputs for each of the make_forcing_main.py. programs.
+Most of the code in forcing shares some input ant output structure that is contained in forcing_functions.py.  For example, this is the one place where we define acceptable command line inputs for each of the make_forcing_main.py. programs.
 
 =====================================================================================
 
@@ -90,7 +90,7 @@ Most of the code in forcing shares some input ant output structure that is conta
 
 * the x_[*]/ folders are all specific types of extraction code, meant to operate on existing ROMS output, or the piles of forcing files that went into making them.  They write their output to LiveOcean_output/[*].
 
-- x_cast/ can very quickly make CTD cast-like extractions at a list of times and places.  A bit cludgey because it is hard-wired to look in some of my ptools_data directories to find observational records in a specific format that it then uses for locations and dates to extract.
+- x_cast/ can very quickly make CTD cast-like extractions at a list of times and places.  A bit kludgy because it is hard-wired to look in some of my ptools_data directories to find observational records in a specific format that it then uses for locations and dates to extract.
 
 - x_layer/ is a nice generic tool for quickly extracting layers over many history files and putting them in one NetCDF file.
 
@@ -102,7 +102,7 @@ Most of the code in forcing shares some input ant output structure that is conta
 
 - x_svar/ is for salinity variance-related extractions.
 
-- x_tef/ is for TEF extractions and subsequent analysis.  Currently (2020.05.02) very well organized but has a lot of ongoing development becasue it is central to a paper I am writing.
+- x_tef/ is for TEF extractions and subsequent analysis.  Currently (2020.05.02) very well organized but has a lot of ongoing development because it is central to a paper I am writing.
 
 =====================================================================================
 =====================================================================================
