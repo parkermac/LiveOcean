@@ -26,8 +26,11 @@ where [*] = cas6_v3_lo8b_2017.01.01_2017.12.31 e.g.
 
 Output: LiveOcean_output/tef/[*]/flux/two_layer_[season].p which is a pickled DataFrame whose index is the section names, and whose columns are: ['q_s', 'q_f', 'f_s', 'f_f', 's_s', 's_f', 'lon', 'lat'].  Here _s and _f indicate that the layer is salty or fresh.  Also we have organized all the fluxes to be positive Eastward or Northward.  The averaging is over three "seasons" being:
 - full=annual
-- spring=MAM
-- fall=SON
+- winter=JFM
+- spring=AMJ
+- summer=JAS
+- fall=OND
+and these are set by flux_fun.get_dtr(year)
 
 ------------------------------------------------------------------
 
@@ -120,9 +123,9 @@ Output: indir = LiveOcean_output/tef/[*]/flux/
 
 Input: cc_ocean_salt_[season].p (from flux_engine.py) and two_layer_[season].p
 
-Output:LiveOcean_output/tef/[*]/misc_figs/validation_plot_[season].png
+Output:LiveOcean_output/tef/validation_plots/validation_plot_[year]_full.png
 
-NOTE: This is probably only meaningful for the full annual average, because it finds an equilibrated solution.  The seasonal ones are during a time where the mean is changing.
+NOTE: This is  only meaningful for the full annual average, because it finds an equilibrated solution.
 
 ------------------------------------------------------------------
 

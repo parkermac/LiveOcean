@@ -21,25 +21,23 @@ import flux_fun
 # Input directory
 indir0 = Ldir['LOo'] + 'tef/'
 
-if False:
-    item = Lfun.choose_item(indir0)
-    indir = indir0 + item + '/flux/'
-    indir2 = indir0 + 'flux_engine/'
-    # hacky way of getting the year, assumes "item" is of the form:
-    # 'cas6_v3_lo8b_2017.01.01_2017.12.31'
-    year_str = item.split('_')[-1].split('.')[0]
-    year = int(year_str)
-else:
-    year = 2017
+# Output directory
+outdir = indir0 + 'validation_plots/'
+Lfun.make_dir(outdir)
+
+plt.close('all')
+
+fs = 16
+plt.rc('font', size=fs)
+
+for year in [2017, 2018, 2019]:
     year_str = str(year)
     item = 'cas6_v3_lo8b_'+year_str+'.01.01_'+year_str+'.12.31'
     indir = indir0 + item + '/flux/'
     indir2 = indir0 + 'flux_engine/'
-
-outdir = indir0 + item + '/misc_figs/'
-
-plt.close('all')
-for season in ['full']: # this is only valid for the full year - seasons are not in equilibrium
+    
+    season = 'full'
+    # this is only valid for the full year - seasons are not in equilibrium
     
     # load the DataFrame of TEF transports and salinities, created by flux_make_two_layer.py
     df_2 = pd.read_pickle(indir + 'two_layer_' + season + '.p')
@@ -62,16 +60,23 @@ for season in ['full']: # this is only valid for the full year - seasons are not
 
     ax_counter = 1
     for ch in flux_fun.channel_dict.keys():
-    
+
         if ax_counter == 1:
-            ax = fig.add_subplot(2,1,ax_counter)
-            ax.set_title(season.title() + ' ' + year_str)
-        else:
-            ax = fig.add_subplot(2,3,ax_counter+2)
-        
+            ax = fig.add_subplot(2,1,1)
+            ax.set_xlim(-10,410)
+        elif ax_counter == 2:
+            ax = fig.add_subplot(2,2,3)
+            ax.set_xlim(-10,170)
+        elif ax_counter == 3:
+            ax = fig.add_subplot(2,4,7)
+            ax.set_xlim(-10,100)
+        elif ax_counter == 4:
+            ax = fig.add_subplot(2,4,8)
+            ax.set_xlim(-10,100)
+    
         sect_list = flux_fun.channel_dict[ch]
         seg_list = flux_fun.seg_dict[ch]
-    
+
         # get target salinities (the actual TEF values, at segment boundaries)
         Ns = len(sect_list)
         sa_s = np.zeros(Ns)
@@ -88,7 +93,7 @@ for season in ['full']: # this is only valid for the full year - seasons are not
             counter += 1
         # and associated distance vector
         sa_dist = flux_fun.make_dist(sa_x, sa_y)
-    
+
         vs = [s + '_s' for s in seg_list]
         vf = [s + '_f' for s in seg_list]
 
@@ -98,88 +103,64 @@ for season in ['full']: # this is only valid for the full year - seasons are not
             ddd = np.diff(sa_dist)/2
             dist[:-1] += ddd
             dist[-1] += ddd[-1]
-            dist = np.append(0,dist)
+            dist = np.append(-5,dist)
         elif ch == 'Whidbey Basin':
             dist = sa_dist[:-1].copy()
             ddd = np.diff(sa_dist)/2
             dist += ddd
-            dist = np.append(0,dist)
+            dist = np.append(-5,dist)
         else:
             dist = sa_dist[:-1].copy()
             ddd = np.diff(sa_dist)/2
             dist += ddd
-
-        if True:
-            # plots of layer salinities
         
-            # values from the flux_engine
-            ax.plot(dist, cc.loc[vs,'c'].values,'-*r')
-            ax.plot(dist, cc.loc[vf,'c'].values,'-*r', alpha=.5)
+        # Plots of layer salinities
+
+        # values from the flux_engine
+        ax.fill_between(dist,cc.loc[vs,'c'],cc.loc[vf,'c'],color='b',alpha=.5)
+        
+        # TEF target values
+        ax.fill_between(sa_dist,sa_s,sa_f,color='r',alpha=.5)
+
+        if False:
             for ii in range(len(dist)):
-                ax.text(dist[ii], cc.loc[vs[ii],'c'], seg_list[ii], color='r')
-            # TEF target values
-            ax.plot(sa_dist, sa_s, '-ob')
-            ax.plot(sa_dist, sa_f, '-ob', alpha=.5)
+                ax.text(dist[ii], cc.loc[vs[ii],'c'], seg_list[ii], color='b')
             for ii in range(len(sa_dist)):
-                ax.text(sa_dist[ii], sa_s[ii], sect_list[ii], color='b')
-
-            if ax_counter == 1:
-                ax.set_xlim(-10,410)
-            else:
-                ax.set_xlim(-10,180)
-
-            if ax_counter == 1:
-                ax.set_ylim(27,34)
-            elif ax_counter == 2:
-                ax.set_ylim(27,32.5)
-            elif ax_counter == 3:
-                ax.set_ylim(24,32.5)
-            elif ax_counter == 4:
-                ax.set_ylim(22,32.5)
+                ax.text(sa_dist[ii], sa_s[ii], sect_list[ii], color='r')
             
-        else:
-            # plots of sbar and sprime
-            ax2 = ax.twinx()
+        ax.set_ylim(22,34)
         
-            # values from the flux_engine
-            sbot = cc.loc[vs,'c'].values
-            stop = cc.loc[vf,'c'].values
-            sbar = (sbot+stop)/2
-            sprime = sbot - stop
-        
-            ax.plot(dist, sbar,'-*r')
-            ax2.plot(dist, sprime,'-*m')
-            for ii in range(len(dist)):
-                ax.text(dist[ii], sbar[ii], seg_list[ii], color='r')
-            # TEF target values
-            sa_sbar = (sa_s+sa_f)/2
-            sa_sprime = sa_s - sa_f
-
-            ax.plot(sa_dist, sa_sbar, '-ob')
-            ax2.plot(sa_dist, sa_sprime, '-og')
-            for ii in range(len(sa_dist)):
-                ax.text(sa_dist[ii], sa_sbar[ii], sect_list[ii], color='b')
-        
-            ax.set_xlim(-10,410)
-            ax.set_ylim(22,34)
-        
-            ax2.set_ylim(0,4)
-        
-        if ax_counter == 4:
-            ax.text(.9,.1,'Target',color='b',fontweight='bold',
+        if ax_counter in [2,3,4]:
+            ax.set_xlabel('Distance [km]')
+            
+        if ax_counter in [3,4]:
+            ax.set_yticklabels([])
+            
+        if ax_counter in [1,2]:
+            ax.set_ylabel('Salinity')
+            
+        ax.set_yticks([24,28,32])
+            
+        if ax_counter == 1:
+            ax.text(.9,.55,'TEF Sections',color='r',fontweight='bold',
+                transform=ax.transAxes, horizontalalignment='right',alpha=.5)
+            ax.text(.9,.75,'Box Model Segments',color='b',fontweight='bold',
+                transform=ax.transAxes, horizontalalignment='right',alpha=.5)
+            ax.text(.9,.1,year_str,color='k',fontweight='bold',style='italic',
                 transform=ax.transAxes, horizontalalignment='right')
-            ax.text(.9,.2,'Model',color='r',fontweight='bold',
-                transform=ax.transAxes, horizontalalignment='right')
+                
+        abc = 'abcd'
+        ax.text(.05,.05,'(%s) %s' % (abc[ax_counter-1],ch),
+            transform=ax.transAxes, color=flux_fun.c_dict[ch],weight='bold')
 
-        ax.text(.05,.05,ch,transform=ax.transAxes)
-    
-    
         ax.grid(True)
-    
-        ax_counter += 1
 
-    plt.show()
-    
-    fig.savefig(outdir + 'validation_plot_' + season + '.png')
+        ax_counter += 1
+        
+    fig.tight_layout()
+    fig.savefig(outdir + 'validation_plot_' + year_str + '_' + season + '.png')
+
+plt.show()
+plt.rcdefaults()
 
 

@@ -1,6 +1,11 @@
 """
 Calculate efflux-reflux coefficients, and then create
 the transport matrix used in flux_engine.py.
+
+Note: to see specific row values use:
+pd.set_option('display.max_rows',78)
+q_df.loc['W3_f',:] # shows columns for this row
+q_df['W3_f'] # shows columns for this column
 """
 
 # imports
@@ -19,9 +24,12 @@ Ldir = Lfun.Lstart(gridname='cas6', tag='v3')
 import tef_fun
 import flux_fun
 
-testing = True
+testing = False
 
-verbose = True
+verbose = False
+
+# this makes it easier to see things during inspection
+pd.set_option('display.max_rows',100)
 
 # Input directory
 indir0 = Ldir['LOo'] + 'tef/'
@@ -35,8 +43,8 @@ seg_name_list = list(segs.keys())
 if testing:
     year_list = [2017]
     season_list = ['full']
-    #verbose_list = ['A1', 'M2']
-    verbose_list = seg_name_list
+    verbose_list = ['G4','W4','M1']
+    #verbose_list = seg_name_list
 else:
     year_list = [2017, 2018, 2019]
     season_list = flux_fun.season_list
@@ -246,7 +254,8 @@ for year in year_list:
             def print_A(A, snl, q_sal):
                 print(' - Solution matrix A:')
                 for ii in range(N):
-                    print((' %6s (%1s): |' % (snl[ii], q_sal[ii])) + (N*'%6.2f' % (tuple(A[ii,:]))) + ' |')
+                    print((' %6s (%1s): |' % (snl[ii], q_sal[ii]))
+                        + (N*'%6.2f' % (tuple(A[ii,:]))) + ' |')
 
             def get_A(N, q, Q, f, F, y, A):
                 # fill the elements of y:
@@ -298,7 +307,10 @@ for year in year_list:
                     # value of A along the diagonal (this is all that is used by flux_engine)
                     if verbose and seg_name in verbose_list:
                         print('   <using Atyp> f_diag = %0.2f' % (f_diag))
-                    Atyp = np.ones((N,N))*(1-f_diag)/(N-1)
+                    if has_riv:
+                        Atyp = np.ones((N,N))*(1-f_diag)/(N-2)
+                    else:
+                        Atyp = np.ones((N,N))*(1-f_diag)/(N-1)
                     for ii in range(N):
                         Atyp[ii,ii] = f_diag
                     if has_riv:
@@ -307,9 +319,9 @@ for year in year_list:
 
                 if (N == 3):# and has_riv:
                     # iterative method to scan over all possible river distributions
-                    # (or section 3 distributions in the case of M4)
+                    # (or section 3 distributions in the case of M4 (do I mean M1?))
                     # and then return the average of all valid A's.
-                    NN = 21 # number of guesses
+                    NN = 41 # number of guesses
                     AA = np.nan * np.ones((NN,N,N))
                     count = 0
                     for a20 in np.linspace(0,1,NN):
@@ -341,50 +353,30 @@ for year in year_list:
                         A = get_Atyp(N, has_riv)
 
                 if (N == 2) and has_riv:
+                    # why can't I set this to be [[1,0],[1,0]]??
                     A = np.array([[0,0],[1,0]])
                                     
             if verbose and seg_name in verbose_list:
                 print_A(A, snl, q_sal)
                 
             # HAND OVERRIDES --------------------------------------------------
-            
-            if False:
-                print('   ** eye override **')
-                for ii in range(N):
-                    A[ii,ii] *= .8
-                if has_riv == True:
-                    A[N-1,N-1] = 0
-                print_A(A, snl, q_sal)
-                    
-            elif False and seg_name=='J4':
-                print('   ** J4 override **')
-                A[2,2] = .4
-                print_A(A, snl, q_sal)
-                
-            elif True and seg_name=='A1':
+                                                
+            if True and seg_name=='A1':
                 print('   ** A1 override **')
                 A[0,0] = .1; A[0,1] = 1 - A[0,0]
-                A[1,1] = .6; A[1,0] = 1 - A[1,1 s q]
-                print_A(A, snl, q_sal)
+                A[1,1] = .6; A[1,0] = 1 - A[1,1]
+                if verbose and seg_name in verbose_list:
+                    print_A(A, snl, q_sal)
                 # RESULT: this really helps! 2019.10.29
-                # A[0,0] = .1
-                # A[1,1] = .6
+                # A[0,0] = .1; A[0,1] = 1 - A[0,0]
+                # A[1,1] = .6; A[1,0] = 1 - A[1,1]
                 
-            elif False:
-                print('   ** eye Average override **')
-                if has_riv == True:
-                    Atemp = A[:-1,:-1]*np.eye(N-1)
-                    Amean = Atemp.sum()/(N-1)
-                    for ii in range(N-1):
-                        A[ii,ii] = Amean
-                    A[N-1,N-1] = 0
-                else:
-                    Atemp = A*np.eye(N)
-                    Amean = Atemp.sum()/N
-                    for ii in range(N):
-                        A[ii,ii] = Amean
-                print_A(A, snl, q_sal)
-                        
+            if False and 'W4' in seg_name:
+                print('   ** W4 override **')
+                A = get_Atyp(N, has_riv)
+                if verbose and seg_name in verbose_list:
+                    print_A(A, snl, q_sal)
+                                        
             # -----------------------------------------------------------------
 
             # *****************************************************************
@@ -428,22 +420,28 @@ for year in year_list:
                                 q_df = update_q(q_df, q_sal, seg_name, Seg_name, q, Q, sss)
                 sss += 1
 
-            # add net vertical advection in the section (required for W4)
-            qx_s = q_df.loc[seg_name+'_s'].sum() # this use of .loc returns a series
-            qx_f = q_df.loc[seg_name+'_f'].sum()
+            # add net vertical advection in the section
+            qx_s = q_df.loc[seg_name+'_s',:].sum() # sum a row
+            qx_f = q_df.loc[seg_name+'_f',:].sum()
+            qxm_s = q_df.loc[seg_name+'_s',:].abs().max()
+            qxm_f = q_df.loc[seg_name+'_f',:].abs().max()
             if np.abs(qx_s + qx_f) > 1:
                 print('   @@@@@@@@@@@@ qx warning @@@@@@@@@@@@@@@')
             if qx_s > 0:
                 # upward transport
+                if verbose and seg_name in verbose_list:
+                    print('adding upward transport %0.1f (%0.1f pct)' % (qx_s, 100*qx_s/qxm_s))
                 q_df.loc[seg_name+'_s',seg_name+'_s'] -=  qx_s
                 q_df.loc[seg_name+'_f',seg_name+'_s'] +=  qx_s
             elif qx_s <= 0:
                 # downward transport
+                if verbose and seg_name in verbose_list:
+                    print('adding downward transport %0.1f (%0.1f pct)' % (qx_s, 100*qx_s/qxm_s))
                 q_df.loc[seg_name+'_f',seg_name+'_f'] +=  qx_s
                 q_df.loc[seg_name+'_s',seg_name+'_f'] -=  qx_s
             # check again
-            qx_s = q_df.loc[seg_name+'_s'].sum() # this use of .loc returns a series
-            qx_f = q_df.loc[seg_name+'_f'].sum()
+            qx_s = q_df.loc[seg_name+'_s',:].sum() # this use of .loc returns a series
+            qx_f = q_df.loc[seg_name+'_f',:].sum()
             if np.abs(qx_s + qx_f) > 1:
                 print('   @@@@@@@@@@@@ qx warning @@@@@@@@@@@@@@@')
 

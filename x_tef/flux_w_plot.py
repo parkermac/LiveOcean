@@ -21,29 +21,32 @@ import flux_fun
 
 # Input directory
 indir0 = Ldir['LOo'] + 'tef/'
-item = Lfun.choose_item(indir0)
-indir = indir0 + item + '/flux/'
+
+# Output directory
+outdir = indir0 + 'validation_plots/'
+Lfun.make_dir(outdir)
+
 voldir = indir0 + 'volumes_' + Ldir['gridname'] + '/'
-
-# hacky way of getting the year, assumes "item" is of the form:
-# 'cas6_v3_lo8b_2017.01.01_2017.12.31'
-year_str = item.split('_')[-1].split('.')[0]
-year = int(year_str)
-
-outdir = indir0 + item + '/misc_figs/'
-
 # load a Series of the volumes of each segment, created by flux_get_vol.py
 v_df = pd.read_pickle(voldir + 'volumes.p')
 # index is ['J1', 'J2', 'J3',...
 # columns are ['volume m3', 'area m2', 'lon', 'lat']
 
 plt.close('all')
+
+fs = 14
 lw = 3
-fs = 16
-abc = 'abcd'
+plt.rc('font', size=fs)
 
-for season in flux_fun.season_list:
-
+for year in [2017, 2018, 2019]:
+    year_str = str(year)
+    item = 'cas6_v3_lo8b_'+year_str+'.01.01_'+year_str+'.12.31'
+    indir = indir0 + item + '/flux/'
+    indir2 = indir0 + 'flux_engine/'
+    
+    season = 'full'
+    # this is only valid for the full year - seasons are not in equilibrium
+    
     # this is the big DataFrame created by flux_get_A.py
     q_df = pd.read_pickle(indir + 'q_df_' + season + '.p')
     # index is ['J1_s', 'J1_f', 'J2_s',... = (*)
@@ -55,66 +58,74 @@ for season in flux_fun.season_list:
     for ch in flux_fun.seg_dict.keys():
     
         if ax_counter == 1:
-            ax = fig.add_subplot(2,1,ax_counter)
-        else:
-            ax = fig.add_subplot(2,3,ax_counter+2)
-    
-        ax.tick_params(labelsize=fs-2) # tick labels
+            ax = fig.add_subplot(2,1,1)
+            ax.set_xlim(-5,410)
+        elif ax_counter == 2:
+            ax = fig.add_subplot(2,2,3)
+            ax.set_xlim(-5,200)
+        elif ax_counter == 3:
+            ax = fig.add_subplot(2,4,7)
+            ax.set_xlim(-5,105)
+        elif ax_counter == 4:
+            ax = fig.add_subplot(2,4,8)
+            ax.set_xlim(-5,80)
 
+        sect_list = flux_fun.channel_dict[ch]
         seg_list = flux_fun.seg_dict[ch]
+                
         dist = flux_fun.make_dist(v_df.loc[seg_list,'lon'],v_df.loc[seg_list,'lat'])
         
-        # make vectors of vertical velocity on the segments of this channel
-        w_up = np.nan * np.ones(len(seg_list))
-        w_down = np.nan * np.ones(len(seg_list))
+        # make vectors of vertical transport on the segments of this channel
+        q_up = np.nan * np.ones(len(seg_list))
+        q_down = np.nan * np.ones(len(seg_list))
         seg_counter = 0
         for seg in seg_list:
-            w_up[seg_counter] = q_df.loc[seg+'_f',seg+'_s'] / v_df.loc[seg,'area m2']
-            w_down[seg_counter] = q_df.loc[seg+'_s',seg+'_f'] / v_df.loc[seg,'area m2']
+            q_up[seg_counter] = q_df.loc[seg+'_f',seg+'_s']
+            q_down[seg_counter] = q_df.loc[seg+'_s',seg+'_f']
             seg_counter += 1 
     
         # plotting
-        ax.plot(dist, w_up*1e3,'-*r', linewidth=lw)
-        ax.plot(dist, w_down*1e3,'-*b', linewidth=lw)
+        upcol = 'lightsalmon'
+        dncol = 'mediumslateblue'
+        yld = {1:150, 2:60, 3:10, 4:10}
+        ax.plot(dist, q_up/1e3,'-o', color=upcol, linewidth=lw)
+        ax.plot(dist, -q_down/1e3,'-o', color=dncol, linewidth=lw)
         for ii in range(len(dist)):
-            ax.text(dist[ii], w_up[ii]*1e3, seg_list[ii], color='r')
-
-        # formatting and labels
-        if ax_counter == 1:
-            ax.set_xlim(-10,410)
-            ax.set_title(season.title() + ' ' + year_str, fontsize=fs)
-        else:
-            ax.set_xlim(-10,180)
-        
-        if ax_counter == 2:
-            ax.set_ylim(0,.8)
-            ax.text(.05,.3,'Note different\ny-scale',transform=ax.transAxes,
-                fontsize=fs-2, style='italic')
-        else:
-            ax.set_ylim(0,.08)
-    
-        if ax_counter in [1,2]:
-            ax.set_ylabel('Vertical Velocity (mm/s)', fontsize=fs)
+            ax.text(dist[ii], -.6*yld[ax_counter], seg_list[ii],
+            ha='center',size=.8*fs, alpha=.5)
+            
         if ax_counter in [2,3,4]:
-            ax.set_xlabel('Distance along Channel (km)', fontsize=fs)
+            ax.set_xlabel('Distance [km]')
+            
+        if ax_counter in [3,4]:
+            ax.set_yticks([-10,-5,0,5,10])
+            
+        if ax_counter ==1:
+            ax.text(.05,.6,'Upward',color=upcol,fontweight='bold',
+                transform=ax.transAxes, va='center')
+            ax.text(.05,.4,'Downward',color=dncol,fontweight='bold',
+                transform=ax.transAxes, va='center')
+            ax.text(.9,.1,year_str,color='k',fontweight='bold',style='italic',
+                transform=ax.transAxes, ha='right')
         
-        if ax_counter == 4:
-            ax.text(.9,.2,'Upwards',color='r',fontweight='bold',
-                transform=ax.transAxes, fontsize=fs, horizontalalignment='right')
-            ax.text(.9,.1,'Downwards',color='b',fontweight='bold',
-                transform=ax.transAxes, fontsize=fs, horizontalalignment='right')
-
-        if ch == 'Admiralty Inlet to South Sound':
-            ch = 'Admiralty Inlet\nto South Sound'
+        if ax_counter in [1,2]:
+            ax.set_ylabel('Vertical Transport (m3/s)')
         
-        ax.text(.05, .9, '('+abc[ax_counter-1]+') ' + ch,
-            fontsize=fs, transform=ax.transAxes, verticalalignment='top')
-        ax.grid(True)
+        abc = 'abcd'
+        ax.text(.05,.9,'(%s) %s' % (abc[ax_counter-1],ch),
+            transform=ax.transAxes, color=flux_fun.c_dict[ch], weight='bold')
+        
+        ax.axhline(color='k')
+        
+        ax.set_ylim(-yld[ax_counter],yld[ax_counter])
     
         ax_counter += 1
 
-    plt.show()
+    fig.tight_layout()
 
-    fig.savefig(outdir + 'w_plot_' + season + '.png')
+    fig.savefig(outdir + 'w_plot_' + year_str + '.png')
+
+plt.show()
+plt.rcdefaults()
 
 
