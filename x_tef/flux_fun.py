@@ -122,6 +122,10 @@ ic_seg2_dict = {'IC_HoodCanalInner': ['H'+str(n)+'_s' for n in range(3,9)],
                     + get_seg_list('T',2) + get_seg_list('S',4)
                     + get_seg_list('H',8) + get_seg_list('W',4),
             'IC_SoG': get_seg_list('G',6),
+            'IC_Salish': get_seg_list('A',3) + get_seg_list('M',6)
+                    + get_seg_list('T',2) + get_seg_list('S',4)
+                    + get_seg_list('H',8) + get_seg_list('W',4)
+                    + get_seg_list('G',6),
             }
                             
 season_list = list(get_dtr(2017).keys())
