@@ -1,5 +1,5 @@
 """
-Code to plot the spatial distribution of the vertical velocities that
+Code to plot the spatial distribution of the vertical transports that
 result from flux_get_A.py.
 
 """
@@ -23,7 +23,7 @@ import flux_fun
 indir0 = Ldir['LOo'] + 'tef/'
 
 # Output directory
-outdir = indir0 + 'validation_plots/'
+outdir = indir0 + 'vertical_transport_plots/'
 Lfun.make_dir(outdir)
 
 voldir = indir0 + 'volumes_' + Ldir['gridname'] + '/'
@@ -34,7 +34,7 @@ v_df = pd.read_pickle(voldir + 'volumes.p')
 
 plt.close('all')
 
-fs = 14
+fs = 16
 lw = 3
 plt.rc('font', size=fs)
 
@@ -52,7 +52,7 @@ for year in [2017, 2018, 2019]:
     # index is ['J1_s', 'J1_f', 'J2_s',... = (*)
     # columns are ['ocean_s', 'ocean_f', 'river_s', 'river_f', 'J1_s', 'J1_f', 'J2_s',...
     
-    fig = plt.figure(figsize=(13,8))
+    fig = plt.figure(figsize=(16,8))
 
     ax_counter = 1
     for ch in flux_fun.seg_dict.keys():
@@ -87,12 +87,12 @@ for year in [2017, 2018, 2019]:
         # plotting
         upcol = 'lightsalmon'
         dncol = 'mediumslateblue'
-        yld = {1:150, 2:60, 3:10, 4:10}
+        yld = {1:150, 2:70, 3:10, 4:10}
         ax.plot(dist, q_up/1e3,'-o', color=upcol, linewidth=lw)
         ax.plot(dist, -q_down/1e3,'-o', color=dncol, linewidth=lw)
         for ii in range(len(dist)):
             ax.text(dist[ii], -.6*yld[ax_counter], seg_list[ii],
-            ha='center',size=.8*fs, alpha=.5)
+            ha='center',size=.7*fs, alpha=.5)
             
         if ax_counter in [2,3,4]:
             ax.set_xlabel('Distance [km]')
@@ -109,7 +109,7 @@ for year in [2017, 2018, 2019]:
                 transform=ax.transAxes, ha='right')
         
         if ax_counter in [1,2]:
-            ax.set_ylabel('Vertical Transport (m3/s)')
+            ax.set_ylabel('Vert. Trans. $[1000 \ m^{3}s^{-1}]$')
         
         abc = 'abcd'
         ax.text(.05,.9,'(%s) %s' % (abc[ax_counter-1],ch),
@@ -123,7 +123,7 @@ for year in [2017, 2018, 2019]:
 
     fig.tight_layout()
 
-    fig.savefig(outdir + 'w_plot_' + year_str + '.png')
+    fig.savefig(outdir + 'vtrans_' + year_str + '.png')
 
 plt.show()
 plt.rcdefaults()

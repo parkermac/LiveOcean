@@ -52,6 +52,13 @@ import flux_fun
 from importlib import reload
 reload(flux_fun)
 
+testing = False
+
+if testing:
+    year_list = [2017]
+else:
+    year_list = [2017, 2018, 2019]
+
 print('Running integration with source = ' + source)
 # Valid choices for source:
 #
@@ -78,6 +85,8 @@ if source == 'S_OceanSalt':
     season_list = ['full']
 else:
     season_list = ['winter','spring','summer','fall']
+    if testing:
+        season_list = ['spring']
 
 # Input directory
 indir0 = Ldir['LOo'] + 'tef/'
@@ -88,8 +97,8 @@ outdir0 = indir0 + 'flux_engine/'
 Lfun.make_dir(outdir0)
 outdir = outdir0 + Ldir['gtagex'] + '/'
 Lfun.make_dir(outdir)
-
-for year in [2017, 2018, 2019]:
+    
+for year in year_list:
     
     date_range = str(year) + '.01.01_' + str(year) + '.12.31'
     extraction_name = Ldir['gtagex'] + '_' + date_range

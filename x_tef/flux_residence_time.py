@@ -29,7 +29,13 @@ v_df = pd.read_pickle(voldir + 'volumes.p')
 V = flux_fun.get_V(v_df)
 
 ic_list = [item for item in os.listdir(indir) if item[:3]=='IC_']
+ic_list.sort()
 
+tres_df = pd.DataFrame()
+
+plt.close('all')
+fig = plt.figure(figsize=(15,10))
+ax = fig.add_subplot(111)
 for infile in ic_list:
     source = infile.split('_')[0] + '_' + infile.split('_')[1]
     
@@ -48,15 +54,20 @@ for infile in ic_list:
         this_net_aa.loc[:,sn] = this_net_aa.loc[:,sn] * VV
     
     # make a series of mean concentration in the volume
-    mean_c = pd.Series(0,index=this_aa.index)
+    #mean_c = pd.Series(0,index=this_aa.index)
     mean_c = this_net_aa.sum(axis=1) / net_V
+    
 
     # find e-folding time
-    td = mean_c.index.values
-    mc = mean_c.values
+    td = mean_c.index.to_numpy()
+    mc = mean_c.to_numpy()
+    
+    ax.plot(td,mean_c)
+    
 
     ind_ef = np.argwhere(mc < 1/np.e)[0]
     
     print(' %10s: Tres = %0.2f days' % (infile.replace('.p',''), td[ind_ef]))
 
+plt.show()
 

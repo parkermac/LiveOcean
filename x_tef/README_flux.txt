@@ -96,11 +96,11 @@ NOTE: Look deep in the code for methods of calculation, and hand adjustments to,
 
 ------------------------------------------------------------------
 
-* flux_w_plot.py makes a plot of vertical velocity in all the segments.
+* flux_vtrans_plot.py makes a plot of vertical transport in all the segments.
 
 Input: volumes.p and q_df_[season].p created above
 
-Output:LiveOcean_output/tef/[*]/misc_figs/w_plot_[season].png
+Output:LiveOcean_output/tef/vertical_transport_plots/vtrans_[year].png
 
 ------------------------------------------------------------------
 
