@@ -59,14 +59,9 @@ year_xdict = dict(zip(year_list, year_xlist))
 tres_df = pd.DataFrame(0, index = exp_list,columns=['basin','year', 'season', 'tres', 'tres0','x'])
         # tres0 is the residence time without reflux
 
-
 for infile in ic_list:
     # infile is like "'IC_Whidbey_2019_winter.p'"
-    
     source = infile.split('_')[0] + '_' + infile.split('_')[1]
-    
-    
-    
     # get itemized information for the DataFrame
     exp = infile.replace('IC_','')
     exp = exp.replace('.p','')
@@ -182,4 +177,7 @@ fig.tight_layout()
 fig.savefig(outdir + 'all_residence_times.png')
 plt.show()
 plt.rcdefaults()
+
+# also save the DataFrame of residence times
+tres_df.to_pickle(outdir + 'tres_df.p')
 

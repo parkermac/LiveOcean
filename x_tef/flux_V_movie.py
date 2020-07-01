@@ -21,7 +21,7 @@ Ldir['gtagex'] = Ldir['gtag'] + '_lo8b'
 import tef_fun
 import flux_fun
 
-testing = False
+testing = True
 
 # select the indir
 indir0 = Ldir['LOo'] + 'tef/'
@@ -39,6 +39,7 @@ infile = Lfun.choose_item(indir, exclude_tag='AGE',
 aa = pd.read_pickle(indir + infile)
 this_run = infile.replace('.p','')
 print(this_run)
+
 
 # set "mstyle" to customize the plot (could add more choices)
 if 'IC_' in this_run:
@@ -59,36 +60,16 @@ v_df = pd.read_pickle(voldir + 'volumes.p')
 V = flux_fun.get_V(v_df)
 
 if mstyle == 'ic':
-    # calculate the e-folding time for this release
+    # get the e-folding time for this release
+    # infile is like "'IC_Whidbey_2019_winter.p'"
+    source = infile.split('_')[0] + '_' + infile.split('_')[1]
+    # get itemized information for the DataFrame
+    exp = infile.replace('IC_','')
+    exp = exp.replace('.p','')
+    tres_df = pd.read_pickle(indir0 + 'misc_figs_cas6/tres_df.p')
     seg2_list = flux_fun.ic_seg2_dict[source]
-    this_aa = aa.loc[:,seg2_list]
-    this_V = V[seg2_list]
-    net_V = this_V.sum()
-    this_net_aa = this_aa.copy()
-    for sn in this_V.index:
-        VV = this_V[sn]
-        this_net_aa.loc[:,sn] = this_net_aa.loc[:,sn] * VV
-    # make a series of mean concentration in the volume
-    mean_c = pd.Series(0, index=this_aa.index)
-    mean_c = this_net_aa.sum(axis=1) / net_V
-    # find e-folding time
-    td = mean_c.index.values
-    mc = mean_c.values
-    ind_ef = np.argwhere(mc < 1/np.e)[0]
-    tres = td[ind_ef]
-
-    # also load the A matrix to allow us to calculate the "unrefluxed"
-    # residence time
-    q_df = pd.read_pickle(Ldir['LOo'] + 'tef/' +
-        Ldir['gtagex'] + '_' + year_str + '.01.01_' + year_str + '.12.31/' +
-        'flux/q_df_' + season + '.p')
-    if source == 'IC_HoodCanalInner':
-        qin = q_df.loc['H3_s','H2_s']
-    else:
-        print('unsupported source')
-    tres_alt = (net_V/qin)/86400
-    print('\n' + source + ' ' + season)
-    print('Non-reflux residence time = %0.1f days' % (tres_alt))
+    tres = tres_df.loc[exp,'tres']
+    tres0 = tres_df.loc[exp,'tres0']
 
 plt.close('all')
 
@@ -171,19 +152,33 @@ for ii in range(len(day_list_short)):
             fh1 = ax.fill([x0,x1,x1,x0],[y0-fr*dy,y0-fr*dy,y1,y1],
                 color=cmap(int(cc_s*255)), alpha=.8)
             fh1[0].set_edgecolor('k')
+            if seg+'_s' in seg2_list:
+                ax.plot((x0+x1)/2,(y0-fr*dy+y1)/2,'ok', markersize=3)
             
             # top layer
             fh2= ax.fill([x0,x1,x1,x0],[y0,y0,y1+(1-fr)*dy,y1+(1-fr)*dy],
                 color=cmap(int(cc_f*255)), alpha=.8)
             fh2[0].set_edgecolor('k')
+            if seg+'_f' in seg2_list:
+                ax.plot((x0+x1)/2,(y1+(1-fr)*dy+y0)/2,'ok', markersize=3)
             
-            # add a stripe to identify the channel
-            ax.plot([x0, x1],[y0, y0],'-',color=color,lw=3)
+            if ii == 0:
+                ax.text(x0,y0+.2,ch.replace('Basin',''),
+                    color=color, size=14, weight='bold')
+                
             
-            ax.text((x0+x1)/2,y0+.2,seg, horizontalalignment='center', fontsize=10)
+            # ax.text((x0+x1)/2,y0+.2,seg, horizontalalignment='center', fontsize=10)
             ii += 1
             # save position of center of cell
             xy[seg] = ((x0+x1)/2, (y0+y1)/2)
+            
+        # add a stripe to identify the channel
+        #ax.plot([x0, x1],[y0, y0],'-',color=color,lw=3,alpha=.5)
+        # ['Juan de Fuca to Strait of Georgia',
+        #  'Admiralty Inlet to South Sound',
+        #  'Hood Canal',
+        #  'Whidbey Basin']
+        
             
         jj += 1
         
@@ -209,8 +204,8 @@ for ii in range(len(day_list_short)):
         ax.text(50, -15, 'Concentration Scale', ha='center', size=13, style='italic')
     
     # add text
-    ax.set_title(this_run,
-        size=14, style='italic', weight='bold')
+    # ax.set_title(this_run,
+    #     size=14, style='italic', weight='bold')
     ax.text(-1, -3, 'Pacific\nOcean', ha='right', size=16)
     ax.text(55, -3, 'Johnstone\nStrait', ha='left', size=13)
     ax.text(0, -8, 'Day = %s' % (str(int(day))), size=18, weight='bold')
@@ -218,7 +213,7 @@ for ii in range(len(day_list_short)):
     if mstyle == 'ic':
         ax.text(0, -17, 'Residence time = %s days' % (str(int(tres))),
             size=16, weight='bold', style='italic')
-        ax.text(0, -18, 'Residence time = %s days (without reflux)' % (str(int(tres_alt))),
+        ax.text(0, -18, 'Residence time = %s days (without reflux)' % (str(int(tres0))),
             size=14, style='italic')
     
     # plot connecting lines
