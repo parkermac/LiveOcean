@@ -52,7 +52,7 @@ for year in [2017, 2018, 2019]:
     # index is ['J1_s', 'J1_f', 'J2_s',... = (*)
     # columns are ['ocean_s', 'ocean_f', 'river_s', 'river_f', 'J1_s', 'J1_f', 'J2_s',...
     
-    fig = plt.figure(figsize=(16,8))
+    fig = plt.figure(figsize=(14,8))
 
     ax_counter = 1
     for ch in flux_fun.seg_dict.keys():
@@ -112,7 +112,7 @@ for year in [2017, 2018, 2019]:
             ax.set_ylabel('Vert. Trans. $[1000 \ m^{3}s^{-1}]$')
         
         abc = 'abcd'
-        ax.text(.05,.9,'(%s) %s' % (abc[ax_counter-1],ch),
+        ax.text(.02,.9,'(%s) %s' % (abc[ax_counter-1],ch),
             transform=ax.transAxes, color=flux_fun.c_dict[ch], weight='bold')
         
         ax.axhline(color='k')

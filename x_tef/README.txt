@@ -27,7 +27,7 @@ Variables: ocean_time, salt, q, z0, DA0, lon, lat, h, zeta
 
 NOTE: the actual tracer variables to be extracted are defined in tef_fun.start_netcdf.nc().  Not ideal to have it hidden so deep, but it is a convenient place to create the whole list if needed.
 
-NOTE: the sign conventions are defined by the sign of the column "landward" in sect_df.  This is a hangover from when I was trying to be clever about the direction of inflow.  In restospect it would have been better to just use eastward- and northward-positive.
+NOTE: the sign conventions are defined by the sign of the column "landward" in sect_df.  This is a hangover from when I was trying to be clever about the direction of inflow.  In retrospect it would have been better to just use eastward- and northward-positive.
 
 ------------------------------------------------------------------
 

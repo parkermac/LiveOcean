@@ -25,6 +25,7 @@ import netCDF4 as nc
 import pickle
 import pandas as pd
 import matplotlib.pyplot as plt
+import cmocean
 
 # output location (assume it exists)
 out_dir = Ldir['parent'] + 'LiveOcean_NOTES/Figures Slides Movies/'
@@ -34,6 +35,7 @@ fs = 18
 fs2 = 0.8*fs
 fs3 = 0.6*fs2
 vn = 'temp'; vmin=8; vmax=20
+#cmap = cmocean.cm.thermal
 cmap = 'RdYlBu_r'#'cubehelix'#'ocean'
 aaf = [-125.3, -122.1, 46.8, 50.3] # focus domain
 station = 'SAR003'
@@ -88,7 +90,7 @@ for sn in moor_sta_dict.keys():
 
 # get observed salinity
 o_df = pd.DataFrame(columns=['S_bot', 'S_top'])
-indir = '/Users/pm7/Documents/ptools_data/ecology/'
+indir = Ldir['parent'] + 'ptools_data/ecology/'
 for year in [2017, 2018, 2019]:
     Casts = pd.read_pickle(indir + 'Casts_' + str(year) + '.p')
     casts = Casts[Casts['Station']==station]
@@ -231,11 +233,6 @@ for add_stations in [True, False]:
         ax.plot(x,y,'sw', mec='g', ms=14)
         ax.text(x,y+nud,'T',size=fs3,ha='center',va='center', weight='bold')
 
-        sta = 'SAR003'
-        x = ctd_df.loc[sta,'Longitude']
-        y = ctd_df.loc[sta,'Latitude']
-        ax.plot(x,y,'*w', mec='b', ms=24)
-        ax.text(x,y+nud,'C',size=fs3,ha='center',va='center', weight='bold')
 
         sta = 'KL027'
         x = moor_df.loc[sta,'Longitude']
@@ -248,6 +245,13 @@ for add_stations in [True, False]:
         y = moor_df.loc[sta,'Latitude']
         ax.plot(x,y,'ow', mec='r', ms=17)
         ax.text(x,y+nud,'V',size=fs3,ha='center',va='center', weight='bold')
+
+    # add this station for both plots
+    sta = 'SAR003'
+    x = ctd_df.loc[sta,'Longitude']
+    y = ctd_df.loc[sta,'Latitude']
+    ax.plot(x,y,'*w', mec='b', ms=24)
+    ax.text(x,y+nud,'C',size=fs3,ha='center',va='center', weight='bold')
 
     ax.text(.93,.97,'(b) Salish Sea', ha='right', va='top', size=fs,
         transform=ax.transAxes, weight='bold')

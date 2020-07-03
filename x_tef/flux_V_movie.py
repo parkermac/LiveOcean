@@ -12,6 +12,8 @@ import argparse
 
 from matplotlib.cm import get_cmap
 
+import cmocean
+
 import os; import sys
 sys.path.append(os.path.abspath('../alpha'))
 import Lfun
@@ -21,7 +23,7 @@ Ldir['gtagex'] = Ldir['gtag'] + '_lo8b'
 import tef_fun
 import flux_fun
 
-testing = True
+testing = False
 
 # select the indir
 indir0 = Ldir['LOo'] + 'tef/'
@@ -40,15 +42,15 @@ aa = pd.read_pickle(indir + infile)
 this_run = infile.replace('.p','')
 print(this_run)
 
-
 # set "mstyle" to customize the plot (could add more choices)
 if 'IC_' in this_run:
     mstyle = 'ic'
 elif 'S_' in this_run:
     mstyle = 'src'
     
-outdir = outdir0 + this_run + '/'
-Lfun.make_dir(outdir, clean=True)
+if testing == False:
+    outdir = outdir0 + this_run + '/'
+    Lfun.make_dir(outdir, clean=True)
 
 olist = this_run.split('_')
 source = olist[0] + '_' + olist[1]
@@ -73,8 +75,11 @@ if mstyle == 'ic':
 
 plt.close('all')
 
-cmap = get_cmap('cool') # 'YlOrRd'
+#cmap = get_cmap('cool') # 'YlOrRd'
 # get rgba using cmap(0-255)
+
+cmap = cmocean.cm.matter
+alpha = 1
 
 def color_scaling(val):
     val_scaled = 1 + np.log10(val + 1e-8)/3
@@ -83,7 +88,7 @@ def color_scaling(val):
 day_list = list(aa.index)
 
 if testing == False:
-    day_list_short = day_list[:51:5]
+    day_list_short = day_list[:101:5]
     # typically we have saves every 2 days so a step=5 makes 10 days per frame
     # and end=501 makes the last frame at day 1000
 else:
@@ -137,7 +142,7 @@ for ii in range(len(day_list_short)):
             c_s = aa.loc[day,seg+'_s']
             c_f = aa.loc[day,seg+'_f']
             
-            # let's convert to log10 scaling
+            # convert to log10 scaling
             cc_s = color_scaling(c_s)
             cc_f = color_scaling(c_f)
             
@@ -150,35 +155,28 @@ for ii in range(len(day_list_short)):
             fr = .2
             # bottom layer
             fh1 = ax.fill([x0,x1,x1,x0],[y0-fr*dy,y0-fr*dy,y1,y1],
-                color=cmap(int(cc_s*255)), alpha=.8)
+                color=cmap(int(cc_s*255)), alpha=alpha)
             fh1[0].set_edgecolor('k')
             if seg+'_s' in seg2_list:
-                ax.plot((x0+x1)/2,(y0-fr*dy+y1)/2,'ok', markersize=3)
+                ax.plot((x0+x1)/2,(y0-fr*dy+y1)/2,'sw', markersize=2.5)
             
             # top layer
             fh2= ax.fill([x0,x1,x1,x0],[y0,y0,y1+(1-fr)*dy,y1+(1-fr)*dy],
-                color=cmap(int(cc_f*255)), alpha=.8)
+                color=cmap(int(cc_f*255)), alpha=alpha)
             fh2[0].set_edgecolor('k')
             if seg+'_f' in seg2_list:
-                ax.plot((x0+x1)/2,(y1+(1-fr)*dy+y0)/2,'ok', markersize=3)
+                ax.plot((x0+x1)/2,(y1+(1-fr)*dy+y0)/2,'sw', markersize=2.5)
             
             if ii == 0:
                 ax.text(x0,y0+.2,ch.replace('Basin',''),
                     color=color, size=14, weight='bold')
                 
-            
             # ax.text((x0+x1)/2,y0+.2,seg, horizontalalignment='center', fontsize=10)
             ii += 1
+            
             # save position of center of cell
             xy[seg] = ((x0+x1)/2, (y0+y1)/2)
-            
-        # add a stripe to identify the channel
-        #ax.plot([x0, x1],[y0, y0],'-',color=color,lw=3,alpha=.5)
-        # ['Juan de Fuca to Strait of Georgia',
-        #  'Admiralty Inlet to South Sound',
-        #  'Hood Canal',
-        #  'Whidbey Basin']
-        
+                    
             
         jj += 1
         
@@ -188,7 +186,7 @@ for ii in range(len(day_list_short)):
         #print(val_scaled)
         dx=2; dy=1
         x1=x0+dx; y1=y0-dy
-        ax.fill([x0,x1,x1,x0],[y0,y0,y1,y1], color=cmap(int(val_scaled*255)), alpha=.8)
+        ax.fill([x0,x1,x1,x0],[y0,y0,y1,y1], color=cmap(int(val_scaled*255)), alpha=alpha)
         ax.text((x0+x1)/2, y0+.2, ('%0.3f' % (val)),
             ha='center', size=12)
     if mstyle == 'ic':
@@ -204,8 +202,8 @@ for ii in range(len(day_list_short)):
         ax.text(50, -15, 'Concentration Scale', ha='center', size=13, style='italic')
     
     # add text
-    # ax.set_title(this_run,
-    #     size=14, style='italic', weight='bold')
+    # ax.text(0,.3, this_run, rotation=90, size=10,ha='center', va='center',
+    #     style='italic', transform=ax.transAxes)
     ax.text(-1, -3, 'Pacific\nOcean', ha='right', size=16)
     ax.text(55, -3, 'Johnstone\nStrait', ha='left', size=13)
     ax.text(0, -8, 'Day = %s' % (str(int(day))), size=18, weight='bold')

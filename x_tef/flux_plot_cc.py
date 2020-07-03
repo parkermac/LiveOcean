@@ -31,6 +31,8 @@ ilist = [item for item in ilist_raw if 'S_' in item]
 ilist = [item for item in ilist if 'AGE' in item]
 
 for infile in ilist:
+    
+    print(infile)
 
     # load the DataFrame of results of flux_engine.py
     #infile = Lfun.choose_item(indir, tag='AGE', itext='Choose flux engine output file:')
@@ -84,8 +86,8 @@ for infile in ilist:
         #     ax2.text(dist[ii], cc.loc[vs[ii],'age'], seg_list[ii], color=color,
         #     horizontalalignment='center', verticalalignment='bottom', fontsize=fs-3)
         
-        ax2.text(.05, .95-ch_counter*.05, ch, color=color,
-            transform=ax2.transAxes, fontsize=fs, fontweight='bold',
+        ax1.text(.05, .75-ch_counter*.05, ch, color=color,
+            transform=ax1.transAxes, fontsize=fs, fontweight='bold',
             bbox=dict(facecolor='w',edgecolor='w', alpha=0.8))
     
         ch_counter += 1
@@ -93,7 +95,7 @@ for infile in ilist:
     if 'S_Ocean' in infile:
         ax1.set_ylim(75,102)
     else:
-        ax1.set_ylim(0,20)
+        ax1.set_ylim(0,35)
     ax2.set_ylim(0, 800)
 
     ax1.set_xlim(-10,410)
@@ -103,10 +105,12 @@ for infile in ilist:
     ax2.grid(True)
 
     if log_plot:
-        ax1.set_ylabel('log10(Concentration)', fontsize=fs)
+        ax1.text(.05,.9,'(a) log10(Concentration)', size=fs, weight='bold', transform=ax1.transAxes)
     else:
-        ax1.set_ylabel('Concentration (%)', fontsize=fs)
-    ax2.set_ylabel('Age (days)', fontsize=fs)
+        ax1.text(.05,.9,'(a) Concentration [%]', size=fs, weight='bold', transform=ax1.transAxes)
+        
+    ax2.text(.05,.9,'(b) Age [days]', size=fs, weight='bold', transform=ax2.transAxes)
+        
     ax1.set_xlabel('Distance from Mouth of JdF (km)', fontsize=fs)
     ax2.set_xlabel('Distance from Mouth of JdF (km)', fontsize=fs)
 
@@ -117,7 +121,7 @@ for infile in ilist:
         style='italic', ha='right')
 
     ttext = infile.replace('S_','').replace('.p','').replace('AGE','').replace('_',' ')
-    ax1.set_title('Source: ' + ttext, fontsize=fs)
+    ax1.text(.05,.85,'Source: ' + ttext, size=.8*fs, style='italic', transform=ax1.transAxes)
 
     #plt.show()
     

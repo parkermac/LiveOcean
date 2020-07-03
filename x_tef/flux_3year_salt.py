@@ -13,8 +13,6 @@ sys.path.append(os.path.abspath('../alpha'))
 import Lfun
 import tef_fun
 import flux_fun
-from importlib import reload
-reload(flux_fun)
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -35,13 +33,16 @@ which_vol = args.volume
 Ldir = Lfun.Lstart(args.gridname, args.tag)
 gtagex = args.gridname + '_' + args.tag + '_' + args.ex_name
 
+indir00 = Ldir['LOo'] + 'tef/'
+outdir = indir00 + 'misc_figs_cas6/'
+
+qr_dict = {} # save annual mean river flow
 yy = 0
 for year in [2017, 2018, 2019]:
     year_str = str(year)
     
     # select input/output location
     run_name = gtagex+'_'+year_str+'.01.01_'+year_str+'.12.31'
-    indir00 = Ldir['LOo'] + 'tef/'
     indir0 = indir00 + run_name + '/'
 
     # load low passed segment volume and net salt DataFrames
@@ -66,7 +67,8 @@ for year in [2017, 2018, 2019]:
     for seg_name in seg_list:
         seg = flux_fun.segs[seg_name]
         river_list = river_list + seg['R']
-    riv_df = pd.read_pickle(Ldir['LOo'] + 'river/' + Ldir['gtag'] + '_'+year_str+'.01.01_'+year_str+'.12.31.p')
+    riv_df = pd.read_pickle(Ldir['LOo'] + 'river/'
+        + Ldir['gtag'] + '_'+year_str+'.01.01_'+year_str+'.12.31.p')
     riv_df.index += timedelta(days=0.5)
     riv_df = riv_df.loc[sv_lp_df.index, river_list]
     
@@ -77,7 +79,8 @@ for year in [2017, 2018, 2019]:
 
     vol_df, salt_df, vol_rel_err, salt_rel_err, salt_rel_err_qe = flux_fun.get_budgets(
         sv_lp_df, v_lp_df, riv_df, tef_df_dict, seg_list)
-
+        
+    qr_dict[year] = vol_df['Qr'].mean()
         
     if yy == 0:
         vol_df_all = vol_df.copy()
@@ -98,50 +101,105 @@ for cn in salt_df_all.columns:
 vol_df_all = vol_df_all.resample('M', loffset='-15d').mean()
 salt_df_all = salt_df_all.resample('M', loffset='-15d').mean()
 
+# rescale to be 1000 m3/s
+for vn in ['QSin', '-QSout', 'Ftide', 'dSnet_dt', 'Error', 'Qe', 'Qnet', 'QeDS', '-QrSbar']:
+    salt_df_all[vn] = salt_df_all[vn]/1000
+for vn in ['Qin', '-Qout', 'Qtide', 'Qr', 'V', 'dV_dt', 'Error']:
+    vol_df_all[vn] = vol_df_all[vn]/1000
+
 # plotting
 
-plt.close('all')
-fig = plt.figure(figsize=(14,8))
 
 tx = .05
 ty = .9
 ty2 = .05
-fs = 14
+fs = 16
 lw = 3
 dt0 = datetime(2017,1,1)
 dt1 = datetime(2020,1,1)
 
+plt.rc('font', size=fs)
+plt.close('all')
+plt.close('all')
+fig = plt.figure(figsize=(18,10))
+
+
 ax = fig.add_subplot(221)
-salt_df_all[['Smean', 'Sin','Sout']].plot(ax=ax, grid=True, color=['purple','r','orange'], linewidth=lw)
+salt_df_all[['Smean', 'Sin','Sout']].plot(ax=ax, grid=False, color=['goldenrod','r','b'], linewidth=lw)
 ax.legend(labels=['$S_{mean}$','$S_{in}$','$S_{out}$'], loc='lower right')
-ax.text(tx, ty, '(a) ' + which_vol + ' Salinities $(g/kg)$', size=fs, transform=ax.transAxes)
+ax.text(tx, ty, '(a) ' + which_vol + ' Salinities $[g \ kg^{-1}]$', size=fs, transform=ax.transAxes,
+    bbox=dict(facecolor='w', edgecolor='None',alpha=.5), weight='bold')
 ax.set_xticklabels([])
 ax.set_xticklabels([], minor=True)
 ax.set_xlim(dt0, dt1)
+ax.set_ylim(29,33)
+ax.set_yticks([30,31,32])
+ax.set_yticklabels([30,31,32])
+#
+ax.vlines([datetime(2018,1,1),datetime(2019,1,1)],29,33, alpha=.5)
+ax.set_xticks([datetime(2017,1,1),datetime(2017,7,1),datetime(2018,1,1),
+    datetime(2018,7,1),datetime(2019,1,1),datetime(2019,7,1),datetime(2019,12,31)])
 
 ax = fig.add_subplot(222)
-vol_df_all[['Qin', '-Qout']].plot(ax=ax, grid=True, color=['r','orange'], linewidth=lw)
+vol_df_all[['Qin', '-Qout']].plot(ax=ax, grid=False, color=['r','b'], linewidth=lw)
 ax.legend(labels=['$Q_{in}$','$-Q_{out}$'], loc='lower right')
 ax.set_ylim(bottom=0)
-ax.text(tx, ty2, '(b) Exchange Flow $(10^{3}\ m^{3}s^{-1})$', size=fs, transform=ax.transAxes)
+ax.text(tx, ty2, '(b) Exchange Flow $[1000\ m^{3}s^{-1}]$', size=fs, transform=ax.transAxes,
+    bbox=dict(facecolor='w', edgecolor='None',alpha=.5), weight='bold')
 ax.set_xticklabels([])
 ax.set_xticklabels([], minor=True)
 ax.set_xlim(dt0, dt1)
+ax.set_ylim(30,50)
+ax.set_yticks([30,40,50])
+ax.set_yticklabels([30,40,50])
+#
+ax.vlines([datetime(2018,1,1),datetime(2019,1,1)],30,50, alpha=.5)
+ax.set_xticks([datetime(2017,1,1),datetime(2017,7,1),datetime(2018,1,1),
+    datetime(2018,7,1),datetime(2019,1,1),datetime(2019,7,1),datetime(2019,12,31)])
 
 ax = fig.add_subplot(223)
-vol_df_all['Qr'].plot(ax=ax, grid=True, legend=False, color='c', linewidth=lw)
+vol_df_all['Qr'].plot(ax=ax, grid=False, legend=False, color='c', linewidth=lw)
 ax.set_ylim(bottom=0)
-ax.text(tx, ty2, '(c) Net River Flow $(10^{3}\ m^{3}s^{-1})$', size=fs, transform=ax.transAxes)
+ax.text(tx, ty2, '(c) Net River Flow $[1000 \ m^{3}s^{-1}]$', size=fs, transform=ax.transAxes,
+    bbox=dict(facecolor='w', edgecolor='None',alpha=.5), weight='bold')
 ax.set_xlim(dt0, dt1)
+ax.set_ylim(0,3)
+ax.set_yticks([0,1,2])
+ax.set_yticklabels([0,1,2])
+#
+ax.vlines([datetime(2018,1,1),datetime(2019,1,1)],0,15, alpha=.5)
+ax.set_xticks([datetime(2017,1,1),datetime(2017,7,1),datetime(2018,1,1),
+    datetime(2018,7,1),datetime(2019,1,1),datetime(2019,7,1),datetime(2019,12,31)])
+ax.set_xticklabels(['','2017','','2018','','2019',''], rotation=0,
+    fontdict={'horizontalalignment':'center'})
+#add annual means
+for year in [2017,2018,2019]:
+    ax.text(datetime(year,7,1), 2.5,
+        'Mean =\n' + str(int(qr_dict[year])) + ' $[m^{3}s^{-1}]$',
+        ha='center', va='center',
+        color = 'c', weight='bold')
 
 ax = fig.add_subplot(224)
-salt_df_all[['dSnet_dt','QeDS', '-QrSbar']].plot(ax=ax, grid=True, color=['peru','b','g'], linewidth=lw)
+salt_df_all[['dSnet_dt','QeDS', '-QrSbar']].plot(ax=ax, grid=False,
+    color=['sandybrown','darkorchid','cornflowerblue'],
+    linewidth=lw)
 ax.legend(labels=['$d S_{net} / dt$','$Q_e \Delta S$', '$-Q_R S_{bar}$'], loc='upper right')
-ax.text(tx, ty, '(d) Salt Budget Terms $(g/kg\ 10^{3}\ m^{3}s^{-1})$', size=fs, transform=ax.transAxes)
+ax.text(tx, ty, '(d) Salt Budget Terms $[1000 \ g \ kg^{-1} \ m^{3}s^{-1}]$',
+    size=fs, transform=ax.transAxes,
+    bbox=dict(facecolor='w', edgecolor='None',alpha=.5), weight='bold')
 ax.set_xlim(dt0, dt1)
+ax.set_ylim(-100,100)
+#
+ax.vlines([datetime(2018,1,1),datetime(2019,1,1)],-100,100, alpha=.5)
+ax.hlines(0,dt0,dt1)
+ax.set_xticks([datetime(2017,1,1),datetime(2017,7,1),datetime(2018,1,1),
+    datetime(2018,7,1),datetime(2019,1,1),datetime(2019,7,1),datetime(2019,12,31)])
+ax.set_xticklabels(['','2017','','2018','','2019',''], rotation=0,
+    fontdict={'horizontalalignment':'center'})
 
 fig.tight_layout()
-
-
+fig.savefig(outdir + 'PS_3year.png')
 plt.show()
+plt.rcdefaults()
+
 

@@ -84,7 +84,7 @@ if source == 'S_OceanSalt':
     # decreasing like it may for a single season.
     season_list = ['full']
 else:
-    season_list = ['winter','spring','summer','fall']
+    season_list = ['winter','spring','summer','fall','full']
     if testing:
         season_list = ['spring']
 

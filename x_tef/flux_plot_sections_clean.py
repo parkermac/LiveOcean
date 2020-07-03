@@ -90,7 +90,7 @@ channel_list.reverse() # makes overlaying colors look better
 distmax = 420
 
 aa1 = [-5, distmax, 0 ,200]
-aa2 = [140, 300, 0, 50]
+aa2 = [140, 300, -5, 50]
 aa3 = [-125.4, -122, 46.8, 50.4] # Salish Sea
 
 #for season in ['full']:
@@ -156,7 +156,7 @@ for season in flux_fun.season_list:
             yy = np.abs(q_s[counter])
             if inax(xx,yy,aa1) and (ch_str == 'Juan de Fuca to Strait of Georgia'):
                 dy = aa1[3]-aa1[2]
-                ax1.text(xx,yy+ dy/10, sn, fontsize=.6*fs, color='k', va='center',ha='center',
+                ax1.text(xx,yy + dy/10, sn, fontsize=.6*fs, color='k', va='center',ha='center',
                     rotation=45, style='italic', weight='bold')
             counter += 1
             
@@ -169,11 +169,11 @@ for season in flux_fun.season_list:
             yy = np.abs(q_s[counter])
             if inax(xx,yy,aa2):
                 dy = aa2[3]-aa2[2]
-                if ch_str == 'Whidbey Basin':
-                    ax2.text(xx,yy+ dy/10, sn, fontsize=.6*fs, color='k', va='center',ha='center',
-                        rotation=45, style='italic', weight='bold')
+                if ch_str == 'Hood Canal' and sn != 'ai3':
+                    ax2.text(xx,yy - dy/20, sn, fontsize=.6*fs, color='k', va='center',ha='center',
+                        rotation=-45, style='italic', weight='bold')
                 else:
-                    ax2.text(xx,yy+ dy/20, sn, fontsize=.6*fs, color='k', va='center',ha='center',
+                    ax2.text(xx,yy + dy/20, sn, fontsize=.6*fs, color='k', va='center',ha='center',
                         rotation=45, style='italic', weight='bold')
                 
             counter += 1

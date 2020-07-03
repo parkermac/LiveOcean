@@ -65,7 +65,7 @@ for do_rivers in [False, True]:
     
     # plotting
     lw=3
-    fs=14
+    fs=16
     plt.rc('font', size=fs)
 
     fig = plt.figure(figsize=(16,10))
@@ -115,13 +115,24 @@ for do_rivers in [False, True]:
                     # print(Sn)
                     # print(inax(vx,vy,aa1))
                     # print('')
-                    ax.text(vx,vy, Sn,
-                        va='center',ha='center', color=Sn_color,
-                            fontsize=fs, fontweight='bold')
+                    if Sn in ['T1', 'T2']:
+                        ax.text(vx,vy, Sn,
+                            va='center',ha='center', color=Sn_color,
+                                fontsize=0.5*fs, fontweight='bold')
+                    else:
+                        ax.text(vx,vy, Sn,
+                            va='center',ha='center', color=Sn_color,
+                                fontsize=fs, fontweight='bold')
+                        
                 elif ax_counter == 1:
-                    ax.text(vx,vy, Sn,
-                        va='center',ha='center', color=Sn_color,
-                            fontsize=fs, fontweight='bold')
+                    if Sn in ['T1', 'T2']:
+                        ax.text(vx,vy, Sn,
+                            va='center',ha='center', color=Sn_color,
+                                fontsize=0.5*fs, fontweight='bold')
+                    else:
+                        ax.text(vx,vy, Sn,
+                            va='center',ha='center', color=Sn_color,
+                                fontsize=fs, fontweight='bold')
                 
         # rivers
         if do_rivers:
@@ -143,7 +154,7 @@ for do_rivers in [False, True]:
                 except FileNotFoundError:
                     pass
         
-        pfun.add_coast(ax)
+        pfun.add_coast(ax, color='gray')
         pfun.dar(ax)
         ax.axis(aa)
     

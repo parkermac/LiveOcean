@@ -63,7 +63,7 @@ Output: LiveOcean_output/tef/volumes_cas6/...
 	
 ------------------------------------------------------------------
 
-* flux_seg_map.py
+* flux_seg_sect_maps.py
 
 Input: grid, rivers, sections and segments (from volumes.py)
 
@@ -137,17 +137,18 @@ NOTE: This is  only meaningful for the full annual average, because it finds an 
 
 Input: all of the "IC_" series of flux_engine calculations.
 
-Output: screen output of the residence time.
+Output:
+- Beautiful plot of the residence time: LiveOcean_output/tef/misc_figs_cas6/all_residence_times.png
+- DataFrame of all residence times: LiveOcean_output/tef/misc_figs_cas6/tres_df.p, with columns "tres" [residence time in days] and "tres0" [residence time in days without reflux (V/Qin)]
 
 ------------------------------------------------------------------
 
 * flux_V_movie.py makes a movie from one of the S_ or IC_ runs, including information about residence time (with and without reflux).  The graphical format is the series of volume rectangles as in flux_V_plot.py.
 
-Input: any of the "IC_" series of flux_engine runs, e.g. [run] = IC_HoodCanalInner_2018_fall
+Input: any of the "IC_" series of flux_engine runs, e.g. [run] = IC_HoodCanalInner_2018_fall, and LiveOcean_output/tef/misc_figs_cas6/tres_df.p
 
 Output: LiveOcean_output/tef/movies/[gtagex]/[run]/movie.mp4
 
-NOTE: for IC_ runs this currently only supports: source == 'IC_HoodCanalInner' (needed for calculation of unrefluxed residence time).
 
 ------------------------------------------------------------------
 
