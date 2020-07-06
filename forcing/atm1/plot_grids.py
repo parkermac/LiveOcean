@@ -59,6 +59,11 @@ lon3, lat3, dx3_km = get_wrf_grid(d3_fn)
 lon4, lat4, dx4_km = get_wrf_grid(d4_fn)
 
 # PLOTTING
+plt.close('all')
+fs=16
+plt.rc('font', size=fs)
+
+fig = plt.figure(figsize=(16,10))
 
 # nice plot of grid domains and spacing
 def draw_box(ax, x,y, s='-', c='k', w=3, a=1, t=''):
@@ -68,28 +73,33 @@ def draw_box(ax, x,y, s='-', c='k', w=3, a=1, t=''):
     ax.plot(x[-1,:],y[-1,:], linestyle=s, color=c, linewidth=w, alpha=a)
     ax.text(x[-1,-1]-1,y[-1,-1]-.5, t, fontweight='bold', color=c,
         horizontalalignment='right', verticalalignment='top')
-        
-plt.close('all')
-fig = plt.figure(figsize=(12,7))
 
 ax = plt.subplot2grid((1,3), (0,0), colspan=2)
-draw_box(ax, lon, lat, c='b', t='ROMS')
+draw_box(ax, lon, lat, c='b', t='LiveOcean')
 draw_box(ax, lon2, lat2, c='g', t=('WRF d2\n(%0.1f km)' % (dx2_km)))
 draw_box(ax, lon3, lat3, c='orange', t=('WRF d3\n(%0.1f km)' % (dx3_km)))
 draw_box(ax, lon4, lat4, c='r', t=('WRF d4\n(%0.1f km)' % (dx4_km)))
-ax.set_title('Grid extents')
+ax.set_title('(a) Grid extents')
 pfun.dar(ax)
-pfun.add_coast(ax)
+pfun.add_coast(ax, color='gray')
+ax.set_xlabel('Longitude')
+ax.set_ylabel('Latitude')
+ax.set_yticks([40, 45, 50])
 
 ax = plt.subplot2grid((1,3), (0,2), colspan=1)
 al=.5
-ax.plot(lon, lat, 'ob', markersize=1, alpha=al)
+ax.plot(lon, lat, 'ob', markersize=2, alpha=al)
 ax.plot(lon2, lat2, 'sg', markersize=20, alpha=al)
 ax.plot(lon3, lat3, linestyle='', marker='o', color='orange', markersize=10, alpha=al)
 ax.plot(lon4, lat4, '*r', markersize=5, alpha=al)
 ax.axis([-123, -122.7, 47.55, 47.9])
-ax.set_title('Close up of grid spacing')
+ax.set_title('(b) Close up of grid spacing')
 pfun.dar(ax)
 pfun.add_coast(ax)
-
+ax.set_xlabel('Longitude')
+#ax.set_ylabel('Latitude')
+ax.set_xticks([-122.9, -122.7])
+ax.set_yticks([47.6, 47.7, 47.8, 47.9])
+fig.tight_layout()
 plt.show()
+plt.rcdefaults()
