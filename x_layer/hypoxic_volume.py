@@ -131,7 +131,6 @@ for fn in fn_list:
     for vn in vn_list_3d_t_custom:
         if vn == 'hyp_dz':
             oxy = ds['oxygen'][0,:,:,:]
-            hyp_mask = oxy <= 60
             dzrm = np.ma.masked_where(oxy > 60, dzr)
             hyp_dz = dzrm.sum(axis=0)
             ds2[vn][tt,:,:] = hyp_dz
@@ -162,6 +161,7 @@ if args.testing:
     ax.set_title('Hypoxic Depth Fraction')
     ax.set_xlabel('Longitude')
     ax.set_ylabel('Latitude')
+    ax.set_xticks([-130, -128, -126, -124, -122])
     plt.show()
     plt.rcdefaults()
     

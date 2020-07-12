@@ -9,11 +9,8 @@ import numpy as np
 import matplotlib.dates as mdates
 from datetime import datetime
 
-import os
-import sys
-alp = os.path.abspath('../alpha')
-if alp not in sys.path:
-    sys.path.append(alp)
+import os, sys
+sys.path.append(os.path.abspath('../alpha'))
 import Lfun
 import zfun
 
