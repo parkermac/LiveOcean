@@ -1,63 +1,53 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
-Created on Mon Jul 10 11:06:02 2017
-
-@author: PM5
-
 Code to test, graphically, the results of the new make_forcing_main.py
 which writes only selected surface fields to NetCDF and Azure.
 
 """
 
 # setup
-import os
-import sys
-alp = os.path.abspath('../../alpha')
-if alp not in sys.path:
-    sys.path.append(alp)
+import os, sys
+sys.path.append(os.path.abspath('../../alpha'))
 import Lfun
-from datetime import datetime, timedelta
 import netCDF4 as nc
-
-plp = os.path.abspath('../../plotting')
-if plp not in sys.path:
-    sys.path.append(plp)
+sys.path.append(os.path.abspath('../../plotting'))
 import pfun
-
 import matplotlib.pyplot as plt
 
-Ldir = Lfun.Lstart('cas4', 'v2')
-Ldir['gtagex'] = Ldir['gtag'] + '_lo6biom'
-f_string = 'f2018.11.03'
+Ldir = Lfun.Lstart('cas6', 'v3')
+Ldir['gtagex'] = Ldir['gtag'] + '_lo8b'
+f_string = 'f2019.07.04'
 in_dir = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/' + f_string + '/'
-out_name = 'ocean_surface.nc'
-out_fn = in_dir + out_name
 
-ds = nc.Dataset(out_fn)
+# Note: the file name and variable list should relate to those in make_forcing_main.py.
+if False:
+    in_name = 'ocean_surface.nc'
+    vn_list = ['Uwind', 'Vwind','salt', 'temp','u','v']
+else:
+    in_name = 'ocean_layers.nc'
+    testing = False
+    if testing:
+        tag_list = ['surface','bottom','10']
+        vn_list = ['oxygen_'+tag for tag in tag_list]
+    else:
+        tag_list = ['surface','bottom','10','20']
+        vn_list = ['oxygen_'+tag for tag in tag_list] + ['temp_'+tag for tag in tag_list]
+        
 
+# PLOTTING
+ds = nc.Dataset(in_dir + in_name)
 ot = ds['ocean_time'][:]
-otu = ds['ocean_time'].units
-
-vn_list2 = [ 'lon_rho', 'lat_rho', 'lon_psi', 'lat_psi', 'mask_rho', 'h']
-vn_list2t = ['Uwind', 'Vwind', 'zeta']
-vn_list3t = ['salt', 'temp', 'NO3', 'phytoplankton',
-           'zooplankton', 'oxygen', 'TIC', 'alkalinity', 'PH', 'ARAG']
-
-G = dict()
-for vn in vn_list2:
-    G[vn] = ds[vn][:]
-    
-# plotting
-
+lon = ds['lon_psi'][:]
+lat = ds['lat_psi'][:]
 plt.close('all')
-    
-for vn in vn_list2t + vn_list3t + ['u', 'v']:
-    fig = plt.figure(figsize=(12,8))
+fs=14
+plt.rc('font', size=fs)
+for vn in vn_list:
+    # make one plot for each variable, with two panels: start and end time
+    fig = plt.figure(figsize=(16,10))
     nplot = 1
     for tlev in [0, -1]:
         ax = fig.add_subplot(1,2,nplot)
-        cs = ax.pcolormesh(G['lon_psi'], G['lat_psi'], ds[vn][tlev, 1:-1, 1:-1],
+        cs = ax.pcolormesh(lon, lat, ds[vn][tlev, 1:-1, 1:-1],
                            cmap='rainbow')
         try:
             tun = ds[vn].units
@@ -68,14 +58,13 @@ for vn in vn_list2t + vn_list3t + ['u', 'v']:
         pfun.dar(ax)
         pfun.add_coast(ax)
         ax.axis(pfun.get_aa(ds))
-        t = ot[tlev]
-        fs = 12
-        dt = datetime(1970,1,1,0,0,0) + timedelta(days=t/86400)
-        ax.text(.95, .075, dt.strftime('%Y-%m-%d'),
-            horizontalalignment='right' , verticalalignment='bottom',
-            transform=ax.transAxes, fontsize=fs)
-        ax.text(.95, .065, dt.strftime('%H:%M') + ' UTC',
-            horizontalalignment='right', verticalalignment='top',
-            transform=ax.transAxes, fontsize=fs)
+        dt = Lfun.modtime_to_datetime(ot[tlev])
+        ax.text(.98, .075, dt.strftime('%Y-%m-%d'),
+            ha='right' , va='bottom', transform=ax.transAxes)
+        ax.text(.98, .065, dt.strftime('%H:%M') + ' UTC',
+            ha='right', va='top', transform=ax.transAxes)
         nplot += 1
 plt.show()
+plt.rcdefaults()
+
+ds.close()

@@ -24,9 +24,9 @@ def intro():
     import Lfun
 
     # set defaults
-    gridname = 'cas4'
-    tag = 'v2'
-    ex_name = 'lo6biom'
+    gridname = 'cas6'
+    tag = 'v3'
+    ex_name = 'lo8b'
     start_type = 'continuation'  # new or continuation
     run_type = 'backfill'  # backfill or forecast
     date_string = datetime.now().strftime(format='%Y.%m.%d') # e.g. 2019.03.21
