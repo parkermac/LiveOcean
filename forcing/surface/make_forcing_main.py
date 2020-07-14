@@ -91,6 +91,7 @@ in_ds.close()
 # ======================================================================
 
 # ======== Create an output file for SCOOT =============================
+# performance: took about 3 minutes for a three-day forecast with 12 hour steps
 testing = False
 
 fn_list_raw = os.listdir(in_dir)

@@ -30,7 +30,7 @@ container_name = ff_string
 in_dir = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/' + f_string + '/'
 
 # files to copy to azure
-file_list = ['ocean_surface.nc', 'low_passed_UBC.nc']
+file_list = ['ocean_surface.nc', 'ocean_layers.nc', 'low_passed_UBC.nc']
 
 result = 'success'
 for output_filename in file_list:
