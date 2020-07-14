@@ -37,9 +37,11 @@ start_time = datetime.now()
 print(' - Creating surface file(s) for ' + Ldir['date_string'])
 f_string = 'f' + Ldir['date_string']
 
-# Create input file list
+# Create out_dir
 in_dir = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/' + f_string + '/'
 out_dir = in_dir # output goes to same place as input
+
+# ======== Create an output file for EDS ===============================
 fn_list_raw = os.listdir(in_dir)
 fn_list = []
 for item in fn_list_raw:
@@ -52,7 +54,6 @@ fn_list = fn_list[::2]
 # Initialize the multi-file input dataset
 in_ds = nc.MFDataset(fn_list)
 
-# ======== Create an output file for EDS ===============================
 # Initialize
 out_fn = out_dir + 'ocean_surface.nc'
 print(' - Writing to: ' + out_fn)
@@ -85,10 +86,24 @@ vv.time = 'ocean_time'
 vv[:] = v
 # Close output Dataset
 out_ds.close()
+# Close multi-file input Dataset
+in_ds.close()
 # ======================================================================
 
 # ======== Create an output file for SCOOT =============================
 testing = False
+
+fn_list_raw = os.listdir(in_dir)
+fn_list = []
+for item in fn_list_raw:
+    if 'ocean_his' in item and '.nc' in item:
+        fn_list.append(in_dir + item)
+fn_list.sort()
+# shorten the list to be every 12 hours
+fn_list = fn_list[::12]
+
+# Initialize the multi-file input dataset
+in_ds = nc.MFDataset(fn_list)
 
 # Initialize
 out_fn = out_dir + 'ocean_layers.nc'
@@ -161,10 +176,11 @@ sys.stdout.flush()
 #
 # Close output Dataset
 out_ds.close()
-# ======================================================================
 
 # Close multi-file input Dataset
 in_ds.close()
+# ======================================================================
+
 
 #%% prepare for finale
 import collections
