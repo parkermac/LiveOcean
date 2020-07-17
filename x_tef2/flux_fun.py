@@ -12,45 +12,114 @@ from warnings import filterwarnings
 filterwarnings('ignore') # skip some warning messages
 # associated with lines like QQp[QQ<=0] = np.nan
 
-def get_fluxes(indir, sect_name, in_sign=1):
-    # form time series of net 2-layer transports into (+) and out of (-) the volume
+def get_fluxes(indir, sect_name):
+    # Form time series of 2-layer TEF quantities, from the multi-layer bulk values.
+    # - convert transports to 1000 m3/s
+    # - include transports for the no-tidal-pumping version
+    # - adjust sign convention so that Qs is positive for the saltier layer
+    # - rename TEF quantities as Qs, Qf, Ss, Sf (salty and fresh)
+    
     bulk = pickle.load(open(indir + 'bulk/' + sect_name + '.p', 'rb'))
     QQ = bulk['QQ']
+    VV = bulk['VV']
+    AA = bulk['AA']
     SS = bulk['SS']
     ot = bulk['ot']
-    dt2 = []
+    dt = []
     for tt in ot:
-        dt2.append(Lfun.modtime_to_datetime(tt))
-    # separate inflowing and outflowing transports
+        dt.append(Lfun.modtime_to_datetime(tt))
+        
+    # separate positive and negative transports
     QQp = QQ.copy()
     QQp[QQ<=0] = np.nan
     QQm = QQ.copy()
     QQm[QQ>=0] = np.nan
-    # form two-layer versions of Q and S
-    if in_sign == 1:
-        Qin = np.nansum(QQp, axis=1)
-        QSin = np.nansum(QQp*SS, axis=1)
-        Qout = np.nansum(QQm, axis=1)
-        QSout = np.nansum(QQm*SS, axis=1)
-    elif in_sign == -1:
-        Qin = -np.nansum(QQm, axis=1)
-        QSin = -np.nansum(QQm*SS, axis=1)
-        Qout = -np.nansum(QQp, axis=1)
-        QSout = -np.nansum(QQp*SS, axis=1)
-    Sin = QSin/Qin
-    Sout = QSout/Qout
-    fnet = bulk['fnet_lp'] # net tidal energy flux
-    qabs = bulk['qabs_lp'] # low pass of absolute value of net transport
-    tef_df = pd.DataFrame(index=dt2)
+    
+    VVp = VV.copy()
+    VVp[QQ<=0] = np.nan
+    VVm = VV.copy()
+    VVm[QQ>=0] = np.nan
+
+    AAp = AA.copy()
+    AAp[QQ<=0] = np.nan
+    AAm = AA.copy()
+    AAm[QQ>=0] = np.nan
+    
+    # full transports
+    QQm = QQm/1000
+    QQp = QQp/1000
+    
+    # transports without tidal pumping
+    QQp_alt = VVp * AAp /1000
+    QQm_alt = VVm * AAm /1000
+    
+    # form two-layer versions
+    Qp = np.nansum(QQp, axis=1)
+    QSp = np.nansum(QQp*SS, axis=1)
+    Qm = np.nansum(QQm, axis=1)
+    QSm = np.nansum(QQm*SS, axis=1)
+    Qp_alt = np.nansum(QQp_alt, axis=1)
+    Qm_alt = np.nansum(QQm_alt, axis=1)
+    
+    # TEF salinities
+    Sp = QSp/Qp
+    Sm = QSm/Qm
+    
+    # adjust sign convention so that positive flow is salty
+    SP = np.nanmean(Sp)
+    SM = np.nanmean(Sm)
+    if SP > SM:
+        
+        # initial positive was inflow
+        Sin = Sp
+        Sout = Sm
+        Qin = Qp
+        Qout = Qm
+        Qin_alt = Qp_alt
+        Qout_alt = Qm_alt
+        in_sign = 1
+        
+        QQin = QQp
+        QQout = QQm
+        QQin_alt = QQp_alt
+        QQout_alt = QQm_alt
+        
+    elif SM > SP:
+        # initial postive was outflow
+        Sin = Sm
+        Sout = Sp
+        Qin = -Qm
+        Qout = -Qp
+        Qin_alt = -Qm_alt
+        Qout_alt = -Qp_alt
+        in_sign = -1
+        
+        QQin = -QQm
+        QQout = -QQp
+        QQin_alt = -QQm_alt
+        QQout_alt = -QQp_alt
+    else:
+        print('ambiguous sign!!')
+        
+    print('%s SP=%0.1f SM = %0.1f' % (sect_name, SP, SM))
+    import sys
+    sys.stdout.flush()
+        
+        
+    fnet = in_sign * bulk['fnet_lp']/1e6 # net tidal energy flux [MWW]
+    qabs = bulk['qabs_lp']/1000 # low pass of absolute value of net transport [1000 m3/s]
+    
+    tef_df = pd.DataFrame(index=dt)
     tef_df['Qin']=Qin
     tef_df['Qout']=Qout
-    tef_df['QSin']=QSin
-    tef_df['QSout']=QSout
+    tef_df['Qin_alt']=Qin_alt
+    tef_df['Qout_alt']=Qout_alt
     tef_df['Sin']=Sin
     tef_df['Sout']=Sout
-    tef_df['Ftide'] = fnet * in_sign
+    tef_df['Ftide'] = fnet
     tef_df['Qtide'] = qabs
-    return tef_df
+    
+    return tef_df, in_sign, dt, QQin, QQout, SS, QQin_alt, QQout_alt
     
 def get_budgets(sv_lp_df, v_lp_df, riv_df, tef_df_dict, seg_list):
     # volume budget
