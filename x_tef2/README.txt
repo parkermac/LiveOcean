@@ -26,11 +26,15 @@ NOTE: all code below is in this directory: LiveOcean/x_tef2/
 
 Input: ROMS history files over some date range
 
-Output: LiveOcean_output/tef/[*]/extractions/[sect name].nc
+Output: LiveOcean_output/tef2/[*]/extractions/[sect name].nc
 where [*] = cas6_v3_lo8b_2017.01.01_2017.12.31 e.g.
 Variables: ocean_time, salt, q, z0, DA0, lon, lat, h, zeta
 	salt is hourly salinity in each cell (t, z, y-or-x)
+        - and any other varibles like temp, oxygen, or NO3
 	q is hourly transport in each cell (t, z, y-or-x)
+    vel is velocity in each cell (t, z, y-or-x) positive to East or North
+    DA is the area of each cell (t, z, y-or-x)
+        - hence: q = vel * DA
 	z0 is the average depth of cell centers (assumes SSH=0)
 	DA0 is the average cross-sectional area of each cell (assumes SSH=0),
 		hence q/DA0 is the "transport velocity" in a cell
@@ -43,26 +47,31 @@ NOTE: the sign conventions are defined by the sign of the column "landward" in s
 
 * process_sections.py organizes all the transports at each time into salinity bins.
 
-Input: LiveOcean_output/tef/[*]/extractions/[sect name].nc
+Input: LiveOcean_output/tef2/[*]/extractions/[sect name].nc
 
 Output: LiveOcean_output/tef/[*]/processed/[sect name].p
-a pickled dict with keys: ['tef_q', 'tef_qs', 'sbins', 'ot', 'qnet', 'fnet', 'ssh']
-I think these are defined as:
+a pickled dict with keys: ['tef_q','tef_vel','tef_da', 'tef_qs', 'sbins', 'ot', 'qnet', 'fnet', 'ssh']
+These are defined as:
 	tef_q transport in salinity bins, hourly, (m3/s)
+	tef_vel velocity in salinity bins, hourly, (m/s)
+	tef_da area in salinity bins, hourly, (m2)
 	tef_qs salt transport in salinity bins, hourly, (m3/s)
 	sbins the salinity bin centers
 	ot ocean time (sec from 1/1/1970)
 	qnet section integrated transport (m3/s)
 	fnet section integrated tidal energy flux (Watts)
 	ssh section averaged ssh (m)
+Packed in order (time, salinity bin).
+
+Note, by create tef_vel as the flux-weighted velocity: tef_vel=tef_q/tef_da.
 	
 ------------------------------------------------------------------
 
 * bulk_calc.py does the TEF bulk calculations, using the algorithm of Marvin Lorenz, allowing for multiple in- and outflowing layers
 
-Input: LiveOcean_output/tef/[*]/processed/[sect name].p
+Input: LiveOcean_output/tef2/[*]/processed/[sect name].p
 
-Output: LiveOcean_output/tef/[*]/bulk/[sect name].p
+Output: LiveOcean_output/tef2/[*]/bulk/[sect name].p
 These are pickled dicts with keys: ['QQ', 'SS', 'ot', 'qnet_lp', 'fnet_lp', 'ssh_lp']
 where ot is a time vector (seconds since 1/1/1970 as usual), and QQ is a matrix of shape (362, 30) meaning that it is one per day, at Noon, after tidal-averaging, with nan-days on the ends cut off.  The 30 is the number of "bulk" bins, so many might be filled with nan's.
 
@@ -72,17 +81,17 @@ See also: test_bulk_calc.py, debugging code
 
 * bulk_plot.py plots the results of bulk_calc.py, either as a single plot to the screen, or multiple plots to png's.
 
-Input: LiveOcean_output/tef/[*]/bulk/[sect name].p
+Input: LiveOcean_output/tef2/[*]/bulk/[sect name].p
 
-Output: LiveOcean_output/tef/[*]/bulk_plots/[sect name].p
+Output: LiveOcean_output/tef2/[*]/bulk_plots/[sect name].p
 
 ................................................
 
 * bulk_plot_clean.py is similar but the plots just have S and Q vs time, simpler for the first paper.  You need to edit the code to run for other years.
 
-Input: LiveOcean_output/tef/[*]/bulk/[sect name].p
+Input: LiveOcean_output/tef2/[*]/bulk/[sect name].p
 
-Output: LiveOcean_output/tef/[*]/bulk_plots_clean/[sect name].p
+Output: LiveOcean_output/tef2/[*]/bulk_plots_clean/[sect name].p
 
 For 2017 note this screen output:
 	Warning: sign logic breakdown! sog3

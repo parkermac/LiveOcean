@@ -349,6 +349,13 @@ def get_irc(ii, NC):
     ir = int(np.floor(ii/NC))
     ic = int(ii - NC*ir)
     return ir, ic
+    
+def fillit(a):
+    # ensures a is an array with nan's for masked values
+    # instead of a masked array
+    if isinstance(a, np.ma.MaskedArray):
+        a = a.filled(np.nan)
+    return a
 
 
 
