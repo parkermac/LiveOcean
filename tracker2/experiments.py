@@ -14,7 +14,7 @@ def get_exp_info(exp_name):
         gridname = 'cas6'; tag = 'v3'; ex_name = 'lo8b'
         ic_name = 'jdf0'
         
-    if exp_name == 'fast1':
+    elif exp_name == 'fast1':
         # working on tracker_2
         gridname = 'cas6'; tag = 'v3'; ex_name = 'lo8b'
         ic_name = 'tn0'
@@ -28,6 +28,11 @@ def get_exp_info(exp_name):
         # test of particle trapping in rivers
         gridname = 'cas6'; tag = 'v3'; ex_name = 'lo8b'
         ic_name = 'skok'
+        
+    elif exp_name == 'ai0':
+        # test of particle trapping in rivers
+        gridname = 'cas6'; tag = 'v3'; ex_name = 'lo8b'
+        ic_name = 'sea'
             
     EI['gridname'] = gridname
     EI['tag'] = tag
@@ -90,6 +95,60 @@ def get_ic(ic_name, fn00):
         hh_vec = np.array([])
         
         seg_list = ['H3','H4','H5','H6','H7','H8']
+        for seg_name in seg_list:
+            ji_seg = ji_dict[seg_name]
+            for ji in ji_seg:
+                plon_vec = np.append(plon_vec, xp[ji])
+                plat_vec = np.append(plat_vec, yp[ji])
+                hh_vec = np.append(hh_vec, h[ji])
+                    
+        plon00 = np.array([]); plat00 = np.array([]); pcs00 = np.array([])
+    
+        for ii in range(len(plon_vec)):
+            x = plon_vec[ii]
+            y = plat_vec[ii]
+            h10 = 10*np.floor(hh_vec[ii]/10) # depth to closest 10 m (above the bottom)
+            if h10 >= 10:
+                zvec = np.arange(-h10,5,10) # a vector that goes from -h10 to 0 in steps of 10 m
+                svec = zvec/hh_vec[ii]
+                ns = len(svec)
+                if ns > 0:
+                    plon00 = np.append(plon00, x*np.ones(ns))
+                    plat00 = np.append(plat00, y*np.ones(ns))
+                    pcs00 = np.append(pcs00, svec)
+                    
+        # trim the length of the I.C. vectors to a limited number
+        NP = len(plon00)
+        npmax = 10000
+        nstep = max(1,int(NP/npmax))
+        plon00 = plon00[::nstep]
+        plat00 = plat00[::nstep]
+        pcs00 = pcs00[::nstep]
+        
+    elif ic_name == 'sea': # mouth of AI using TEF "segments"
+        # NOTE: this one requires information about grid indices in certain regions of
+        # the Salish Sea, and is very specific to the analysis in x_tef.
+        # Not for general use.
+        import pickle
+        # select the indir
+        import Lfun
+        Ldir = Lfun.Lstart()
+        indir0 = Ldir['LOo'] + 'tef/'
+        indir = indir0 + 'volumes_cas6/'
+        # load data
+        ji_dict = pickle.load(open(indir + 'ji_dict.p', 'rb'))
+
+        import zrfun
+        G = zrfun.get_basic_info(fn00, only_G=True)
+        h = G['h']
+        xp = G['lon_rho']
+        yp = G['lat_rho']
+        
+        plon_vec = np.array([])
+        plat_vec = np.array([])
+        hh_vec = np.array([])
+        
+        seg_list = ['J4']
         for seg_name in seg_list:
             ji_seg = ji_dict[seg_name]
             for ji in ji_seg:
