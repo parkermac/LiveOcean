@@ -75,29 +75,13 @@ Output: LiveOcean_output/tef2/[*]/bulk/[sect name].p
 These are pickled dicts with keys: ['QQ', 'SS', 'ot', 'qnet_lp', 'fnet_lp', 'ssh_lp']
 where ot is a time vector (seconds since 1/1/1970 as usual), and QQ is a matrix of shape (362, 30) meaning that it is one per day, at Noon, after tidal-averaging, with nan-days on the ends cut off.  The 30 is the number of "bulk" bins, so many might be filled with nan's.
 
-See also: test_bulk_calc.py, debugging code
-
 ------------------------------------------------------------------
 
-* bulk_plot.py plots the results of bulk_calc.py, either as a single plot to the screen, or multiple plots to png's.
-
-Input: LiveOcean_output/tef2/[*]/bulk/[sect name].p
-
-Output: LiveOcean_output/tef2/[*]/bulk_plots/[sect name].p
-
-................................................
-
-* bulk_plot_clean.py is similar but the plots just have S and Q vs time, simpler for the first paper.  You need to edit the code to run for other years.
+* bulk_plot_clean.py plots the results of bulk_calc.py, either as a single plot to the screen, or multiple plots to png's.  You need to edit the code to run for other years.
 
 Input: LiveOcean_output/tef2/[*]/bulk/[sect name].p
 
 Output: LiveOcean_output/tef2/[*]/bulk_plots_clean/[sect name].p
-
-For 2017 note this screen output:
-	Warning: sign logic breakdown! sog3
-	Warning: sign logic breakdown! sog4
-	Warning: sign logic breakdown! sog5
-	Warning: sign logic breakdown! hc7
 
 ------------------------------------------------------------------
 
