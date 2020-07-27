@@ -496,6 +496,7 @@ def P_basic_salish(in_dict):
             pfun.add_info(ax, in_dict['fn'], fs=fs)
             pfun.add_windstress_flower(ax, ds, t_scl=.6,
                 t_leglen=0.1, center=(.25, .3))
+            pfun.add_bathy_contours(ax, ds, depth_levs = [50, 100])
         elif ii == 2:
             pfun.add_velocity_vectors(ax, ds, in_dict['fn'],
                 v_scl=30, v_leglen=2, nngrid=80, center=(.1, .1))
