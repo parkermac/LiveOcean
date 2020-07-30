@@ -21,10 +21,15 @@ import zfun
 import tef_fun
 import flux_fun
 
+vftag = '' # use to switch between different volume partition fractions
+# '_10' = 10/90
+# '' = 20/80 original
+# '_30' = 30/70
+
 # Input directory
 indir0 = Ldir['LOo'] + 'tef/'
 outdir = indir0 + 'misc_figs_cas6/'
-indir = indir0 + 'flux_engine/' + Ldir['gtagex'] + '/'
+indir = indir0 + 'flux_engine/' + Ldir['gtagex'] + vftag + '/'
 voldir = indir0 + 'volumes_' + Ldir['gridname'] + '/'
 
 # load a Series of the volumes of each segment, created by flux_get_vol.py
@@ -174,10 +179,10 @@ for season in season_list:
     ii += 1
 
 fig.tight_layout()
-fig.savefig(outdir + 'all_residence_times.png')
+fig.savefig(outdir + 'all_residence_times' + vftag + '.png')
 plt.show()
 plt.rcdefaults()
 
 # also save the DataFrame of residence times
-tres_df.to_pickle(outdir + 'tres_df.p')
+tres_df.to_pickle(outdir + 'tres_df' + vftag + '.p')
 
