@@ -97,28 +97,63 @@ for infile in ic_list:
     
     # also load the A matrix to allow us to calculate the "unrefluxed"
     # residence time
-    q_df = pd.read_pickle(Ldir['LOo'] + 'tef/' +
-        Ldir['gtagex'] + '_' + year + '.01.01_' + year + '.12.31/' +
-        'flux/q_df_' + season + '.p')
-    if basin == 'HoodCanalInner':
-        qin = q_df.loc['H3_s','H2_s']
-    elif basin == 'HoodCanal':
-        qin = q_df.loc['H1_s','A3_s']
-    elif basin == 'SouthSound':
-        qin = q_df.loc['S1_s','T2_s']
-    elif basin == 'PS':
-        qin = q_df.loc['A1_s','J4_s'] + q_df.loc['W4_s','J4_s']
-    elif basin == 'Whidbey':
-        qin = q_df.loc['W1_s','M1_s'] + q_df.loc['W4_s','J4_s']
-    elif basin == 'Salish':
-        qin = q_df.loc['J1_s','ocean_s'] + q_df.loc['G6_s','ocean_s']
-    elif basin == 'SoG':
-        qin = q_df.loc['G1_s','J4_s'] + q_df.loc['G6_s','ocean_s']
+    if False:
+        # using Qin
+        q_df = pd.read_pickle(Ldir['LOo'] + 'tef/' +
+            Ldir['gtagex'] + '_' + year + '.01.01_' + year + '.12.31/' +
+            'flux/q_df_' + season + '.p')
+        if basin == 'HoodCanalInner':
+            qin = q_df.loc['H3_s','H2_s']
+        elif basin == 'HoodCanal':
+            qin = q_df.loc['H1_s','A3_s']
+        elif basin == 'SouthSound':
+            qin = q_df.loc['S1_s','T2_s']
+        elif basin == 'PS':
+            qin = q_df.loc['A1_s','J4_s'] + q_df.loc['W4_s','J4_s']
+        elif basin == 'Whidbey':
+            qin = q_df.loc['W1_s','M1_s'] + q_df.loc['W4_s','J4_s']
+        elif basin == 'Salish':
+            qin = q_df.loc['J1_s','ocean_s'] + q_df.loc['G6_s','ocean_s']
+        elif basin == 'SoG':
+            qin = q_df.loc['G1_s','J4_s'] + q_df.loc['G6_s','ocean_s']
+        else:
+            print(basin)
+            print('unsupported qin')
+            print('')
+        tres0 = (net_V/qin)/86400
     else:
-        print(basin)
-        print('unsupported qin')
-        print('')
-    tres0 = (net_V/qin)/86400
+        # using Qout (better because it includes rivers)
+        # and doing it from the two-layer results:
+        q_df = pd.read_pickle(Ldir['LOo'] + 'tef/' +
+            Ldir['gtagex'] + '_' + year + '.01.01_' + year + '.12.31/' +
+            'flux/two_layer_' + season + '.p')
+        """
+        Output: LiveOcean_output/tef/[*]/flux/two_layer_[season].p which is
+            a pickled DataFrame whose index is the section names, and whose columns are:
+            ['q_s', 'q_f', 'f_s', 'f_f', 's_s', 's_f', 'lon', 'lat'].
+            Here _s and _f indicate that the layer is salty or fresh.
+            Also we have organized all the fluxes to be positive Eastward or Northward.
+        """
+        if basin == 'HoodCanalInner':
+            qout = q_df.loc['hc3','q_f']
+        elif basin == 'HoodCanal':
+            qout = q_df.loc['hc1','q_f']
+        elif basin == 'SouthSound':
+            qout = q_df.loc['tn1','q_f']
+        elif basin == 'PS':
+            qout = -q_df.loc['ai1','q_f'] - q_df.loc['dp','q_f']
+        elif basin == 'Whidbey':
+            qout = -q_df.loc['wb1','q_f'] - q_df.loc['dp','q_f']
+        elif basin == 'Salish':
+            qout = -q_df.loc['jdf1','q_f'] + q_df.loc['sog5','q_f']
+        elif basin == 'SoG':
+            qout = -q_df.loc['sji1','q_f'] + q_df.loc['sog5','q_f']
+        else:
+            print(basin)
+            print('unsupported qout')
+            print('')
+        tres0 = (net_V/qout)/86400
+        
     
     # store results
     
