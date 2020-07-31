@@ -66,5 +66,5 @@ dsdt_alt = zfun.fillit(dsdt_alt)
 
 err = dsdt_alt - dsdt
 
-print('Error = %g out of %g' % (err.std(), dsdt.std()))
+print('Error = %g out of %g' % (np.abs(err).mean(), np.abs(dsdt).mean()))
 
