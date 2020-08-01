@@ -30,6 +30,10 @@ ilist_raw.sort()
 ilist = [item for item in ilist_raw if 'S_' in item]
 ilist = [item for item in ilist if 'AGE' in item]
 
+testing = True
+if testing:
+    ilist = ['S_All_2017_full_AGE.p']
+    
 for infile in ilist:
     
     print(infile)
@@ -94,6 +98,8 @@ for infile in ilist:
     
     if 'S_Ocean' in infile:
         ax1.set_ylim(75,102)
+    elif 'S_All_' in infile:
+        ax1.set_ylim(75,125)
     else:
         ax1.set_ylim(0,35)
     ax2.set_ylim(0, 800)
@@ -123,8 +129,9 @@ for infile in ilist:
     ttext = infile.replace('S_','').replace('.p','').replace('AGE','').replace('_',' ')
     ax1.text(.05,.85,'Source: ' + ttext, size=.8*fs, style='italic', transform=ax1.transAxes)
 
-    #plt.show()
-    
-    plt.savefig(outdir + infile.replace('.p','').replace('_AGE','') + '.png')
+    if testing:
+        plt.show()
+    else:
+        plt.savefig(outdir + infile.replace('.p','').replace('_AGE','') + '.png')
 
 

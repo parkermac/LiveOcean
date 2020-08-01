@@ -36,7 +36,7 @@ voldir = indir0 + 'volumes_' + Ldir['gridname'] + '/'
 v_df = pd.read_pickle(voldir + 'volumes.p')
 V = flux_fun.get_V(v_df)
 
-ic_list = [item for item in os.listdir(indir) if item[:3]=='IC_']
+ic_list = [item for item in os.listdir(indir) if (item[:3]=='IC_') and ('0.p' not in item) and ('full' not in item)]
 ic_list.sort()
 
 basin_list = ['Salish', 'SoG', 'PS', 'Whidbey', 'HoodCanal', 'HoodCanalInner', 'SouthSound']
@@ -61,7 +61,7 @@ year_list = ['2017','2018','2019']
 year_xlist = [-.25, 0, .25]
 year_xdict = dict(zip(year_list, year_xlist))
 
-tres_df = pd.DataFrame(0, index = exp_list,columns=['basin','year', 'season', 'tres', 'tres0','x'])
+tres_df = pd.DataFrame(0, index = exp_list,columns=['basin','year', 'season', 'tres', 'tres0','tres00','x'])
         # tres0 is the residence time without reflux
 
 for infile in ic_list:
@@ -75,19 +75,24 @@ for infile in ic_list:
     seg2_list = flux_fun.ic_seg2_dict[source]
         
     aa = pd.read_pickle(indir + infile)
+    aa0 = pd.read_pickle(indir + infile.replace('.p','0.p'))
     
     this_aa = aa.loc[:,seg2_list]
+    this_aa0 = aa0.loc[:,seg2_list]
     this_V = V[seg2_list]
     net_V = this_V.sum()
 
     this_net_aa = this_aa.copy()
+    this_net_aa0 = this_aa0.copy()
 
     for sn in this_V.index:
         VV = this_V[sn]
         this_net_aa.loc[:,sn] = this_net_aa.loc[:,sn] * VV
+        this_net_aa0.loc[:,sn] = this_net_aa0.loc[:,sn] * VV
     
     # make a Series of mean concentration in the volume
     mean_c = this_net_aa.sum(axis=1) / net_V
+    mean_c0 = this_net_aa0.sum(axis=1) / net_V
     
     # find e-folding time
     td = mean_c.index.to_numpy()
@@ -95,70 +100,50 @@ for infile in ic_list:
     ind_ef = np.argwhere(mc < 1/np.e)[0]
     tres = td[ind_ef] # residence time in days
     
-    # also load the A matrix to allow us to calculate the "unrefluxed"
-    # residence time
-    if False:
-        # using Qin
-        q_df = pd.read_pickle(Ldir['LOo'] + 'tef/' +
-            Ldir['gtagex'] + '_' + year + '.01.01_' + year + '.12.31/' +
-            'flux/q_df_' + season + '.p')
-        if basin == 'HoodCanalInner':
-            qin = q_df.loc['H3_s','H2_s']
-        elif basin == 'HoodCanal':
-            qin = q_df.loc['H1_s','A3_s']
-        elif basin == 'SouthSound':
-            qin = q_df.loc['S1_s','T2_s']
-        elif basin == 'PS':
-            qin = q_df.loc['A1_s','J4_s'] + q_df.loc['W4_s','J4_s']
-        elif basin == 'Whidbey':
-            qin = q_df.loc['W1_s','M1_s'] + q_df.loc['W4_s','J4_s']
-        elif basin == 'Salish':
-            qin = q_df.loc['J1_s','ocean_s'] + q_df.loc['G6_s','ocean_s']
-        elif basin == 'SoG':
-            qin = q_df.loc['G1_s','J4_s'] + q_df.loc['G6_s','ocean_s']
-        else:
-            print(basin)
-            print('unsupported qin')
-            print('')
-        tres0 = (net_V/qin)/86400
+    # find e-folding time of no-reflux case
+    td0 = mean_c0.index.to_numpy()
+    mc0 = mean_c0.to_numpy()
+    ind_ef0 = np.argwhere(mc0 < 1/np.e)[0]
+    tres0 = td0[ind_ef0] # residence time in days
+    
+    # also calculate the "unrefluxed" residence time
+    # using Qout (better because it includes rivers)
+    # and doing it from the two-layer results:
+    q_df = pd.read_pickle(Ldir['LOo'] + 'tef/' +
+        Ldir['gtagex'] + '_' + year + '.01.01_' + year + '.12.31/' +
+        'flux/two_layer_' + season + '.p')
+    """
+    Output: LiveOcean_output/tef/[*]/flux/two_layer_[season].p which is
+        a pickled DataFrame whose index is the section names, and whose columns are:
+        ['q_s', 'q_f', 'f_s', 'f_f', 's_s', 's_f', 'lon', 'lat'].
+        Here _s and _f indicate that the layer is salty or fresh.
+        Also we have organized all the fluxes to be positive Eastward or Northward.
+    """
+    if basin == 'HoodCanalInner':
+        qout = q_df.loc['hc3','q_f']
+    elif basin == 'HoodCanal':
+        qout = q_df.loc['hc1','q_f']
+    elif basin == 'SouthSound':
+        qout = q_df.loc['tn1','q_f']
+    elif basin == 'PS':
+        qout = -q_df.loc['ai1','q_f'] - q_df.loc['dp','q_f']
+    elif basin == 'Whidbey':
+        qout = -q_df.loc['wb1','q_f'] - q_df.loc['dp','q_f']
+    elif basin == 'Salish':
+        qout = -q_df.loc['jdf1','q_f'] + q_df.loc['sog5','q_f']
+    elif basin == 'SoG':
+        qout = -q_df.loc['sji1','q_f'] + q_df.loc['sog5','q_f']
     else:
-        # using Qout (better because it includes rivers)
-        # and doing it from the two-layer results:
-        q_df = pd.read_pickle(Ldir['LOo'] + 'tef/' +
-            Ldir['gtagex'] + '_' + year + '.01.01_' + year + '.12.31/' +
-            'flux/two_layer_' + season + '.p')
-        """
-        Output: LiveOcean_output/tef/[*]/flux/two_layer_[season].p which is
-            a pickled DataFrame whose index is the section names, and whose columns are:
-            ['q_s', 'q_f', 'f_s', 'f_f', 's_s', 's_f', 'lon', 'lat'].
-            Here _s and _f indicate that the layer is salty or fresh.
-            Also we have organized all the fluxes to be positive Eastward or Northward.
-        """
-        if basin == 'HoodCanalInner':
-            qout = q_df.loc['hc3','q_f']
-        elif basin == 'HoodCanal':
-            qout = q_df.loc['hc1','q_f']
-        elif basin == 'SouthSound':
-            qout = q_df.loc['tn1','q_f']
-        elif basin == 'PS':
-            qout = -q_df.loc['ai1','q_f'] - q_df.loc['dp','q_f']
-        elif basin == 'Whidbey':
-            qout = -q_df.loc['wb1','q_f'] - q_df.loc['dp','q_f']
-        elif basin == 'Salish':
-            qout = -q_df.loc['jdf1','q_f'] + q_df.loc['sog5','q_f']
-        elif basin == 'SoG':
-            qout = -q_df.loc['sji1','q_f'] + q_df.loc['sog5','q_f']
-        else:
-            print(basin)
-            print('unsupported qout')
-            print('')
-        tres0 = (net_V/qout)/86400
+        print(basin)
+        print('unsupported qout')
+        print('')
+    tres00 = (net_V/qout)/86400
         
     
     # store results
     
     xx = x_dict[basin] + year_xdict[year]
-    tres_df.loc[exp,['basin', 'year','season','tres','tres0','x']] = [basin, year, season, tres, tres0,xx]
+    tres_df.loc[exp,['basin', 'year','season','tres','tres0','tres00','x']] = [basin, year, season, tres, tres0, tres00,xx]
             
     if False:
         print(' %10s: Tres = %0.2f days' % (exp, tres))
@@ -182,10 +167,16 @@ for season in season_list:
     df.plot(x='x', y='tres', ax=ax, marker='o',
         color=season_cdict[season], markersize=24, alpha=.7,
         linestyle='None', legend=False)
+        
+for season in season_list:
+    df = tres_df[tres_df['season']==season]
+    df.plot(x='x', y='tres0', ax=ax, marker='+',
+        color=season_cdict[season], markersize=24, alpha=.7,
+        linestyle='None', legend=False)
 
 for season in season_list:
     df = tres_df[tres_df['season']==season]
-    df.plot(x='x', y='tres0', ax=ax, marker='*',
+    df.plot(x='x', y='tres00', ax=ax, marker='*',
         color=season_cdict[season], markersize=12, alpha=.7,
         linestyle='None', legend=False)
         
@@ -219,5 +210,11 @@ plt.show()
 plt.rcdefaults()
 
 # also save the DataFrame of residence times
+tres_df.pop('x') # column only needed for plotting
 tres_df.to_pickle(outdir + 'tres_df' + vftag + '.p')
+
+# and some helpful screen output
+tres_basin_df = tres_df.groupby('basin').mean()
+tres_basin_df['Reflux Fraction %'] = 100 * (tres_basin_df['tres'] - tres_basin_df['tres0']) / tres_basin_df['tres']
+print(tres_basin_df)
 

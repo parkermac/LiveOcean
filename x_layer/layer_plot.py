@@ -37,7 +37,8 @@ ot = ds['ocean_time'][:]
 
 #v_list = ['u','v', 'bustr', 'bvstr']
 #v_list = ['zeta', 'Pair']
-v_list = ['vave_salt', 'vave_temp', 'vave_rho']
+#v_list = ['vave_salt', 'vave_temp', 'vave_rho']
+v_list = ['salt', 'temp', 'oxygen']
 
 F = dict() # field
 S = dict() # series

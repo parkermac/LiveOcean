@@ -71,25 +71,33 @@ for year in [2017, 2018, 2019]:
             ax.set_xlim(-5,80)
 
         sect_list = flux_fun.channel_dict[ch]
-        seg_list = flux_fun.seg_dict[ch]
+        seg_list = flux_fun.short_seg_dict[ch]
+        #print(seg_list)
                 
         dist = flux_fun.make_dist(v_df.loc[seg_list,'lon'],v_df.loc[seg_list,'lat'])
         
         # make vectors of vertical transport on the segments of this channel
         q_up = np.nan * np.ones(len(seg_list))
         q_down = np.nan * np.ones(len(seg_list))
+        w_up = np.nan * np.ones(len(seg_list))
+        w_down = np.nan * np.ones(len(seg_list))
         seg_counter = 0
         for seg in seg_list:
             q_up[seg_counter] = q_df.loc[seg+'_f',seg+'_s']
             q_down[seg_counter] = q_df.loc[seg+'_s',seg+'_f']
+            w_up[seg_counter] = 86400 *q_df.loc[seg+'_f',seg+'_s'] / v_df.loc[seg,'area m2']
+            w_down[seg_counter] = 86400 * q_df.loc[seg+'_s',seg+'_f'] / v_df.loc[seg,'area m2']
             seg_counter += 1 
     
         # plotting
         upcol = 'lightsalmon'
         dncol = 'mediumslateblue'
-        yld = {1:150, 2:70, 3:10, 4:10}
+        yld = {1:125, 2:25, 3:5, 4:5}
+        #yld = {1:5, 2:50, 3:5, 4:5} # for vertical velocity
         ax.plot(dist, q_up/1e3,'-o', color=upcol, linewidth=lw)
         ax.plot(dist, -q_down/1e3,'-o', color=dncol, linewidth=lw)
+        # ax.plot(dist, w_up,'-o', color=upcol, linewidth=lw)
+        # ax.plot(dist, -w_down,'-o', color=dncol, linewidth=lw)
         for ii in range(len(dist)):
             ax.text(dist[ii], -.6*yld[ax_counter], seg_list[ii],
             ha='center',size=.7*fs, alpha=.5)
