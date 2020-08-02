@@ -6,6 +6,7 @@ Code to test the calculation of ds/dt using the disgnostics, averages and histor
 import netCDF4 as nc
 import numpy as np
 from datetime import datetime, timedelta
+import matplotlib.pyplot as plt
 
 import os, sys
 sys.path.append(os.path.abspath('../alpha'))
@@ -39,22 +40,22 @@ dsa = nc.Dataset(a)
 dsd = nc.Dataset(d)
 
 # get fields (one vertical column)
-s0 = dsh0['salt'][0,:,10,10]
-s1 = dsh1['salt'][0,:,10,10]
-r = dsd['salt_rate'][0,:,10,10]
-s = dsa['salt'][0,:,10,10]
-e0 = dsh0['zeta'][0,10,10]
-e1 = dsh1['zeta'][0,10,10]
-e = dsa['zeta'][0,10,10]
-h = dsh0['h'][10,10]
+s0 = dsh0['salt'][0,:,:,:]
+s1 = dsh1['salt'][0,:,:,:]
+r = dsd['salt_rate'][0,:,:,:]
+s = dsa['salt'][0,:,:,:]
+e0 = dsh0['zeta'][0,:,:]
+e1 = dsh1['zeta'][0,:,:]
+e = dsa['zeta'][0,:,:]
+h = dsh0['h'][:,:]
 
 S = zrfun.get_basic_info(h1, only_S=True)
 zr0, zw0 = zrfun.get_z(h, e0, S)
 zr1, zw1 = zrfun.get_z(h, e1, S)
 zr, zw = zrfun.get_z(h, e, S)
-dz0 = np.diff(zw0)
-dz1 = np.diff(zw1)
-dz = np.diff(zw)
+dz0 = np.diff(zw0, axis=0)
+dz1 = np.diff(zw1, axis=0)
+dz = np.diff(zw, axis=0)
 
 # compute dsdt
 
@@ -66,5 +67,12 @@ dsdt_alt = zfun.fillit(dsdt_alt)
 
 err = dsdt_alt - dsdt
 
-print('Error = %g out of %g' % (np.abs(err).mean(), np.abs(dsdt).mean()))
+print('Error = %g out of %g' % ( np.nanmean(np.abs(err)), np.nanmean(np.abs(dsdt)) ))
+
+plt.close('all')
+fig = plt.figure(figsize=(10,10))
+ax = fig.add_subplot(111)
+cs = ax.pcolormesh(np.nansum(err*dz,axis=0), vmin=-1e-5,vmax=1e-5, cmap='bwr')
+fig.colorbar(cs, ax=ax)
+plt.show()
 
