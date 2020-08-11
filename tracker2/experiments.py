@@ -125,59 +125,52 @@ def get_ic(ic_name, fn00):
         plat00 = plat00[::nstep]
         pcs00 = pcs00[::nstep]
         
-    elif ic_name == 'sea': # mouth of AI using TEF "segments"
-        # NOTE: this one requires information about grid indices in certain regions of
-        # the Salish Sea, and is very specific to the analysis in x_tef.
-        # Not for general use.
+    elif ic_name == 'sea': # mouth of AI
         import pickle
-        # select the indir
+        # get the ji_dict which has indices of named segments
         import Lfun
         Ldir = Lfun.Lstart()
-        indir0 = Ldir['LOo'] + 'tef/'
-        indir = indir0 + 'volumes_cas6/'
-        # load data
-        ji_dict = pickle.load(open(indir + 'ji_dict.p', 'rb'))
+        ji_dict = pickle.load(open(Ldir['LOo'] + 'tef/volumes_cas6/ji_dict.p', 'rb'))
 
         import zrfun
         G = zrfun.get_basic_info(fn00, only_G=True)
-        h = G['h']
-        xp = G['lon_rho']
-        yp = G['lat_rho']
-        
-        plon_vec = np.array([])
-        plat_vec = np.array([])
-        hh_vec = np.array([])
-        
-        seg_list = ['J4']
-        for seg_name in seg_list:
+        xp = G['lon_rho']; yp = G['lat_rho']; h = G['h']
+        plon_vec = np.array([]); plat_vec = np.array([]); hh_vec = np.array([])
+        for seg_name in ['J4']:
             ji_seg = ji_dict[seg_name]
-            for ji in ji_seg:
+            for ji in ji_seg: # ji is a tuple
                 plon_vec = np.append(plon_vec, xp[ji])
                 plat_vec = np.append(plat_vec, yp[ji])
                 hh_vec = np.append(hh_vec, h[ji])
                     
         plon00 = np.array([]); plat00 = np.array([]); pcs00 = np.array([])
-    
         for ii in range(len(plon_vec)):
             x = plon_vec[ii]
             y = plat_vec[ii]
-            h10 = 10*np.floor(hh_vec[ii]/10) # depth to closest 10 m (above the bottom)
-            if h10 >= 10:
-                zvec = np.arange(-h10,5,10) # a vector that goes from -h10 to 0 in steps of 10 m
+            DZ = 5
+            hdz = DZ*np.floor(hh_vec[ii]/DZ) # depth to closest DZ m (above the bottom)
+            if hdz >= DZ:
+                zvec = np.arange(-hdz,DZ,DZ) # a vector that goes from -hdz to 0 in steps of DZ m
                 svec = zvec/hh_vec[ii]
                 ns = len(svec)
                 if ns > 0:
                     plon00 = np.append(plon00, x*np.ones(ns))
                     plat00 = np.append(plat00, y*np.ones(ns))
                     pcs00 = np.append(pcs00, svec)
-                    
+        
         # trim the length of the I.C. vectors to a limited number
         NP = len(plon00)
+        print('-- NP = %d (original)' % (NP))
         npmax = 10000
-        nstep = max(1,int(NP/npmax))
-        plon00 = plon00[::nstep]
-        plat00 = plat00[::nstep]
-        pcs00 = pcs00[::nstep]
+        if NP > npmax:
+            nstep = max(1,int(np.floor(NP/npmax))) # may want to use floor
+            plon00 = plon00[::nstep]
+            plat00 = plat00[::nstep]
+            pcs00 = pcs00[::nstep]
+            print('-- NP = %d (trimmed)' % (len(pcs00)))
+        else:
+            print('-- NP = %d' % (len(pcs00)))
+                
     
                     
     # cases that use ic_from_meshgrid

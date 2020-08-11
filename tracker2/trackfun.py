@@ -15,6 +15,9 @@ import netCDF4 as nc4
 from scipy.spatial import cKDTree
 import pickle
 from time import time
+import sys
+
+verbose = True
 
 # Shared Constants
 #
@@ -98,6 +101,10 @@ def get_tracks(fn_list, plon0, plat0, pcs0, TR, trim_loc=False):
     #
     counter_his = 0
     for counter_his in range(len(fn_list)-1):
+        
+        if verbose:
+            print('  >> hour = ' + str(counter_his))
+            sys.stdout.flush()
                 
         it0 = TR['sph']*counter_his
         
@@ -169,7 +176,8 @@ def get_tracks(fn_list, plon0, plat0, pcs0, TR, trim_loc=False):
             z1 = ds1['zeta'][0,:,:]
             zf0 = z0[Maskr].data
             zf1 = z1[Maskr].data
-            print('Prepare fields for tree %0.4f sec' % (time()-tt0))
+            if verbose:
+                print('   > Prepare fields for tree %0.4f sec' % (time()-tt0))
         else:
             # subsequent time steps
             if surface == True:
@@ -216,7 +224,8 @@ def get_tracks(fn_list, plon0, plat0, pcs0, TR, trim_loc=False):
             z1 = ds1['zeta'][0,:,:]
             zf0 = zf1.copy()
             zf1 = z1[Maskr].data
-            #print('Prepare subsequent fields for tree %0.4f sec' % (time()-tt0))
+            if verbose:
+                print('   > Prepare subsequent fields for tree %0.4f sec' % (time()-tt0))
         ds0.close()
         ds1.close()
             
@@ -265,6 +274,7 @@ def get_tracks(fn_list, plon0, plat0, pcs0, TR, trim_loc=False):
             
         # do the particle tracking for a single pair of history files in ndiv steps
         it1 = it0
+        tt00 = time()
         for nd in range(ndiv):
             fr0 = nd/ndiv
             fr1 = (nd + 1)/ndiv
@@ -328,7 +338,9 @@ def get_tracks(fn_list, plon0, plat0, pcs0, TR, trim_loc=False):
                 P['zeta'][it1,:] = ZH3[:,0]
                 P['h'][it1,:] = ZH3[:,1]
                 P['z'][it1,:] = pcs * ZH3.sum(axis=1) + ZH3[:,0]
-
+        if verbose:
+            print('   > RK4 integration took %0.4f sec' % (time()-tt00))
+        
     # and save the time vector (seconds in whatever the model reports)
     P['ot'] = rot_save
 

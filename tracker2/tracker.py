@@ -174,6 +174,7 @@ if os.path.isdir(outdir):
         pass # continue and overwrite if clobber is True
     else:
         print('Warning: output directory exists - rename if you want to keep it!!')
+        print('-- tracker run not started --')
         sys.exit()
 Lfun.make_dir(outdir, clean=True)
 print(50*'*' + '\nWriting to ' + outdir)
