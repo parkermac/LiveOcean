@@ -96,6 +96,8 @@ for year in [2017, 2018, 2019]:
         #yld = {1:5, 2:50, 3:5, 4:5} # for vertical velocity
         ax.plot(dist, q_up/1e3,'-o', color=upcol, linewidth=lw)
         ax.plot(dist, -q_down/1e3,'-o', color=dncol, linewidth=lw)
+        ax.text(.02,.03,'Net: %0.1f up, %0.1f down' % ((q_up/1e3).sum(),(-q_down/1e3).sum()),
+            transform = ax.transAxes, size=.7*fs, weight='bold')
         # ax.plot(dist, w_up,'-o', color=upcol, linewidth=lw)
         # ax.plot(dist, -w_down,'-o', color=dncol, linewidth=lw)
         for ii in range(len(dist)):
@@ -117,7 +119,7 @@ for year in [2017, 2018, 2019]:
                 transform=ax.transAxes, ha='right')
         
         if ax_counter in [1,2]:
-            ax.set_ylabel('Vert. Trans. $[1000 \ m^{3}s^{-1}]$')
+            ax.set_ylabel('Vert. Trans. $[10^{3}m^{3}s^{-1}]$')
         
         abc = 'abcd'
         ax.text(.02,.9,'(%s) %s' % (abc[ax_counter-1],ch),

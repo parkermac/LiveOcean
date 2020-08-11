@@ -103,8 +103,15 @@ if source == 'IC_all':
     source_list = ['IC_Salish']
 else:
     source_list = [source]
+    
 
 for source in source_list:
+    
+    # flag to turn on/off the no-reflux version (only applicable for IC runs)
+    if 'IC_' in source:
+        do_nrx = True
+    else:
+        do_nrx = False
     
     for year in year_list:
     
@@ -180,11 +187,13 @@ for source in source_list:
             ivv = 1/vv
 
             c = np.zeros(NR) # the final concentration in all bins
-            c0 = np.zeros(NR) # the final concentration in all bins
+            if do_nrx:
+                c0 = np.zeros(NR) # the final concentration in all bins
             ca = np.zeros(NR) # the final concentration in all bins for an "aging" tracer
             q = q_df.values # transports (m3/s) ROW=to, COLUMNS=from
             ff = np.zeros((NR,NC)) # how is ff different from f (ff=array, f=DataFrame)?
-            ff0 = np.zeros((NR,NC)) # how is ff different from f (ff=array, f=DataFrame)?
+            if do_nrx:
+                ff0 = np.zeros((NR,NC)) # how is ff different from f (ff=array, f=DataFrame)?
             ffa = np.zeros((NR,NC))
 
             if 'Ocean' in source:
@@ -198,16 +207,18 @@ for source in source_list:
                 ff[:,3] = f.loc[:,'river_f'].values # column 3 is the river inflow
     
             if 'IC_' in source:
-                mask0 = np.zeros(NR) == 0 # mask for no-reflux case
+                if do_rx:
+                    mask0 = np.zeros(NR) == 0 # mask for no-reflux case
                 seg2_list = flux_fun.ic_seg2_dict[source]
                 for seg_name in f.index:
                     if seg_name in seg2_list:
                         jj = int(np.argwhere(f.index==seg_name))
                         ff[jj,jj+4] = 1
                         c[jj] = 1
-                        ff0[jj,jj+4] = 1
-                        c0[jj] = 1
-                        mask0[jj] = False
+                        if do_nrx:
+                            ff0[jj,jj+4] = 1
+                            c0[jj] = 1
+                            mask0[jj] = False
 
             dt = 3600 #3e3 # time step (seconds)
             nyears = 6
@@ -218,7 +229,8 @@ for source in source_list:
 
             # arrays to STORE time-varying information
             c_arr = np.nan + np.ones((int(NT/Nsave)+1, NR))
-            c0_arr = np.nan + np.ones((int(NT/Nsave)+1, NR)) # no-reflux version
+            if do_nrx:
+                c0_arr = np.nan + np.ones((int(NT/Nsave)+1, NR)) # no-reflux version
             t_arr = np.nan + np.ones(int(NT/Nsave)+1)
     
             dz = .5e-4 #1e-4 # a parameter to control sinking rate
@@ -228,23 +240,27 @@ for source in source_list:
                 # save the bin concentration to an array (and save time) every "savedays" days
                 if np.mod(ii,Nsave)==0 :
                     c_arr[int(ii/Nsave), :] = c.copy()
-                    c0_arr[int(ii/Nsave), :] = c0.copy()
+                    if do_nrx:
+                        c0_arr[int(ii/Nsave), :] = c0.copy()
                     t_arr[int(ii/Nsave)] = dt * ii
             
                 # General scheme: q is the fluxes and ff is the concentration at this
                 # time step.
                 qff = (q*ff).sum(axis=1)
-                qff0 = (q*ff0).sum(axis=1)
+                if do_nrx:
+                    qff0 = (q*ff0).sum(axis=1)
                 # So this sum of transport (q) times concentration (ff) across all the columns
                 # gives the transport rate into a given bin
         
                 # Here we advance the concentration using dc/dt = net inflow / volume
                 c = c + dt*ivv*qff
-                c0 = c0 + dt*ivv*qff0
-                # and zero out cells for the no-reflux case
-                c0[mask0] = 0
+                if do_nrx:
+                    c0 = c0 + dt*ivv*qff0
+                    # and zero out cells for the no-reflux case
+                    c0[mask0] = 0
         
                 if sinking == True:
+                    # need do_nrx code?
                     NC2 = int(len(c)/2)
                     for jj in range(NC2):
                         c_f = c[2*jj + 1]
@@ -253,7 +269,8 @@ for source in source_list:
                         
                 # update ff array
                 ff[:,4:] = np.tile(c,(NR,1))
-                ff0[:,4:] = np.tile(c0,(NR,1))
+                if do_nrx:
+                    ff0[:,4:] = np.tile(c0,(NR,1))
                     
                 # similar calculations to the above but with a tracer that increases
                 # over time at a rate that appears to be 100% per year
@@ -273,9 +290,10 @@ for source in source_list:
 
             # and another one for the time-dependent fields in an array aa
             aa = pd.DataFrame(c_arr, index=t_arr/86400, columns=q_df.index)
-            aa0 = pd.DataFrame(c0_arr, index=t_arr/86400, columns=q_df.index)
-            # note that the index is time (days) and the columns are the bin names
             aa.to_pickle(outdir + outname_main + '.p')
-            aa0.to_pickle(outdir + outname_main + '0.p')
+            # note that the index is time (days) and the columns are the bin names
+            if do_nrx:
+                aa0 = pd.DataFrame(c0_arr, index=t_arr/86400, columns=q_df.index)
+                aa0.to_pickle(outdir + outname_main + '0.p')
     
     

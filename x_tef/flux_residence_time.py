@@ -120,7 +120,7 @@ for infile in ic_list:
         Also we have organized all the fluxes to be positive Eastward or Northward.
     """
     if basin == 'HoodCanalInner':
-        qout = q_df.loc['hc3','q_f']
+        qout = -q_df.loc['hc3','q_s']
     elif basin == 'HoodCanal':
         qout = q_df.loc['hc1','q_f']
     elif basin == 'SouthSound':
@@ -215,6 +215,7 @@ tres_df.to_pickle(outdir + 'tres_df' + vftag + '.p')
 
 # and some helpful screen output
 tres_basin_df = tres_df.groupby('basin').mean()
-tres_basin_df['Reflux Fraction %'] = 100 * (tres_basin_df['tres'] - tres_basin_df['tres0']) / tres_basin_df['tres']
-print(tres_basin_df)
+tres_basin_df['Rx Frac %'] = 100 * (tres_basin_df['tres'] - tres_basin_df['tres0']) / (tres_basin_df['tres'] - tres_basin_df['tres00'])
+tres_basin_df = tres_basin_df.reindex(['Salish', 'SoG', 'PS', 'Whidbey', 'HoodCanal', 'HoodCanalInner', 'SouthSound'])
+print(tres_basin_df.round())
 

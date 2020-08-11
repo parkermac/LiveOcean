@@ -30,7 +30,7 @@ ilist_raw.sort()
 ilist = [item for item in ilist_raw if 'S_' in item]
 ilist = [item for item in ilist if 'AGE' in item]
 
-testing = True
+testing = False
 if testing:
     ilist = ['S_All_2017_full_AGE.p']
     

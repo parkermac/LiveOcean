@@ -94,10 +94,14 @@ for sect_name in sect_list:
     
     # ---------------------------------------------------------
 
-    fig = plt.figure(figsize=(12,9))
+    fig = plt.figure(figsize=(12,11))
 
-    qlim_p = np.around(np.nanmax(1.3*QQin), 0)
-    qlim_m = np.around(np.nanmax(-1.3*QQout), 0)
+    # qlim_p = np.around(np.nanmax(1.1*QQin), 0)
+    # qlim_m = np.around(np.nanmax(-1.1*QQout), 0)
+    qlim_p = np.around(1.2*tef_mean_df['Qin'].max(), 0)
+    qlim_m = np.around(-1.2*tef_mean_df['Qout'].min(), 0)
+    
+    
     qlim = np.max([qlim_p, qlim_m])
     
     # Salinity vs. Time (color by Transport)

@@ -26,7 +26,7 @@ import flux_fun
 
 testing = False
 
-verbose = False
+verbose = True
 
 # this makes it easier to see things during inspection
 pd.set_option('display.max_rows',100)

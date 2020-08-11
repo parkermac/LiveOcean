@@ -43,7 +43,9 @@ def vlines(ax, lims):
     
 
 plt.close('all')
-for which_vol in ['Puget Sound', 'Salish Sea', 'Hood Canal']:
+#vol_list = ['Puget Sound', 'Puget Sound Inner', 'Salish Sea', 'Hood Canal']
+vol_list = ['Puget Sound Inner']
+for which_vol in vol_list:
 
     qr_dict = {} # save annual mean river flow
     qe_dict = {} # save annual mean exchange flow
@@ -72,6 +74,13 @@ for which_vol in ['Puget Sound', 'Salish Sea', 'Hood Canal']:
             sect_sign_dict = {'ai1':1, 'dp':1}
             slim = (29,33); stick=range(slim[0],slim[1]+1,1)
             qlim = (30,50); qtick=range(qlim[0],qlim[1]+10,10)
+            rlim = (0,3); rtick=range(rlim[0],rlim[1]+1,1)
+            blim = (-100,100); btick=range(blim[0],blim[1]+50,50)
+        elif which_vol == 'Puget Sound Inner':
+            seg_list = flux_fun.ssM + flux_fun.ssT + flux_fun.ssS + flux_fun.ssW
+            sect_sign_dict = {'ai4':1, 'dp':1}
+            slim = (27,32); stick=range(slim[0],slim[1]+1,1)
+            qlim = (15,35); qtick=range(qlim[0],qlim[1]+10,10)
             rlim = (0,3); rtick=range(rlim[0],rlim[1]+1,1)
             blim = (-100,100); btick=range(blim[0],blim[1]+50,50)
         elif which_vol == 'Hood Canal':
