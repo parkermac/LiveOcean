@@ -74,7 +74,7 @@ h = dsr['h'][:]
 
 # subsample output for plotting
 npmax = 300 # max number of points to plot
-step = np.max((int(NP/npmax),1))
+step = max(1,int(np.floor(NP/npmax)))
 u = u[:,::step]
 v = v[:,::step]
 w = w[:,::step]

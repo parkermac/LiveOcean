@@ -3,6 +3,8 @@ Code for particle tracking, designed for ROMS output.  This new version
 makes extensive use of nearest-neighbor KDTree algorithms for interpolation.
 This results is significantly (36x) faster runtimes compared with tracker/tracker_1.py.
 
+PERFORMANCE: about 3 minutes per day for a 3D cas6 experiment with 10k particles.
+
 NOTE: You have to have run make_KDTrees.py for the grid (e.g. cas6) before running.
 
 NOTE: There is some issue, perhaps with garbage collection, which causes

@@ -41,8 +41,10 @@ args = parser.parse_args()
 Ldir = Lfun.Lstart(args.gridname, args.tag)
 gtagex = args.gridname + '_' + args.tag + '_' + args.ex_name
 
-vol_list = ['Salish Sea', 'Puget Sound', 'Hood Canal']
-year_list = [2017, 2018, 2019]
+# vol_list = ['Salish Sea', 'Puget Sound', 'Hood Canal']
+# year_list = [2017, 2018, 2019]
+vol_list = ['Puget Sound']
+year_list = [2017]
 
 err_df_vol = pd.DataFrame(index=year_list, columns=vol_list)
 err_df_salt = pd.DataFrame(index=year_list, columns=vol_list)

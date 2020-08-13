@@ -163,7 +163,7 @@ def get_ic(ic_name, fn00):
         print('-- NP = %d (original)' % (NP))
         npmax = 10000
         if NP > npmax:
-            nstep = max(1,int(np.floor(NP/npmax))) # may want to use floor
+            nstep = max(1,int(np.floor(NP/npmax)))
             plon00 = plon00[::nstep]
             plat00 = plat00[::nstep]
             pcs00 = pcs00[::nstep]
