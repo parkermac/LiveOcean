@@ -12,9 +12,9 @@ Only set up to work on mac.
 
 gridname='cas6'
 tag='v3'
-date_string = '2017.04.20'
+date_string = '2020.08.12'
 
-vn = 'ubar' # roms variable name to plot
+vn = 'salt' # roms variable name to plot
 cmap = 'rainbow' # default colormap
 
 
@@ -79,7 +79,7 @@ xfh = pickle.load(open(in_fn_xfh, 'rb'))
 
 #%% plotting
 
-plt.close()
+#plt.close()
 
 
 def set_box(ax):
@@ -90,7 +90,7 @@ fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(18,7), squeeze=False)
 
 if vn == 'salt':
     hvn = 's3d'
-    vmin = 15
+    vmin = 24
     vmax = 34
 elif vn == 'temp':
     hvn = 't3d'

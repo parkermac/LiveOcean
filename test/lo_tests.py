@@ -7,7 +7,6 @@ import os, sys
 sys.path.append(os.path.abspath('../alpha'))
 import Lfun
 
-# things we needtest
 Ldir = Lfun.Lstart()
 
 def print_head(check_str):

@@ -22,6 +22,8 @@ import hfun
 import zfun
 import zrfun
 
+verbose = False
+
 def get_data_oneday(this_dt, fn_out):
     """"
     Code to get hycom data using the new FMRC_best file. It gets only a single time,
@@ -44,6 +46,8 @@ def get_data_oneday(this_dt, fn_out):
     dstr = this_dt.strftime('%Y.%m.%d')
     # time string in HYCOM format
     dstr_hy = this_dt.strftime('%Y-%m-%d-T00:00:00Z')
+    
+    print(' - getting hycom fields for ' + dstr)
     
     # specify spatial limits
     aa = hfun.aa
@@ -71,7 +75,8 @@ def get_data_oneday(this_dt, fn_out):
         '&north='+str(north)+'&south='+str(south)+'&west='+str(west)+'&east='+str(east) +
         '&time='+dstr_hy +
         '&addLatLon=true&accept=netcdf4')    
-    print(url)
+    if verbose:
+        print(url)
     # new version 2020.04.22 using requests
     counter = 1
     got_file = False
@@ -503,7 +508,8 @@ def get_zinds(h, S, z):
     zinds = zinds.astype(int)
     if isinstance(zinds, np.ma.MaskedArray):
         zinds = zinds.data
-    print(' --create zinds array took %0.1f seconds' % (time.time() - tt0))
+    if verbose:
+        print(' --create zinds array took %0.1f seconds' % (time.time() - tt0))
     return zinds
 
 def get_interpolated_alt(G, S, b, lon, lat, z, N, zinds):

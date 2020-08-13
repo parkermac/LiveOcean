@@ -9,6 +9,8 @@ import zfun
 
 ncformat = 'NETCDF3_64BIT_OFFSET'
 
+verbose = False
+
 def add_bio(nc_dir, G, add_CTD=False):
     print('-Writing bio variables to ocean_clm.nc')
     # name output file
@@ -33,7 +35,8 @@ def add_bio(nc_dir, G, add_CTD=False):
         vv.units = vn_dict[vn]
         vv.time = 'salt_time'
         V = create_bio_var(salt, vn)
-        print(str(V.shape))
+        if verbose:
+            print(str(V.shape))
         if add_CTD:
             V = salish_fields(V, vn, G)
         vv[:] = V
@@ -83,7 +86,8 @@ def salish_fields(V, vn, G):
     return V
 
 def create_bio_var(salt, vn):
-    print('  -- adding ' + vn)
+    if verbose:
+        print('  -- adding ' + vn)
     if vn == 'NO3':
         # Salinity vs. NO3 [uM], Ryan McCabe 8/2015
         # NO3 = mm*salt + bb
