@@ -3,6 +3,9 @@
 """
 This is the main program for creating movies and images from a forecast
 
+To test on boiler from ipython:
+
+run make_forcing_main.py -d 2020.08.10
 """
 
 import os, sys
@@ -12,7 +15,7 @@ Ldir, Lfun = ffun.intro()
 
 # ****************** CASE-SPECIFIC CODE *****************
 
-testing = True
+testing = False
 
 from datetime import datetime
 start_time = datetime.now()
@@ -59,22 +62,22 @@ for P_name in P_list:
     input_filename = Ldir['LOo'] + 'plots/' + lt + '_' + P_name + '_' + Ldir['gtagex'] + '/movie.mp4'
     output_filename = P_name + '.mp4'
     
-    if False:
+    if P_name == 'P_tracks_MERHAB':
         # send file to azure
+        print('\nCopying '+output_filename+' to azure')
         container_name = 'active-forecast'
         az_dict = Lfun.copy_to_azure(input_filename, output_filename, container_name, Ldir)
         if az_dict['result'] == 'fail':
             result = 'fail'
             print('Failed to copy to Azure:')
             print(output_filename)
-        
-    # send file to homer (only works from boiler)
-    print('\nCopying '+output_filename+' to homer')
-    cmd_list = ['scp',input_filename,
-        'pmacc@homer.u.washington.edu:/hw00/d47/pmacc/LO/Figs_active_forecast/'+output_filename]
-    ret = subprocess.call(cmd_list)
-    print('Return code = ' + str(ret) + ' (0=success)')
-    
+    else:
+        # send file to homer (only works from boiler)
+        print('\nCopying '+output_filename+' to homer')
+        cmd_list = ['scp',input_filename,
+            'pmacc@homer.u.washington.edu:/hw00/d47/pmacc/LO/Figs_active_forecast/'+output_filename]
+        ret = subprocess.call(cmd_list)
+        print('Return code = ' + str(ret) + ' (0=success)')
     
     print('  -- took %0.1f seconds' % (tt0-time()))
     
