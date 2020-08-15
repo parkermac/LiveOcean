@@ -313,11 +313,12 @@ dt_sec = (end_time - start_time).seconds
 result_dict['total_seconds'] = str(dt_sec)
 
 nc_dir = Ldir['LOogf_f']
-if do_bio and (planB==False):
+if do_bio and (planC==False):
     tt0 = time.time()
     G = zrfun.get_basic_info(Ldir['grid'] + 'grid.nc', only_G=True)
     Ofun_bio.add_bio(nc_dir, G, add_CTD=add_CTD)
     print(' --add bio took %0.1f seconds' % (time.time() - tt0))
+    
 tt0 = time.time()
 Ofun_nc.make_ini_file(nc_dir)
 Ofun_nc.make_bry_file(nc_dir)
