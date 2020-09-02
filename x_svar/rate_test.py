@@ -1,5 +1,5 @@
 """
-Code to test the calculation of ds/dt using the disgnostics, averages and history files.
+Code to test the calculation of ds/dt using the diagnostics, averages and history files.
 """
 
 # imports
