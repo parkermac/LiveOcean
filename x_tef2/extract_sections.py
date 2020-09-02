@@ -98,12 +98,12 @@ for sect_name in sect_list:
     # name output file
     out_fn = (outdir + sect_name + '.nc')
     # get section lat, lon, and other info
-    x0, x1, y0, y1, landward = sect_df.loc[sect_name,:]
+    x0, x1, y0, y1 = sect_df.loc[sect_name,:]
     # get indices for this section
     ii0, ii1, jj0, jj1, sdir, Lon, Lat, Mask = tef_fun.get_inds(x0, x1, y0, y1, G)
     NX = len(Mask) # this the length of the section, not specific to x or y
     # save some things for later use
-    sect_info[sect_name] = (ii0, ii1, jj0, jj1, sdir, landward, NT, NX, NZ, out_fn)
+    sect_info[sect_name] = (ii0, ii1, jj0, jj1, sdir, NT, NX, NZ, out_fn)
     # initialize a netcdf file for this section, and get list of variables to gather
     vn_list = tef_fun.start_netcdf(fn, out_fn, NT, NX, NZ, Lon, Lat, Ldir)
     # note that this function deletes the existing out_fn, and also creates the list

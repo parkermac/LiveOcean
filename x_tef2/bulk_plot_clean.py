@@ -74,7 +74,7 @@ for sect_name in sect_list:
     tef_mean_df.loc[:,'yd'] = tef_mean_df.index.dayofyear
     
     # some information about direction
-    x0, x1, y0, y1, landward = sect_df.loc[sect_name,:]
+    x0, x1, y0, y1 = sect_df.loc[sect_name,:]
     if (x0==x1) and (y0!=y1):
         sdir = 'NS'
         if in_sign == 1:

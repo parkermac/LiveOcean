@@ -2,11 +2,11 @@ Code to do TEF extractions and processing.  This is just an improved version of 
 
 Specific changes are:
 
-(i) no more use of "landward" in the section extraction.  All extraction rensports are positive Eastward and Northward.
+(i) no more use of "landward" in the section extraction.  All extraction transports are positive Eastward and Northward.
 
 (ii) add new fields to the extractions:
     - keep velocity and area of each cell, instead of just transport
-    - keep more variables (maybe start with temperature and density?)
+    - keep more variables (e.g. NO3)
 
 ------------------------------------------------------------------
 
@@ -37,11 +37,8 @@ Variables: ocean_time, salt, q, z0, DA0, lon, lat, h, zeta
         - hence: q = vel * DA
 	z0 is the average depth of cell centers (assumes SSH=0)
 	DA0 is the average cross-sectional area of each cell (assumes SSH=0),
-		hence q/DA0 is the "transport velocity" in a cell
 
 NOTE: the actual tracer variables to be extracted are defined in tef_fun.start_netcdf.nc().  Not ideal to have it hidden so deep, but it is a convenient place to create the whole list if needed.
-
-NOTE: the sign conventions are defined by the sign of the column "landward" in sect_df.  This is a hangover from when I was trying to be clever about the direction of inflow.  In retrospect it would have been better to just use eastward- and northward-positive.
 
 ------------------------------------------------------------------
 
@@ -49,13 +46,14 @@ NOTE: the sign conventions are defined by the sign of the column "landward" in s
 
 Input: LiveOcean_output/tef2/[*]/extractions/[sect name].nc
 
-Output: LiveOcean_output/tef/[*]/processed/[sect name].p
+Output: LiveOcean_output/tef2/[*]/processed/[sect name].p
 a pickled dict with keys: ['tef_q','tef_vel','tef_da', 'tef_qs', 'sbins', 'ot', 'qnet', 'fnet', 'ssh']
 These are defined as:
 	tef_q transport in salinity bins, hourly, (m3/s)
 	tef_vel velocity in salinity bins, hourly, (m/s)
 	tef_da area in salinity bins, hourly, (m2)
-	tef_qs salt transport in salinity bins, hourly, (m3/s)
+	tef_qs salt transport in salinity bins, hourly, (g/kg m3/s)
+	tef_qs2 salinity-squared transport in salinity bins, hourly, (g2/kg2 m3/s)
 	sbins the salinity bin centers
 	ot ocean time (sec from 1/1/1970)
 	qnet section integrated transport (m3/s)
@@ -63,7 +61,7 @@ These are defined as:
 	ssh section averaged ssh (m)
 Packed in order (time, salinity bin).
 
-Note, by create tef_vel as the flux-weighted velocity: tef_vel=tef_q/tef_da.
+Note: we create tef_vel as the flux-weighted velocity: tef_vel=tef_q/tef_da.
 	
 ------------------------------------------------------------------
 
@@ -84,20 +82,6 @@ Input: LiveOcean_output/tef2/[*]/bulk/[sect name].p
 Output: LiveOcean_output/tef2/[*]/bulk_plots_clean/[sect name].p
 
 ------------------------------------------------------------------
-
-* plot_physical_section.py plots a user-selected section as time-averaged properties in x/y-z space, just like a standard Eulerian average.
-
-Input: LiveOcean_output/tef/[*]/extractions/[sect name].nc
-
-Output: LiveOcean_output/tef/[*]/physical_section_plots/[sect name]/plot_00[01-12].png where each plot is averaged over a month (assumes the extraction it for a year).  These are nice to look at in combination with the TEF time series.
-
-........................................
-
-* plot_physical_section_for_TEF.py is similar but it makes plots more specific to the first paper, or for a talk where you want to motivate the use of TEF.
-
-Input: LiveOcean_output/tef/[*]/extractions/[sect name].nc
-
-Output: LiveOcean_output/tef/misc_figs_cas6/TEF_physical_section_[sect name].png the left panel is averaged over a month (assumes the extraction it for a year) and panels 2 and 3 are snapshots that try to be around max flood and max ebb.
 
 ------------------------------------------------------------------
 ------------------------------------------------------------------

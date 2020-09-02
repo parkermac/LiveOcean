@@ -1,7 +1,11 @@
 """
-Process TEF extractions.
+Process TEF extractions, giving transport vs. salinity for:
+volume, salt, and salinity-squared.
 
-Currently only set up to do salt.
+Also velocity and area which are relevant to some tidal-pumping calculations
+I am trying (that may not lead anywhere).
+
+To Do: add clean way to include more variables, like NO3.
 
 """
 
@@ -12,11 +16,8 @@ import numpy as np
 from datetime import datetime
 import pickle
 
-import os
-import sys
-alp = os.path.abspath('../alpha')
-if alp not in sys.path:
-    sys.path.append(alp)
+import os, sys
+sys.path.append(os.path.abspath('../alpha'))
 import Lfun
 import zfun
 
@@ -81,6 +82,7 @@ for tef_file in sect_list:
 
     # TEF sort into salinity bins
     qs = q*s
+    qs2 = q*s*s
     NT, NZ, NX = q.shape
     # initialize intermediate results arrays for TEF quantities
     sedges = np.linspace(0, 36, 1001) # original was 1001 used 5001 for Willapa
@@ -89,9 +91,10 @@ for tef_file in sect_list:
 
     # TEF variables
     tef_q = np.zeros((NT, NS))
-    tef_vel = np.zeros((NT, NS)) # new
-    tef_da = np.zeros((NT, NS)) # new
+    tef_vel = np.zeros((NT, NS))
+    tef_da = np.zeros((NT, NS))
     tef_qs = np.zeros((NT, NS))
+    tef_qs2 = np.zeros((NT, NS))
 
     # other variables
     qnet = np.zeros(NT)
@@ -105,26 +108,18 @@ for tef_file in sect_list:
             print('  time %d out of %d' % (tt,NT))
             sys.stdout.flush()
             
-        si = s[tt,:,:].squeeze()
-        if isinstance(si, np.ma.MaskedArray):
-            sf = si[si.mask==False].data.flatten()
-        else:
-            sf = si.flatten()
-            
         qi = q[tt,:,:].squeeze()
         if isinstance(qi, np.ma.MaskedArray):
             qf = qi[qi.mask==False].data.flatten()
         else:
             qf = qi.flatten()
             
-        # # NOTE: for vel we use the qi mask (why?)
-        # veli = vel[tt,:,:].squeeze()
-        # if isinstance(veli, np.ma.MaskedArray):
-        #     velf = veli[qi.mask==False].data.flatten()
-        # else:
-        #     velf = veli.flatten()
+        si = s[tt,:,:].squeeze()
+        if isinstance(si, np.ma.MaskedArray):
+            sf = si[qi.mask==False].data.flatten()
+        else:
+            sf = si.flatten()
             
-        # NOTE: for da we use the qi mask (why?)
         dai = da[tt,:,:].squeeze()
         if isinstance(dai, np.ma.MaskedArray):
             daf = dai[qi.mask==False].data.flatten()
@@ -133,9 +128,15 @@ for tef_file in sect_list:
             
         qsi = qs[tt,:,:].squeeze()
         if isinstance(qsi, np.ma.MaskedArray):
-            qsf = qsi[si.mask==False].data.flatten()
+            qsf = qsi[qi.mask==False].data.flatten()
         else:
             qsf = qsi.flatten()
+            
+        qs2i = qs2[tt,:,:].squeeze()
+        if isinstance(qs2i, np.ma.MaskedArray):
+            qs2f = qs2i[qi.mask==False].data.flatten()
+        else:
+            qs2f = qs2i.flatten()
             
         # sort into salinity bins
         inds = np.digitize(sf, sedges, right=True)
@@ -143,9 +144,9 @@ for tef_file in sect_list:
         counter = 0
         for ii in indsf:
             tef_q[tt, ii-1] += qf[counter]
-            # tef_vel[tt, ii-1] += velf[counter] # new
             tef_da[tt, ii-1] += daf[counter] # new
             tef_qs[tt, ii-1] += qsf[counter]
+            tef_qs2[tt, ii-1] += qs2f[counter]
             counter += 1
         
         # also keep track of volume transport
@@ -156,17 +157,19 @@ for tef_file in sect_list:
         ff = zi.reshape((1,NX)) * qi
         fnet[tt] = g * rho * ff.sum()
 
+    # Calculating the velocity from transport/area
+    # NOTE: we require tef_q = tef_vel * tef_da
+    zmask = tef_da > 1 # Is this about the right number (1 m2)?
+        # Just avoiding divide-by-zero errors.
+    tef_vel[zmask] = tef_q[zmask] / tef_da[zmask]
+
     # save results
     tef_dict = dict()
     tef_dict['tef_q'] = tef_q
-    tef_dict['tef_da'] = tef_da # new
-    
-    # NOTE: we require tef_q = tef_vel * tef_da
-    zmask = tef_da > 1 # Is this about the right number (1 m2)?  Just avoiding divide-by-zero errors.
-    tef_vel[zmask] = tef_q[zmask] / tef_da[zmask]
-    tef_dict['tef_vel'] = tef_vel # new
-    
+    tef_dict['tef_da'] = tef_da
+    tef_dict['tef_vel'] = tef_vel
     tef_dict['tef_qs'] = tef_qs
+    tef_dict['tef_qs2'] = tef_qs2
     tef_dict['sbins'] = sbins
     tef_dict['ot'] = ot
     tef_dict['qnet'] = qnet

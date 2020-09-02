@@ -1,5 +1,5 @@
 """
-Varibles and functions used by the "flux" code.
+Variables and functions used by the "flux" code.
 """
 import numpy as np
 from datetime import datetime, timedelta
@@ -100,11 +100,11 @@ def get_fluxes(indir, sect_name):
         QQout_alt = -QQp_alt
     else:
         print('ambiguous sign!!')
-        
-    print('%s SP=%0.1f SM = %0.1f' % (sect_name, SP, SM))
-    import sys
-    sys.stdout.flush()
-        
+    
+    if False:
+        print('%s SP=%0.1f SM = %0.1f' % (sect_name, SP, SM))
+        import sys
+        sys.stdout.flush()
         
     fnet = in_sign * bulk['fnet_lp']/1e6 # net tidal energy flux [MWW]
     qabs = bulk['qabs_lp']/1000 # low pass of absolute value of net transport [1000 m3/s]
