@@ -152,12 +152,16 @@ cb = fig.colorbar(cs, cax=cbaxes, orientation='horizontal')
 # ax.text(.08, .53, r'SST $[^\circ C]$', transform=ax.transAxes)
 # ax.text(.08, .03, dstr, size=fs2, transform=ax.transAxes, style='italic')
 
-ah = ax.text(-125.456,49.4768,'Vancouver\nIsland', size=fs2,
-    style='italic',ha='center',va='center',rotation=-45)
 ax.text(-123.072,46.7866,'Washington', size=fs2,
     style='italic',ha='center',va='center',rotation=-45)
 ax.text(-122.996,44.5788,'Oregon', size=fs2,
     style='italic',ha='center',va='center',rotation=-45)
+    
+ah = ax.text(-125.3,49.4768,'Vancouver\nIsland', size=fs2,
+    style='italic',ha='center',va='center',rotation=-45)
+ax.text(-126.3,50.2,'Johnstone\nStrait', size=.7*fs2,
+    style='italic',ha='center',va='center',rotation=-10)
+
 
 # -------------- FOCUS MAP -----------------------------------------------
 
