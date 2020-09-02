@@ -21,32 +21,6 @@ flux_fun.make_dist(x,y) makes vectors of distance along lon,lat vectors x,y
 
 ------------------------------------------------------------------
 
-(*) flux_make_two_layer.py creates the time-mean two layer versions of the TEF variables, for each section.  These eventually will drive the efflux-reflux integrations.
-
-Input: section "bulk" files like: LiveOcean_output/tef/[*]/bulk/[sect name].nc
-where [*] = cas6_v3_lo8b_2017.01.01_2017.12.31 e.g.
-
-Output: LiveOcean_output/tef/[*]/flux/two_layer_[season].p which is a pickled DataFrame whose index is the section names, and whose columns are: ['q_s', 'q_f', 'f_s', 'f_f', 's_s', 's_f', 'lon', 'lat'].  Here _s and _f indicate that the layer is salty or fresh.  Also we have organized all the fluxes to be positive Eastward or Northward.  The averaging is over three "seasons" being:
-- full=annual
-- winter=JFM
-- spring=AMJ
-- summer=JAS
-- fall=OND
-and these are set by flux_fun.get_dtr(year)
-
-------------------------------------------------------------------
-
-(*) flux_plot_sections.py makes a plot of transport and salinity at all sections, along with a map, using the results of flux_make_two_layer.py above.
-
-Input: LiveOcean_output/tef/[*]/flux/two_layer_[season].p
-
-Output: LiveOcean_output/tef/tef_all_sections/all_sections_[year]_[season].png
-
-..................................
-
-(*) flux_plot_sections_clean.py is  a version of this that makes plots for the first paper.
-
-Output: LiveOcean_output/tef/tef_all_sections_clean/all_sections_[year]_[season].png
 
 ------------------------------------------------------------------
 
@@ -63,4 +37,37 @@ Output: LiveOcean_output/tef2/volumes_cas6/...
 	LiveOcean_output/tef/misc_figs_cas6/volume_plot.png
 	Eventually this might be an interesting framework for plotting the transports used in the flux engine.
 	
+------------------------------------------------------------------
+
+------------------------------------------------------------------
+
+(*) flux_get_s.py creates time series of hourly salinity and volume in segments, over a user specified (like a year) period.
+
+Input: ROMS history files
+
+Output: LiveOcean_output/tef2/[*]/flux/hourly_segment_[salinity,volume].p, pickled DataFrames where the index is hourly datetime and the columns are the segments.
+
+And where [*] = cas6_v3_lo8b_2017.01.01_2017.12.31 e.g. (here and below)
+
+------------------------------------------------------------------
+
+(*) flux_lowpass_s.py creates time series of daily salinity, volume, and net salt in segments.
+
+Input: LiveOcean_output/tef2/[*]/flux/hourly_segment_[salinity,volume].p
+
+Output: LiveOcean_output/tef2/[*]/flux/daily_segment_[salinity,volume,net_salt].p
+
+------------------------------------------------------------------
+
+(*) flux_salt_budget.py makes a complete volume and salt budget for a user-specified set of segments.
+These budgets are of the form:
+	dSnet/dt = QSin + QSout, and
+	dV/dt = Qin + Qout + Qr
+They are mainly useful for knowing that the budgets add up in each of the basins and years to reasonable accuracy.  The values plotted are DAILY (tidally averaged).
+
+Input: LiveOcean_output/tef2/[*]/flux/daily_segment_[volume,net_salt].p
+
+Output: A screen plot of the budget vs. time, and a saved png such as:
+LiveOcean_output/tef2/salt_budget_plots/salt_budget_2018_Salish_Sea.png
+
 ------------------------------------------------------------------
