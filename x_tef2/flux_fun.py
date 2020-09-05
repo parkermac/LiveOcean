@@ -14,10 +14,118 @@ filterwarnings('ignore') # skip some warning messages
 
 def get_fluxes(indir, sect_name):
     # Form time series of 2-layer TEF quantities, from the multi-layer bulk values.
+    # - include transports for the no-tidal-pumping version
+    # - adjust sign convention so that Qs is positive for the saltier layer and call it Qin
+    
+    bulk = pickle.load(open(indir + 'bulk/' + sect_name + '.p', 'rb'))
+    QQ = bulk['QQ']
+    SS = bulk['SS']
+    SS2 = bulk['SS2']
+    ot = bulk['ot']
+    dt = []
+    for tt in ot:
+        dt.append(Lfun.modtime_to_datetime(tt))
+        
+    # separate positive and negative transports
+    QQp = QQ.copy()
+    QQp[QQ<=0] = np.nan
+    QQm = QQ.copy()
+    QQm[QQ>=0] = np.nan
+        
+    # full transports
+    QQm = QQm
+    QQp = QQp
+    
+    # form two-layer versions
+    Qp = np.nansum(QQp, axis=1)
+    QSp = np.nansum(QQp*SS, axis=1)
+    QS2p = np.nansum(QQp*SS2, axis=1)
+    Qm = np.nansum(QQm, axis=1)
+    QSm = np.nansum(QQm*SS, axis=1)
+    QS2m = np.nansum(QQm*SS2, axis=1)
+    
+    # TEF salinities
+    Sp = QSp/Qp
+    Sm = QSm/Qm
+    
+    # TEF variance
+    S2p = QS2p/Qp
+    S2m = QS2m/Qm
+    
+    # adjust sign convention so that positive flow is salty
+    SP = np.nanmean(Sp)
+    SM = np.nanmean(Sm)
+    if SP > SM:
+        
+        # initial positive was inflow
+        Sin = Sp
+        Sout = Sm
+        S2in = S2p
+        S2out = S2m
+        Qin = Qp
+        Qout = Qm
+        in_sign = 1
+        
+        QSin = QSp
+        QSout = QSm
+        
+        QS2in = QS2p
+        QS2out = QS2m
+        
+    elif SM > SP:
+        # initial postive was outflow
+        Sin = Sm
+        Sout = Sp
+        S2in = S2m
+        S2out = S2p
+        Qin = -Qm
+        Qout = -Qp
+        in_sign = -1
+        
+        QSin = -QSm
+        QSout = -QSp
+        
+        QS2in = -QS2m
+        QS2out = -QS2p
+    else:
+        print('ambiguous sign!!')
+    
+    if False:
+        print('%s SP=%0.1f SM = %0.1f' % (sect_name, SP, SM))
+        import sys
+        sys.stdout.flush()
+        
+    fnet = in_sign * bulk['fnet_lp']/1e6 # net tidal energy flux [MWW]
+    qabs = bulk['qabs_lp'] # low pass of absolute value of net transport [1000 m3/s]
+    
+    tef_df = pd.DataFrame(index=dt)
+    tef_df['Qin']=Qin
+    tef_df['Qout']=Qout
+    tef_df['QSin']=QSin
+    tef_df['QSout']=QSout
+    tef_df['Sin']=Sin
+    tef_df['Sout']=Sout
+
+    tef_df['QS2in']=QS2in
+    tef_df['QS2out']=QS2out
+    tef_df['S2in']=S2in
+    tef_df['S2out']=S2out
+
+    tef_df['Ftide'] = fnet
+    tef_df['Qtide'] = qabs
+    
+    return tef_df, in_sign
+
+def get_fluxes_alt(indir, sect_name):
+    # Much like get_fluxes() above, but it includes additional fields used by
+    # bluk_plot_clean.py, especially related to tidal pumping.
+    
+    # WARNING: I don't like the "- convert transports to 1000 m3/s" bit.
+    
+    # Form time series of 2-layer TEF quantities, from the multi-layer bulk values.
     # - convert transports to 1000 m3/s
     # - include transports for the no-tidal-pumping version
-    # - adjust sign convention so that Qs is positive for the saltier layer
-    # - rename TEF quantities as Qs, Qf, Ss, Sf (salty and fresh)
+    # - adjust sign convention so that Qs is positive for the saltier layer and call it Qin
     
     bulk = pickle.load(open(indir + 'bulk/' + sect_name + '.p', 'rb'))
     QQ = bulk['QQ']
@@ -121,7 +229,8 @@ def get_fluxes(indir, sect_name):
     
     return tef_df, in_sign, dt, QQin, QQout, SS, QQin_alt, QQout_alt
     
-def get_budgets(sv_lp_df, v_lp_df, riv_df, tef_df_dict, seg_list):
+def get_budgets(v_lp_df, sv_lp_df, mix_lp_df, s2v_lp_df, riv_df, tef_df_dict, seg_list):
+    
     # volume budget
     vol_df = pd.DataFrame(0, index=sv_lp_df.index, columns=['Qin','-Qout', 'Qtide'])
     for sect_name in tef_df_dict.keys():
@@ -158,6 +267,19 @@ def get_budgets(sv_lp_df, v_lp_df, riv_df, tef_df_dict, seg_list):
     salt_df['QeDS'] = salt_df['Qe'] * salt_df['DS']
     salt_df['-QrSbar'] = -salt_df['Qnet'] * salt_df['Sbar']
     salt_rel_err_qe = salt_df['Error'].mean()/salt_df['QeDS'].mean()
+    
+    # variance budget
+    salt2_df = pd.DataFrame(0, index=s2v_lp_df.index, columns=['QS2in','-QS2out','Mix'])
+    for sect_name in tef_df_dict.keys():
+        df = tef_df_dict[sect_name]
+        salt2_df['QS2in'] = salt2_df['QS2in'] + df['QS2in']
+        salt2_df['-QS2out'] = salt2_df['-QS2out'] - df['QS2out']
+    s2n = s2v_lp_df[seg_list].sum(axis=1).values
+    salt2_df.loc[1:-1, 'dS2net_dt'] = (s2n[2:] - s2n[:-2]) / (2*86400)
+    salt2_df['Mix'] = mix_lp_df[seg_list].sum(axis=1).values
+    salt2_df['S2mean'] = s2v_lp_df.sum(axis=1)/vol_df['V']
+    salt2_df['Error'] = salt2_df['dS2net_dt'] - salt2_df['QS2in'] + salt2_df['-QS2out'] - salt2_df['Mix']
+    salt2_rel_err = salt2_df['Error'].mean()/salt2_df['QS2in'].mean()
 
     # make sure everything is numeric
     for cn in vol_df.columns:
@@ -165,7 +287,8 @@ def get_budgets(sv_lp_df, v_lp_df, riv_df, tef_df_dict, seg_list):
     for cn in salt_df.columns:
         salt_df[cn] = pd.to_numeric(salt_df[cn])
         
-    return vol_df, salt_df, vol_rel_err, salt_rel_err, salt_rel_err_qe
+    #return vol_df, salt_df, vol_rel_err, salt_rel_err, salt_rel_err_qe
+    return vol_df, salt_df, salt2_df, vol_rel_err, salt_rel_err, salt_rel_err_qe, salt2_rel_err
 
 # desired time ranges, the "seasons"
 def get_dtr(year):

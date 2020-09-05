@@ -41,21 +41,21 @@ Output: LiveOcean_output/tef2/volumes_cas6/...
 
 ------------------------------------------------------------------
 
-(*) flux_get_s.py creates time series of hourly salinity and volume in segments, over a user specified (like a year) period.
+* flux_get_s.py creates time series of hourly salinity and volume in segments, over a user specified (like a year) period.  Now includes files for the salinity-squared and the net "mixing" (variance destruction due to vertical mixing - need to add horizontal mixing)
 
 Input: ROMS history files
 
-Output: LiveOcean_output/tef2/[*]/flux/hourly_segment_[salinity,volume].p, pickled DataFrames where the index is hourly datetime and the columns are the segments.
+Output: LiveOcean_output/tef2/[*]/flux/hourly_segment_[volume,salinity,mix,salinity2].p, pickled DataFrames where the index is hourly datetime and the columns are the segments.
 
-And where [*] = cas6_v3_lo8b_2017.01.01_2017.12.31 e.g. (here and below)
+NOTE: [*] = cas6_v3_lo8b_2017.01.01_2017.12.31, e.g., here and below.
 
 ------------------------------------------------------------------
 
-(*) flux_lowpass_s.py creates time series of daily salinity, volume, and net salt in segments.
+* flux_lowpass_s.py creates time series of daily salinity, volume, and net salt in segments.
 
-Input: LiveOcean_output/tef2/[*]/flux/hourly_segment_[salinity,volume].p
+Input: LiveOcean_output/tef2/[*]/flux/hourly_segment_[volume,salinity,mix,salinity2].p
 
-Output: LiveOcean_output/tef2/[*]/flux/daily_segment_[salinity,volume,net_salt].p
+Output: LiveOcean_output/tef2/[*]/flux/daily_segment_[volume,salinity,net_salt,mix,salinity2,net_salt2].p
 
 ------------------------------------------------------------------
 
@@ -68,6 +68,6 @@ They are mainly useful for knowing that the budgets add up in each of the basins
 Input: LiveOcean_output/tef2/[*]/flux/daily_segment_[volume,net_salt].p
 
 Output: A screen plot of the budget vs. time, and a saved png such as:
-LiveOcean_output/tef2/salt_budget_plots/salt_budget_2018_Salish_Sea.png
+LiveOcean_output/tef2/salt_budget_plots/salt_budget_2017_Salish_Sea.png
 
 ------------------------------------------------------------------

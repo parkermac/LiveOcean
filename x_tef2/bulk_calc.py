@@ -54,7 +54,7 @@ for snp in sect_list:
     # load the data file
     tef_ex=pickle.load(open(indir + snp, 'rb'))
     # Notes on the data:
-    # data.keys() => dict_keys(['tef_q', 'tef_vel', 'tef_da', 'tef_qs', 'sbins', 'ot', 'qnet', 'fnet', 'ssh'])
+    # data.keys() => dict_keys(['tef_q', 'tef_vel', 'tef_da', 'tef_qs', 'tef_qs2', 'sbins', 'ot', 'qnet', 'fnet', 'ssh'])
     # data['tef_q'].shape => (8761, 1000), so packed [hour, salinity bin]
     # sbins are packed low to high
     # ot is time in seconds from 1/1/1970
@@ -64,6 +64,7 @@ for snp in sect_list:
     tef_vel = tef_ex['tef_vel']
     tef_da = tef_ex['tef_da']
     tef_qs = tef_ex['tef_qs']
+    tef_qs2 = tef_ex['tef_qs2']
     qnet = tef_ex['qnet']
     qabs = np.abs(qnet)
     fnet = tef_ex['fnet']
@@ -74,6 +75,7 @@ for snp in sect_list:
     tef_vel_lp = zfun.filt_godin_mat(tef_vel)
     tef_da_lp = zfun.filt_godin_mat(tef_da)
     tef_qs_lp = zfun.filt_godin_mat(tef_qs)
+    tef_qs2_lp = zfun.filt_godin_mat(tef_qs2)
     qnet_lp = zfun.filt_godin(qnet)
     qabs_lp = zfun.filt_godin(qabs)
     fnet_lp = zfun.filt_godin(fnet)
@@ -85,6 +87,7 @@ for snp in sect_list:
     tef_vel_lp = tef_vel_lp[pad:-(pad+1):24, :]
     tef_da_lp = tef_da_lp[pad:-(pad+1):24, :]
     tef_qs_lp = tef_qs_lp[pad:-(pad+1):24, :]
+    tef_qs2_lp = tef_qs2_lp[pad:-(pad+1):24, :]
     ot = ot[pad:-(pad+1):24]
     qnet_lp = qnet_lp[pad:-(pad+1):24]
     qabs_lp = qabs_lp[pad:-(pad+1):24]
@@ -102,14 +105,16 @@ for snp in sect_list:
     Vv=np.zeros((NT, NS))
     Av=np.zeros((NT, NS))
     Qs=np.zeros((NT, NS))
+    Qs2=np.zeros((NT, NS))
     # Note that these are organized low s to high s, but still follow
     # the TEF formal definitions from MacCready (2011)
     Qv[:,:-1] = np.fliplr(np.cumsum(np.fliplr(tef_q_lp), axis=1))
     Vv[:,:-1] = tef_vel_lp #np.fliplr(np.cumsum(np.fliplr(tef_vel_lp), axis=1))
     Av[:,:-1] = tef_da_lp #np.fliplr(np.cumsum(np.fliplr(tef_da_lp), axis=1))
     Qs[:,:-1] = np.fliplr(np.cumsum(np.fliplr(tef_qs_lp), axis=1))
+    Qs2[:,:-1] = np.fliplr(np.cumsum(np.fliplr(tef_qs2_lp), axis=1))
 
-    #get bulk values
+    #get bulk values [not used??]
     Qins=[]
     Qouts=[]
     Vins=[]
@@ -118,6 +123,8 @@ for snp in sect_list:
     Aouts=[]
     sins=[]
     souts=[]
+    s2ins=[]
+    s2outs=[]
 
     # prepare arrays to hold multi-layer output
     nlay = 30
@@ -125,6 +132,7 @@ for snp in sect_list:
     VV = np.nan * np.ones((NT, nlay))
     AA = np.nan * np.ones((NT, nlay))
     SS = np.nan * np.ones((NT, nlay))
+    SS2 = np.nan * np.ones((NT, nlay))
 
     if testing:
         plt.close('all')
@@ -140,12 +148,14 @@ for snp in sect_list:
         vv = Vv[dd,:]
         av = Av[dd,:]
         qs = Qs[dd,:]
+        qs2 = Qs2[dd,:]
     
         if print_info == True:
             print('\n**** dd = %d ***' % (dd))
-        
-        Q_in_m, Q_out_m, V_in_m, V_out_m, A_in_m, A_out_m, s_in_m, s_out_m, div_sal, ind, minmax = tfl.calc_bulk_values(sedges,
-            qv, vv, av, qs, print_info=print_info)
+                
+        Q_in_m, Q_out_m, V_in_m, V_out_m, A_in_m, A_out_m, s_in_m, s_out_m, s2_in_m, s2_out_m, div_sal, ind, minmax = tfl.calc_bulk_values(sedges,
+            qv, vv, av, qs, qs2, print_info=print_info)
+                        
         
         if print_info == True:
             print(' ind = %s' % (str(ind)))
@@ -181,9 +191,11 @@ for snp in sect_list:
         vv = np.concatenate((V_in_m, V_out_m))
         aa = np.concatenate((A_in_m, A_out_m))
         ss = np.concatenate((s_in_m, s_out_m))
+        ss2 = np.concatenate((s2_in_m, s2_out_m))
         ii = np.argsort(ss)
         if len(ii)>0:
             ss = ss[ii]
+            ss2 = ss2[ii]
             qq = qq[ii]
             vv = vv[ii]
             aa = aa[ii]
@@ -192,6 +204,7 @@ for snp in sect_list:
             VV[dd, :NL] = vv
             AA[dd, :NL] = aa
             SS[dd, :NL] = ss
+            SS2[dd, :NL] = ss2
 
         dd+=1
     
@@ -202,6 +215,7 @@ for snp in sect_list:
         bulk['VV'] = VV
         bulk['AA'] = AA
         bulk['SS'] = SS
+        bulk['SS2'] = SS2
         bulk['ot'] = ot
         bulk['qnet_lp'] = qnet_lp
         bulk['qabs_lp'] = qabs_lp

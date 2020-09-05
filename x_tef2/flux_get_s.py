@@ -61,6 +61,8 @@ S = zrfun.get_basic_info(fn, only_S=True)
 h = G['h']
 DA = G['DX'] * G['DY']
 DA3 = DA.reshape((1,G['M'],G['L']))
+DX3 = G['DX'].reshape((1,G['M'],G['L']))
+DY3 = G['DY'].reshape((1,G['M'],G['L']))
 
 # set input/output location
 indir0 = Ldir['LOo'] + 'tef2/'
@@ -101,6 +103,7 @@ for seg_name in seg_list:
 s_df = pd.DataFrame(columns=seg_list)
 s2_df = pd.DataFrame(columns=seg_list)
 mix_df = pd.DataFrame(columns=seg_list)
+hmix_df = pd.DataFrame(columns=seg_list)
 v_df = pd.DataFrame(columns=seg_list)
 
 for fn in fn_list:
@@ -112,9 +115,19 @@ for fn in fn_list:
     ds = nc.Dataset(fn)
     salt = ds['salt'][0,:,:,:]
     AKs = ds['AKs'][0,:,:,:]
+    KH = float(ds['nl_tnu2'][0].data)
     zeta = ds['zeta'][0,:,:]
     ot = ds['ocean_time'][:]
     ds.close()
+    
+    # calculate horizontal salinity gradient for hmix
+    dsdx = 0*salt
+    dsdx[:,:,1:-1] = salt[:,:,2:]-salt[:,:,:-2]
+    dsdx = 0.5 * dsdx / DX3[0,:,:]
+    
+    dsdy = 0*salt
+    dsdy[:,1:-1,:] = salt[:,2:,:]-salt[:,:-2,:]
+    dsdy = 0.5 * dsdy / DY3[0,:,:]
         
     dt = Lfun.modtime_to_datetime(ot.data[0])
     
@@ -137,10 +150,13 @@ for fn in fn_list:
         dsdz = (salt[1:,jjj,iii] - salt[:-1,jjj,iii])/dzr
         mix = -2*(AKs[1:-1,jjj,iii] * dsdz * dsdz * DVR).sum()
         
+        hmix = -2 * KH * ((dsdx[:,jjj,iii]*dsdx[:,jjj,iii] + dsdy[:,jjj,iii]*dsdy[:,jjj,iii]) * DV).sum()
+        
         # store results
         s_df.loc[dt, seg_name] = mean_salt
         s2_df.loc[dt, seg_name] = mean_salt2
         mix_df.loc[dt, seg_name] = mix
+        hmix_df.loc[dt, seg_name] = hmix
         v_df.loc[dt, seg_name] = volume
         
         if verbose:
@@ -150,15 +166,18 @@ for fn in fn_list:
                 (seg_name, mean_salt2, volume/1e9))
                 
     print('  ** took %0.1f sec' % (time()-tt0))
+    sys.stdout.flush()
 
 s_out_fn = outdir + 'hourly_segment_salinity.p'
 s2_out_fn = outdir + 'hourly_segment_salinity2.p'
 mix_out_fn = outdir + 'hourly_segment_mix.p'
+hmix_out_fn = outdir + 'hourly_segment_hmix.p'
 v_out_fn = outdir + 'hourly_segment_volume.p'
 
 s_df.to_pickle(s_out_fn)
 s2_df.to_pickle(s2_out_fn)
 mix_df.to_pickle(mix_out_fn)
+hmix_df.to_pickle(hmix_out_fn)
 v_df.to_pickle(v_out_fn)
     
         

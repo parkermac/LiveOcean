@@ -54,8 +54,8 @@ sect_df = tef_fun.get_sect_df()
 
 q_df = pd.DataFrame(index=sect_df.index, columns=['Qe','Qprism','Ftide'])
 
-for sect_name in q_df.index:#['ai1']:
-    tef_df, in_sign, dt, QQin, QQout, SS, QQin_alt, QQout_alt = flux_fun.get_fluxes(indir0, sect_name)
+for sect_name in q_df.index:
+    tef_df, in_sign = flux_fun.get_fluxes(indir0, sect_name)
     qe = (tef_df['Qin'] - tef_df['Qout'])/2
     QE = qe.mean()
     QT = tef_df['Qtide'].mean()

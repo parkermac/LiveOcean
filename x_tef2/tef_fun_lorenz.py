@@ -165,12 +165,13 @@ def find_extrema(x, comp=5, print_info=False): # new, reduced, better described
             
     return indices, minmax
 
-def calc_bulk_values(s, Qv, Vv, Av, Qs, print_info=False):
+def calc_bulk_values(s, Qv, Vv, Av, Qs, Qs2, print_info=False):
     """
     input
     s=salinity array
     Qv=Q(S)
-    Qs=Q^s(S)
+    Qs=Q*s(S)
+    Qs2=Q*s(S)*s(S)
     min_trans=minimum transport to consider
     """    
     # use the find_extrema algorithm
@@ -194,6 +195,8 @@ def calc_bulk_values(s, Qv, Vv, Av, Qs, print_info=False):
     A_out_m=[]
     s_in_m=[]
     s_out_m=[]
+    s2_in_m=[]
+    s2_out_m=[]
     index=[]
     i=0
     while i < len(ind)-1:
@@ -201,22 +204,26 @@ def calc_bulk_values(s, Qv, Vv, Av, Qs, print_info=False):
         Q_i=-(Qv[ind[i+1]]-Qv[ind[i]])
         V_i=Vv[ind[i]:ind[i+1]].mean()
         A_i=Av[ind[i]:ind[i+1]].sum()
-        F_i=-(Qs[ind[i+1]]-Qs[ind[i]])
+        F_i =-( Qs[ind[i+1]] -Qs[ind[i]])
+        F2_i=-(Qs2[ind[i+1]]-Qs2[ind[i]])
         #V_i=np.abs(Q_i)/np.abs(A_i) # doing this yields exactly the original TEF results
         s_i=np.abs(F_i)/np.abs(Q_i)
+        s2_i=np.abs(F2_i)/np.abs(Q_i)
         if Q_i<0 and np.abs(Q_i)>1:
             Q_out_m.append(Q_i)
             V_out_m.append(V_i)
             A_out_m.append(A_i)
             s_out_m.append(s_i)
+            s2_out_m.append(s2_i)
         elif Q_i > 0 and np.abs(Q_i)>1:
             Q_in_m.append(Q_i)
             V_in_m.append(V_i)
             A_in_m.append(A_i)
             s_in_m.append(s_i)
+            s2_in_m.append(s2_i)
         else:
             index.append(i)
         i+=1
     div_sal = np.delete(div_sal, index)
         
-    return Q_in_m, Q_out_m, V_in_m, V_out_m, A_in_m, A_out_m, s_in_m, s_out_m, div_sal, ind, minmax
+    return Q_in_m, Q_out_m, V_in_m, V_out_m, A_in_m, A_out_m, s_in_m, s_out_m, s2_in_m, s2_out_m, div_sal, ind, minmax

@@ -57,7 +57,7 @@ for sect_name in sect_list:
 
     # ---------------------------------------------------------
 
-    tef_df, in_sign, dt, QQin, QQout, SS, QQin_alt, QQout_alt = flux_fun.get_fluxes(indir, sect_name)
+    tef_df, in_sign, dt, QQin, QQout, SS, QQin_alt, QQout_alt = flux_fun.get_fluxes_alt(indir, sect_name)
     td = []
     for tt in dt:
         ttt = tt - datetime(year,1,1)
