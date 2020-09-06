@@ -61,8 +61,10 @@ S = zrfun.get_basic_info(fn, only_S=True)
 h = G['h']
 DA = G['DX'] * G['DY']
 DA3 = DA.reshape((1,G['M'],G['L']))
-DX3 = G['DX'].reshape((1,G['M'],G['L']))
-DY3 = G['DY'].reshape((1,G['M'],G['L']))
+DXu = (G['DX'][:,1:]+G['DX'][:,:-1])/2
+DX3u = DXu.reshape((1,G['M'],G['L']-1))
+DYv = (G['DY'][1:,:]+G['DY'][:-1,:])/2
+DY3v = DYv.reshape((1,G['M']-1,G['L']))
 
 # set input/output location
 indir0 = Ldir['LOo'] + 'tef2/'
@@ -121,13 +123,13 @@ for fn in fn_list:
     ds.close()
     
     # calculate horizontal salinity gradient for hmix
-    dsdx = 0*salt
-    dsdx[:,:,1:-1] = salt[:,:,2:]-salt[:,:,:-2]
-    dsdx = 0.5 * dsdx / DX3[0,:,:]
+    sx2 = np.square(np.diff(salt,axis=2)/DX3u)
+    SX2 = 0*salt
+    SX2[:,:,1:-1] = (sx2[:,:,1:]+sx2[:,:,:-1])/2
     
-    dsdy = 0*salt
-    dsdy[:,1:-1,:] = salt[:,2:,:]-salt[:,:-2,:]
-    dsdy = 0.5 * dsdy / DY3[0,:,:]
+    sy2 = np.square(np.diff(salt,axis=1)/DY3v)
+    SY2 = 0*salt
+    SY2[:,1:-1,:] = (sy2[:,1:,:]+sy2[:,:-1,:])/2
         
     dt = Lfun.modtime_to_datetime(ot.data[0])
     
@@ -150,7 +152,7 @@ for fn in fn_list:
         dsdz = (salt[1:,jjj,iii] - salt[:-1,jjj,iii])/dzr
         mix = -2*(AKs[1:-1,jjj,iii] * dsdz * dsdz * DVR).sum()
         
-        hmix = -2 * KH * ((dsdx[:,jjj,iii]*dsdx[:,jjj,iii] + dsdy[:,jjj,iii]*dsdy[:,jjj,iii]) * DV).sum()
+        hmix = -2 * KH * ((SX2[:,jjj,iii] + SY2[:,jjj,iii]) * DV).sum()
         
         # store results
         s_df.loc[dt, seg_name] = mean_salt
