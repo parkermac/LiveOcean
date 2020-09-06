@@ -48,12 +48,14 @@ gtagex = args.gridname + '_' + args.tag + '_' + args.ex_name
 
 # vol_list = ['Salish Sea', 'Puget Sound', 'Hood Canal']
 # year_list = [2017, 2018, 2019]
-vol_list = ['Puget Sound']
-#vol_list = ['Salish Sea']
+#vol_list = ['Puget Sound']
+vol_list = ['Salish Sea']
+#vol_list = ['Hood Canal']
 year_list = [2017]
 
 err_df_vol = pd.DataFrame(index=year_list, columns=vol_list)
 err_df_salt = pd.DataFrame(index=year_list, columns=vol_list)
+err_df_salt2 = pd.DataFrame(index=year_list, columns=vol_list)
 
 plt.close('all')
 for which_vol in vol_list:
@@ -69,11 +71,13 @@ for which_vol in vol_list:
         outdir = indir00 + 'salt_budget_plots/'
         Lfun.make_dir(outdir)
         outname = outdir + 'salt_budget_' + year_str + '_' + which_vol.replace(' ','_') + '.png'
+        outname2 = outdir + 'salt2_budget_' + year_str + '_' + which_vol.replace(' ','_') + '.png'
 
         # load low passed segment volume, net salt, and other DataFrames
         v_lp_df = pd.read_pickle(indir0 + 'flux/daily_segment_volume.p')
         sv_lp_df = pd.read_pickle(indir0 + 'flux/daily_segment_net_salt.p')
         mix_lp_df = pd.read_pickle(indir0 + 'flux/daily_segment_mix.p')
+        hmix_lp_df = pd.read_pickle(indir0 + 'flux/daily_segment_hmix.p')
         s2v_lp_df = pd.read_pickle(indir0 + 'flux/daily_segment_net_salt2.p')
 
         # Info specific to each volume
@@ -87,11 +91,12 @@ for which_vol in vol_list:
             sect_sign_dict = {'ai1':1, 'dp':1}
         elif which_vol == 'Hood Canal':
             seg_list = flux_fun.ssH
-            sect_sign_dict = {'hc1':1}
+            sect_sign_dict = {'hc1':-1}
 
         v_lp_df = v_lp_df[seg_list]
         sv_lp_df = sv_lp_df[seg_list]
         mix_lp_df = mix_lp_df[seg_list]
+        hmix_lp_df = hmix_lp_df[seg_list]
         s2v_lp_df = s2v_lp_df[seg_list]
     
         sect_df = tef_fun.get_sect_df()
@@ -114,63 +119,72 @@ for which_vol in vol_list:
                 
         
         vol_df, salt_df, salt2_df, vol_rel_err, salt_rel_err, salt_rel_err_qe, salt2_rel_err = flux_fun.get_budgets(
-            v_lp_df, sv_lp_df, mix_lp_df, s2v_lp_df, riv_df, tef_df_dict, seg_list)
+            v_lp_df, sv_lp_df, mix_lp_df, hmix_lp_df, s2v_lp_df, riv_df, tef_df_dict, seg_list)
             
-        # debugging: get net salt and salt-squared flux as a check
-        salt_df['QSnet'] = 0
-        salt2_df['QS2net'] = 0
-        tt0 = time()
-        for sect_name in sect_sign_dict.keys():
-            print('Debugging - processing ' + sect_name)
-            sys.stdout.flush()
-            sect_sign = sect_sign_dict[sn]
-            ext_fn = indir0 + 'extractions/' + sect_name + '.nc'
-            ext = nc.Dataset(ext_fn)
-            ext_q = sect_sign * ext['q'][:]
-            ext_salt = ext['salt'][:]
-            xqs = ((ext_q * ext_salt).sum(axis=2)).sum(axis=1)
-            xqs2 = ((ext_q * ext_salt * ext_salt).sum(axis=2)).sum(axis=1)
-            
-            xqs_lp = zfun.filt_godin(xqs)
-            xqs2_lp = zfun.filt_godin(xqs2)
-            
-            pad = 36
-            xqs_lp = xqs_lp[pad:-(pad+1):24]
-            xqs2_lp = xqs2_lp[pad:-(pad+1):24]
-            
-            salt_df['QSnet'] += xqs_lp
-            salt2_df['QS2net'] += xqs2_lp
-            
-            salt_df['Error_alt'] = salt_df['dSnet_dt'] - salt_df['QSnet']
-            salt2_df['Error_alt'] = salt2_df['dS2net_dt'] - salt2_df['QS2net'] - 2*salt2_df['Mix']
-            
-            
-            print('  -- took %0.2f sec' % (time()-tt0))
-            sys.stdout.flush()
+        if False:
+            # debugging: get net salt and salt-squared flux as a check
+            salt_df['QSnet'] = 0
+            salt2_df['QS2net'] = 0
+            tt0 = time()
+            for sect_name in sect_sign_dict.keys():
+                print('Debugging - processing ' + sect_name)
+                sys.stdout.flush()
+                sect_sign = sect_sign_dict[sn]
+                ext_fn = indir0 + 'extractions/' + sect_name + '.nc'
+                ext = nc.Dataset(ext_fn)
+                ext_q = sect_sign * ext['q'][:]
+                ext_salt = ext['salt'][:]
+                xqs = ((ext_q * ext_salt).sum(axis=2)).sum(axis=1)
+                xqs2 = ((ext_q * ext_salt * ext_salt).sum(axis=2)).sum(axis=1)
+                xqs_lp = zfun.filt_godin(xqs)
+                xqs2_lp = zfun.filt_godin(xqs2)
+                pad = 36
+                xqs_lp = xqs_lp[pad:-(pad+1):24]
+                xqs2_lp = xqs2_lp[pad:-(pad+1):24]
+                salt_df['QSnet'] += xqs_lp
+                salt2_df['QS2net'] += xqs2_lp
+                salt_df['Error_alt'] = salt_df['dSnet_dt'] - salt_df['QSnet']
+                salt2_df['Error_alt'] = salt2_df['dS2net_dt'] - salt2_df['QS2net'] - salt2_df['Mix'] - salt2_df['HMix']
+                print('  -- took %0.2f sec' % (time()-tt0))
+                sys.stdout.flush()
             
 
-        fig = plt.figure(figsize=(20,7))
+        fig = plt.figure(figsize=(16,7))
         
-        ax = fig.add_subplot(131)
+        ax = fig.add_subplot(121)
         vol_df[['dV_dt','Qin','-Qout', 'Qr','Error']].plot(ax=ax, grid=True).legend(loc='upper right')
         ax.set_title('Volume Budget (m3/s)')
         ax.text(.05,.9, 'Mean Error / Mean Qr = %0.2f%%' % (vol_rel_err*100), transform=ax.transAxes, fontsize=14)
 
-        ax = fig.add_subplot(132)
-        salt_df[['dSnet_dt','QSin','-QSout','Error','Error_alt']].plot(ax=ax, grid=True).legend(loc='upper right')
+        ax = fig.add_subplot(122)
+        salt_df[['dSnet_dt','QSin','-QSout','Error']].plot(ax=ax, grid=True).legend(loc='upper right')
         ax.set_title(year_str + ' ' + which_vol + ' Salt Budget (g/kg m3/s)')
         ax.text(.05,.9, 'Mean Error / Mean QSin = %0.2f%%' % (salt_rel_err*100), transform=ax.transAxes, fontsize=14)
-
-        ax = fig.add_subplot(133)
-        salt2_df[['dS2net_dt','QS2in','-QS2out','QS2net','Mix','Error','Error_alt']].plot(ax=ax, grid=True).legend(loc='upper right')
+        
+        fig2 = plt.figure(figsize=(21,7))
+        
+        ax = fig2.add_subplot(131)
+        salt2_df[['dS2net_dt','QS2in','-QS2out','Mix','Error']].plot(ax=ax, grid=True).legend(loc='upper right')
         ax.set_title(year_str + ' ' + which_vol + ' Salt2 Budget (g2/kg2 m3/s)')
-        ax.text(.05,.9, 'Mean Error / Mean QS2in = %0.2f%%' % (salt2_rel_err*100), transform=ax.transAxes, fontsize=14)
-
-        plt.savefig(outname)
+        #ax.text(.05,.9, 'Mean Error / Mean Mix+HMix = %0.2f%%' % (salt2_rel_err*100), transform=ax.transAxes, fontsize=14)
+        
+        ax = fig2.add_subplot(132)
+        salt2_df[['dSp2net_dt','QSp2in','-QSp2out','QrSp2','Mix','pError']].plot(ax=ax, grid=True).legend(loc='upper right')
+        ax.set_title(year_str + ' ' + which_vol + ' Salt2 Budget (g2/kg2 m3/s)')
+        #ax.text(.05,.9, 'Mean Error / Mean Mix+HMix = %0.2f%%' % (salt2_rel_err*100), transform=ax.transAxes, fontsize=14)
+        
+        ax = fig2.add_subplot(133)
+        salt2_df[['Mix','VMix','HMix','Error']].plot(ax=ax, grid=True).legend(loc='upper right')
+        ax.set_title(year_str + ' ' + which_vol + ' Salt2 Budget (g2/kg2 m3/s)')
+        ax.text(.05,.9, 'Mean Error / Mean Mix = %0.2f%%' % (salt2_rel_err*100), transform=ax.transAxes, fontsize=14)
+        
+        fig.savefig(outname)
+        fig2.savefig(outname2)
         
         # save error statistics (all %)
         err_df_vol.loc[year, which_vol] = vol_rel_err*100
         err_df_salt.loc[year, which_vol] = salt_rel_err*100
+        err_df_salt2.loc[year, which_vol] = salt2_rel_err*100
         
 plt.show()
 

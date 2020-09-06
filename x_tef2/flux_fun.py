@@ -229,7 +229,7 @@ def get_fluxes_alt(indir, sect_name):
     
     return tef_df, in_sign, dt, QQin, QQout, SS, QQin_alt, QQout_alt
     
-def get_budgets(v_lp_df, sv_lp_df, mix_lp_df, s2v_lp_df, riv_df, tef_df_dict, seg_list):
+def get_budgets(v_lp_df, sv_lp_df, mix_lp_df, hmix_lp_df, s2v_lp_df, riv_df, tef_df_dict, seg_list):
     
     # volume budget
     vol_df = pd.DataFrame(0, index=sv_lp_df.index, columns=['Qin','-Qout', 'Qtide'])
@@ -246,7 +246,7 @@ def get_budgets(v_lp_df, sv_lp_df, mix_lp_df, s2v_lp_df, riv_df, tef_df_dict, se
     vol_rel_err = vol_df['Error'].mean()/vol_df['Qr'].mean()
 
     # salt budget
-    salt_df = pd.DataFrame(0, index=sv_lp_df.index, columns=['QSin','-QSout','Ftide'])
+    salt_df = pd.DataFrame(0, index=sv_lp_df.index, columns=['dSnet_dt','QSin','-QSout','Ftide'])
     for sect_name in tef_df_dict.keys():
         df = tef_df_dict[sect_name]
         salt_df['QSin'] = salt_df['QSin'] + df['QSin']
@@ -269,23 +269,49 @@ def get_budgets(v_lp_df, sv_lp_df, mix_lp_df, s2v_lp_df, riv_df, tef_df_dict, se
     salt_rel_err_qe = salt_df['Error'].mean()/salt_df['QeDS'].mean()
     
     # variance budget
-    salt2_df = pd.DataFrame(0, index=s2v_lp_df.index, columns=['QS2in','-QS2out','Mix'])
+    salt2_df = pd.DataFrame(0, index=s2v_lp_df.index, columns=['QS2in','-QS2out','VMix','HMix','Mix','dSp2net_dt'])
     for sect_name in tef_df_dict.keys():
         df = tef_df_dict[sect_name]
         salt2_df['QS2in'] = salt2_df['QS2in'] + df['QS2in']
         salt2_df['-QS2out'] = salt2_df['-QS2out'] - df['QS2out']
-    s2n = s2v_lp_df[seg_list].sum(axis=1).values
+    s2n = s2v_lp_df[seg_list].sum(axis=1).to_numpy()
     salt2_df.loc[1:-1, 'dS2net_dt'] = (s2n[2:] - s2n[:-2]) / (2*86400)
-    salt2_df['Mix'] = mix_lp_df[seg_list].sum(axis=1).values
+    salt2_df['VMix'] = mix_lp_df[seg_list].sum(axis=1).to_numpy()
+    salt2_df['HMix'] = hmix_lp_df[seg_list].sum(axis=1).to_numpy()
+    salt2_df['Mix'] = salt2_df['VMix'] + salt2_df['HMix']
+    salt2_df['S2in'] = salt2_df['QS2in']/vol_df['Qin']
+    salt2_df['S2out'] = salt2_df['-QS2out']/vol_df['-Qout']
+    
     salt2_df['S2mean'] = s2v_lp_df.sum(axis=1)/vol_df['V']
+    
+    smean2_net = salt_df['Smean'].to_numpy() * salt_df['Smean'].to_numpy() * vol_df['V'].to_numpy()
+    
+    ds2net_dt = (s2n[2:] - s2n[:-2]) / (2*86400)
+    
+    dsmean2_net_dt = (smean2_net[2:] - smean2_net[:-2]) / (2*86400)
+    
+    
     salt2_df['Error'] = salt2_df['dS2net_dt'] - salt2_df['QS2in'] + salt2_df['-QS2out'] - salt2_df['Mix']
-    salt2_rel_err = salt2_df['Error'].mean()/salt2_df['QS2in'].mean()
-
+    #salt2_rel_err = salt2_df['Error'].mean()/salt2_df['QS2in'].mean()
+    salt2_rel_err = salt2_df['Error'].mean()/salt2_df['Mix'].mean()
+    # and more columns for the Sp2 budget
+    salt2_df['Sp2in'] = salt2_df['S2in'] -2*salt_df['Smean']*salt_df['Sin']+salt_df['Smean']*salt_df['Smean']
+    salt2_df['Sp2out'] = salt2_df['S2out'] -2*salt_df['Smean']*salt_df['Sout']+salt_df['Smean']*salt_df['Smean']
+    salt2_df['QSp2in'] = salt2_df['Sp2in'] * vol_df['Qin']
+    salt2_df['-QSp2out'] = salt2_df['Sp2out'] * vol_df['-Qout']
+    
+    salt2_df['QrSp2'] = vol_df['Qr']*salt2_df['S2mean']
+    
+    salt2_df.loc[1:-1,'dSp2net_dt'] = ds2net_dt - dsmean2_net_dt
+    
+    salt2_df['pError'] = salt2_df['dSp2net_dt'] - salt2_df['QSp2in'] + salt2_df['-QSp2out'] - salt2_df['QrSp2'] - salt2_df['Mix']
     # make sure everything is numeric
     for cn in vol_df.columns:
         vol_df[cn] = pd.to_numeric(vol_df[cn])
     for cn in salt_df.columns:
         salt_df[cn] = pd.to_numeric(salt_df[cn])
+    for cn in salt2_df.columns:
+        salt2_df[cn] = pd.to_numeric(salt2_df[cn])
         
     #return vol_df, salt_df, vol_rel_err, salt_rel_err, salt_rel_err_qe
     return vol_df, salt_df, salt2_df, vol_rel_err, salt_rel_err, salt_rel_err_qe, salt2_rel_err
