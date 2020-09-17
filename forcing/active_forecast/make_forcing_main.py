@@ -51,8 +51,8 @@ for P_name in P_list:
     else:
         lt = 'forecast'
         
-    if testing:
-        lt = 'allhours'
+    # if testing:
+    #     lt = 'allhours'
     
     # run the plotting code
     cmd = ['python','pan_plot.py',
