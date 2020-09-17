@@ -22,6 +22,7 @@ Ldir, Lfun = ffun.intro()
 
 # ****************** CASE-SPECIFIC CODE *****************
 
+
 # imports
 import surf_fun
 from datetime import datetime
@@ -42,6 +43,8 @@ in_dir = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/' + f_string + '/'
 out_dir = in_dir # output goes to same place as input
 
 # ======== Create an output file for EDS ===============================
+
+    
 fn_list_raw = os.listdir(in_dir)
 fn_list = []
 for item in fn_list_raw:
@@ -92,6 +95,7 @@ in_ds.close()
 
 # ======== Create an output file for SCOOT and NANOOS and etc. =============================
 # performance: took about 3 minutes for a three-day forecast with 12 hour steps
+
 testing = False
 
 fn_list_raw = os.listdir(in_dir)
@@ -101,7 +105,10 @@ for item in fn_list_raw:
         fn_list.append(in_dir + item)
 fn_list.sort()
 # shorten the list to be every 4 hours
-fn_list = fn_list[::4]
+if testing:
+    fn_list = fn_list[::24]
+else:
+    fn_list = fn_list[::4]
 
 # Initialize the multi-file input dataset
 in_ds = nc.MFDataset(fn_list)
@@ -170,7 +177,11 @@ for vn in vn_list3t:
         vv = out_ds.createVariable(vnd, float, ('ocean_time', 'eta_rho', 'xi_rho'))
         vn_alt = (vn + '_surface')
         vv.long_name = out_ds[vn_alt].long_name + ' at ' + str(depth)+' m depth'
-        vv.units = out_ds[vn_alt].units
+        try:
+            vv.units = out_ds[vn_alt].units
+        except AttributeError:
+            # needed because salt has no units
+            pass
         vv.time = 'ocean_time'
         vv[:] = v_dict[vnd]
 print(' --  layers to netCDF took %0.1f sec' % (time()-tt0))
