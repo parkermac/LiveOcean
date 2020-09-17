@@ -45,7 +45,7 @@ for P_name in P_list:
         lt = 'merhab'
     elif P_name == 'P_DO':
         lt = 'daily_plus'
-        dt1 = datetime.strptime(Ldir['date_string'], format='%Y.%m.%d')
+        dt1 = datetime.strptime(Ldir['date_string'], '%Y.%m.%d')
         dt0 = dt1 - timedelta(days=60)
         dstr0 = dt0.strftime(format='%Y.%m.%d')
     else:
