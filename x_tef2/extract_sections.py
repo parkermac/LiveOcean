@@ -5,6 +5,8 @@ of transport and transport-weighted properties.
 All input parameters specified at the command line, so this can be run in the background
 because it can take a few hours.  Use "-sn all" to get all sections.
 
+Takes about 15 hours for 39 cas6 sections, per year.
+
 """
 
 # setup

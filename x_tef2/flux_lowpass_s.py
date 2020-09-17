@@ -2,6 +2,8 @@
 Make low-passed versions of the hourly extractions made by
 flux_get_s.py.
 
+Takes about 30 sec per year.
+
 """
 
 # imports
@@ -15,7 +17,7 @@ Ldir = Lfun.Lstart('cas6', 'v3')
 
 indir0 = Ldir['LOo'] + 'tef2/'
 
-for year in [2017]:
+for year in [2018, 2019]:
     print('Working on ' + str(year))
     
     outname = 'cas6_v3_lo8b_' + str(year) + '.01.01_' + str(year) + '.12.31'

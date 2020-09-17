@@ -7,6 +7,8 @@ I am trying (that may not lead anywhere).
 
 To Do: add clean way to include more variables, like NO3.
 
+Takes about 30 minutes per year.
+
 """
 
 # setup

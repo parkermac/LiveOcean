@@ -43,8 +43,8 @@ args = parser.parse_args()
 Ldir = Lfun.Lstart(args.gridname, args.tag)
 gtagex = args.gridname + '_' + args.tag + '_' + args.ex_name
 
-# year_list = [2017, 2018, 2019]
-year_list = [2017]
+year_list = [2017, 2018, 2019]
+# year_list = [2017]
 
 # vol_list = ['Salish Sea', 'Puget Sound', 'Hood Canal']
 vol_list = ['Puget Sound']
@@ -204,8 +204,9 @@ for which_vol in vol_list:
         sp2_df.loc[1:-1,'dSp2net_dt'] = ds2net_dt - dsmean2_net_dt
         sp2_df['Mix_resolved'] = salt2_df['Mix_resolved']
         sp2_df['Mix_numerical'] = sp2_df['dSp2net_dt'] - sp2_df['QSp2in'] - sp2_df['QSp2out'] - sp2_df['QrSp2'] - sp2_df['Mix_resolved']
+        sp2_df['Mixing'] = sp2_df['Mix_resolved'] + sp2_df['Mix_numerical']
         
-        # normalized S'^2 budget
+        # Normalized S'^2 budget
         QSS = vol_df['Qr'].mean() * misc_df['Sin'] * misc_df['Sin']
         sp2n_df = sp2_df.copy()
         for cn in sp2n_df.columns:
@@ -226,6 +227,19 @@ for which_vol in vol_list:
             sp2_df[cn] = pd.to_numeric(sp2_df[cn])
         for cn in sp2n_df.columns:
             sp2n_df[cn] = pd.to_numeric(sp2n_df[cn])
+            
+        # save DataFrames to pickle files
+        misc_df.to_pickle(outdir + 'misc_df_' + year_str + '_' + which_vol.replace(' ','_') + '.p')
+        vol_df.to_pickle(outdir + 'vol_df_' + year_str + '_' + which_vol.replace(' ','_') + '.p')
+        salt_df.to_pickle(outdir + 'salt_df_' + year_str + '_' + which_vol.replace(' ','_') + '.p')
+        salt2_df.to_pickle(outdir + 'salt2_df_' + year_str + '_' + which_vol.replace(' ','_') + '.p')
+        sp2_df.to_pickle(outdir + 'sp2_df_' + year_str + '_' + which_vol.replace(' ','_') + '.p')
+        sp2n_df.to_pickle(outdir + 'sp2n_df_' + year_str + '_' + which_vol.replace(' ','_') + '.p')
+            
+        # accumulate error statistics (all %)
+        err_df_vol.loc[year, which_vol] = vol_rel_err*100
+        err_df_salt.loc[year, which_vol] = salt_rel_err*100
+        err_df_salt2.loc[year, which_vol] = salt2_rel_err*100
             
         # debugging: get net salt and salt-squared flux as a check
         if False:
@@ -268,6 +282,9 @@ for which_vol in vol_list:
         ax.set_title(year_str + ' ' + which_vol + ' Salt Budget (g/kg m3/s)')
         ax.text(.05,.9, 'Mean Error / Mean QSin = %0.2f%%' % (salt_rel_err*100), transform=ax.transAxes, fontsize=14)
         
+        outname1 = outdir + 'vol_salt_budget_' + year_str + '_' + which_vol.replace(' ','_')
+        fig1.savefig(outname1 + '.png')
+        
         # --------------- Salinity-squared Budget ------------------------------------------
         fig2 = plt.figure(figsize=(16,7))
         
@@ -275,35 +292,27 @@ for which_vol in vol_list:
         #salt2_df[['dS2net_dt','QS2in','QS2out','Mix_resolved','Mix_numerical']].plot(ax=ax, grid=True).legend(loc='upper right')
         salt2_df.plot(ax=ax, grid=True).legend(loc='upper right')
         ax.set_title(year_str + ' ' + which_vol + ' Salt2 Budget (g2/kg2 m3/s)')
-        #ax.text(.05,.9, 'Mean Error / Mean Mix+HMix = %0.2f%%' % (salt2_rel_err*100), transform=ax.transAxes, fontsize=14)
                 
         ax = fig2.add_subplot(122)
         salt2_df[['Mix_resolved','VMix','HMix','Mix_numerical']].plot(ax=ax, grid=True).legend(loc='upper right')
         ax.set_title(year_str + ' ' + which_vol + ' Salt2 Budget (g2/kg2 m3/s)')
         ax.text(.05,.9, 'Mean Error / Mean Mix_resolved = %0.2f%%' % (salt2_rel_err*100), transform=ax.transAxes, fontsize=14)
 
+        outname2 = outdir + 'salt2_budget_' + year_str + '_' + which_vol.replace(' ','_')
+        fig2.savefig(outname2 + '.png')
+
         # --------------- S'^2 squared Budget ----------------------------------------
         fig3 = plt.figure(figsize=(12,7))
                 
         ax = fig3.add_subplot(111)
-        sp2n_df.plot(ax=ax, grid=True).legend(loc='upper right')
+        sp2n_df[['dSp2net_dt', 'QSp2in', 'QSp2out', 'QrSp2', 'Mixing', 'Mix_resolved']].plot(ax=ax, grid=True).legend(loc='upper right')
         ax.set_title(year_str + ' ' + which_vol + ' Sp2 Budget Normalized')
+        ax.set_ylim(-4,4)
         
-        # ----------------------------------------------------------------------------
+        outname3 = outdir + 'sp2n_budget_' + year_str + '_' + which_vol.replace(' ','_')
+        fig3.savefig(outname3 + '.png')
         
-        if True:
-            outname1 = outdir + 'vol_salt_budget_' + year_str + '_' + which_vol.replace(' ','_') + '.png'
-            outname2 = outdir + 'salt2_budget_' + year_str + '_' + which_vol.replace(' ','_') + '.png'
-            outname3 = outdir + 'sp2_budget_' + year_str + '_' + which_vol.replace(' ','_') + '.png'
-        
-            fig1.savefig(outname1)
-            fig2.savefig(outname2)
-            fig3.savefig(outname3)
-        
-            # accumulate error statistics (all %)
-            err_df_vol.loc[year, which_vol] = vol_rel_err*100
-            err_df_salt.loc[year, which_vol] = salt_rel_err*100
-            err_df_salt2.loc[year, which_vol] = salt2_rel_err*100
+        # ----------------------------------------------------------------------------        
         
 plt.show()
 
