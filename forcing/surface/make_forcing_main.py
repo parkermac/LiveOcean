@@ -90,7 +90,7 @@ out_ds.close()
 in_ds.close()
 # ======================================================================
 
-# ======== Create an output file for SCOOT =============================
+# ======== Create an output file for SCOOT and NANOOS and etc. =============================
 # performance: took about 3 minutes for a three-day forecast with 12 hour steps
 testing = False
 
@@ -100,8 +100,8 @@ for item in fn_list_raw:
     if 'ocean_his' in item and '.nc' in item:
         fn_list.append(in_dir + item)
 fn_list.sort()
-# shorten the list to be every 12 hours
-fn_list = fn_list[::12]
+# shorten the list to be every 4 hours
+fn_list = fn_list[::4]
 
 # Initialize the multi-file input dataset
 in_ds = nc.MFDataset(fn_list)
@@ -116,7 +116,8 @@ vn_list2t = ['ocean_time']
 if testing:
     vn_list3t = ['oxygen']
 else:
-    vn_list3t = ['oxygen', 'temp']
+    vn_list3t = ['temp', 'salt', 'phytoplankton', 'NO3', 'oxygen']
+    
 surf_fun.add_fields(in_ds, out_ds, vn_list2t, vn_list3t, slev=-1, suffix='_surface')
 surf_fun.add_fields(in_ds, out_ds, [], vn_list3t, slev=0, suffix='_bottom')
 
@@ -125,7 +126,7 @@ surf_fun.add_fields(in_ds, out_ds, [], vn_list3t, slev=0, suffix='_bottom')
 if testing:
     depth_list = [10]
 else:
-    depth_list = [10, 20]
+    depth_list = [10, 20, 30, 50]
     
 # -- get z fields
 fn0 = fn_list[0]
