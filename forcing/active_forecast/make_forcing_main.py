@@ -15,9 +15,9 @@ Ldir, Lfun = ffun.intro()
 
 # ****************** CASE-SPECIFIC CODE *****************
 
-testing = False
+testing = True
 
-from datetime import datetime
+from datetime import datetime, timedelta
 start_time = datetime.now()
 import subprocess
 from time import time
@@ -31,15 +31,23 @@ P_list_2 = ['P_basic', 'P_Chl_DO', 'P_basic_salish', 'P_Chl_DO_salish', 'P_track
 P_list = P_list_1 + P_list_2
 
 if testing:
-    P_list = ['P_basic']
+    P_list = ['P_DO']
 
 result = 'success'
 for P_name in P_list:
     tt0 = time()
     print('\n  -- working on %s' % (P_name))
     
+    dstr0 = Ldir['date_string']
+    dstr1 = Ldir['date_string']
+    
     if P_name in ['P_tracks_MERHAB', 'P_merhab2', 'P_tracks_barber']:
         lt = 'merhab'
+    elif P_name == 'P_DO':
+        lt = 'daily_plus'
+        dt1 = datetime.strptime(Ldir['date_string'], format='%Y.%m.%d')
+        dt0 = dt1 - timedelta(days=60)
+        dstr0 = dt0.strftime(format='%Y.%m.%d')
     else:
         lt = 'forecast'
         
@@ -49,7 +57,7 @@ for P_name in P_list:
     # run the plotting code
     cmd = ['python','pan_plot.py',
                   '-g', Ldir['gridname'],'-t', Ldir['tag'],'-x', Ldir['ex_name'],
-                  '-lt', lt,'-0', Ldir['date_string'],'-1', Ldir['date_string'],
+                  '-lt', lt,'-0', dstr0,'-1', dstr1,
                   '-pt', P_name,'-mov', 'True']
     proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if False:
