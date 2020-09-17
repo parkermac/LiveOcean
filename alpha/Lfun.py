@@ -189,20 +189,21 @@ def get_fn_list(list_type, Ldir, date_string0, date_string1, his_num=1):
             f_string = 'f' + dl
             fn = (dir0 + f_string + '/ocean_his_0021.nc')
             fn_list.append(fn)
-    elif list_type == 'daily4':
-        # list of 4 history files per day over a date range
+    elif list_type == 'daily_plus':
+        # list on history file each day (0001) along with all days in the final
+        # forecast folder
         fn_list = []
         date_list = date_list_utility(dt0, dt1)
-        for dl in date_list:
+        for dl in date_list[:-1]:
             f_string = 'f' + dl
-            fn = (dir0 + f_string + '/ocean_his_0003.nc')
+            fn = (dir0 + f_string + '/ocean_his_0001.nc')
             fn_list.append(fn)
-            fn = (dir0 + f_string + '/ocean_his_0009.nc')
-            fn_list.append(fn)
-            fn = (dir0 + f_string + '/ocean_his_0015.nc')
-            fn_list.append(fn)
-            fn = (dir0 + f_string + '/ocean_his_0021.nc')
-            fn_list.append(fn)
+        hlist_raw = os.listdir(dir0 + 'f' + date_list[-1])
+        hlist = [item for item in hlist_raw if 'ocean_his_' in item]
+        hlist.sort()
+        hlist = hlist[::24]
+        for item in hlist:
+            fn_list.append(dir0 + 'f' + date_list[-1] + '/' + item)
     elif list_type == 'merhab':
         # a list of all but the first history file in a directory
         in_dir = dir0 + 'f' + date_string0 + '/'

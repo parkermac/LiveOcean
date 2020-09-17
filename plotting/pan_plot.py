@@ -59,6 +59,9 @@ parser.add_argument('-test', '--testing', default=False, type=boolean_string)
 args = parser.parse_args()
 if len(args.date_string1) == 0:
     args.date_string1 = args.date_string0
+    
+if args.testing:
+    reload(Lfun)
 
 Ldir = Lfun.Lstart(args.gridname, args.tag)
 Ldir['gtagex'] = Ldir['gtag'] + '_' + args.ex_name
@@ -114,6 +117,11 @@ in_dict['testing'] = args.testing
 # get list of history files to plot
 fn_list = Lfun.get_fn_list(list_type, Ldir,
     args.date_string0, args.date_string1, his_num=args.his_num)
+    
+if (list_type == 'daily_plus') and (args.testing == True):
+    for fn in fn_list:
+        print(fn)
+    os.sys.exit()
     
 if (list_type == 'allhours') and (args.testing == True):
     fn_list = fn_list[:4]

@@ -130,6 +130,59 @@ def P_Chl_DO(in_dict):
     else:
         plt.show()
         
+def P_DO(in_dict):
+
+    # START
+    fs = 18
+    plt.rc('font', size=fs)
+    fig = plt.figure(figsize=(14,11)) # (16,12) or pinfo.figsize for default
+    ds = nc.Dataset(in_dict['fn'])
+
+    # PLOT CODE
+    aa_list = [[-129, -122, 42.5, 51.5], [-123.8, -122, 47, 49]]
+    ii = 1
+    import cmocean
+    cmap = cmocean.cm.balance_r
+    
+    vn = 'oxygen'
+    fac = 0.032
+    unit_str = ' $(mg\ L^{-1})$'
+    pinfo.vlims_dict[vn] = (0,4)
+    
+    for aa in aa_list:
+        vn = 'oxygen'
+        ax = fig.add_subplot(1, 2, ii)
+        cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict, slev=0, cmap=cmap, fac=fac)
+        if ii == 1:
+            ax.set_title('Bottom %s %s' % (pinfo.tstr_dict[vn],unit_str))
+            pfun.add_bathy_contours(ax, ds, txt=True)
+            ax.set_ylabel('Latitude', fontsize=fs)
+            pfun.add_info(ax, in_dict['fn'], fs=fs)
+            pfun.add_windstress_flower(ax, ds)
+        elif ii == 2:
+            ax.set_title('Puget Sound')
+            ax.set_xticks([-123.5, -123, -122.5])
+            ax.set_yticks([47, 48, 49])
+            # Inset colorbar
+            from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+            cbaxes = inset_axes(ax, width="4%", height="40%", loc='lower left') 
+            fig.colorbar(cs, cax=cbaxes, orientation='vertical')
+        pfun.add_coast(ax)
+        ax.axis(aa)
+        pfun.dar(ax)
+        ax.set_xlabel('Longitude')
+        ii += 1
+    fig.tight_layout()
+    
+    # FINISH
+    ds.close()
+    if len(in_dict['fn_out']) > 0:
+        plt.savefig(in_dict['fn_out'])
+        plt.close()
+    else:
+        plt.show()
+    plt.rcdefaults()
+        
 def P_rho(in_dict):
     # Surface density and stratification, for Jim Moum 2019_05
     
