@@ -59,15 +59,16 @@ Output: LiveOcean_output/tef2/[*]/flux/daily_segment_[volume,salinity,net_salt,m
 
 ------------------------------------------------------------------
 
-(*) flux_salt_budget.py makes a complete volume and salt budget for a user-specified set of segments.
+(*) flux_salt_budget.py makes complete volume, salt, salinty-squared, and S'^2 budgets for a user-specified set of segments.
 These budgets are of the form:
 	dSnet/dt = QSin + QSout, and
 	dV/dt = Qin + Qout + Qr
-They are mainly useful for knowing that the budgets add up in each of the basins and years to reasonable accuracy.  The values plotted are DAILY (tidally averaged).
+    and so on...
+They are useful for knowing that the budgets add up in each of the basins and years to reasonable accuracy.  The values plotted are DAILY (tidally averaged).
 
-Input: LiveOcean_output/tef2/[*]/flux/daily_segment_[volume,net_salt].p
+Input: LiveOcean_output/tef2/[*]/flux/daily_segment_[volume,net_salt].p, also some river extractions.
 
 Output: A screen plot of the budget vs. time, and a saved png such as:
-LiveOcean_output/tef2/salt_budget_plots/salt_budget_2017_Salish_Sea.png
+LiveOcean_output/tef2/salt_budget_plots/salt_budget_2017_Salish_Sea.png, also realted pickled DataFrames.  See the code for exact names.
 
 ------------------------------------------------------------------

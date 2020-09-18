@@ -70,8 +70,8 @@ Note: we create tef_vel as the flux-weighted velocity: tef_vel=tef_q/tef_da.
 Input: LiveOcean_output/tef2/[*]/processed/[sect name].p
 
 Output: LiveOcean_output/tef2/[*]/bulk/[sect name].p
-These are pickled dicts with keys: ['QQ', 'SS', 'ot', 'qnet_lp', 'fnet_lp', 'ssh_lp']
-where ot is a time vector (seconds since 1/1/1970 as usual), and QQ is a matrix of shape (362, 30) meaning that it is one per day, at Noon, after tidal-averaging, with nan-days on the ends cut off.  The 30 is the number of "bulk" bins, so many might be filled with nan's.
+These are pickled dicts with keys: ['QQ', 'SS', 'SS2', 'ot', 'qnet_lp', 'fnet_lp', 'ssh_lp']
+where ot is a time vector (seconds since 1/1/1970 as usual), and QQ is a matrix of shape (362, 30) meaning that it is one per day, at Noon, after tidal-averaging, with nan-days on the ends cut off.  The 30 is the number of "bulk" bins, so many might be filled with nan's.  SS2 is salinity-squared, used later for variance budgets.
 
 ------------------------------------------------------------------
 
