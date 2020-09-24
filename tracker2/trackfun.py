@@ -514,7 +514,9 @@ def get_dAKs_new(AKsf0, AKsf1, zf0,zf1,hf, plon, plat, pcs, S, frac):
     
     # first time
     ZH0 = get_zh_new(zf0,zf1,hf, plon, plat, 0)
-    dpcs0 = 1/(ZH0.sum(axis=1)) # change in pcs for a total of a 2m difference
+    #dpcs0 = 1/(ZH0.sum(axis=1)) # change in pcs for a total of a 2m difference
+    #dpcs0 = 10/(ZH0.sum(axis=1)) # change in pcs for a total of a 20m difference
+    dpcs0 = .03
     #     upper variables
     pcs0u = pcs + dpcs0
     pcs0u[pcs0u > S['Cs_w'][-1]] = S['Cs_w'][-1]
@@ -529,7 +531,9 @@ def get_dAKs_new(AKsf0, AKsf1, zf0,zf1,hf, plon, plat, pcs, S, frac):
     
     # second time
     ZH1 = get_zh_new(zf0,zf1,hf, plon, plat, 1)
-    dpcs1 = 1/(ZH1.sum(axis=1)) # change in pcs for a total of a 2m difference
+    #dpcs1 = 1/(ZH1.sum(axis=1)) # change in pcs for a total of a 2m difference
+    #dpcs1 = 10/(ZH1.sum(axis=1)) # change in pcs for a total of a 20m difference
+    dpcs1 = .03
     #     upper variables
     pcs1u = pcs + dpcs1
     pcs1u[pcs1u > S['Cs_w'][-1]] = S['Cs_w'][-1]

@@ -197,10 +197,10 @@ def get_ic(ic_name, fn00):
         pcs_vec = np.array([-.05])
         plon00, plat00, pcs00 = ic_from_meshgrid(lonvec, latvec, pcs_vec)
     elif ic_name == 'vm1': # for test of vertical mixing
-        lonvec = np.array([-124.0])
-        latvec = np.array([48.3])
-        pcs_vec = np.linspace(-1,0,num=10000)
-        plon00, plat00, pcs00 = ic_from_meshgrid(lonvec, latvec, pcs_vec)
+        lonvec = np.array([-125.35, -124.0, -122.581]); latvec = np.array([47.847, 48.3, 48.244])
+        # slope off JdF, middle of JdF, Whidbey Basin
+        pcs_vec = np.linspace(-.97,-.03,num=1000)
+        plon00, plat00, pcs00 = ic_from_list(lonvec, latvec, pcs_vec)
         
     return plon00, plat00, pcs00
     
@@ -212,9 +212,7 @@ def ic_from_meshgrid(lonvec, latvec, pcs_vec):
     #
     # Then here we create full output vectors (each has one value per point).
     # This code takes each lat, lon location and then assigns it to NSP points
-    # corresponding to the vector of pcs values.  However you could write a
-    # different version that only released points below a certain depth,
-    # or other criterion.
+    # corresponding to the vector of pcs values.
     lonmat, latmat = np.meshgrid(lonvec, latvec)
     plon_vec = lonmat.flatten()
     plat_vec = latmat.flatten()
@@ -228,6 +226,19 @@ def ic_from_meshgrid(lonvec, latvec, pcs_vec):
     plon00 = plon_arr.flatten()
     plat00 = plat_arr.flatten()
     pcs00 = pcs_arr.flatten()
+    return plon00, plat00, pcs00
     
+def ic_from_list(lonvec, latvec, pcs_vec):
+    # Like ic_from_meshgrid() but treats the lon, lat lists like lists of mooring locations.
+    plon_vec = lonvec
+    plat_vec = latvec
+    NSP = len(pcs_vec)
+    NXYP = len(plon_vec)
+    plon_arr = plon_vec.reshape(NXYP,1) * np.ones((NXYP,NSP))
+    plat_arr = plat_vec.reshape(NXYP,1) * np.ones((NXYP,NSP))
+    pcs_arr = np.ones((NXYP,NSP)) * pcs_vec.reshape(1,NSP)
+    plon00 = plon_arr.flatten()
+    plat00 = plat_arr.flatten()
+    pcs00 = pcs_arr.flatten()
     return plon00, plat00, pcs00
     
