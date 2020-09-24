@@ -202,21 +202,22 @@ def get_tracks(fn_list, plon0, plat0, pcs0, TR, trim_loc=False):
                     Vwindf0 = Vwindf1
                     Vwindf1 = Vwind1[Maskr].data
             else:
-                u1 = ds1['u'][0,:,:,:]
-                uf0 = uf1.copy()
-                uf1 = u1[Masku3].data
-                v1 = ds1['v'][0,:,:,:]
-                vf0 = vf1.copy()
-                vf1 = v1[Maskv3].data
-                w1 = ds1['w'][0,:,:,:]
-                wf0 = wf1.copy()
-                wf1 = w1[Maskw3].data
-                s1 = ds1['salt'][0,:,:,:]
-                sf0 = sf1.copy()
-                sf1 = s1[Maskr3].data
-                t1 = ds1['temp'][0,:,:,:]
-                tf0 = tf1.copy()
-                tf1 = t1[Maskr3].data
+                if TR['no_advection'] == False:
+                    u1 = ds1['u'][0,:,:,:]
+                    uf0 = uf1.copy()
+                    uf1 = u1[Masku3].data
+                    v1 = ds1['v'][0,:,:,:]
+                    vf0 = vf1.copy()
+                    vf1 = v1[Maskv3].data
+                    w1 = ds1['w'][0,:,:,:]
+                    wf0 = wf1.copy()
+                    wf1 = w1[Maskw3].data
+                    s1 = ds1['salt'][0,:,:,:]
+                    sf0 = sf1.copy()
+                    sf1 = s1[Maskr3].data
+                    t1 = ds1['temp'][0,:,:,:]
+                    tf0 = tf1.copy()
+                    tf1 = t1[Maskr3].data
                 if turb == True:
                     AKs1 = ds1['AKs'][0,:,:,:]
                     AKsf0 = AKsf1
