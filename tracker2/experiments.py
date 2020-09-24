@@ -33,6 +33,14 @@ def get_exp_info(exp_name):
         # test of particle trapping in rivers
         gridname = 'cas6'; tag = 'v3'; ex_name = 'lo8b'
         ic_name = 'sea'
+
+    elif exp_name == 'vmix':
+        # test of vertical mixing; use with the new flag:
+        # -no_advection True, so a full command would be
+        # python tracker.py -exp vmix -3d True -clb True -no_advection True
+        gridname = 'cas6'; tag = 'v3'; ex_name = 'lo8b'
+        ic_name = 'vm1'
+            
             
     EI['gridname'] = gridname
     EI['tag'] = tag
@@ -170,8 +178,7 @@ def get_ic(ic_name, fn00):
             print('-- NP = %d (trimmed)' % (len(pcs00)))
         else:
             print('-- NP = %d' % (len(pcs00)))
-                
-    
+
                     
     # cases that use ic_from_meshgrid
     elif ic_name == 'tn0': # Tacoma Narrows region
@@ -188,6 +195,11 @@ def get_ic(ic_name, fn00):
         lonvec = np.linspace(-123.171, -123.163, 10)
         latvec = np.linspace(47.306, 47.312, 10)
         pcs_vec = np.array([-.05])
+        plon00, plat00, pcs00 = ic_from_meshgrid(lonvec, latvec, pcs_vec)
+    elif ic_name == 'vm1': # for test of vertical mixing
+        lonvec = np.array([-124.0])
+        latvec = np.array([48.3])
+        pcs_vec = np.linspace(-1,0,num=10000)
         plon00, plat00, pcs00 = ic_from_meshgrid(lonvec, latvec, pcs_vec)
         
     return plon00, plat00, pcs00

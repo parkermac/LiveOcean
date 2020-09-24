@@ -279,29 +279,35 @@ def get_tracks(fn_list, plon0, plat0, pcs0, TR, trim_loc=False):
             fr0 = nd/ndiv
             fr1 = (nd + 1)/ndiv
             frmid = (fr0 + fr1)/2
-            # RK4 integration
-            V0 = get_vel_new(uf0,uf1,vf0,vf1,wf0,wf1, plon, plat, pcs, fr0, surface)
-            ZH0 = get_zh_new(zf0,zf1,hf, plon, plat, fr0)
-            plon1, plat1, pcs1 = update_position(dxg, dyg, maskr, V0, ZH0, S, delt/2,
-                                                 plon, plat, pcs, surface)
-            V1 = get_vel_new(uf0,uf1,vf0,vf1,wf0,wf1, plon1, plat1, pcs1, frmid, surface)
-            ZH1 = get_zh_new(zf0,zf1,hf, plon1, plat1, frmid)
-            plon2, plat2, pcs2 = update_position(dxg, dyg, maskr, V1, ZH1, S, delt/2,
-                                                 plon, plat, pcs, surface)
-            V2 = get_vel_new(uf0,uf1,vf0,vf1,wf0,wf1, plon2, plat2, pcs2, frmid, surface)
-            ZH2 = get_zh_new(zf0,zf1,hf, plon2, plat2, frmid)
-            plon3, plat3, pcs3 = update_position(dxg, dyg, maskr, V2, ZH2, S, delt,
-                                                 plon, plat, pcs, surface)
-            V3 = get_vel_new(uf0,uf1,vf0,vf1,wf0,wf1, plon3, plat3, pcs3, fr1, surface)
-            ZH3 = get_zh_new(zf0,zf1,hf, plon3, plat3, fr1)
-            # add windage, calculated from the middle time
-            if (surface == True) and (windage > 0):
-                Vwind3 = get_wind_new(Uwindf0, Uwindf1, Vwindf0, Vwindf1, plon, plat, frmid, windage)
-            else:
-                Vwind3 = np.zeros((NP,3))
-            plon, plat, pcs = update_position(dxg, dyg, maskr, (V0 + 2*V1 + 2*V2 + V3)/6 + Vwind3,
-                                              (ZH0 + 2*ZH1 + 2*ZH2 + ZH3)/6,
-                                              S, delt, plon, plat, pcs, surface)
+            
+            if TR['no_advection'] == False:
+                # RK4 integration
+                V0 = get_vel_new(uf0,uf1,vf0,vf1,wf0,wf1, plon, plat, pcs, fr0, surface)
+                ZH0 = get_zh_new(zf0,zf1,hf, plon, plat, fr0)
+                plon1, plat1, pcs1 = update_position(dxg, dyg, maskr, V0, ZH0, S, delt/2,
+                                                     plon, plat, pcs, surface)
+                V1 = get_vel_new(uf0,uf1,vf0,vf1,wf0,wf1, plon1, plat1, pcs1, frmid, surface)
+                ZH1 = get_zh_new(zf0,zf1,hf, plon1, plat1, frmid)
+                plon2, plat2, pcs2 = update_position(dxg, dyg, maskr, V1, ZH1, S, delt/2,
+                                                     plon, plat, pcs, surface)
+                V2 = get_vel_new(uf0,uf1,vf0,vf1,wf0,wf1, plon2, plat2, pcs2, frmid, surface)
+                ZH2 = get_zh_new(zf0,zf1,hf, plon2, plat2, frmid)
+                plon3, plat3, pcs3 = update_position(dxg, dyg, maskr, V2, ZH2, S, delt,
+                                                     plon, plat, pcs, surface)
+                V3 = get_vel_new(uf0,uf1,vf0,vf1,wf0,wf1, plon3, plat3, pcs3, fr1, surface)
+                ZH3 = get_zh_new(zf0,zf1,hf, plon3, plat3, fr1)
+                # add windage, calculated from the middle time
+                if (surface == True) and (windage > 0):
+                    Vwind3 = get_wind_new(Uwindf0, Uwindf1, Vwindf0, Vwindf1, plon, plat, frmid, windage)
+                else:
+                    Vwind3 = np.zeros((NP,3))
+                plon, plat, pcs = update_position(dxg, dyg, maskr, (V0 + 2*V1 + 2*V2 + V3)/6 + Vwind3,
+                                                  (ZH0 + 2*ZH1 + 2*ZH2 + ZH3)/6,
+                                                  S, delt, plon, plat, pcs, surface)
+            elif TR['no_advection'] == True:
+                V3 = np.zeros((NP,3))
+                ZH3 = get_zh_new(zf0,zf1,hf, plon, plat, frmid)
+                                              
             # add turbulence to vertical position change (advection already added above)
             if turb == True:
                 # pull values of VdAKs and add up to 3-dimensions

@@ -83,6 +83,7 @@ parser.add_argument('-clb', '--clobber', default=False, type=boolean_string)
 # - no vertical turbulent diffusion
 parser.add_argument('-3d', default=False, type=boolean_string) # do 3d tracking
 parser.add_argument('-laminar', default=False, type=boolean_string) # no turbulence
+parser.add_argument('-no_advection', default=False, type=boolean_string) # no advection
 
 # windage = a small number: 0 <= windage << 1 (e.g. 0.03)
 # fraction of windspeed added to advection, only for 3d=False
@@ -154,6 +155,8 @@ if TR['laminar']:
     out_name += '_laminar'
 if TR['windage'] > 0:
     out_name += '_wind' + str(int(100*TR['windage']))
+if TR['no_advection'] == True:
+    out_name += '_nadv'
 
 # make the list of start days (datetimes) for separate releases
 idt_list = []
