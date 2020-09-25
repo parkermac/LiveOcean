@@ -512,7 +512,7 @@ def get_AKs_new(AKsf, plon, plat, pcs):
 def get_dAKs_new(AKsf0, AKsf1, zf0,zf1,hf, plon, plat, pcs, S, frac):
     # create diffusivity gradient for turbulence calculation
     
-    do_new = False
+    do_new = True
     DPCS = 0.03
     
     # first time
