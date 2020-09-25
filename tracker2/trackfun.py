@@ -512,11 +512,15 @@ def get_AKs_new(AKsf, plon, plat, pcs):
 def get_dAKs_new(AKsf0, AKsf1, zf0,zf1,hf, plon, plat, pcs, S, frac):
     # create diffusivity gradient for turbulence calculation
     
+    do_new = False
+    DPCS = 0.03
+    
     # first time
     ZH0 = get_zh_new(zf0,zf1,hf, plon, plat, 0)
-    #dpcs0 = 1/(ZH0.sum(axis=1)) # change in pcs for a total of a 2m difference
-    #dpcs0 = 10/(ZH0.sum(axis=1)) # change in pcs for a total of a 20m difference
-    dpcs0 = .03
+    if do_new:
+        dpcs0 = DPCS
+    else:
+        dpcs0 = 1/(ZH0.sum(axis=1)) # change in pcs for a total of a 2m difference
     #     upper variables
     pcs0u = pcs + dpcs0
     pcs0u[pcs0u > S['Cs_w'][-1]] = S['Cs_w'][-1]
@@ -531,9 +535,10 @@ def get_dAKs_new(AKsf0, AKsf1, zf0,zf1,hf, plon, plat, pcs, S, frac):
     
     # second time
     ZH1 = get_zh_new(zf0,zf1,hf, plon, plat, 1)
-    #dpcs1 = 1/(ZH1.sum(axis=1)) # change in pcs for a total of a 2m difference
-    #dpcs1 = 10/(ZH1.sum(axis=1)) # change in pcs for a total of a 20m difference
-    dpcs1 = .03
+    if do_new:
+        dpcs1 = DPCS
+    else:
+        dpcs1 = 1/(ZH1.sum(axis=1)) # change in pcs for a total of a 2m difference
     #     upper variables
     pcs1u = pcs + dpcs1
     pcs1u[pcs1u > S['Cs_w'][-1]] = S['Cs_w'][-1]

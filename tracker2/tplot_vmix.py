@@ -59,8 +59,8 @@ for jj in [1,2,3]:
     
     zz = ZZ[:,1000*(jj-1):1000*jj - 1]
     ax = fig.add_subplot(1,3,jj)
-    bins=np.linspace(zz[1,:].min(), 0, 50)
-    for ii in range(1,NT-1, int(NT/10)):
+    bins=np.linspace(zz[1,:].min(), 0, 100)
+    for ii in range(0,NT-1, int(NT/10)):
         counts, obins = np.histogram(zz[ii,:], bins=bins)
         ax.plot(counts/NP, bins[:-1],'-o', label='Hour = %d' % (t[ii]))
     ax.set_xlim(0,)

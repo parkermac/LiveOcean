@@ -199,7 +199,11 @@ def get_ic(ic_name, fn00):
     elif ic_name == 'vm1': # for test of vertical mixing
         lonvec = np.array([-125.35, -124.0, -122.581]); latvec = np.array([47.847, 48.3, 48.244])
         # slope off JdF, middle of JdF, Whidbey Basin
-        pcs_vec = np.linspace(-.97,-.03,num=1000)
+        import zrfun
+        S = zrfun.get_basic_info(fn00, only_S=True)
+        print(S['Cs_r'][0])
+        print(S['Cs_r'][-1])
+        pcs_vec = np.linspace(S['Cs_r'][0],S['Cs_r'][-1],num=1000)
         plon00, plat00, pcs00 = ic_from_list(lonvec, latvec, pcs_vec)
         
     return plon00, plat00, pcs00
