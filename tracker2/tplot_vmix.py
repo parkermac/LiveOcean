@@ -22,7 +22,7 @@ Ldir = Lfun.Lstart()
 
 # get release Dataset
 indir0 = Ldir['LOo'] + 'tracks2/'
-indir = 'vmix_ndiv12_3d_nadv/'
+indir = 'vmix_ndiv12_3d_nadv_new/'
 rel = 'release_2019.07.04.nc'
 dsr = nc4.Dataset(indir0 + indir + rel)
 
@@ -55,6 +55,7 @@ plt.rc('font', size=fs)
 fig = plt.figure(figsize=(20,10))
 
 # Histograms
+title_list = ['Slope', 'Juan de Fuca', 'Whidbey Basin']
 for jj in [1,2,3]:
     
     zz = ZZ[:,1000*(jj-1):1000*jj - 1]
@@ -63,11 +64,12 @@ for jj in [1,2,3]:
     for ii in range(0,NT-1, int(NT/10)):
         counts, obins = np.histogram(zz[ii,:], bins=bins)
         ax.plot(counts/NP, bins[:-1],'-o', label='Hour = %d' % (t[ii]))
-    ax.set_xlim(0,)
+    ax.set_xlim(0,0.01)
     ax.set_xlabel('Fraction')
     ax.set_ylabel('Z [m]')
-    ax.legend()
-
+    if jj==1:
+        ax.legend()
+    ax.set_title(title_list[jj-1])
 
 plt.show()
 plt.rcdefaults()
