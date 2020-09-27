@@ -2,8 +2,7 @@
 Functions for the new ocean forcing.
 
 """
-import os
-import sys
+import os, sys
 import netCDF4 as nc
 from datetime import datetime, timedelta
 import numpy as np
@@ -11,6 +10,8 @@ import time
 import pickle
 from scipy.spatial import cKDTree
 import seawater
+import subprocess
+import requests
 
 import Ofun_CTD
 
@@ -24,18 +25,98 @@ import zrfun
 
 verbose = False
 
-def get_data_oneday(this_dt, fn_out):
+def get_data_ncks(h_out_dir, dt0, dt1, testing_ncks):
+    # Plan A: use ncks
+    
+    if testing_ncks:
+        # generate an error
+        raise ValueError('Artificial error for testing')
+        
+    def get_hdt_list(fn):
+        # function to get the times of a HYCOM ncks extraction as a list of datetimes
+        ds = nc.Dataset(fn)
+        # get info for the forecast
+        t = ds['time'][:]
+        if isinstance(t, np.ma.MaskedArray):
+            th_vec = t.data
+        else:
+            th_vec = t
+        tu = ds['time'].units
+        # e.g. 'hours since 2018-11-20 12:00:00.000 UTC'
+        ymd = tu.split()[2]
+        hmss = tu.split()[3]
+        hms = hmss.split('.')[0]
+        hycom_dt0 = datetime.strptime(ymd + ' ' + hms, '%Y-%m-%d %H:%M:%S')
+        hdt_list = []
+        for th in th_vec:
+            this_dt = hycom_dt0 + timedelta(days=(th/24))
+            hdt_list.append(this_dt)
+        ds.close()
+        return hdt_list
+    # specify spatial limits
+    aa = hfun.aa
+    north = aa[3]
+    south = aa[2]
+    west = aa[0] + 360
+    east = aa[1] + 360
+    # name full output file
+    full_fn_out = h_out_dir + 'forecast_ncks.nc'
+    # time limits
+    dstr0 = dt0.strftime('%Y-%m-%dT00:00') 
+    dstr1 = dt1.strftime('%Y-%m-%dT00:00')
+    # use subprocess.call() to execute the ncks command
+    vstr = 'surf_el,water_temp,salinity,water_u,water_v,depth'
+    cmd_list = ['ncks',
+        '-d', 'time,'+dstr0+','+dstr1+',8',
+        '-d', 'lon,'+str(west)+'.,'+str(east)+'.,1',
+        '-d','lat,'+str(south)+'.,'+str(north)+'.,1',
+        '-v',vstr, 'https://tds.hycom.org/thredds/dodsC/GLBy0.08/latest',
+        '-4', '-O', full_fn_out]
+    # run ncks
+    tt0 = time.time()
+    ret1 = subprocess.call(cmd_list)
+    print('Time to get full file using ncks = %0.2f sec' % (time.time()-tt0))
+    print('Return code = ' + str(ret1) + ' (0=success)')
+    # check output
+    # - times
+    hdt_list = get_hdt_list(full_fn_out)
+    if verbose:
+        print('\nTarget time range = ' + dstr0 + ' to ' + dstr1)
+        for hdt in hdt_list:
+            print(' - Actual time = ' + hdt.strftime('%Y-%m-%d-T00:00:00Z'))
+        # next split it into individual files as expected by the later processing
+        print('')
+        print('Split up into separate output files:')
+    # split up the files, again using ncks
+    NT = len(hdt_list)
+    for ii in range(NT):
+        hdt = hdt_list[ii]
+        iis = str(ii)
+        fn_out = h_out_dir + 'h'+ hdt.strftime('%Y.%m.%d') + '.nc'
+        cmd_list = ['ncks',
+            '-d', 'time,'+iis+','+iis,
+            '-O', full_fn_out, fn_out]
+        ret2 = subprocess.call(cmd_list)
+        this_hdt = get_hdt_list(fn_out)[0]
+        if verbose:
+            print(fn_out + ': actual time = ' + str(this_hdt))
+    #
+    if (ret1 == 0) and (ret2 == 0):
+        got_ncks = True
+    else:
+        got_ncks = False
+    return got_ncks
+
+def get_data_oneday(this_dt, fn_out, testing_fmrc):
     """"
     Code to get hycom data using the new FMRC_best file. It gets only a single time,
     per the new guidance from Michael McDonald at HYCOM, 202.03.16.
     """
-
-    import os
-    import netCDF4 as nc
-    import time
-    from datetime import datetime, timedelta
-
     testing = False
+    
+    if testing_fmrc:
+        # generate an error
+        raise ValueError('Artificial error for testing')
 
     # get rid of the old version, if it exists
     try:
@@ -79,9 +160,8 @@ def get_data_oneday(this_dt, fn_out):
         print(url)
     # new version 2020.04.22 using requests
     counter = 1
-    got_file = False
-    import requests
-    while (counter <= 10) and (got_file == False):
+    got_fmrc = False
+    while (counter <= 10) and (got_fmrc == False):
         print(' - Attempting to get data, counter = ' + str(counter))
         time.sleep(10) # pause before each request
         tt0 = time.time()
@@ -90,7 +170,7 @@ def get_data_oneday(this_dt, fn_out):
             if r.ok:
                 with open(fn_out,'wb') as f:
                     f.write(r.content)
-                got_file = True
+                got_fmrc = True
                 r.close()
             elif not r.ok:
                 print(' - Failed with status code:')
@@ -103,6 +183,7 @@ def get_data_oneday(this_dt, fn_out):
         print(datetime.now())
         print('')
         sys.stdout.flush()
+    return got_fmrc
 
 def get_hnc_short_list(this_dt, Ldir):
     # initial experiment list

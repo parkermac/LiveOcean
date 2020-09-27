@@ -8,6 +8,10 @@ For backfill it will use an archive of files of similar format, available from l
 
 2020.03.16 I added some new methods to Ofun.py to make it get HYCOM FMRC files one day at a time.
 
+2020.08.13 Added a method to get the HYCOM files using the nco operator "ncks"
+
+More update notes in the separate pieces of code.
+
 ===============================================================================
 * make_forcing_main.py is the main driver, similar in basic construction and usage to all the code of the same name in other forcing folders (e.g. riv2, tide1, atm).
 

@@ -24,8 +24,12 @@ Ofun_CTD.get_casts() it is hardwired to look for casts on or after January 2017.
 
 2020.08.13 Added a method to get the HYCOM files using the nco operator "ncks",
 which is new essentially Plan A.  I deprecated the "FMRC_best" method to Plan B
-because it was failiing about tome time out of four.  Then moved the persistence
+because it was failing about tome time out of four.  Then moved the persistence
 backup to Plan C.
+
+2020.09.27 Moved the ncks method to Ofun, and reworked the error-handling logic.
+It was working well but the fmrc method would not generate enough of an
+exception to move to Plan C.
 
 *******************************
 
@@ -82,6 +86,9 @@ do_bio = True
 
 verbose = False
 
+testing_ncks = False
+testing_fmrc = False
+
 # *** automate when to set add_CTD to True ***
 this_dt = datetime.strptime(Ldir['date_string'], '%Y.%m.%d')
 if this_dt == datetime(2016,12,15):
@@ -102,96 +109,37 @@ if (Ldir['run_type'] == 'forecast'):
     while dtff <= dt1:
         dt_list_full.append(dtff)
         dtff = dtff + timedelta(days=1)
-        
+    
+    # Plan A: use ncks
     try:
-        # Plan A: use ncks
-        # (eventually move to Ofun)
-        import subprocess
-        def get_hdt_list(fn):
-            # function to get the times of a HYCOM ncks extraction as a list of datetimes
-            ds = nc.Dataset(fn)
-            # get info for the forecast
-            t = ds['time'][:]
-            if isinstance(t, np.ma.MaskedArray):
-                th_vec = t.data
-            else:
-                th_vec = t
-            tu = ds['time'].units
-            # e.g. 'hours since 2018-11-20 12:00:00.000 UTC'
-            ymd = tu.split()[2]
-            hmss = tu.split()[3]
-            hms = hmss.split('.')[0]
-            hycom_dt0 = datetime.strptime(ymd + ' ' + hms, '%Y-%m-%d %H:%M:%S')
-            hdt_list = []
-            for th in th_vec:
-                this_dt = hycom_dt0 + timedelta(days=(th/24))
-                hdt_list.append(this_dt)
-            ds.close()
-            return hdt_list
-        # specify spatial limits
-        sys.path.append(os.path.abspath('../hycom2/'))
-        import hfun
-        aa = hfun.aa
-        north = aa[3]
-        south = aa[2]
-        west = aa[0] + 360
-        east = aa[1] + 360
-        # name full output file
-        full_fn_out = h_out_dir + 'forecast_ncks.nc'
-        # time limits
-        dstr0 = dt0.strftime('%Y-%m-%dT00:00') 
-        dstr1 = dt1.strftime('%Y-%m-%dT00:00')
-        # use subprocess.call() to execute the ncks command
-        vstr = 'surf_el,water_temp,salinity,water_u,water_v,depth'
-        cmd_list = ['ncks',
-            '-d', 'time,'+dstr0+','+dstr1+',8',
-            '-d', 'lon,'+str(west)+'.,'+str(east)+'.,1',
-            '-d','lat,'+str(south)+'.,'+str(north)+'.,1',
-            '-v',vstr, 'https://tds.hycom.org/thredds/dodsC/GLBy0.08/latest',
-            '-4', '-O', full_fn_out]
-        # run ncks
-        tt0 = time.time()
-        ret = subprocess.call(cmd_list)
-        print('Time to get full file using ncks = %0.2f sec' % (time.time()-tt0))
-        print('Return code = ' + str(ret) + ' (0=success)')
-        # check output
-        # - times
-        hdt_list = get_hdt_list(full_fn_out)
-        if verbose:
-            print('\nTarget time range = ' + dstr0 + ' to ' + dstr1)
-            for hdt in hdt_list:
-                print(' - Actual time = ' + hdt.strftime('%Y-%m-%d-T00:00:00Z'))
-            # next split it into individual files as expected by the later processing
-            print('')
-            print('Split up into separate output files:')
-        NT = len(hdt_list)
-        for ii in range(NT):
-            hdt = hdt_list[ii]
-            iis = str(ii)
-            fn_out = h_out_dir + 'h'+ hdt.strftime('%Y.%m.%d') + '.nc'
-            cmd_list = ['ncks',
-                '-d', 'time,'+iis+','+iis,
-                '-O', full_fn_out, fn_out]
-            ret = subprocess.call(cmd_list)
-            this_hdt = get_hdt_list(fn_out)[0]
-            if verbose:
-                print(fn_out + ': actual time = ' + str(this_hdt))
-    except:
+        print('**** Using planA ****')
+        got_ncks = False
+        got_ncks = Ofun.get_data_ncks(h_out_dir, dt0, dt1, testing_ncks)
+    except Exception as e:
+        print(e)
+        planB = True
+    if got_ncks == False:
         print('- error getting forecast files using ncks')
         planB = True
     
+    # Plan B: use fmrc one day at a time
     if planB == True:
-        # Plan B: use fmrc one day at a time
+        print('**** Using planB ****')
         try:
-            # get HYCOM files for each day, one day at a time using fmrc
             for dtff in dt_list_full:
+                got_fmrc = False
                 data_fn_out =  h_out_dir + 'h' + dtff.strftime('%Y.%m.%d')+ '.nc'
                 if verbose:
                     print('\n' + data_fn_out)
                 sys.stdout.flush()
                 # get hycom forecast data from the web, and save it in the file "data_fn_out".
-                Ofun.get_data_oneday(dtff, data_fn_out)
-        except:
+                # it tries 10 times before ending
+                got_fmrc = Ofun.get_data_oneday(dtff, data_fn_out, testing_fmrc)
+        except Exception as e:
+            print(e)
+            planC = True
+        # set one more error trap outside the try-except
+        if got_fmrc == False:
             print('- error getting forecast files using fmrc')
             planC = True
        
