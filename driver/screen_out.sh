@@ -41,6 +41,6 @@ gtag=$gridname"_"$tag
 # do forecast only
 ymd=$(date "+%Y.%m.%d")
 f_string="f"$ymd
-so=$LOo$gtag"/"$f_string"/"$frc"/Info/screen_output.txt"
+so=$LOo$gtag"/"$f_string"/"$frc"/Info/screen_out.txt"
 
 cat $so
