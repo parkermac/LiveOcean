@@ -76,6 +76,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-exp', '--exp_name', default='fast0', type=str)
 parser.add_argument('-clb', '--clobber', default=False, type=boolean_string)
 # overwrite existing output folder if clobber == True
+parser.add_argument('-t', '--tag', default='', type=str)
+# append an optional tag to the end of the output folder name
 
 # These are False unless the flags are used with the argument True
 # so if you do NOT use these flags the run will be:
@@ -157,6 +159,8 @@ if TR['windage'] > 0:
     out_name += '_wind' + str(int(100*TR['windage']))
 if TR['no_advection'] == True:
     out_name += '_nadv'
+if len(TR['tag']) > 0:
+    out_name += '_' + TR['tag']
 
 # make the list of start days (datetimes) for separate releases
 idt_list = []

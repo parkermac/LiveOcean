@@ -32,7 +32,7 @@ python tracker.py -exp fast0 -3d True -ds 2019.7.04 -dtt 2
 
 which would track in 3d (including turbulence by default) for two days, starting on 2019.07.04 at a bunch of locations near the surface in the Strait of Juan de Fuca.  Important choices are encoded in the name of the output directory (which is made clean every time).
 
-** Look at the code near the top of tracker.py to see all possible arguments and their default values.  In a single experiment, for example, you can have many start days, separated by any number of days.
+** Look at the code near the top of tracker.py to see all possible arguments and their default values.  In a single experiment, for example, you can have many start days, separated by any number of days.  You can also add an optional "tag" to the end of the experiment folder name.
 
 The output appears as NetCDF files in, for example:
 

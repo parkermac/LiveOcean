@@ -20,10 +20,40 @@ import seawater as sw
 
 Ldir = Lfun.Lstart()
 
-# get release Dataset
-indir0 = Ldir['LOo'] + 'tracks2/'
-indir = 'vmix_ndiv12_3d_nadv_new/'
-rel = 'release_2019.07.04.nc'
+if True:
+    # Choose an experiment to plot from.
+    indir0 = Ldir['LOo'] + 'tracks2/'
+    indir_list_raw = os.listdir(indir0)
+    indir_list = []
+    for d in indir_list_raw:
+        if os.path.isdir(indir0 + d):
+            indir_list.append(d)
+    indir_list.sort()
+    Npt = len(indir_list)#
+    print('\n%s\n' % '** Choose Experiment to plot **')
+    for npt in range(Npt):
+        print(str(npt) + ': ' + indir_list[npt])
+    my_npt = input('-- Experiment number (return = 0) --')
+    if len(my_npt)==0:
+        my_npt = 0
+    indir = indir_list[int(my_npt)] + '/'
+
+    # Choose a release from this experiment.
+    rel_list = [rel for rel in os.listdir(indir0 + indir) if 'release' in rel]
+    rel_list.sort()
+    Nrl = len(rel_list)
+    print('\n%s\n' % '** Choose Release file to plot **')
+    for nrl in range(Nrl):
+        print(str(nrl) + ': ' + rel_list[nrl])
+    my_nrl = input('-- Release number (return = 0) -- ')
+    if len(my_nrl)==0:
+        my_nrl = 0
+    rel = rel_list[int(my_nrl)]
+else:
+    # get release Dataset
+    indir0 = Ldir['LOo'] + 'tracks2/'
+    indir = 'vmix_ndiv12_3d_nadv/'
+    rel = 'release_2019.07.04.nc'
 dsr = nc4.Dataset(indir0 + indir + rel)
 
 NT, NP = dsr['lon'].shape
@@ -58,7 +88,8 @@ fig = plt.figure(figsize=(20,10))
 title_list = ['Slope', 'Juan de Fuca', 'Whidbey Basin']
 for jj in [1,2,3]:
     
-    zz = ZZ[:,1000*(jj-1):1000*jj - 1]
+    NN = int(lon.shape[1]/3)
+    zz = ZZ[:,NN*(jj-1):NN*jj - 1]
     ax = fig.add_subplot(1,3,jj)
     bins=np.linspace(zz[1,:].min(), 0, 100)
     for ii in range(0,NT-1, int(NT/10)):

@@ -262,10 +262,10 @@ def get_tracks(fn_list, plon0, plat0, pcs0, TR, trim_loc=False):
             if surface == True:
                 pcs[:] = S['Cs_r'][-1]
             P['cs'][it0,:] = pcs
-            P['salt'][it0,:] = get_VR_new(sf0, sf1, plon, plat, pcs, 0, surface)
-            P['temp'][it0,:] = get_VR_new(tf0, tf1, plon, plat, pcs, 0, surface)
-            V = get_vel_new(uf0,uf1,vf0,vf1,wf0,wf1, plon, plat, pcs, 0, surface)
-            ZH = get_zh_new(zf0,zf1,hf, plon, plat, 0)
+            P['salt'][it0,:] = get_VR(sf0, sf1, plon, plat, pcs, 0, surface)
+            P['temp'][it0,:] = get_VR(tf0, tf1, plon, plat, pcs, 0, surface)
+            V = get_vel(uf0,uf1,vf0,vf1,wf0,wf1, plon, plat, pcs, 0, surface)
+            ZH = get_zh(zf0,zf1,hf, plon, plat, 0)
             P['u'][it0,:] = V[:,0]
             P['v'][it0,:] = V[:,1]
             P['w'][it0,:] = V[:,2]
@@ -283,23 +283,23 @@ def get_tracks(fn_list, plon0, plat0, pcs0, TR, trim_loc=False):
             
             if TR['no_advection'] == False:
                 # RK4 integration
-                V0 = get_vel_new(uf0,uf1,vf0,vf1,wf0,wf1, plon, plat, pcs, fr0, surface)
-                ZH0 = get_zh_new(zf0,zf1,hf, plon, plat, fr0)
+                V0 = get_vel(uf0,uf1,vf0,vf1,wf0,wf1, plon, plat, pcs, fr0, surface)
+                ZH0 = get_zh(zf0,zf1,hf, plon, plat, fr0)
                 plon1, plat1, pcs1 = update_position(dxg, dyg, maskr, V0, ZH0, S, delt/2,
                                                      plon, plat, pcs, surface)
-                V1 = get_vel_new(uf0,uf1,vf0,vf1,wf0,wf1, plon1, plat1, pcs1, frmid, surface)
-                ZH1 = get_zh_new(zf0,zf1,hf, plon1, plat1, frmid)
+                V1 = get_vel(uf0,uf1,vf0,vf1,wf0,wf1, plon1, plat1, pcs1, frmid, surface)
+                ZH1 = get_zh(zf0,zf1,hf, plon1, plat1, frmid)
                 plon2, plat2, pcs2 = update_position(dxg, dyg, maskr, V1, ZH1, S, delt/2,
                                                      plon, plat, pcs, surface)
-                V2 = get_vel_new(uf0,uf1,vf0,vf1,wf0,wf1, plon2, plat2, pcs2, frmid, surface)
-                ZH2 = get_zh_new(zf0,zf1,hf, plon2, plat2, frmid)
+                V2 = get_vel(uf0,uf1,vf0,vf1,wf0,wf1, plon2, plat2, pcs2, frmid, surface)
+                ZH2 = get_zh(zf0,zf1,hf, plon2, plat2, frmid)
                 plon3, plat3, pcs3 = update_position(dxg, dyg, maskr, V2, ZH2, S, delt,
                                                      plon, plat, pcs, surface)
-                V3 = get_vel_new(uf0,uf1,vf0,vf1,wf0,wf1, plon3, plat3, pcs3, fr1, surface)
-                ZH3 = get_zh_new(zf0,zf1,hf, plon3, plat3, fr1)
+                V3 = get_vel(uf0,uf1,vf0,vf1,wf0,wf1, plon3, plat3, pcs3, fr1, surface)
+                ZH3 = get_zh(zf0,zf1,hf, plon3, plat3, fr1)
                 # add windage, calculated from the middle time
                 if (surface == True) and (windage > 0):
-                    Vwind3 = get_wind_new(Uwindf0, Uwindf1, Vwindf0, Vwindf1, plon, plat, frmid, windage)
+                    Vwind3 = get_wind(Uwindf0, Uwindf1, Vwindf0, Vwindf1, plon, plat, frmid, windage)
                 else:
                     Vwind3 = np.zeros((NP,3))
                 plon, plat, pcs = update_position(dxg, dyg, maskr, (V0 + 2*V1 + 2*V2 + V3)/6 + Vwind3,
@@ -307,20 +307,20 @@ def get_tracks(fn_list, plon0, plat0, pcs0, TR, trim_loc=False):
                                                   S, delt, plon, plat, pcs, surface)
             elif TR['no_advection'] == True:
                 V3 = np.zeros((NP,3))
-                ZH3 = get_zh_new(zf0,zf1,hf, plon, plat, frmid)
+                ZH3 = get_zh(zf0,zf1,hf, plon, plat, frmid)
                                               
             # add turbulence to vertical position change (advection already added above)
             if turb == True:
                 # pull values of VdAKs and add up to 3-dimensions
-                VdAKs = get_dAKs_new(AKsf0, AKsf1, zf0,zf1,hf, plon, plat, pcs, S, frmid)
+                VdAKs = get_dAKs(AKsf0, AKsf1, zf0,zf1,hf, plon, plat, pcs, S, frmid)
                 VdAKs3 = np.zeros((NP,3))
                 VdAKs3[:,2] = VdAKs
                 # update position advecting vertically with 1/2 of AKs gradient
-                ZH = get_zh_new(zf0,zf1,hf, plon, plat, frmid)
+                ZH = get_zh(zf0,zf1,hf, plon, plat, frmid)
                 plon_junk, plat_junk, pcs_half = update_position(dxg, dyg, maskr, VdAKs3/2, ZH, S, delt/2,
                                                      plon, plat, pcs, surface)
                 # get AKs at this height, and thence the turbulent perturbation velocity
-                Vturb = get_turb_new(VdAKs, AKsf0, AKsf1, delt, plon, plat, pcs_half, frmid)
+                Vturb = get_turb(VdAKs, AKsf0, AKsf1, delt, plon, plat, pcs_half, frmid)
                 Vturb3 = np.zeros((NP,3))
                 Vturb3[:,2] = Vturb
                 # update vertical position for real
@@ -337,8 +337,8 @@ def get_tracks(fn_list, plon0, plat0, pcs0, TR, trim_loc=False):
                 if surface == True:
                     pcs[:] = S['Cs_r'][-1]
                 P['cs'][it1,:] = pcs
-                P['salt'][it1,:] = get_VR_new(sf0, sf1, plon, plat, pcs, fr1, surface)
-                P['temp'][it1,:] = get_VR_new(tf0, tf1, plon, plat, pcs, fr1, surface)
+                P['salt'][it1,:] = get_VR(sf0, sf1, plon, plat, pcs, fr1, surface)
+                P['temp'][it1,:] = get_VR(tf0, tf1, plon, plat, pcs, fr1, surface)
                 P['u'][it1,:] = V3[:,0]
                 P['v'][it1,:] = V3[:,1]
                 P['w'][it1,:] = V3[:,2]
@@ -390,10 +390,10 @@ def update_position(dxg, dyg, maskr, V, ZH, S, dt_sec, plon, plat, pcs, surface)
     pmask = maskr[xyT_rho_un.query(xy, n_jobs=-1)[1]]
     pcond = pmask < maskr_crit # a Boolean mask
     if len(pcond) > 0:
-        Plon_new = lonrf[xyT_rho.query(xy, n_jobs=-1)[1]]
-        Plat_new = latrf[xyT_rho.query(xy, n_jobs=-1)[1]]
-        Plon[pcond] = Plon_new[pcond]
-        Plat[pcond] = Plat_new[pcond]
+        Plon_NEW = lonrf[xyT_rho.query(xy, n_jobs=-1)[1]]
+        Plat_NEW = latrf[xyT_rho.query(xy, n_jobs=-1)[1]]
+        Plon[pcond] = Plon_NEW[pcond]
+        Plat[pcond] = Plat_NEW[pcond]
         
     # Start of Vertical advection
     H = ZH.sum(axis=1)
@@ -429,7 +429,7 @@ def update_position(dxg, dyg, maskr, V, ZH, S, dt_sec, plon, plat, pcs, surface)
 
     return Plon, Plat, Pcs
 
-def get_vel_new(uf0,uf1,vf0,vf1,wf0,wf1, plon, plat, pcs, frac, surface):
+def get_vel(uf0,uf1,vf0,vf1,wf0,wf1, plon, plat, pcs, frac, surface):
     # Get the velocity at all points, at an arbitrary time between two saves
     # "frac" is the fraction of the way between the times of ds0 and ds1, 0 <= frac <= 1.
     # NOTE: with ndiv=1 this gets called 4 times per hour, or 96 times per day.
@@ -462,7 +462,7 @@ def get_vel_new(uf0,uf1,vf0,vf1,wf0,wf1, plon, plat, pcs, frac, surface):
         V[:,2] = wi
     return V
     
-def get_zh_new(zf0,zf1,hf, plon, plat, frac):
+def get_zh(zf0,zf1,hf, plon, plat, frac):
     # Get zeta and h at all points, at an arbitrary time between two saves
     NP = len(plon)
     xy = np.array((plon,plat)).T
@@ -475,7 +475,7 @@ def get_zh_new(zf0,zf1,hf, plon, plat, frac):
     ZH[:,1] = hi
     return ZH
     
-def get_VR_new(tf0,tf1, plon, plat, pcs, frac, surface):
+def get_VR(tf0,tf1, plon, plat, pcs, frac, surface):
     # Get a variable on the z_rho grid at all points.
     if surface == True:
         xy = np.array((plon,plat)).T
@@ -488,7 +488,7 @@ def get_VR_new(tf0,tf1, plon, plat, pcs, frac, surface):
     ti = (1 - frac)*ti0 + frac*ti1
     return ti
     
-def get_wind_new(Uwindf0, Uwindf1, Vwindf0, Vwindf1, plon, plat, frac, windage):
+def get_wind(Uwindf0, Uwindf1, Vwindf0, Vwindf1, plon, plat, frac, windage):
     # creates the windage correction to the surface velocity (u,v only)
     NP = len(plon)
     Vwind3 = np.zeros((NP,3))
@@ -503,51 +503,46 @@ def get_wind_new(Uwindf0, Uwindf1, Vwindf0, Vwindf1, plon, plat, frac, windage):
     Vwind3[:,1] = windage*Vwind
     return Vwind3
     
-def get_AKs_new(AKsf, plon, plat, pcs):
+def get_AKs(AKsf, plon, plat, pcs):
     # Get AKs at all points, at one time.
     xys = np.array((plon,plat,pcs)).T
     AKsi = AKsf[xyzT_w.query(xys, n_jobs=-1)[1]]
     return AKsi
     
-def get_dAKs_new(AKsf0, AKsf1, zf0,zf1,hf, plon, plat, pcs, S, frac):
+def get_dAKs(AKsf0, AKsf1, zf0,zf1,hf, plon, plat, pcs, S, frac):
     # create diffusivity gradient for turbulence calculation
     
-    do_new = True
     DPCS = 0.03
     
     # first time
-    ZH0 = get_zh_new(zf0,zf1,hf, plon, plat, 0)
-    if do_new:
-        dpcs0 = DPCS
-    else:
-        dpcs0 = 1/(ZH0.sum(axis=1)) # change in pcs for a total of a 2m difference
+    ZH0 = get_zh(zf0,zf1,hf, plon, plat, 0)
+    dpcs0 = DPCS
+    # dpcs0 = 1/(ZH0.sum(axis=1)) # change in pcs for a total of a 2m difference
     #     upper variables
     pcs0u = pcs + dpcs0
     pcs0u[pcs0u > S['Cs_w'][-1]] = S['Cs_w'][-1]
-    AKs0u = get_AKs_new(AKsf0, plon, plat, pcs0u)
+    AKs0u = get_AKs(AKsf0, plon, plat, pcs0u)
     z0u = pcs0u * ZH0.sum(axis=1)
     #     lower variables
     pcs0b = pcs - dpcs0
     pcs0b[pcs0b < S['Cs_w'][0]] = S['Cs_w'][0]
-    AKs0b = get_AKs_new(AKsf0, plon, plat, pcs0b)
+    AKs0b = get_AKs(AKsf0, plon, plat, pcs0b)
     z0b = pcs0b * ZH0.sum(axis=1)
     V0 = (AKs0u-AKs0b)/(z0u-z0b)
     
     # second time
-    ZH1 = get_zh_new(zf0,zf1,hf, plon, plat, 1)
-    if do_new:
-        dpcs1 = DPCS
-    else:
-        dpcs1 = 1/(ZH1.sum(axis=1)) # change in pcs for a total of a 2m difference
+    ZH1 = get_zh(zf0,zf1,hf, plon, plat, 1)
+    dpcs1 = DPCS
+    # dpcs1 = 1/(ZH1.sum(axis=1)) # change in pcs for a total of a 2m difference
     #     upper variables
     pcs1u = pcs + dpcs1
     pcs1u[pcs1u > S['Cs_w'][-1]] = S['Cs_w'][-1]
-    AKs1u = get_AKs_new(AKsf1, plon, plat, pcs1u)
+    AKs1u = get_AKs(AKsf1, plon, plat, pcs1u)
     z1u = pcs1u * ZH1.sum(axis=1)
     #     lower variables
     pcs1b = pcs - dpcs1
     pcs1b[pcs1b < S['Cs_w'][0]] = S['Cs_w'][0]
-    AKs1b = get_AKs_new(AKsf1, plon, plat, pcs1b)
+    AKs1b = get_AKs(AKsf1, plon, plat, pcs1b)
     z1b = pcs1b * ZH1.sum(axis=1)
     V1 = (AKs1u-AKs1b)/(z1u-z1b)
     
@@ -556,10 +551,10 @@ def get_dAKs_new(AKsf0, AKsf1, zf0,zf1,hf, plon, plat, pcs, S, frac):
     
     return V
 
-def get_turb_new(dAKs, AKsf0, AKsf1, delta_t, plon, plat, pcs, frac):
+def get_turb(dAKs, AKsf0, AKsf1, delta_t, plon, plat, pcs, frac):
     # get the vertical turbulence correction components
-    V0 = get_AKs_new(AKsf0, plon, plat, pcs)
-    V1 = get_AKs_new(AKsf1, plon, plat, pcs)
+    V0 = get_AKs(AKsf0, plon, plat, pcs)
+    V1 = get_AKs(AKsf1, plon, plat, pcs)
     
     # create weighted average diffusivity
     Vave = (1 - frac)*V0 + frac*V1
