@@ -15,11 +15,8 @@ start_time = datetime.now()
 import netCDF4 as nc
 import argparse
 
-import os
-import sys
-pth = os.path.abspath('../alpha')
-if pth not in sys.path:
-    sys.path.append(pth)
+import os, sys
+sys.path.append(os.path.abspath('../alpha'))
 import Lfun
 import numpy as np
 import zrfun
@@ -90,6 +87,14 @@ elif args.layer_name == 'bottom':
     vn_list_3d_t = ['salt', 'temp']
     vn_list_3d_t_custom = []
     vn_list_2d_uv_t = ['bustr', 'bvstr']
+    vn_list_3d_uv_t = ['u', 'v']
+    vn_list_2d_custom = ['zlay']
+elif args.layer_name == 'sandlance':
+    nlay = 0
+    vn_list_2d_t = ['zeta']
+    vn_list_3d_t = ['salt', 'temp']
+    vn_list_3d_t_custom = []
+    vn_list_2d_uv_t = ['bustr', 'bvstr', 'ubar','vbar']
     vn_list_3d_uv_t = ['u', 'v']
     vn_list_2d_custom = ['zlay']
 elif args.layer_name == 'surface':
@@ -313,6 +318,19 @@ for fn in fn_list:
         bvstr = np.ma.masked_where(np.isnan(bvstr), bvstr)
         ds2['bustr'][tt,:,:] = bustr
         ds2['bvstr'][tt,:,:] = bvstr
+        
+    if ('ubar' in vn_list_2d_uv_t) and ('vbar' in vn_list_2d_uv_t):
+        ubar0 = ds['ubar'][0, :, :]
+        vbar0 = ds['vbar'][0, :, :]
+        ubar = omat.copy()
+        vbar = omat.copy()
+        ubar[:, 1:-1] = (ubar0[:, 1:] + ubar0[:, :-1])/2
+        vbar[1:-1, :] = (vbar0[1:, :] + vbar0[:-1, :])/2
+        ubar = np.ma.masked_where(np.isnan(ubar), ubar)
+        vbar = np.ma.masked_where(np.isnan(vbar), vbar)
+        ds2['ubar'][tt,:,:] = ubar
+        ds2['vbar'][tt,:,:] = vbar
+    
         
     if ('u' in vn_list_3d_uv_t) and ('v' in vn_list_3d_uv_t):
         u0 = ds['u'][0, nlay, :, :]

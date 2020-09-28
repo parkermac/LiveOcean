@@ -35,10 +35,10 @@ xp = ds['lon_psi'][:]
 yp = ds['lat_psi'][:]
 ot = ds['ocean_time'][:]
 
-#v_list = ['u','v', 'bustr', 'bvstr']
+v_list = ['u','v', 'bustr', 'bvstr', 'ubar', 'vbar']
 #v_list = ['zeta', 'Pair']
 #v_list = ['vave_salt', 'vave_temp', 'vave_rho']
-v_list = ['salt', 'temp', 'oxygen']
+#v_list = ['salt', 'temp', 'oxygen']
 
 F = dict() # field
 S = dict() # series
