@@ -19,7 +19,7 @@ Ldir = Lfun.Lstart()
 
 # get release Dataset
 indir0 = Ldir['LOo'] + 'tracks2/'
-indir = 'ai0_ndiv12_3d/'
+indir = 'ai0_ndiv1_3d/'
 rel = 'release_2019.07.04.nc'
 dsr = nc4.Dataset(indir0 + indir + rel)
 

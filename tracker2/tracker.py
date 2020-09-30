@@ -266,3 +266,5 @@ for idt0 in idt_list:
     print(' - Took %0.1f sec for %s day(s)' %
             (time.time() - tt0, str(TR['days_to_track'])))
     print(50*'=')
+print(50*'*' + '\nWrote to ' + outdir)
+

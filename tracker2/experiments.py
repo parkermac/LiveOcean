@@ -14,7 +14,7 @@ def get_exp_info(exp_name):
         gridname = 'cas6'; tag = 'v3'; ex_name = 'lo8b'
         ic_name = 'jdf0'
         
-    elif exp_name == 'fast1':
+    elif exp_name == 'tn':
         # working on tracker_2
         gridname = 'cas6'; tag = 'v3'; ex_name = 'lo8b'
         ic_name = 'tn0'
@@ -40,6 +40,11 @@ def get_exp_info(exp_name):
         # python tracker.py -exp vmix -3d True -clb True -no_advection True
         gridname = 'cas6'; tag = 'v3'; ex_name = 'lo8b'
         ic_name = 'vm1'
+        
+    elif exp_name == 'jdf0':
+        # test to compare directly with particulator
+        gridname = 'cas6'; tag = 'v3'; ex_name = 'lo8b'
+        ic_name = 'eddy0'
             
             
     EI['gridname'] = gridname
@@ -189,6 +194,11 @@ def get_ic(ic_name, fn00):
     elif ic_name == 'jdf0': # Mid-Juan de Fuca
         lonvec = np.linspace(-123.85, -123.6, 20)
         latvec = np.linspace(48.2, 48.4, 20)
+        pcs_vec = np.array([-.05])
+        plon00, plat00, pcs00 = ic_from_meshgrid(lonvec, latvec, pcs_vec)
+    elif ic_name == 'eddy0': # Like Hally's JdF eddy release
+        lonvec = np.arange(-125.8, -125, .052)
+        latvec = np.arange(48.2, 48.8, .04)
         pcs_vec = np.array([-.05])
         plon00, plat00, pcs00 = ic_from_meshgrid(lonvec, latvec, pcs_vec)
     elif ic_name == 'skok': # head of the Skokomish River
