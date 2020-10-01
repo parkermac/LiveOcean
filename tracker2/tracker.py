@@ -131,11 +131,10 @@ if TR['3d']:
 if TR['laminar']:
     TR['turb'] = False
 
-# get experiment info, including initial condition
+# get experiment info
 EI = exp.get_exp_info(TR['exp_name'])
 TR['gtagex'] = EI['gtagex']
 TR['gridname'] = EI['gridname']
-TR['ic_name'] = EI['ic_name']
 
 # get the full path to a valid history file
 fn00 = Ldir['roms'] + 'output/' + TR['gtagex'] + '/f' + TR['ds_first_day'] + '/ocean_his_0001.nc'
@@ -205,7 +204,7 @@ else:
 reload(tfun)
 
 # get the initial particle location vectors
-plon00, plat00, pcs00 = exp.get_ic(TR['ic_name'], fn00)
+plon00, plat00, pcs00 = exp.get_ic(EI, fn00)
 
 # calculate total number of times per release for NetCDF output
 NT_full = (TR['sph']*24*TR['days_to_track']) + 1

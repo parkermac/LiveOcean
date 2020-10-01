@@ -22,72 +22,94 @@ Ldir = Lfun.Lstart()
 # get release Dataset
 indir0 = Ldir['LOo'] + 'tracks2/'
 
-indir = 'jdf0_ndiv12_surf/'
+indir = 'eddy0_ndiv12_3d/'
 rel = 'release_2019.07.04.nc'
 dsr = nc4.Dataset(indir0 + indir + rel)
 # Gather particle data
 # packed [time, particle #]
-lon12 = dsr['lon'][:]
-lat12 = dsr['lat'][:]
+lon = dsr['lon'][:]
+lat = dsr['lat'][:]
+h = dsr['h'][:]
+zeta = dsr['zeta'][:]
+cs = dsr['cs'][:]
 dsr.close()
 
-indir = 'jdf0_ndiv1_surf/'
-rel = 'release_2019.07.04.nc'
-dsr = nc4.Dataset(indir0 + indir + rel)
-# Gather particle data
-# packed [time, particle #]
-lon1 = dsr['lon'][:]
-lat1 = dsr['lat'][:]
-dsr.close()
-
+# rescale z to remove tides
+z = cs*(h+zeta)
 
 # get the particulator output
-pp = io.loadmat(Ldir['parent'] + 'particulator_output/test3.mat')
+pp = io.loadmat(Ldir['parent'] + 'particulator_output/eddy0.mat')
 lonp = pp['x']
 latp = pp['y']
+zp = pp['sigma']*(pp['H']+pp['zeta'])
+
 
 # PLOTTING
 plt.close('all')
 fs = 14
-lw = .5
+lw = .3
+alpha = .4
+ms = 3
 plt.rc('font', size=fs)
-fig = plt.figure(figsize=(22,10))
+fig = plt.figure(figsize=(16,12))
 
 pad = .1
-aa = [lon1.min()-pad, lon1.max()+pad, lat1.min()-pad, lat1.max()+pad]
+aa = [lon.min()-pad, lon.max()+pad, lat.min()-pad, lat.max()+pad]
 
 # Maps
 
-ax = fig.add_subplot(131)
-ax.plot(lon1[0,:], lat1[0,:],'.b', label='tracker ndiv=1')
-ax.plot(lonp[0,:], latp[0,:],'.r', label='particulator')
-ax.legend(loc='lower left')
-ax.plot(lon1, lat1,'-b', lw=lw)
-ax.plot(lonp, latp,'-r', lw=lw)
+ax = fig.add_subplot(221)
+ax.plot(lon[0,:], lat[0,:],'.b', alpha=alpha, ms=ms)
+ax.plot(lon, lat,'-', lw=lw, alpha=alpha)
+ax.plot(lon[-1,:], lat[-1,:],'.b', ms=ms)
 pfun.dar(ax)
 pfun.add_coast(ax)
 ax.axis(aa)
+ax.set_title('tracker2')
 
-ax = fig.add_subplot(132)
-ax.plot(lon12[0,:], lat12[0,:],'.c', label='tracker ndiv=12')
-ax.plot(lonp[0,:], latp[0,:],'.r', label='particulator')
-ax.legend(loc='lower left')
-ax.plot(lon12, lat12,'-c', lw=lw)
-ax.plot(lonp, latp,'-r', lw=lw)
+ax = fig.add_subplot(222)
+ax.plot(lonp[0,:], latp[0,:],'.r', alpha=alpha, ms=ms)
+ax.plot(lonp, latp,'-', lw=lw, alpha = alpha)
+ax.plot(lonp[-1,:], latp[-1,:],'.r', ms=ms)
 pfun.dar(ax)
 pfun.add_coast(ax)
 ax.axis(aa)
+ax.set_title('particulator')
 
+ax = fig.add_subplot(212)
 
-ax = fig.add_subplot(133)
-ax.plot(lon1[0,:], lat1[0,:],'.b', label='tracker ndiv=1')
-ax.plot(lon12[0,:], lat12[0,:],'.c', label='tracker ndiv=12')
-ax.legend(loc='lower left')
-ax.plot(lon1, lat1,'-b', lw=lw)
-ax.plot(lon12, lat12,'-c', lw=lw)
-pfun.dar(ax)
-pfun.add_coast(ax)
-ax.axis(aa)
+zmin = min(z.min(), zp.min())
+
+NT, NP = z.shape
+NTp, NPp = zp.shape
+bins=np.linspace(zmin, 0, 20)
+
+do_log = False
+for ii in range(1,10):
+    counts, obins = np.histogram(z[-ii,:], bins=bins)
+    if do_log:
+        counts = counts.astype(float)
+        counts[counts==0] = np.nan
+        lcounts = np.log10(counts)
+        ax.plot(lcounts, bins[:-1],'-ob', alpha=alpha)
+    else:
+        ax.plot(counts/NP, bins[:-1],'-ob', alpha=alpha)
+        
+    
+    counts, obins = np.histogram(zp[-ii,:], bins=bins)
+    if do_log:
+        counts = counts.astype(float)
+        counts[counts==0] = np.nan
+        lcounts = np.log10(counts)
+        ax.plot(lcounts, bins[:-1],'-or', alpha=alpha)
+    else:
+        ax.plot(counts/NPp, bins[:-1],'-or', alpha=alpha)
+        
+
+#ax.set_xlim(0,)
+ax.set_ylim(-100,0)
+ax.set_xlabel('Fraction')
+ax.set_ylabel('Z [m]')
 
 
 plt.show()

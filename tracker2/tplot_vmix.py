@@ -29,6 +29,7 @@ if True:
         if os.path.isdir(indir0 + d):
             indir_list.append(d)
     indir_list.sort()
+    indir_list = [item for item in indir_list if 'vmix' in item]
     Npt = len(indir_list)#
     print('\n%s\n' % '** Choose Experiment to plot **')
     for npt in range(Npt):

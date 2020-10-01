@@ -19,7 +19,7 @@ Ldir = Lfun.Lstart()
 
 # get release Dataset
 indir0 = Ldir['LOo'] + 'tracks2/'
-indir = 'ai0_ndiv1_3d/'
+indir = 'ai0_ndiv12_3d_new/'
 rel = 'release_2019.07.04.nc'
 dsr = nc4.Dataset(indir0 + indir + rel)
 
@@ -55,7 +55,7 @@ mask = (lon[-1,:] > -122.75) & (lat[-1,:] < 48.1) # into Main Basin or HC
 NPM = mask.sum()
 
 # PLOTTING
-plt.close('all')
+#plt.close('all')
 fs = 16
 plt.rc('font', size=fs)
 fig = plt.figure(figsize=(18,10))
@@ -73,6 +73,7 @@ ax.set_xlabel('Longitude')
 ax.set_ylabel('Latitude')
 ax.set_xticks([-124, -123.5, -123, -122.5])
 ax.set_yticks([48, 48.5, 49])
+ax.set_title(indir.replace('/',''))
 
 # Histogram
 ax = fig.add_subplot(222)

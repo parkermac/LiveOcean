@@ -422,8 +422,12 @@ def update_position(dxg, dyg, maskr, V, ZH, S, dt_sec, plon, plat, pcs, surface)
         Pcs[hit_bottom] = -1 - np.remainder(Pcs[hit_bottom],-1)
         # and finally enforce more limits to ensure we always are
         # able to gather salt and other tracer values.
-        Pcs[Pcs < S['Cs_r'][0]] = S['Cs_r'][0]
-        Pcs[Pcs > S['Cs_r'][-1]] = S['Cs_r'][-1]
+        if False:
+            Pcs[Pcs < S['Cs_r'][0]] = S['Cs_r'][0]
+            Pcs[Pcs > S['Cs_r'][-1]] = S['Cs_r'][-1]
+        else:
+            Pcs[Pcs < -1] = -1
+            Pcs[Pcs > 0] = 0
     else:
         Pcs[:] = S['Cs_r'][-1]
 
@@ -512,7 +516,9 @@ def get_AKs(AKsf, plon, plat, pcs):
 def get_dAKs(AKsf0, AKsf1, zf0,zf1,hf, plon, plat, pcs, S, frac):
     # create diffusivity gradient for turbulence calculation
     
-    DPCS = 0.03
+    DPCS = 0.03 # 0.03
+    
+    newlim = True
     
     # first time
     ZH0 = get_zh(zf0,zf1,hf, plon, plat, 0)
@@ -520,12 +526,22 @@ def get_dAKs(AKsf0, AKsf1, zf0,zf1,hf, plon, plat, pcs, S, frac):
     # dpcs0 = 1/(ZH0.sum(axis=1)) # change in pcs for a total of a 2m difference
     #     upper variables
     pcs0u = pcs + dpcs0
-    pcs0u[pcs0u > S['Cs_w'][-1]] = S['Cs_w'][-1]
+    
+    if newlim:
+        pcs0u[pcs0u > 0] = 0
+    else:
+        pcs0u[pcs0u > S['Cs_w'][-1]] = S['Cs_w'][-1]
+        
     AKs0u = get_AKs(AKsf0, plon, plat, pcs0u)
     z0u = pcs0u * ZH0.sum(axis=1)
     #     lower variables
     pcs0b = pcs - dpcs0
-    pcs0b[pcs0b < S['Cs_w'][0]] = S['Cs_w'][0]
+    
+    if newlim:
+        pcs0b[pcs0b < -1] = -1
+    else:
+        pcs0b[pcs0b < S['Cs_w'][0]] = S['Cs_w'][0]
+    
     AKs0b = get_AKs(AKsf0, plon, plat, pcs0b)
     z0b = pcs0b * ZH0.sum(axis=1)
     V0 = (AKs0u-AKs0b)/(z0u-z0b)
@@ -536,12 +552,22 @@ def get_dAKs(AKsf0, AKsf1, zf0,zf1,hf, plon, plat, pcs, S, frac):
     # dpcs1 = 1/(ZH1.sum(axis=1)) # change in pcs for a total of a 2m difference
     #     upper variables
     pcs1u = pcs + dpcs1
-    pcs1u[pcs1u > S['Cs_w'][-1]] = S['Cs_w'][-1]
+    
+    if newlim:
+        pcs1u[pcs1u > 0] = 0
+    else:
+        pcs1u[pcs1u > S['Cs_w'][-1]] = S['Cs_w'][-1]
+        
     AKs1u = get_AKs(AKsf1, plon, plat, pcs1u)
     z1u = pcs1u * ZH1.sum(axis=1)
     #     lower variables
     pcs1b = pcs - dpcs1
-    pcs1b[pcs1b < S['Cs_w'][0]] = S['Cs_w'][0]
+    
+    if newlim:
+        pcs1b[pcs1b < -1] = -1
+    else:
+        pcs1b[pcs1b < S['Cs_w'][0]] = S['Cs_w'][0]
+    
     AKs1b = get_AKs(AKsf1, plon, plat, pcs1b)
     z1b = pcs1b * ZH1.sum(axis=1)
     V1 = (AKs1u-AKs1b)/(z1u-z1b)
