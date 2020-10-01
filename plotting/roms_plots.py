@@ -3397,7 +3397,10 @@ def P_tracks_barber(in_dict):
             print('** using ndiv = 1 **')
         else:
             ndiv = 12
-        TR = {'3d': False, 'rev': False, 'turb': False,
+        # Note: We have to set all the TR entries here because we are not going
+        # through tracker2/tracker.py where they would be set by the
+        # argparse defaults.
+        TR = {'3d': False, 'rev': False, 'turb': False, 'no_advection': False,
             'ndiv': ndiv, 'windage': 0, 'sph': 1}
         P = trackfun.get_tracks(fn_list_full, plon0, plat0, pcs0, TR,
                            trim_loc=True)
