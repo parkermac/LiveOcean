@@ -5,6 +5,7 @@ Functions for the surface code.
 # imports
 import os
 import netCDF4 as nc
+import zfun
 
 def create_ds(out_fn):
     # get rid of the old version, if it exists
@@ -42,7 +43,7 @@ def add_fields(in_ds, out_ds, vn_list2t, vn_list3t, slev=-1, suffix=''):
         except AttributeError:
             # ocean_time has no time
             pass
-        vv[:] = in_ds[vn][:]
+        vv[:] = zfun.fillit(in_ds[vn][:])
     #
     for vn in vn_list3t:
         do_var = True
@@ -68,4 +69,4 @@ def add_fields(in_ds, out_ds, vn_list2t, vn_list3t, slev=-1, suffix=''):
                 # salt has no units
                 pass
             vv.time = varin.time
-            vv[:] = in_ds[vn][:, slev, :, :].squeeze()
+            vv[:] = zfun.fillit(in_ds[vn][:, slev, :, :].squeeze())
