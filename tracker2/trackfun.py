@@ -50,6 +50,10 @@ xyzT_w = pickle.load(open(tree_dir + 'xyzT_w.p', 'rb'))
 lonrf = G['lon_rho'][Maskr]
 latrf = G['lat_rho'][Maskr]
 
+# 2020.10.01
+zw = zrfun.get_z(G['h'], 0*G['h'], S, only_w=True)
+dz = np.diff(zw, axis = 0)
+
 def get_tracks(fn_list, plon0, plat0, pcs0, TR, trim_loc=False):
     """
     This is the main function doing the particle tracking.
@@ -172,6 +176,12 @@ def get_tracks(fn_list, plon0, plat0, pcs0, TR, trim_loc=False):
                     AKs1 = ds1['AKs'][0,:,:,:]
                     AKsf0 = AKs0[Maskw3].data
                     AKsf1 = AKs1[Maskw3].data
+                    # new 2020.10.01
+                    dKdz0 = np.diff(AKs0, axis=0)/dz
+                    dKdz1 = np.diff(AKs1, axis=0)/dz
+                    dKdzf0 = dKdz0[Maskr3].data
+                    dKdzf1 = dKdz1[Maskr3].data
+                    
             z0 = ds0['zeta'][0,:,:]
             z1 = ds1['zeta'][0,:,:]
             zf0 = z0[Maskr].data
@@ -220,8 +230,12 @@ def get_tracks(fn_list, plon0, plat0, pcs0, TR, trim_loc=False):
                     tf1 = t1[Maskr3].data
                 if turb == True:
                     AKs1 = ds1['AKs'][0,:,:,:]
-                    AKsf0 = AKsf1
+                    AKsf0 = AKsf1.copy()
                     AKsf1 = AKs1[Maskw3].data
+                    # new 2020.10.01
+                    dKdzf0 = dKdzf1.copy()
+                    dKdz1 = np.diff(AKs1, axis=0)/dz
+                    dKdzf1 = dKdz1[Maskr3].data
             z1 = ds1['zeta'][0,:,:]
             zf0 = zf1.copy()
             zf1 = z1[Maskr].data
@@ -312,7 +326,11 @@ def get_tracks(fn_list, plon0, plat0, pcs0, TR, trim_loc=False):
             # add turbulence to vertical position change (advection already added above)
             if turb == True:
                 # pull values of VdAKs and add up to 3-dimensions
-                VdAKs = get_dAKs(AKsf0, AKsf1, zf0,zf1,hf, plon, plat, pcs, S, frmid)
+                if False:
+                    VdAKs = get_dAKs(AKsf0, AKsf1, zf0,zf1,hf, plon, plat, pcs, S, frmid)
+                else:
+                    # new 2020.10.01
+                    VdAKs = get_dAKs_new(dKdzf0, dKdzf1, plon, plat, pcs, frmid)
                 VdAKs3 = np.zeros((NP,3))
                 VdAKs3[:,2] = VdAKs
                 # update position advecting vertically with 1/2 of AKs gradient
@@ -512,6 +530,14 @@ def get_AKs(AKsf, plon, plat, pcs):
     xys = np.array((plon,plat,pcs)).T
     AKsi = AKsf[xyzT_w.query(xys, n_jobs=-1)[1]]
     return AKsi
+    
+def get_dAKs_new(dKdzf0, dKdzf1, plon, plat, pcs, frac):
+    xys = np.array((plon,plat,pcs)).T
+    dKdzi0 = dKdzf0[xyzT_rho.query(xys, n_jobs=-1)[1]]
+    dKdzi1 = dKdzf1[xyzT_rho.query(xys, n_jobs=-1)[1]]
+    dKdzi = (1 - frac)*dKdzi0 + frac*dKdzi1
+    return dKdzi
+    
     
 def get_dAKs(AKsf0, AKsf1, zf0,zf1,hf, plon, plat, pcs, S, frac):
     # create diffusivity gradient for turbulence calculation

@@ -77,10 +77,23 @@ zeta = dsr['zeta'][:]
 dsr.close()
 
 # rescale z to remove tides
-ZZ = cs*h
+ZZ = cs*(h)
+
+if False:
+    # generate random samples
+    aa = np.nan * np.ones((28,4000))
+    abins = np.linspace(0,1,29)
+    for ii in range(4000):
+        a = np.random.random(4000)
+        aa[:,ii], aobins  = np.histogram(a, bins=abins)
+    amin = aa.min(axis=1)
+    amax = aa.max(axis=1)
+else:
+    amin = 102.5 * np.ones(28)
+    amax = 187.3 * np.ones(28)
 
 # PLOTTING
-plt.close('all')
+#plt.close('all')
 fs = 14
 plt.rc('font', size=fs)
 fig = plt.figure(figsize=(20,10))
@@ -91,16 +104,18 @@ for jj in [1,2,3]:
     
     NN = int(lon.shape[1]/3)
     zz = ZZ[:,NN*(jj-1):NN*jj - 1]
+    zmin = zz.min()
+    zs = zz/(-zmin)
     ax = fig.add_subplot(1,3,jj)
-    bins=np.linspace(zz[1,:].min(), 0, 100)
-    for ii in range(0,NT-1, int(NT/10)):
-        counts, obins = np.histogram(zz[ii,:], bins=bins)
-        ax.plot(counts/NP, bins[:-1],'-o', label='Hour = %d' % (t[ii]))
-    ax.set_xlim(0,0.01)
-    ax.set_xlabel('Fraction')
-    ax.set_ylabel('Z [m]')
-    if jj==1:
-        ax.legend()
+    bins=np.linspace(-1, 0, 29)
+    for ii in range(NT):
+        counts, obins = np.histogram(zs[ii,:], bins=bins)
+        ax.plot(counts, bins[:-1],'-o', label='Hour = %d' % (t[ii]))
+    ax.plot(amin, bins[:-1],'-k',lw=3, alpha=.3)
+    ax.plot(amax, bins[:-1],'-k',lw=3, alpha=.3)
+    ax.set_xlim(0,300)
+    ax.set_xlabel('Counts')
+    ax.set_ylabel('Scaled Z')
     ax.set_title(title_list[jj-1])
 
 plt.show()
