@@ -43,7 +43,7 @@ elif [ $HOME == "/home/parker" ] && [[ $HOSTNAME == *"boiler"* ]] ; then
   lo_env='pm_boiler'
   parent="/data1/parker/"
   LO=$parent"LiveOcean/"
-  data="/fjdata1/parker/LiveOcean_data/"
+  data="/data1/parker/LiveOcean_data/"
   LOo=$parent"LiveOcean_output/"
   roms=$parent"LiveOcean_roms/"
   roms2="/pmr1/parker/LiveOcean_roms/"
