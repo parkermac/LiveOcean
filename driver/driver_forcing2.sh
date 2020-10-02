@@ -18,13 +18,13 @@ do
 done < ../alpha/lo_info.csv
 
 # set the group so that others can write
-# if [ $lo_env == "pm_fjord" ] ; then
-#   echo 'Changing group permissions'
-#   group=locean
-#   if [ $(id -gn) != $group ]; then
-#     exec sg $group "$0 $*"
-#   fi
-# fi
+if [ $lo_env == "pm_fjord" ] ; then
+  echo 'Changing group permissions'
+  group=locean
+  if [ $(id -gn) != $group ]; then
+    exec sg $group "$0 $*"
+  fi
+fi
 
 . $LO"driver/common.lib"
 
