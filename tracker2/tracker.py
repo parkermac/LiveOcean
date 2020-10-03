@@ -73,7 +73,7 @@ parser = argparse.ArgumentParser()
 
 # Set the experiment name
 # (details set in experiments.py, or, if it exists, user_experiments.py)
-parser.add_argument('-exp', '--exp_name', default='fast0', type=str)
+parser.add_argument('-exp', '--exp_name', default='jdf0', type=str)
 parser.add_argument('-clb', '--clobber', default=False, type=boolean_string)
 # overwrite existing output folder if clobber == True
 parser.add_argument('-t', '--tag', default='', type=str)
@@ -108,7 +108,9 @@ parser.add_argument('-ndiv', default=12, type=int)
 parser.add_argument('-sph', default=1, type=int)
 # sph = saves per hour, a new argument to allow more frequent writing of output.
 
-# set which roms output directory to look in (refers to Ldir['roms'] or Ldir['roms2'])
+# set which ROMS output directory to look in.  This allows you to choose
+# between Ldir['roms'] or Ldir['roms2'] by passing "roms" or "roms2", or any other
+# choice that eventually appears in Ldir.
 parser.add_argument('-rd', '--roms_dir', default='roms', type=str)
 # valid arguments to pass are: roms, roms2
 
@@ -137,7 +139,8 @@ TR['gtagex'] = EI['gtagex']
 TR['gridname'] = EI['gridname']
 
 # get the full path to a valid history file
-fn00 = Ldir['roms'] + 'output/' + TR['gtagex'] + '/f' + TR['ds_first_day'] + '/ocean_his_0001.nc'
+fn00 = (Ldir['roms'] + 'output/' + TR['gtagex'] +
+    '/f' + TR['ds_first_day'] + '/ocean_his_0001.nc')
 TR['fn00'] = fn00
 
 # pass some info to Ldir

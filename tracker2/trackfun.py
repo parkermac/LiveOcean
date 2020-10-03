@@ -17,10 +17,8 @@ import pickle
 from time import time
 import sys
 
-verbose = True
+verbose = False
 
-# Shared Constants
-#
 # criterion for deciding if particles are on land
 maskr_crit = 0.5 # (maskr = 1 in water, 0 on land) [0.5 seems good]
 
@@ -37,20 +35,22 @@ Maskv3 = np.tile(G['mask_v'].reshape(1,G['M']-1,G['L']),[S['N'],1,1])
 Maskw3 = np.tile(G['mask_rho'].reshape(1,G['M'],G['L']),[S['N']+1,1,1])
 # load pre-made trees
 tree_dir = Ldir['LOo'] + 'tracker_trees/' + EI['gridname'] + '/'
+# 2D
 xyT_rho = pickle.load(open(tree_dir + 'xyT_rho.p', 'rb'))
 xyT_u = pickle.load(open(tree_dir + 'xyT_u.p', 'rb'))
 xyT_v = pickle.load(open(tree_dir + 'xyT_v.p', 'rb'))
 xyT_rho_un = pickle.load(open(tree_dir + 'xyT_rho_un.p', 'rb'))
-
+# 3D
 xyzT_rho = pickle.load(open(tree_dir + 'xyzT_rho.p', 'rb'))
 xyzT_u = pickle.load(open(tree_dir + 'xyzT_u.p', 'rb'))
 xyzT_v = pickle.load(open(tree_dir + 'xyzT_v.p', 'rb'))
 xyzT_w = pickle.load(open(tree_dir + 'xyzT_w.p', 'rb'))
-
+# the "f" below refers to flattened, which is the result of passing
+# a Boolean array like Maskr to an array.
 lonrf = G['lon_rho'][Maskr]
 latrf = G['lat_rho'][Maskr]
 
-# 2020.10.01
+# Get dz (with SSH = 0) for calculation of dAKs/dz
 zw = zrfun.get_z(G['h'], 0*G['h'], S, only_w=True)
 dz = np.diff(zw, axis = 0)
 
@@ -64,16 +64,17 @@ def get_tracks(fn_list, plon0, plat0, pcs0, TR, trim_loc=False):
     ndiv = TR['ndiv']
     windage = TR['windage']
     
+    # == couldn't we do these outside the function? ==
     # get basic info
     G = zrfun.get_basic_info(fn_list[0], only_G=True)
     maskr = np.ones_like(G['mask_rho']) # G['mask_rho'] = True in water
     maskr[G['mask_rho']==False] = 0 # maskr = 1 in water
     maskr = maskr.flatten()
     S = zrfun.get_basic_info(fn_list[0], only_S=True)
-    
-    # minimum grid sizes
+    # minimum grid sizes in degrees (assumes plaid lon,lat grid?)
     dxg = np.diff(G['lon_rho'][0,:]).min()
     dyg = np.diff(G['lat_rho'][:,0]).min()
+    # ================================================
 
     # get time vector of history files
     NT = len(fn_list)
@@ -91,7 +92,7 @@ def get_tracks(fn_list, plon0, plat0, pcs0, TR, trim_loc=False):
     rot_save = np.linspace(rot[0], rot[-1], NTS)
 
     # these lists are used internally to get other variables as needed
-    # (they must all be present in the history files)
+    # (the variables must all be present in the history files)
     vn_list_vel = ['u','v','w']
     vn_list_zh = ['zeta','h']
     vn_list_wind = ['Uwind','Vwind']
@@ -103,7 +104,6 @@ def get_tracks(fn_list, plon0, plat0, pcs0, TR, trim_loc=False):
     
     # Step through times.
     #
-    counter_his = 0
     for counter_his in range(len(fn_list)-1):
         
         if verbose:
@@ -243,7 +243,6 @@ def get_tracks(fn_list, plon0, plat0, pcs0, TR, trim_loc=False):
                 print('   > Prepare subsequent fields for tree %0.4f sec' % (time()-tt0))
         ds0.close()
         ds1.close()
-            
 
         if counter_his == 0:
             if trim_loc == True:
@@ -326,17 +325,14 @@ def get_tracks(fn_list, plon0, plat0, pcs0, TR, trim_loc=False):
             # add turbulence to vertical position change (advection already added above)
             if turb == True:
                 # pull values of VdAKs and add up to 3-dimensions
-                if False:
-                    VdAKs = get_dAKs(AKsf0, AKsf1, zf0,zf1,hf, plon, plat, pcs, S, frmid)
-                else:
-                    # new 2020.10.01
-                    VdAKs = get_dAKs_new(dKdzf0, dKdzf1, plon, plat, pcs, frmid)
+                # VdAKs = get_dAKs(AKsf0, AKsf1, zf0,zf1,hf, plon, plat, pcs, S, frmid) # OBSOLETE
+                VdAKs = get_dAKs_new(dKdzf0, dKdzf1, plon, plat, pcs, frmid)
                 VdAKs3 = np.zeros((NP,3))
                 VdAKs3[:,2] = VdAKs
                 # update position advecting vertically with 1/2 of AKs gradient
                 ZH = get_zh(zf0,zf1,hf, plon, plat, frmid)
-                plon_junk, plat_junk, pcs_half = update_position(dxg, dyg, maskr, VdAKs3/2, ZH, S, delt/2,
-                                                     plon, plat, pcs, surface)
+                plon_junk, plat_junk, pcs_half = update_position(dxg, dyg, maskr,
+                                VdAKs3/2, ZH, S, delt/2, plon, plat, pcs, surface)
                 # get AKs at this height, and thence the turbulent perturbation velocity
                 Vturb = get_turb(VdAKs, AKsf0, AKsf1, delt, plon, plat, pcs_half, frmid)
                 Vturb3 = np.zeros((NP,3))
@@ -431,23 +427,18 @@ def update_position(dxg, dyg, maskr, V, ZH, S, dt_sec, plon, plat, pcs, surface)
         if sum(pcs_mask) > 0:
             print('Warning: bad pcs values')
             Pcs[pcs_mask] = Pcs_orig[pcs_mask]
-        # Enforce limits on cs.  We use the remainder function to
+        # Enforce limits on cs using reflection.  We use the remainder function to
         # account for cases where the vertical advection may have moved
         # particles more than 2*H 
         hit_top = Pcs > 0
         Pcs[hit_top] = - np.remainder(Pcs[hit_top],1)
         hit_bottom = Pcs < -1
         Pcs[hit_bottom] = -1 - np.remainder(Pcs[hit_bottom],-1)
-        # and finally enforce more limits to ensure we always are
-        # able to gather salt and other tracer values.
-        if False:
-            Pcs[Pcs < S['Cs_r'][0]] = S['Cs_r'][0]
-            Pcs[Pcs > S['Cs_r'][-1]] = S['Cs_r'][-1]
-        else:
-            Pcs[Pcs < -1] = -1
-            Pcs[Pcs > 0] = 0
+        # and finally enforce more limits if needed
+        Pcs[Pcs < -1] = -1
+        Pcs[Pcs > 0] = 0
     else:
-        Pcs[:] = S['Cs_r'][-1]
+        Pcs[:] = 0 # surface trapped
 
     return Plon, Plat, Pcs
 
@@ -538,85 +529,51 @@ def get_dAKs_new(dKdzf0, dKdzf1, plon, plat, pcs, frac):
     dKdzi = (1 - frac)*dKdzi0 + frac*dKdzi1
     return dKdzi
     
-    
 def get_dAKs(AKsf0, AKsf1, zf0,zf1,hf, plon, plat, pcs, S, frac):
     # create diffusivity gradient for turbulence calculation
-    
-    DPCS = 0.03 # 0.03
-    
-    newlim = True
-    
+    # OBSOLETE 2020.10.03 Replaced by get_dAKs_new()
+    DPCS = 0.03 # 0.03 (look over cs range of 2*DPCS for derivative)
     # first time
     ZH0 = get_zh(zf0,zf1,hf, plon, plat, 0)
     dpcs0 = DPCS
-    # dpcs0 = 1/(ZH0.sum(axis=1)) # change in pcs for a total of a 2m difference
-    #     upper variables
     pcs0u = pcs + dpcs0
-    
-    if newlim:
-        pcs0u[pcs0u > 0] = 0
-    else:
-        pcs0u[pcs0u > S['Cs_w'][-1]] = S['Cs_w'][-1]
-        
+    pcs0u[pcs0u > 0] = 0
     AKs0u = get_AKs(AKsf0, plon, plat, pcs0u)
     z0u = pcs0u * ZH0.sum(axis=1)
     #     lower variables
     pcs0b = pcs - dpcs0
-    
-    if newlim:
-        pcs0b[pcs0b < -1] = -1
-    else:
-        pcs0b[pcs0b < S['Cs_w'][0]] = S['Cs_w'][0]
-    
+    pcs0b[pcs0b < -1] = -1
     AKs0b = get_AKs(AKsf0, plon, plat, pcs0b)
     z0b = pcs0b * ZH0.sum(axis=1)
     V0 = (AKs0u-AKs0b)/(z0u-z0b)
-    
     # second time
     ZH1 = get_zh(zf0,zf1,hf, plon, plat, 1)
     dpcs1 = DPCS
-    # dpcs1 = 1/(ZH1.sum(axis=1)) # change in pcs for a total of a 2m difference
-    #     upper variables
     pcs1u = pcs + dpcs1
-    
-    if newlim:
-        pcs1u[pcs1u > 0] = 0
-    else:
-        pcs1u[pcs1u > S['Cs_w'][-1]] = S['Cs_w'][-1]
-        
+    pcs1u[pcs1u > 0] = 0
     AKs1u = get_AKs(AKsf1, plon, plat, pcs1u)
     z1u = pcs1u * ZH1.sum(axis=1)
     #     lower variables
     pcs1b = pcs - dpcs1
-    
-    if newlim:
-        pcs1b[pcs1b < -1] = -1
-    else:
-        pcs1b[pcs1b < S['Cs_w'][0]] = S['Cs_w'][0]
-    
+    pcs1b[pcs1b < -1] = -1
     AKs1b = get_AKs(AKsf1, plon, plat, pcs1b)
     z1b = pcs1b * ZH1.sum(axis=1)
     V1 = (AKs1u-AKs1b)/(z1u-z1b)
-    
     # average of times
     V = (1-frac)*V0 + frac*V1
-    
     return V
 
 def get_turb(dAKs, AKsf0, AKsf1, delta_t, plon, plat, pcs, frac):
     # get the vertical turbulence correction components
     V0 = get_AKs(AKsf0, plon, plat, pcs)
     V1 = get_AKs(AKsf1, plon, plat, pcs)
-    
     # create weighted average diffusivity
     Vave = (1 - frac)*V0 + frac*V1
-    
     # turbulence calculation from Banas, MacCready, and Hickey (2009)
     # w_turbulence = rand*sqrt(2K/dt) + dK/dz
     # rand = random array with normal distribution
     rand = np.random.standard_normal(len(V0))
     V = rand*np.sqrt(2*Vave/delta_t) + dAKs
-    
     return V
 
 def get_fn_list(idt, Ldir):

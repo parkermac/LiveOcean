@@ -35,13 +35,15 @@ cs = dsr['cs'][:]
 dsr.close()
 
 # rescale z to remove tides
-z = cs*(h+zeta)
+#z = cs*(h+zeta)
+z = cs*h
 
 # get the particulator output
 pp = io.loadmat(Ldir['parent'] + 'particulator_output/eddy0.mat')
 lonp = pp['x']
 latp = pp['y']
-zp = pp['sigma']*(pp['H']+pp['zeta'])
+#zp = pp['sigma']*(pp['H']+pp['zeta'])
+zp = pp['sigma']*pp['H']
 
 
 # PLOTTING
@@ -82,31 +84,16 @@ zmin = min(z.min(), zp.min())
 
 NT, NP = z.shape
 NTp, NPp = zp.shape
-bins=np.linspace(zmin, 0, 20)
+bins=np.linspace(zmin, 0, 15)
 
-do_log = False
 for ii in range(1,10):
     counts, obins = np.histogram(z[-ii,:], bins=bins)
-    if do_log:
-        counts = counts.astype(float)
-        counts[counts==0] = np.nan
-        lcounts = np.log10(counts)
-        ax.plot(lcounts, bins[:-1],'-ob', alpha=alpha)
-    else:
-        ax.plot(counts/NP, bins[:-1],'-ob', alpha=alpha)
+    ax.plot(counts/NP, bins[:-1],'-ob', alpha=alpha)
         
-    
     counts, obins = np.histogram(zp[-ii,:], bins=bins)
-    if do_log:
-        counts = counts.astype(float)
-        counts[counts==0] = np.nan
-        lcounts = np.log10(counts)
-        ax.plot(lcounts, bins[:-1],'-or', alpha=alpha)
-    else:
-        ax.plot(counts/NPp, bins[:-1],'-or', alpha=alpha)
+    ax.plot(counts/NPp, bins[:-1],'-or', alpha=alpha)
         
-
-#ax.set_xlim(0,)
+ax.set_xlim(0,)
 ax.set_ylim(-100,0)
 ax.set_xlabel('Fraction')
 ax.set_ylabel('Z [m]')

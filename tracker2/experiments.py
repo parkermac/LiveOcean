@@ -9,7 +9,7 @@ import numpy as np
 def get_exp_info(exp_name):
     
     # Defaults
-    # you coud override using "if exp_name == ..."
+    # you could override these using "if exp_name == ..."
     gridname = 'cas6'; tag = 'v3'; ex_name = 'lo8b'
     
     EI = {}
@@ -23,6 +23,10 @@ def get_exp_info(exp_name):
     
 def get_ic(EI, fn00):
     # routines to set particle initial locations, all numpy arrays
+    
+    # NOTE: "pcs" refers to fractional depth, and goes linearly from -1 to 0
+    # between the local bottom and free surface.  It is how we keep track of
+    # vertical position, only converting to z-position when needed.
     
     exp_name = EI['exp_name']
     
