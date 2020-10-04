@@ -5,9 +5,12 @@ This code is designed to be a flexible, and hopefully fast, tool for doing parti
 2020.10.03 and the past week:
 - Updated experiments.py to simplify naming logic: drop ic_name, use exp_name instead.  Also cleaned up and added some new methods like ic_from_list() and ic_from_TEFsegs().
 - Allow "cs" limits to go over full -1 to 0 range.  This works even for finding tracer values because of the neaerest neighbor search.
-- Changed the method for calculation of dAKs/dz guided by results of WMC (Well Mixed Condition) experiments using exp_name = vmix.
+- Changed the method for calculation of dAKs/dz guided by results of WMC (Well Mixed Condition) in vmix experiment.
 - Introduced a new optional input flag for tracker.py.  "-no_advection True" turns off all advection, meaning only mixing is active.  Used with vmix experiment for WMC test.
 - Also added the "-tag" input flag, allowing you to append a tag to an experiment folder.
+
+2020.10.04:
+- Introduced 3-point Hanning window (0.25, 0.5, 0.25) vertical smoothing on AKs, which improved WMC vmix results.  This fix was based on many experiments using test_dAKs_dz.py and modeled after work in North et al. (2006).
 
 ============================================================================
 ============================================================================

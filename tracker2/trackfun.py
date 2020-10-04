@@ -172,11 +172,16 @@ def get_tracks(fn_list, plon0, plat0, pcs0, TR, trim_loc=False):
                 tf0 = t0[Maskr3].data
                 tf1 = t1[Maskr3].data
                 if turb == True:
-                    AKs0 = ds0['AKs'][0,:,:,:]
-                    AKs1 = ds1['AKs'][0,:,:,:]
+                    AKs0_temp = ds0['AKs'][0,:,:,:]
+                    AKs0 = AKs0_temp.copy()
+                    AKs0[1:-1,:,:] = 0.25*AKs0_temp[:-2,:,:] + 0.5*AKs0_temp[1:-1,:,:] + 0.25*AKs0_temp[2:,:,:]
                     AKsf0 = AKs0[Maskw3].data
+                    #
+                    AKs1_temp = ds1['AKs'][0,:,:,:]
+                    AKs1 = AKs1_temp.copy()
+                    AKs1[1:-1,:,:] = 0.25*AKs1_temp[:-2,:,:] + 0.5*AKs1_temp[1:-1,:,:] + 0.25*AKs1_temp[2:,:,:]
                     AKsf1 = AKs1[Maskw3].data
-                    # new 2020.10.01
+                    #
                     dKdz0 = np.diff(AKs0, axis=0)/dz
                     dKdz1 = np.diff(AKs1, axis=0)/dz
                     dKdzf0 = dKdz0[Maskr3].data
@@ -229,10 +234,13 @@ def get_tracks(fn_list, plon0, plat0, pcs0, TR, trim_loc=False):
                     tf0 = tf1.copy()
                     tf1 = t1[Maskr3].data
                 if turb == True:
-                    AKs1 = ds1['AKs'][0,:,:,:]
                     AKsf0 = AKsf1.copy()
+                    #
+                    AKs1_temp = ds1['AKs'][0,:,:,:]
+                    AKs1 = AKs1_temp.copy()
+                    AKs1[1:-1,:,:] = 0.25*AKs1_temp[:-2,:,:] + 0.5*AKs1_temp[1:-1,:,:] + 0.25*AKs1_temp[2:,:,:]
                     AKsf1 = AKs1[Maskw3].data
-                    # new 2020.10.01
+                    #
                     dKdzf0 = dKdzf1.copy()
                     dKdz1 = np.diff(AKs1, axis=0)/dz
                     dKdzf1 = dKdz1[Maskr3].data
