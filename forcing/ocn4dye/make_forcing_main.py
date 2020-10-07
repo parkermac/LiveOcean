@@ -2,52 +2,7 @@
 """
 This is the main program for making the OCN forcing file.
 
-It is designed to work with the new hycom2 archive of extracted files,
-as well as regular forecasts.
-
-Performance: on my mac a backfill day for cas6 takes 1 minute.
-
-2017.12.10 I added a planB flag to the forecast case
-which copies the clm file from the previous day and
-makes the final time a day later.
-
-2018.05.19 I added the add_CTD flag (and the Ofun_CTD module) to add CTD data
-on a specified day only.
-
-2019.04.24 I Removed the fix_NSoG code entirely because that experiment did
-not produce the desired results.
-
-2019.05.09 Changed the day for which CTD ICs are added to 2016.12.15, but in
-Ofun_CTD.get_casts() it is hardwired to look for casts on or after January 2017.
-
-2019.05.20 Added Ofun.get_interpolated_alt() which sped up the program by a factor of 10.
-
-2020.08.13 Added a method to get the HYCOM files using the nco operator "ncks",
-which is new essentially Plan A.  I deprecated the "FMRC_best" method to Plan B
-because it was failing about tome time out of four.  Then moved the persistence
-backup to Plan C.
-
-2020.09.27 Moved the ncks method to Ofun, and reworked the error-handling logic.
-It was working well but the fmrc method would not generate enough of an
-exception to move to Plan C.
-
-*******************************
-
-To run from the command line in LiveOcean/driver/:
-    
-./driver_forcing2.sh -g cas6 -t v1 -f ocn4 -r backfill -0 20170101 -1 20170101
-
-To test in python on mac:
-
-# standard backfill
-run make_forcing_main.py -g cas6 -t v3 -r backfill -d 2017.04.20
-
-# backfill with Salish and coastal estuary IC's from CTD and other info
-run make_forcing_main.py -g cas6 -t v1 -r backfill -d 2016.12.15
-- the switch to do this is hardwired to a day: 2016.12.15
-
-# today's forecast
-run make_forcing_main.py -g cas6 -t v3 -r forecast
+It is just for adding dye to an existing file.
 
 """
 
