@@ -265,15 +265,15 @@ def write_to_nc(out_fn, S, df, qt_df_dict, dt_ind):
     v_var.time = "river_time"
     v_var.units = "psu"
     
-    # v_var = foo.createVariable('river_dye_01', float, ('river_time', 's_rho', 'river'))
-    # count = 0
-    # for rn in df.index:
-    #     for nn in range(N):
-    #         v_var[:, nn, count] = np.zeros(ndt)
-    #     count += 1
-    # v_var.long_name = 'river dye'
-    # v_var.time = "river_time"
-    # v_var.units = "kg m-3"
+    v_var = foo.createVariable('river_dye_01', float, ('river_time', 's_rho', 'river'))
+    count = 0
+    for rn in df.index:
+        for nn in range(N):
+            v_var[:, nn, count] = np.zeros(ndt)
+        count += 1
+    v_var.long_name = 'river dye'
+    v_var.time = "river_time"
+    v_var.units = "kg m-3"
 
     v_var = foo.createVariable('river_Vshape', float, ('s_rho', 'river'))
     count = 0
