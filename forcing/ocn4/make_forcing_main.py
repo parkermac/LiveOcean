@@ -135,12 +135,14 @@ if (Ldir['run_type'] == 'forecast'):
                 # get hycom forecast data from the web, and save it in the file "data_fn_out".
                 # it tries 10 times before ending
                 got_fmrc = Ofun.get_data_oneday(dtff, data_fn_out, testing_fmrc)
+                if got_fmrc == False:
+                    # this should break out of the dtff loop at the first failure
+                    # and send the code to Plan C
+                    print('- error getting forecast files using fmrc')
+                    planC = True
+                    break
         except Exception as e:
             print(e)
-            planC = True
-        # set one more error trap outside the try-except
-        if got_fmrc == False:
-            print('- error getting forecast files using fmrc')
             planC = True
        
 elif (Ldir['run_type'] == 'backfill'):
