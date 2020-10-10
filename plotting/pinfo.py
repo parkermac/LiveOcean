@@ -11,6 +11,7 @@ figsize = (13,8) # laptop
 # and then held constant at those levels thereafter.    
 vlims_dict = {'salt': (14, 35),
         'temp': (7, 18),
+        'dye_01': (0,1),
         'NO3': (0, 44),
         'phytoplankton': (0,30),
         'zooplankton': (0, 4),

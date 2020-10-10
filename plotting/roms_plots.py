@@ -82,6 +82,55 @@ def P_basic(in_dict):
     else:
         plt.show()
         
+def P_dye(in_dict):
+
+    # START
+    fig = plt.figure(figsize=(18,11)) # (16,12) or pinfo.figsize for default
+    ds = nc.Dataset(in_dict['fn'])
+
+    # PLOT CODE
+    import cmocean
+    cmap = cmocean.cm.haline
+    vn_list = ['dye_01', 'dye_01']
+    aa = [-123.3, -122.3, 47.2, 48.2] # Hood Canal
+    fs = 14
+    ii = 1
+    for vn in vn_list:
+        if ii == 1:
+            slev = 0
+            ttext = 'Bottom Dye'
+        elif ii == 2:
+            slev = -1
+            ttext = 'Surface Dye'
+        ax = fig.add_subplot(1, len(vn_list), ii)
+        cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict, slev=slev,
+                cmap=cmap)
+        #cb = fig.colorbar(cs)
+        #cb.ax.tick_params(labelsize=fs)
+        # pfun.add_bathy_contours(ax, ds, txt=True)
+        pfun.add_coast(ax)
+        ax.axis(aa)
+        pfun.dar(ax)
+        ax.set_title(ttext, fontsize=fs+2)
+        ax.set_xlabel('Longitude', fontsize=fs)
+        ax.tick_params(labelsize=fs) # tick labels
+        if ii == 1:
+            ax.set_ylabel('Latitude', fontsize=fs)
+            pfun.add_info(ax, in_dict['fn'], fs=fs)
+            # pfun.add_windstress_flower(ax, ds)
+        elif ii == 2:
+            # pfun.add_velocity_vectors(ax, ds, in_dict['fn'])
+            pass
+        ii += 1
+    #fig.tight_layout()
+    # FINISH
+    ds.close()
+    if len(in_dict['fn_out']) > 0:
+        plt.savefig(in_dict['fn_out'])
+        plt.close()
+    else:
+        plt.show()
+        
 def P_Chl_DO(in_dict):
 
     # START
