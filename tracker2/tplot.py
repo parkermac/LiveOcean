@@ -36,13 +36,18 @@ indir = indir_list[int(my_npt)] + '/'
 rel_list = [rel for rel in os.listdir(indir0 + indir) if 'release' in rel]
 rel_list.sort()
 Nrl = len(rel_list)
-print('\n%s\n' % '** Choose Release file to plot **')
-for nrl in range(Nrl):
-    print(str(nrl) + ': ' + rel_list[nrl])
-my_nrl = input('-- Release number (return = 0) -- ')
-if len(my_nrl)==0:
-    my_nrl = 0
-rel = rel_list[int(my_nrl)]
+if Nrl == 1:
+    # it there is only one release, use that
+    rel = rel_list[0]
+else:
+    # otherwise choose one
+    print('\n%s\n' % '** Choose Release file to plot **')
+    for nrl in range(Nrl):
+        print(str(nrl) + ': ' + rel_list[nrl])
+    my_nrl = input('-- Release number (return = 0) -- ')
+    if len(my_nrl)==0:
+        my_nrl = 0
+    rel = rel_list[int(my_nrl)]
 
 # get Datasets
 dsr = nc4.Dataset(indir0 + indir + rel)

@@ -62,6 +62,11 @@ def get_ic(EI, fn00):
         seg_list = ['H3','H4','H5','H6','H7','H8']
         DZ = 5
         plon00, plat00, pcs00 = ic_from_TEFsegs(fn00, EI['gridname'], seg_list, DZ)
+
+    elif exp_name == 'AllHC3d': # Hood Canal 3d using TEF segments
+        seg_list = ['H'+str(item) for item in range(1,9)]
+        DZ = 2
+        plon00, plat00, pcs00 = ic_from_TEFsegs(fn00, EI['gridname'], seg_list, DZ, NPmax=100000)
         
     elif exp_name == 'EJdF3d': # eastern JdF 3d using TEF segment
         seg_list = ['J4']
