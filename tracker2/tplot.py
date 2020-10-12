@@ -134,7 +134,7 @@ for ii in range(ntv):
     tv = tv_list[ii]
     NC = 2
     ax = fig.add_subplot(ntv,NC, (ii+1)*NC)
-    ax.plot(td, dsr[tv][:,::step])
+    ax.plot(td, dsr[tv][:,::step], lw=.5)
     ax.text(.05, .05, tv, fontweight='bold', transform=ax.transAxes)
     if ii == ntv-1:
         ax.set_xlabel('Time (days)')

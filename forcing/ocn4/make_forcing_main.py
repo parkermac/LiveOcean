@@ -29,7 +29,7 @@ backup to Plan C.
 
 2020.09.27 Moved the ncks method to Ofun, and reworked the error-handling logic.
 It was working well but the fmrc method would not generate enough of an
-exception to move to Plan C.
+exception to move to Plan C.  Updated logic on 2020.10.10.
 
 *******************************
 
