@@ -120,9 +120,6 @@ else:
     vn_out_list = ['temp', 'salt', 'phytoplankton', 'NO3', 'oxygen', 'PH', 'ARAG']
 vn_out_list_short = vn_out_list.remove('PH')
     
-# inputs needed for carbon
-vnc_list = ['alkalinity', 'TIC', 'rho']
-
 # Create the data layer objects
 in_ds = nc.Dataset(fn_list[0])
 for vn in vn_out_list:
@@ -146,8 +143,7 @@ for vn in vn_out_list:
         vv.time = 'ocean_time'
 in_ds.close()
 
-# create zfull to use with the pfun.get_layer() function
-# -- get z fields
+# create zfull to use with the pfun.get_laym() function
 fn0 = fn_list[0]
 in_ds = nc.Dataset(fn0)
 zfull = pfun.get_zfull(in_ds, fn0, 'rho')
@@ -164,6 +160,7 @@ def get_layer(vn, depth, in_ds, zfull, in_mask_rho):
     return L
     
 def get_Ld(depth, in_ds, in_mask_rho):
+    # makes a field of layer depth (m)
     if depth == 'surface':
         Ld = 0 * np.ones_like(in_mask_rho)
     elif depth == 'bottom':
