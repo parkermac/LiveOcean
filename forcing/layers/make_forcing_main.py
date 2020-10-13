@@ -18,7 +18,6 @@ Ldir, Lfun = ffun.intro()
 # ****************** CASE-SPECIFIC CODE *****************
 
 # imports
-import layer_fun
 from datetime import datetime
 import netCDF4 as nc
 import zrfun
