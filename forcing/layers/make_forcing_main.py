@@ -1,18 +1,13 @@
 """
-This is the main program for making a SURFACE subset of the daily output.
+This is the main program for making a LAYERS subset of the daily output.
 
-It creates a single NetCDF file containing only the surface fields
-from all the history files in a given day.
+It creates a single NetCDF file containing selected layers
+from some the history files in a given day.
 
 Testing on mac:
 
 run make_forcing_main.py -d 2019.07.04
 
-2019.07.18 Shortened the list of variables to only those served by EDS Viewer,
-and used every other hour.
-
-2020.07.14 Added a second output file for SCOOT, including layers at selected z-levels.
-Also cleaned up code and created module surf_fun.py.
 """
 
 import os, sys
@@ -22,81 +17,36 @@ Ldir, Lfun = ffun.intro()
 
 # ****************** CASE-SPECIFIC CODE *****************
 
-
 # imports
-import surf_fun
+import layer_fun
 from datetime import datetime
 import netCDF4 as nc
 import zrfun
+import zfun
+
 import numpy as np
 sys.path.append(os.path.abspath('../../plotting/'))
 import pfun
 from time import time
+from PyCO2SYS import CO2SYS
+import seawater as sw
+from warnings import filterwarnings
+filterwarnings('ignore') # skip some warning messages
 
 start_time = datetime.now()
 
-print(' - Creating surface file(s) for ' + Ldir['date_string'])
+print(' - Creating layers file for ' + Ldir['date_string'])
 f_string = 'f' + Ldir['date_string']
 
 # Create out_dir
 in_dir = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/' + f_string + '/'
 out_dir = in_dir # output goes to same place as input
 
-# ======== Create an output file for EDS ===============================
-
-    
-fn_list_raw = os.listdir(in_dir)
-fn_list = []
-for item in fn_list_raw:
-    if 'ocean_his' in item and '.nc' in item:
-        fn_list.append(in_dir + item)
-fn_list.sort()
-# shorten the list to be every 2 hours
-fn_list = fn_list[::2]
-
-# Initialize the multi-file input dataset
-in_ds = nc.MFDataset(fn_list)
-
-# Initialize
-out_fn = out_dir + 'ocean_surface.nc'
-print(' - Writing to: ' + out_fn)
-out_ds = surf_fun.create_ds(out_fn)
-surf_fun.add_dims(in_ds, out_ds)
-# Add standard 3D-T, rho-grid, variables
-vn_list2t = ['Uwind', 'Vwind', 'ocean_time']
-vn_list3t = ['salt', 'temp']
-slev = -1
-surf_fun.add_fields(in_ds, out_ds, vn_list2t, vn_list3t, slev=slev)
-# Add custom variables
-# - surface velocity on the rho grid
-u0 = in_ds['u'][:, slev, :, :].squeeze()
-v0 = in_ds['v'][:, slev, :, :].squeeze()
-u = np.nan * in_ds['salt'][:, slev, :, :].squeeze()
-v = u.copy()
-u[:, :, 1:-1] = (u0[:, :, 1:] + u0[:, :, :-1])/2
-v[:, 1:-1, :] = (v0[:, 1:, :] + v0[:, :-1, :])/2
-#
-vv = out_ds.createVariable('u', float, ('ocean_time', 'eta_rho', 'xi_rho'))
-vv.long_name = 'eastward near-surface velocity'
-vv.units = 'meter second-1'
-vv.time = 'ocean_time'
-vv[:] = u
-#
-vv = out_ds.createVariable('v', float, ('ocean_time', 'eta_rho', 'xi_rho'))
-vv.long_name = 'northward near-surface velocity'
-vv.units = 'meter second-1'
-vv.time = 'ocean_time'
-vv[:] = v
-# Close output Dataset
-out_ds.close()
-# Close multi-file input Dataset
-in_ds.close()
-# ======================================================================
-
-# ======== Create an output file for SCOOT and NANOOS and etc. =============================
-# performance: took about 3 minutes for a three-day forecast with 12 hour steps
+# ======== Create an output file for SCOOT, NANOOS and etc. =============================
+# performance: 8.5 minutes per day (every 4th hour) on my mac
 
 testing = False
+verbose = True
 
 fn_list_raw = os.listdir(in_dir)
 fn_list = []
@@ -110,90 +60,172 @@ if testing:
 else:
     fn_list = fn_list[::4]
 
-# Initialize the multi-file input dataset
-in_ds = nc.MFDataset(fn_list)
-
 # Initialize
 out_fn = out_dir + 'ocean_layers.nc'
 print(' - Writing to: ' + out_fn)
-out_ds = surf_fun.create_ds(out_fn)
-surf_fun.add_dims(in_ds, out_ds)
-# Add standard 3D-T, rho-grid, variables
-vn_list2t = ['ocean_time']
-if testing:
-    vn_list3t = ['oxygen']
-else:
-    vn_list3t = ['temp', 'salt', 'phytoplankton', 'NO3', 'oxygen']
-    
-surf_fun.add_fields(in_ds, out_ds, vn_list2t, vn_list3t, slev=-1, suffix='_surface')
-surf_fun.add_fields(in_ds, out_ds, [], vn_list3t, slev=0, suffix='_bottom')
+# get rid of the old version, if it exists
+try:
+    os.remove(out_fn)
+except OSError:
+    pass # assume error was because the file did not exist
+out_ds = nc.Dataset(out_fn, 'w')
 
-# Add custom variables
-# - fields at selected z-levels
-if testing:
-    depth_list = [10]
-else:
-    depth_list = [10, 20, 30, 50]
+# Copy dimensions
+dlist = ['xi_rho', 'eta_rho', 'xi_psi', 'eta_psi', 'ocean_time']
+vn_list2 = [ 'lon_rho', 'lat_rho', 'lon_psi', 'lat_psi', 'mask_rho', 'h']
+in_ds = nc.Dataset(fn_list[0])
+for dname, the_dim in in_ds.dimensions.items():
+    if dname in dlist:
+        out_ds.createDimension(dname, len(the_dim) if not the_dim.isunlimited() else None)
+
+# Copy grid variables
+for vn in vn_list2:
+    varin = in_ds[vn]
+    vv = out_ds.createVariable(vn, varin.dtype, varin.dimensions)
+    vv.setncatts({k: varin.getncattr(k) for k in varin.ncattrs()})
+    vv[:] = in_ds[vn][:]
     
-# -- get z fields
-fn0 = fn_list[0]
-ds0 = nc.Dataset(fn_list[0])
-zfull = pfun.get_zfull(ds0, fn0, 'rho')
-ds0m = ds0['mask_rho'][:]
-ds0.close()
-# get size for output
-NT, NY, NX = out_ds[vn_list3t[0]+'_surface'][:].shape
-#
-# initialize output dict
-tt0 = time()
-v_dict = {}
-for vn in vn_list3t:
-    for depth in depth_list:
-        vnd = vn + '_' + str(depth)
-        v_dict[vnd] = np.nan * np.ones((NT,NY,NX))
-print(' --  dict initialization took %0.1f sec' % (time()-tt0))
-sys.stdout.flush()
-#
-# fill output dict arrays
-tt0 = time()
-count = 0
+# Create and copy time variable
+vn = 'ocean_time'
+varin = in_ds[vn]
+vv = out_ds.createVariable(vn, varin.dtype, varin.dimensions)
+vv.long_name = varin.long_name
+vv.units = varin.units
+in_ds.close()
+counter = 0
 for fn in fn_list:
-    ds = nc.Dataset(fn)
-    for vn in vn_list3t:
-        for depth in depth_list:
-            vnd = vn + '_' + str(depth)
-            laym = pfun.get_laym(ds, zfull, ds0m, vn, -depth)
-            v_dict[vnd][count, :, :] = laym
-    ds.close()
-    count += 1
-print(' --  layer creation took %0.1f sec' % (time()-tt0))
-sys.stdout.flush()
-#
-# write variables to output
-tt0 = time()
-for vn in vn_list3t:
+    in_ds = nc.Dataset(fn)
+    vv[counter] = in_ds[vn][:]
+    counter += 1
+    in_ds.close()
+
+# Get ready to initialize the data layers.
+if testing:
+    depth_list = ['surface', '10', 'bottom']
+else:
+    depth_list = ['surface', '10', '20', '30', '50', 'bottom']
+    
+tag_dict = {}
+for depth in depth_list:
+    if depth in ['surface', 'bottom']:
+        tag_dict[depth] = ' at ' + depth
+    else:
+        tag_dict[depth] = ' at ' + depth + ' m depth'
+
+if testing:
+    vn_in_list = ['temp', 'salt' , 'rho', 'alkalinity', 'TIC']
+    vn_out_list = ['temp', 'salt' , 'PH', 'ARAG']
+else:
+    vn_in_list = ['temp', 'salt', 'phytoplankton', 'NO3', 'oxygen', 'rho', 'alkalinity', 'TIC']
+    vn_out_list = ['temp', 'salt', 'phytoplankton', 'NO3', 'oxygen', 'PH', 'ARAG']
+vn_out_list_short = vn_out_list.remove('PH')
+    
+# inputs needed for carbon
+vnc_list = ['alkalinity', 'TIC', 'rho']
+
+# Create the data layer objects
+in_ds = nc.Dataset(fn_list[0])
+for vn in vn_out_list:
+    try:
+        varin = in_ds[vn]
+    except IndexError:
+        pass
     for depth in depth_list:
-        vnd = vn + '_' + str(depth)
-        vv = out_ds.createVariable(vnd, float, ('ocean_time', 'eta_rho', 'xi_rho'))
-        vn_alt = (vn + '_surface')
-        vv.long_name = out_ds[vn_alt].long_name + ' at ' + str(depth)+' m depth'
+        suffix = '_' + depth
+        vv = out_ds.createVariable(vn + suffix, float, ('ocean_time', 'eta_rho', 'xi_rho'))
+        if vn == 'PH':
+            vv.long_name = 'pH' + tag_dict[depth]
+        elif vn == 'ARAG':
+            vv.long_name = 'Aragonite Saturation State' + tag_dict[depth]
+        else:
+            vv.long_name = varin.long_name + tag_dict[depth]
         try:
-            vv.units = out_ds[vn_alt].units
+            vv.units = varin.units
         except AttributeError:
-            # needed because salt has no units
             pass
         vv.time = 'ocean_time'
-        vv[:] = v_dict[vnd]
-print(' --  layers to netCDF took %0.1f sec' % (time()-tt0))
-sys.stdout.flush()
-#
-# Close output Dataset
+in_ds.close()
+
+# create zfull to use with the pfun.get_layer() function
+# -- get z fields
+fn0 = fn_list[0]
+in_ds = nc.Dataset(fn0)
+zfull = pfun.get_zfull(in_ds, fn0, 'rho')
+in_mask_rho = in_ds['mask_rho'][:] # 1 = water, 0 = land
+in_ds.close()
+
+def get_layer(vn, depth, in_ds, zfull, in_mask_rho):
+    if depth == 'surface':
+        L = zfun.fillit(in_ds[vn][0,-1,:,:])
+    elif depth == 'bottom':
+        L = zfun.fillit(in_ds[vn][0,0,:,:])
+    else:
+        L = pfun.get_laym(in_ds, zfull, in_mask_rho, vn, -float(depth))
+    return L
+    
+def get_Ld(depth, in_ds, in_mask_rho):
+    if depth == 'surface':
+        Ld = 0 * np.ones_like(in_mask_rho)
+    elif depth == 'bottom':
+        Ld = in_ds['h'][:]
+    else:
+        Ld = float(depth) * np.ones_like(in_mask_rho)
+    Ld[in_mask_rho == 0] = np.nan
+    return Ld
+
+# Fill the layers
+tt = 0
+for in_fn in fn_list:
+    print('Working on: ' + in_fn.split('/')[-2] + ' ' + in_fn.split('/')[-1])
+    in_ds = nc.Dataset(fn)
+    for depth in depth_list:
+        if verbose:
+            print(' - Depth = ' + depth)
+        suffix = '_' + depth
+        v_dict = {}
+        tt0 = time()
+        for vn in vn_in_list:
+            v_dict[vn] = get_layer(vn, depth, in_ds, zfull, in_mask_rho)
+        if verbose:
+            print('   -- fill v_dict took %0.2f sec' % (time()-tt0))
+        # ------------- the CO2SYS steps -------------------------
+        tt0 = time()
+        Ld = get_Ld(depth, in_ds, in_mask_rho)
+        lat = in_ds['lat_rho'][:]
+        # create pressure
+        Lpres = sw.pres(Ld, lat)
+        # get in situ temperature from potential temperature
+        Ltemp = sw.ptmp(v_dict['salt'], v_dict['temp'], 0, Lpres)
+        # convert from umol/L to umol/kg using in situ dentity
+        Lalkalinity = 1000 * v_dict['alkalinity'] / (v_dict['rho'] + 1000)
+        Lalkalinity[Lalkalinity < 100] = np.nan
+        LTIC = 1000 * v_dict['TIC'] / (v_dict['rho'] + 1000)
+        LTIC[LTIC < 100] = np.nan
+        Lpres = zfun.fillit(Lpres)
+        Ltemp = zfun.fillit(Ltemp)
+        CO2dict = CO2SYS(Lalkalinity, LTIC, 1, 2, v_dict['salt'], Ltemp, Ltemp,
+            Lpres, Lpres, 50, 2, 1, 10, 1, NH3=0.0, H2S=0.0)
+        # NOTE that the "in" and "out" versions of the returned variables will be
+        # identical because we pass the same pressure and temperature for
+        # input and output (in-situ in both cases)
+        PH = CO2dict['pHout']
+        v_dict['PH'] = PH.reshape((v_dict['salt'].shape))
+        ARAG = CO2dict['OmegaARout']
+        v_dict['ARAG'] = ARAG.reshape((v_dict['salt'].shape))
+        if verbose:
+            print('   -- carbon took %0.2f sec' % (time()-tt0))
+        # --------------------------------------------------------
+        # Write data to the output file.
+        for vn in vn_out_list:
+            out_ds[vn + suffix][tt,:,:] = v_dict[vn]
+        sys.stdout.flush()
+    in_ds.close()
+    tt += 1
+
+# Close the output file
 out_ds.close()
 
-# Close multi-file input Dataset
-in_ds.close()
 # ======================================================================
-
 
 #%% prepare for finale
 import collections
@@ -212,4 +244,5 @@ else:
 #%% ************** END CASE-SPECIFIC CODE *****************
 
 ffun.finale(result_dict, Ldir, Lfun)
+    
 

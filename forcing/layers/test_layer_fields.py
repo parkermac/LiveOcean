@@ -16,23 +16,17 @@ import matplotlib.pyplot as plt
 Ldir = Lfun.Lstart('cas6', 'v3')
 Ldir['gtagex'] = Ldir['gtag'] + '_lo8b'
 f_string = 'f2019.07.04'
-#f_string = 'f2020.07.14'
 in_dir = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/' + f_string + '/'
 
 # Note: the file name and variable list should relate to those in make_forcing_main.py.
-if False:
-    in_name = 'ocean_surface.nc'
-    vn_list = ['Uwind', 'Vwind','salt', 'temp','u','v']
+in_name = 'ocean_layers.nc'
+testing = False
+if testing:
+    tag_list = ['surface','bottom','10']
+    vn_list = ['oxygen_'+tag for tag in tag_list]
 else:
-    in_name = 'ocean_layers.nc'
-    testing = False
-    if testing:
-        tag_list = ['surface','bottom','10']
-        vn_list = ['oxygen_'+tag for tag in tag_list]
-    else:
-        tag_list = ['surface','bottom','10','20']
-        vn_list = ['oxygen_'+tag for tag in tag_list] + ['temp_'+tag for tag in tag_list]
-        
+    tag_list = ['surface', '50' ,'bottom']
+    vn_list = ['oxygen_'+tag for tag in tag_list] + ['ARAG_'+tag for tag in tag_list]
 
 # PLOTTING
 ds = nc.Dataset(in_dir + in_name)

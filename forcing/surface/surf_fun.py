@@ -71,33 +71,6 @@ def add_fields(in_ds, out_ds, vn_list2t, vn_list3t, slev=-1, suffix=''):
             vv.time = varin.time
             vv[:] = zfun.fillit(in_ds[vn][:, slev, :, :].squeeze())
             
-def add_carbon():
-    """
-    This code will eventually use the python-native co2sys code to add pH and Omega_arag to the output files.
-    
-    Notes from carbon_fun.py in LiveOcean/co2sys:
-    
-    variables we get: ['alkalinity', 'TIC', 'salt', 'temp','rho'] (into v_dict)
-    
-    # create depth, pressure
-    depth = -z_rho[NZ, :, :].squeeze()
-    pres = sw.pres(depth, lat)
-    
-    # assume potential temperature is close enough, or run this:
-    # temp = sw.ptmp(v_dict['salt'], v_dict['temp'], 0, v_dict['pres'])
-    
-    # convert from umol/L to umol/kg using in situ dentity
-    v_dict['alkalinity'] = 1000 * v_dict['alkalinity'] / (v_dict['rho'] + 1000)
-    v_dict['TIC'] = 1000 * v_dict['TIC'] / (v_dict['rho'] + 1000)
-    
-    and here is what we do in matlab:
-    A = CO2SYS(a.alkalinity(:), a.TIC(:), 1, 2, a.salt(:), a.temp(:), a.temp(:), a.pres(:), a.pres(:), 50, 2, 1, 10, 1);
-    ph = A(:,18);
-    om = A(:,31);
-    PH = reshape(ph, size(a.salt));
-    OM = reshape(om, size(a.salt));
-    PH = real(PH);
-    OM = real(OM);
-    """
+
             
             

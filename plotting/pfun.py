@@ -329,6 +329,9 @@ def get_laym(ds, zfull, mask, vn, zlev):
     zlev_a = zlev * np.ones(1)
     lay = get_layer(fld, zfull, zlev_a)
     lay[mask == False] = np.nan
+    # Note: if mask came directly from the mask_rho field of a history file it is
+    # 1 = water, and 0 = land, so it would be better to add nan's using this as a
+    # test, but using mask == False works.
     laym = np.ma.masked_where(np.isnan(lay), lay)
     return laym
 
