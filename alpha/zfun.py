@@ -356,6 +356,13 @@ def fillit(a):
     if isinstance(a, np.ma.MaskedArray):
         a = a.filled(np.nan)
     return a
+    
+def boolean_string(s):
+    # used by argparse
+    if s not in ['False', 'True']:
+        raise ValueError('Not a valid boolean string')
+    return s == 'True' # note use of ==
+
 
 
 

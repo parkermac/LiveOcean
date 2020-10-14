@@ -22,8 +22,9 @@ in_dir = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/' + f_string + '/'
 in_name = 'ocean_layers.nc'
 testing = False
 if testing:
-    tag_list = ['surface','bottom','10']
-    vn_list = ['oxygen_'+tag for tag in tag_list]
+    tag_list = ['10']
+    vn_list = ['salt_'+tag for tag in tag_list] + ['ARAG_'+tag for tag in tag_list]
+
 else:
     tag_list = ['surface', '50' ,'bottom']
     vn_list = ['oxygen_'+tag for tag in tag_list] + ['ARAG_'+tag for tag in tag_list]
@@ -37,29 +38,30 @@ plt.close('all')
 fs=14
 plt.rc('font', size=fs)
 for vn in vn_list:
-    # make one plot for each variable, with two panels: start and end time
-    fig = plt.figure(figsize=(16,10))
-    nplot = 1
-    for tlev in [0, -1]:
-        ax = fig.add_subplot(1,2,nplot)
-        cs = ax.pcolormesh(lon, lat, ds[vn][tlev, 1:-1, 1:-1],
-                           cmap='rainbow')
-        try:
-            tun = ds[vn].units
-        except AttributeError:
-            tun = ''
-        ax.set_title(vn + ' (' + tun + ')')
-        fig.colorbar(cs)
-        pfun.dar(ax)
-        pfun.add_coast(ax)
-        ax.axis(pfun.get_aa(ds))
-        dt = Lfun.modtime_to_datetime(ot[tlev])
-        ax.text(.98, .075, dt.strftime('%Y-%m-%d'),
-            ha='right' , va='bottom', transform=ax.transAxes)
-        ax.text(.98, .065, dt.strftime('%H:%M') + ' UTC',
-            ha='right', va='top', transform=ax.transAxes)
-        nplot += 1
+    if vn in ds.variables:
+        # make one plot for each variable, with two panels: start and end time
+        fig = plt.figure(figsize=(16,10))
+        nplot = 1
+        for tlev in [0, -1]:
+            ax = fig.add_subplot(1,2,nplot)
+            cs = ax.pcolormesh(lon, lat, ds[vn][tlev, 1:-1, 1:-1],
+                               cmap='rainbow')
+            try:
+                tun = ds[vn].units
+            except AttributeError:
+                tun = ''
+            ax.set_title(vn + ' (' + tun + ')')
+            fig.colorbar(cs)
+            pfun.dar(ax)
+            pfun.add_coast(ax)
+            ax.axis(pfun.get_aa(ds))
+            dt = Lfun.modtime_to_datetime(ot[tlev])
+            ax.text(.98, .075, dt.strftime('%Y-%m-%d'),
+                ha='right' , va='bottom', transform=ax.transAxes)
+            ax.text(.98, .065, dt.strftime('%H:%M') + ' UTC',
+                ha='right', va='top', transform=ax.transAxes)
+            nplot += 1
 plt.show()
 plt.rcdefaults()
 
-ds.close()
+#ds.close()
