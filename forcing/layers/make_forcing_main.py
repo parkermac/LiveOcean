@@ -115,6 +115,13 @@ cmd = ['ncrcat'] + tlf_list + [out_fn]
 cproc = subprocess.Popen(cmd)
 cproc.communicate()
 
+# clean up
+for tlf in tlf_list:
+    if os.path.exists(tlf):
+      os.remove(tlf)
+    else:
+      print("The file does not exist")
+
 # ======================================================================
 
 #%% prepare for finale

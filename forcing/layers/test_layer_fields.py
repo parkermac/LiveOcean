@@ -15,7 +15,8 @@ import matplotlib.pyplot as plt
 
 Ldir = Lfun.Lstart('cas6', 'v3')
 Ldir['gtagex'] = Ldir['gtag'] + '_lo8b'
-f_string = 'f2019.07.04'
+#f_string = 'f2019.07.04'
+f_string = 'f2020.10.15'
 in_dir = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/' + f_string + '/'
 
 # Note: the file name and variable list should relate to those in make_forcing_main.py.
