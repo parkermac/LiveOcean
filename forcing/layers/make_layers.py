@@ -45,8 +45,6 @@ testing = args.testing
 verbose = args.verbose
 
 # ======== Create an output file for SCOOT, NANOOS and etc. =============================
-# performance: 8.5 minutes per day (every 4th hour) on my mac
-# and on boiler a 3-day forecast takes 73 minutes (could I parallelize?)
 
 fn_list = layer_fun.get_fn_list(in_dir, testing)
     
@@ -56,7 +54,8 @@ fn_list = fn_list[istart:iend+1]
 # Initialize
 out_dir = in_dir
 out_fn = out_dir + 'temp_layer' + str(nn) + '.nc'
-print(' - Writing to: ' + out_fn)
+if verbose:
+    print(' - Writing to: ' + out_fn)
 # get rid of the old version, if it exists
 try:
     os.remove(out_fn)
@@ -167,7 +166,8 @@ def get_Ld(depth, in_ds, in_mask_rho):
 # Fill the layers
 tt = 0
 for in_fn in fn_list:
-    print('Working on: ' + in_fn.split('/')[-2] + ' ' + in_fn.split('/')[-1])
+    if verbose:
+        print('Working on: ' + in_fn.split('/')[-2] + ' ' + in_fn.split('/')[-1])
     in_ds = nc.Dataset(fn)
     for depth in depth_list:
         if verbose:
