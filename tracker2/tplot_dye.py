@@ -19,12 +19,13 @@ import pandas as pd
 from scipy.spatial import ConvexHull, convex_hull_plot_2d
 import matplotlib.path as mpltPath
 from time import time
+from datetime import datetime, timedelta
 
 Ldir = Lfun.Lstart()
 
 # get release Dataset
 indir0 = Ldir['LOo'] + 'tracks2/'
-indir = 'AllHC3d_ndiv12_3d_month/'
+indir = 'AllHC3d_ndiv12_3d_3mo/'
 rel = 'release_2019.07.04.nc'
 dsr = nc4.Dataset(indir0 + indir + rel)
 
@@ -79,7 +80,7 @@ count_fn = indir0 + indir + 'np_df.p'
 if os.path.isfile(count_fn):
     np_df = pd.read_pickle(count_fn)
 else:
-    # This takes 160 sec per month on my mac
+    # This takes 30-160 sec per month on my mac
     # ==============================================================
 
     j_dict = {}; i_dict = {}
@@ -138,19 +139,36 @@ np_HC_df = np_hc_df.sum(axis=1)
 np_norm_HC_df = np_HC_df/np_HC_df[0]
 
 # also load and manipulate the dye results
-dye_indir = Ldir['LOo'] + 'tef2/cas6_v3_lo8dye_2019.07.04_2019.08.04/flux/'
+dye_indir = Ldir['LOo'] + 'tef2/cas6_v3_lo8dye_2019.07.04_2019.10.04/flux/'
 dye_df = pd.read_pickle(dye_indir + 'hourly_segment_dye.p') # mean concentration in segments
 dye_vol_df = pd.read_pickle(dye_indir + 'hourly_segment_dye_volume.p')
 dye_hc_df = dye_df[hc_segs].copy()
 dye_vol_hc_df = dye_vol_df[hc_segs].copy()
-# trim to match particle tracking time
-dye_hc_df = dye_hc_df.loc[np_df.index, :]
-dye_vol_hc_df = dye_vol_hc_df.loc[np_df.index, :]
-
+#
 net_dye_hc_df = dye_hc_df * dye_vol_hc_df
 dye_HC_df = net_dye_hc_df.sum(axis=1)/dye_vol_hc_df.sum(axis=1)
-
+#
 dye_norm_hc_df = net_dye_hc_df/net_dye_hc_df.sum(axis=1)[0]
+
+# and load a comparable flux_engine result
+cc_indir = Ldir['LOo'] + 'tef/flux_engine/cas6_v3_lo8b/'
+cc = pd.read_pickle(cc_indir + 'IC_HoodCanal_2019_Summer.p')
+#cc = pd.read_pickle(cc_indir + 'IC_HoodCanal_2019_Fall.p')
+cc = cc.loc[:92,:]
+cil = cc.index.to_list()
+cct = [(datetime(2019,7,4)+timedelta(days=item)) for item in cil]
+CC = pd.DataFrame(index=cct, columns=hc_segs)
+cc_new = pd.DataFrame(cc.values, index=cct, columns=cc.columns)
+v_ser = v_df.loc[hc_segs,'volume m3']
+V = v_ser.sum()
+for sn in hc_segs:
+    v = v_ser[sn]
+    frac = .2
+    v_f = frac*v
+    v_s = (1-frac)*v
+    CC.loc[:,sn] = v_f*cc_new.loc[:,sn+'_f'] + v_s*cc_new.loc[:,sn+'_s']
+CC = CC/V
+CC_net = CC.sum(axis=1)
 
 # PLOTTING
 plt.close('all')
@@ -178,12 +196,15 @@ ax.set_title(indir.replace('/',''))
 # time series
 
 ax = fig.add_subplot(222)
-np_norm_hc_df.plot(ax=ax, alpha=.5)
-dye_norm_hc_df.plot(ax=ax, alpha=.5)
+np_norm_hc_df.plot(ax=ax, ls='-', color=['r','b','g','y','m','c','k','orange'], alpha=1)
+dye_norm_hc_df.plot(ax=ax, ls='--', color=['r','b','g','y','m','c','k','orange'], alpha=1, legend=False)
+CC.plot(ax=ax, ls=':', color=['r','b','g','y','m','c','k','orange'], alpha=1, legend=False)
 
 ax = fig.add_subplot(224)
-np_norm_HC_df.plot(ax=ax, lw=4, color='purple')
-dye_HC_df.plot(ax=ax, lw=4, color='r')
+lw=2
+np_norm_HC_df.plot(ax=ax, lw=lw, color='purple')
+dye_HC_df.plot(ax=ax, lw=lw, color='r')
+CC_net.plot(ax=ax, lw=lw, color='b')
 
 plt.show()
 plt.rcdefaults()
