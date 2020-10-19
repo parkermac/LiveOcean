@@ -150,6 +150,7 @@ def get_layer(vn, depth, in_ds, zfull, in_mask_rho):
         L = zfun.fillit(in_ds[vn][0,0,:,:])
     else:
         L = pfun.get_laym(in_ds, zfull, in_mask_rho, vn, -float(depth))
+        L = zfun.fillit(L)
     return L
     
 def get_Ld(depth, in_ds, in_mask_rho):
@@ -200,9 +201,9 @@ for in_fn in fn_list:
         # identical because we pass the same pressure and temperature for
         # input and output (in-situ in both cases)
         PH = CO2dict['pHout']
-        v_dict['PH'] = PH.reshape((v_dict['salt'].shape))
+        v_dict['PH'] = zfun.fillit(PH.reshape((v_dict['salt'].shape)))
         ARAG = CO2dict['OmegaARout']
-        v_dict['ARAG'] = ARAG.reshape((v_dict['salt'].shape))
+        v_dict['ARAG'] = zfun.fillit(ARAG.reshape((v_dict['salt'].shape)))
         if verbose:
             print('   -- carbon took %0.2f sec' % (time()-tt0))
         # --------------------------------------------------------
