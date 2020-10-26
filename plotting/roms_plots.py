@@ -1185,52 +1185,98 @@ def P_willapa_omega(in_dict):
     else:
         plt.show()
 
-def P_willapa_oa2(in_dict):
-    # like P_willapa_oa but for surface
-
+def P_willapa_omega2(in_dict):
+    # plot bottom and top Omega_arag for Willapa Bay, using PyCO2SYS.
+    
     # START
     fig = plt.figure(figsize=(12,9))
     ds = nc.Dataset(in_dict['fn'])
     
-    # ** override colormaps and limits
-    pinfo.vlims_dict['PH'] = (7, 8.5)
-    pinfo.cmap_dict['PH'] = 'Spectral'
-    pinfo.vlims_dict['ARAG'] = (0,3)
-    pinfo.cmap_dict['ARAG'] = 'coolwarm_r'
-    # **
-
-    # PLOT CODE
-    fs = 18
-    aa = [-124.4, -123.6, 46, 47.2]
-    vn_list = ['ARAG', 'ARAG']
-    ii = 1
-    slev = 0 # first panel is the bottom
-    for vn in vn_list:
-        ax = fig.add_subplot(1, len(vn_list), ii)
-        cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict, slev=slev,
-                cmap=pinfo.cmap_dict[vn], fac=pinfo.fac_dict[vn])
+    verbose=True
+    
+    from PyCO2SYS import CO2SYS
+    import seawater as sw
+    from warnings import filterwarnings
+    filterwarnings('ignore') # skip some warning messages
+    from time import time
+        
+    # specify a geographic region
+    aa = [-124.4, -123.6, 46, 47.2] # Willapa Bay
+    
+    G = zrfun.get_basic_info(in_dict['fn'], only_G=True)
+    # find indices that encompass region aa
+    i0 = zfun.find_nearest_ind(G['lon_rho'][0,:], aa[0]) - 1
+    i1 = zfun.find_nearest_ind(G['lon_rho'][0,:], aa[1]) + 2
+    j0 = zfun.find_nearest_ind(G['lat_rho'][:,0], aa[2]) - 1
+    j1 = zfun.find_nearest_ind(G['lat_rho'][:,0], aa[3]) + 2
+    plon = G['lon_psi'][j0:j1-1, i0:i1-1]
+    plat = G['lat_psi'][j0:j1-1, i0:i1-1]
+    lat = G['lat_rho'][j0:j1,i0:i1] # used in sw.pres
+    
+    tt0 = time()
+    for ii in [0,1]:
+        # loop over bottom and surface layers
+        # first extract needed fields and save in v_dict
+        v_dict = {}
+        vn_in_list = ['temp', 'salt' , 'rho', 'alkalinity', 'TIC']
+        for vn in vn_in_list:
+            if ii == 0:
+                # depth = bottom
+                Ld = G['h'][j0:j1,i0:i1]
+                L = zfun.fillit(ds[vn][0,0,j0:j1,i0:i1])
+            elif ii==1:
+                # depth = surface
+                Ld = 0 * G['h'][j0:j1,i0:i1]
+                L = zfun.fillit(ds[vn][0,-1,j0:j1,i0:i1])
+            v_dict[vn] = L
+        # ------------- the CO2SYS steps -------------------------
+        # create pressure
+        Lpres = sw.pres(Ld, lat)
+        # get in situ temperature from potential temperature
+        Ltemp = sw.ptmp(v_dict['salt'], v_dict['temp'], 0, Lpres)
+        # convert from umol/L to umol/kg using in situ dentity
+        Lalkalinity = 1000 * v_dict['alkalinity'] / (v_dict['rho'] + 1000)
+        Lalkalinity[Lalkalinity < 100] = np.nan
+        LTIC = 1000 * v_dict['TIC'] / (v_dict['rho'] + 1000)
+        LTIC[LTIC < 100] = np.nan
+        Lpres = zfun.fillit(Lpres)
+        Ltemp = zfun.fillit(Ltemp)
+        CO2dict = CO2SYS(Lalkalinity, LTIC, 1, 2, v_dict['salt'], Ltemp, Ltemp,
+            Lpres, Lpres, 50, 2, 1, 10, 1, NH3=0.0, H2S=0.0)
+        PH = CO2dict['pHout']
+        PH = zfun.fillit(PH.reshape((v_dict['salt'].shape)))
+        ARAG = CO2dict['OmegaARout']
+        ARAG = zfun.fillit(ARAG.reshape((v_dict['salt'].shape)))
+        # --------------------------------------------------------
+    
+        # PLOT CODE
+        fs = 18
+        ax = fig.add_subplot(1, 2, ii+1)
+        cs = ax.pcolormesh(plon, plat, ARAG[1:-1, 1:-1], vmin=0, vmax=3, cmap='coolwarm_r')
         pfun.add_coast(ax)
         ax.axis(aa)
         pfun.dar(ax)
         ax.set_xlabel('Longitude', fontsize=fs)
-        if ii == 1:
+        if ii == 0:
             pfun.add_bathy_contours(ax, ds, depth_levs=[10, 20, 30], txt=True)
-            ax.set_title('Bottom %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]),
+            ax.set_title('Bottom Omega',
                 fontsize=fs)
             ax.set_ylabel('Latitude', fontsize=fs)
             pfun.add_info(ax, in_dict['fn'], fs=fs)
-        elif ii == 2:
+        elif ii == 1:
             cb = fig.colorbar(cs)
             cb.ax.tick_params(labelsize=fs-2)
-            ax.set_title('Surface %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]),
+            ax.set_title('Surface Omega',
                 fontsize=fs)
             ax.set_yticklabels('')
             ax.text(-123.9, 46.85, 'Grays\nHarbor', fontsize=fs-2, style='italic')
             ax.text(-123.86, 46.58, 'Willapa\nBay', fontsize=fs-2, style='italic')
             ax.text(-123.9, 46.04, 'Columbia\nRiver', fontsize=fs-2, style='italic')
         ax.tick_params(labelsize=fs-2)
-        ii += 1
-        slev = -1 # second panel is the top
+        
+    if verbose:
+        print('   -- carbon took %0.2f sec' % (time()-tt0))
+
     fig.tight_layout()
         
     # FINISH
@@ -1240,7 +1286,7 @@ def P_willapa_oa2(in_dict):
         plt.close()
     else:
         plt.show()
-
+        
 def P_Carbon(in_dict):
 
     # START
