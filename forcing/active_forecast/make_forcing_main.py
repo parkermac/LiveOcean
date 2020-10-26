@@ -15,8 +15,6 @@ Ldir, Lfun = ffun.intro()
 
 # ****************** CASE-SPECIFIC CODE *****************
 
-testing = False
-
 from datetime import datetime, timedelta
 start_time = datetime.now()
 import subprocess
@@ -25,9 +23,8 @@ from time import time
 print(' - Creating wesite images for ' + Ldir['date_string'])
 os.chdir(Ldir['LO'] + 'plotting/')
 
-P_list_1 = ['P_merhab2', 'P_willapa_omega']
-P_list_2 = ['P_basic', 'P_DO', 'P_basic_salish', 'P_Chl_DO_salish', 'P_tracks_barber']
-P_list = P_list_1 + P_list_2
+P_list = ['P_merhab2', 'P_willapa_omega2','P_basic', 'P_DO', 'P_basic_salish', 'P_Chl_DO_salish', 'P_tracks_barber']
+P_list = ['P_willapa_omega2'] # testing
 
 result = 'success'
 for P_name in P_list:

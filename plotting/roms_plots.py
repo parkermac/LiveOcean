@@ -1192,7 +1192,7 @@ def P_willapa_omega2(in_dict):
     fig = plt.figure(figsize=(12,9))
     ds = nc.Dataset(in_dict['fn'])
     
-    verbose=True
+    verbose=False
     
     from PyCO2SYS import CO2SYS
     import seawater as sw
