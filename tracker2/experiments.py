@@ -12,6 +12,9 @@ def get_exp_info(exp_name):
     # you could override these using "if exp_name == ..."
     gridname = 'cas6'; tag = 'v3'; ex_name = 'lo8b'
     
+    if exp_name == 'EJdF3d':
+        ex_name = 'lo8da'
+    
     EI = {}
     EI['exp_name'] = exp_name # tracker2 experiment name
     # ROMS names
