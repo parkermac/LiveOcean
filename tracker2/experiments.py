@@ -68,10 +68,10 @@ def get_ic(EI, fn00):
         DZ = 2
         plon00, plat00, pcs00 = ic_from_TEFsegs(fn00, EI['gridname'], seg_list, DZ, NPmax=100000)
         
-    elif exp_name == 'EJdF3d': # eastern JdF 3d using TEF segment
+    elif exp_name == 'EJdF3d': # eastern JdF 3d using a TEF segment
         seg_list = ['J4']
-        DZ = 5
-        plon00, plat00, pcs00 = ic_from_TEFsegs(fn00, EI['gridname'], seg_list, DZ)
+        DZ = 2
+        plon00, plat00, pcs00 = ic_from_TEFsegs(fn00, EI['gridname'], seg_list, DZ, NPmax=100000)
 
     elif exp_name == 'tn0': # Tacoma Narrows region
         #to test headland jumping

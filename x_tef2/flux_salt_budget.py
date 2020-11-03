@@ -43,8 +43,8 @@ args = parser.parse_args()
 Ldir = Lfun.Lstart(args.gridname, args.tag)
 gtagex = args.gridname + '_' + args.tag + '_' + args.ex_name
 
-year_list = [2017, 2018, 2019]
-# year_list = [2017]
+#year_list = [2017, 2018, 2019]
+year_list = [2017]
 
 # vol_list = ['Salish Sea', 'Puget Sound', 'Hood Canal']
 vol_list = ['Puget Sound']

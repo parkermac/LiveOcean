@@ -196,15 +196,16 @@ ax.set_title(indir.replace('/',''))
 # time series
 
 ax = fig.add_subplot(222)
-np_norm_hc_df.plot(ax=ax, ls='-', color=['r','b','g','y','m','c','k','orange'], alpha=1)
-dye_norm_hc_df.plot(ax=ax, ls='--', color=['r','b','g','y','m','c','k','orange'], alpha=1, legend=False)
+np_norm_hc_df.plot(ax=ax, ls='--', color=['r','b','g','y','m','c','k','orange'], alpha=1)
+dye_norm_hc_df.plot(ax=ax, ls='-', color=['r','b','g','y','m','c','k','orange'], alpha=1, legend=False)
 CC.plot(ax=ax, ls=':', color=['r','b','g','y','m','c','k','orange'], alpha=1, legend=False)
 
 ax = fig.add_subplot(224)
-lw=2
-np_norm_HC_df.plot(ax=ax, lw=lw, color='purple')
-dye_HC_df.plot(ax=ax, lw=lw, color='r')
-CC_net.plot(ax=ax, lw=lw, color='b')
+lw=1
+np_norm_HC_df.plot(ax=ax, lw=lw, color='b', ls='--', label='Particles', legend=True)
+dye_HC_df.plot(ax=ax, lw=lw, color='b', ls='-', label='Dye', legend=True)
+CC_net.plot(ax=ax, lw=lw, color='b', ls=':', label='Box Model', legend=True)
+ax.set_ylim(0,1)
 
 plt.show()
 plt.rcdefaults()
