@@ -111,7 +111,6 @@ if testing:
 else:
     vn_in_list = ['temp', 'salt', 'phytoplankton', 'NO3', 'oxygen', 'rho', 'alkalinity', 'TIC']
     vn_out_list = ['temp', 'salt', 'phytoplankton', 'NO3', 'oxygen', 'PH', 'ARAG']
-vn_out_list_short = vn_out_list.remove('PH')
     
 # Create the data layer objects
 in_ds = nc.Dataset(fn_list[0])
