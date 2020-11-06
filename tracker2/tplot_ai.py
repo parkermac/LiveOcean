@@ -7,22 +7,38 @@ why water is exchanged across the Admiralty Inlet sill.
 import os, sys
 sys.path.append(os.path.abspath('../alpha'))
 import Lfun
+import zrfun
+import zfun
 sys.path.append(os.path.abspath('../plotting'))
 import pfun
 
 import matplotlib.pyplot as plt
-import netCDF4 as nc4
+import netCDF4 as nc
 import numpy as np
 import seawater as sw
 
 Ldir = Lfun.Lstart()
 
+# command line inputs
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument('-exp_name', type=str, default='EJdF3d_ndiv12_3d_up1')
+parser.add_argument('-testing', type=zfun.boolean_string, default=True)
+parser.add_argument('-verbose', type=zfun.boolean_string, default=True)
+args = parser.parse_args()
+exp_name = args.exp_name
+testing = args.testing
+verbose = args.verbose
+
+
 # get release Dataset
 indir0 = Ldir['LOo'] + 'tracks2/'
-#indir = 'ai0_ndiv12_3d_orig/'
-indir = 'EJdF3d_ndiv12_3d/'
-rel = 'release_2019.07.04.nc'
-dsr = nc4.Dataset(indir0 + indir + rel)
+
+t_dir = Ldir['LOo'] + 'tracks2/' + exp_name + '/'
+EI = Lfun.csv_to_dict(t_dir + 'exp_info.csv')
+t_fn = t_dir + 'release_' + EI['ds_first_day'] + '.nc'
+
+dsr = nc.Dataset(t_fn)
 
 NT, NP = dsr['lon'].shape
 
@@ -50,10 +66,19 @@ z = cs*h
 dsr.close()
 
 # Choose the "winners"
-mask = (lon[-1,:] > -122.75) & (lat[-1,:] < 48.1) # into Main Basin or HC
-#mask = lat[-1,:] > 48.5 # into SoG
-#mask = lon[-1,:] < -123.5 # out JdF
-NPM = mask.sum()
+import Ldyn_functions as Ldf
+from importlib import reload
+reload(Ldf)
+# Choose the "winners"
+if 'EJdF3d' in exp_name:
+    seg_list = Ldf.seg_dict['PSTrim']
+plon = lon[-1,:]
+plat = lat[-1,:]
+dsg = nc.Dataset(t_dir + 'grid.nc')
+glon = zfun.fillit(dsg['lon_rho'][:])
+glat = zfun.fillit(dsg['lat_rho'][:])
+mask, imask = Ldf.get_imask(Ldir, seg_list, plon, plat, glon, glat)
+NPM = len(imask)
 
 # PLOTTING
 #plt.close('all')
@@ -64,24 +89,24 @@ fig = plt.figure(figsize=(18,10))
 # Map
 ax = fig.add_subplot(121)
 ax.plot(lon[0,:], lat[0,:], '.k', alpha=.1)
-ax.plot(lon[0,mask], lat[0,mask], '.c')
-ax.plot(lon[-1,mask], lat[-1,mask], '.b')
+ax.plot(lon[0,imask], lat[0,imask], '.c')
+ax.plot(lon[-1,imask], lat[-1,imask], '.b')
 pfun.dar(ax)
 pfun.add_coast(ax)
-aa = [-124, -122.3, 47.7, 49.1]
+aa = [-124, -122, 47, 49]
 ax.axis(aa)
 ax.set_xlabel('Longitude')
 ax.set_ylabel('Latitude')
-ax.set_xticks([-124, -123.5, -123, -122.5])
-ax.set_yticks([48, 48.5, 49])
-ax.set_title(indir.replace('/',''))
+ax.set_xticks([-124, -123, -122])
+ax.set_yticks([47, 48, 49])
+ax.set_title(exp_name)
 
 # Histogram
 ax = fig.add_subplot(222)
 #zall = z.flatten()
 z0 = z[0,mask]
 z1 = z[-1,mask]
-bins=np.linspace(-150,0,15 + 1)
+bins=np.linspace(-300,0,30 + 1)
 #
 counts, obins = np.histogram(z0, bins=bins)
 ax.hist(bins[:-1], bins, weights=counts/NPM,
@@ -100,12 +125,14 @@ ax.plot(salt[-1,mask], temp[-1,mask],'+b', alpha=.4)
 ax.set_xlabel('Salinity [g/kg]')
 ax.set_ylabel('Potential Temp. [degC]')
 # overlay potential density contours
-ss = np.linspace(28,34,100)
-tt = np.linspace(4,18,100)
+aa = [24, 34, 4, 18]
+ss = np.linspace(aa[0],aa[1],100)
+tt = np.linspace(aa[2],aa[3],100)
 SS, TT = np.meshgrid(ss,tt)
 RR = sw.dens0(SS,TT)
 CS = ax.contour(SS, TT, RR-1000)
 ax.clabel(CS, fmt='%d')
+ax.axis(aa)
 
 plt.show()
 plt.rcdefaults()

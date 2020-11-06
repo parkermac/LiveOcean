@@ -43,7 +43,7 @@ import time
 import argparse
 import numpy as np
 
-import os; import sys
+import os, sys
 sys.path.append(os.path.abspath('../alpha'))
 import Lfun
 Ldir = Lfun.Lstart()
