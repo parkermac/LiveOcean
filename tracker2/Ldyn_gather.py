@@ -1,11 +1,13 @@
 """
 This code loads in the results of a tracker2 release for which we have ROMS
-diagnistics and averages.  It collects the u and v momentum budget terms
+diagnostics and averages.  It collects the u and v momentum budget terms
 along selected particle paths and saves them for later analysis.
 
-For testing just run as:
+Performance: 1 minute per day on my mac (small number of particles)
 
-run Ldyn_gather
+For testing run as:
+
+run Ldyn_gather -testing True
 
 """
 import os, sys
@@ -119,17 +121,13 @@ for fn in dia_list:
 # things for nearest neighbor interpolation
 Ldir = Lfun.Lstart()
 G, S, T = zrfun.get_basic_info(EI['fn00'])
-Maskr = G['mask_rho'] # True over water
+#Maskr = G['mask_rho'] # True over water
 Masku = G['mask_u'] # True over water
 Maskv = G['mask_v'] # True over water
-Maskr3 = np.tile(G['mask_rho'].reshape(1,G['M'],G['L']),[S['N'],1,1])
+#Maskr3 = np.tile(G['mask_rho'].reshape(1,G['M'],G['L']),[S['N'],1,1])
 Masku3 = np.tile(G['mask_u'].reshape(1,G['M'],G['L']-1),[S['N'],1,1])
 Maskv3 = np.tile(G['mask_v'].reshape(1,G['M']-1,G['L']),[S['N'],1,1])
-Maskw3 = np.tile(G['mask_rho'].reshape(1,G['M'],G['L']),[S['N']+1,1,1])
-# the "f" below refers to flattened, which is the result of passing
-# a Boolean array like Maskr to an array.
-lonrf = G['lon_rho'][Maskr]
-latrf = G['lat_rho'][Maskr]
+#Maskw3 = np.tile(G['mask_rho'].reshape(1,G['M'],G['L']),[S['N']+1,1,1])
 
 # now go through each track and get diagnostics
 
@@ -145,7 +143,7 @@ if testing == True:
 a = pd.DataFrame(index=dia_dt_list, columns=imask)
 u_dict = {}
 v_dict = {}
-a_list = ['accel','hadv', 'vadv','cor','prsgrd','vvisc']
+a_list = ['accel','hadv', 'vadv','cor','prsgrd','prsgrd0','vvisc']
 u_list = ['u_'+item for item in a_list]
 v_list = ['v_'+item for item in a_list]
 for vn in u_list:
@@ -156,40 +154,68 @@ for vn in v_list:
 tt0 = time()
 ii = 0
 for fn in dia_list:
-    print(ii)
+    print('Working on %s' % (dia_dt_list[ii].strftime('%Y.%m.%d %H:%M')))
     sys.stdout.flush()
     ds = nc.Dataset(fn)
     for vn in u_list:
-        A = ds[vn][0,:,:,:]
-        Af = A[Masku3].data
-        xys = np.array((wlon[ii,:],wlat[ii,:],wcs[ii,:])).T
-        Ai = Af[xyzT_u.query(xys, n_jobs=-1)[1]]
-        # sign convention: all on LHS
-        if 'accel' in vn:
-            u_dict[vn].loc[dia_dt_list[ii],:] = Ai
+        if 'prsgrd0' in vn:
+            A = ds[vn.replace('0','')][0,:,:,:]
+            Af = A[Masku3].data
+            # also get the pressure gradient at the surface
+            xys = np.array((wlon[ii,:],wlat[ii,:],0*wcs[ii,:])).T
         else:
-            u_dict[vn].loc[dia_dt_list[ii],:] = -Ai
+            A = ds[vn][0,:,:,:]
+            Af = A[Masku3].data
+            xys = np.array((wlon[ii,:],wlat[ii,:],wcs[ii,:])).T
+        Ai = Af[xyzT_u.query(xys, n_jobs=-1)[1]]
+        u_dict[vn].loc[dia_dt_list[ii],:] = Ai
             
     for vn in v_list:
-        A = ds[vn][0,:,:,:]
-        Af = A[Maskv3].data
-        xys = np.array((wlon[ii,:],wlat[ii,:],wcs[ii,:])).T
-        Ai = Af[xyzT_v.query(xys, n_jobs=-1)[1]]
-        # sign convention: all on LHS
-        if 'accel' in vn:
-            v_dict[vn].loc[dia_dt_list[ii],:] = Ai
+        if 'prsgrd0' in vn:
+            A = ds[vn.replace('0','')][0,:,:,:]
+            Af = A[Maskv3].data
+            # also get the pressure gradient at the surface
+            xys = np.array((wlon[ii,:],wlat[ii,:],0*wcs[ii,:])).T
         else:
-            v_dict[vn].loc[dia_dt_list[ii],:] = -Ai
+            A = ds[vn][0,:,:,:]
+            Af = A[Maskv3].data
+            xys = np.array((wlon[ii,:],wlat[ii,:],wcs[ii,:])).T
+        Ai = Af[xyzT_v.query(xys, n_jobs=-1)[1]]
+        v_dict[vn].loc[dia_dt_list[ii],:] = Ai
     ii += 1
 print('Filling u_dict and v_dict took %0.1f sec' % (time()-tt0))
 
-if False:
+# save results
+pickle.dump(u_dict, open(t_dir + 'Ldyn_u_dict.p', 'wb'))
+pickle.dump(v_dict, open(t_dir + 'Ldyn_v_dict.p', 'wb'))
+pickle.dump(imask, open(t_dir + 'Ldyn_imask.p', 'wb'))
+
+if True:
     # testing balance: RESULT it looks perfect
+    print('\n** x-mom terms **')
     x = 0
     for vn in u_list:
         aa = u_dict[vn].iloc[0,0]
-        print('%s = %0.2e' % (vn, aa))
-        x += aa
-    print('sum = %0.2e' % (x))
+        print('  %s = %0.2e' % (vn, aa))
+        if 'accel' in vn:
+            x += aa
+        elif 'prsgrd0' in vn:
+            pass
+        else:
+            x -= aa
+    print(' sum = %0.2e' % (x))
+    
+    print('\n** y-mom terms **')
+    y = 0
+    for vn in v_list:
+        aa = v_dict[vn].iloc[0,0]
+        print('  %s = %0.2e' % (vn, aa))
+        if 'accel' in vn:
+            y += aa
+        elif 'prsgrd0' in vn:
+            pass
+        else:
+            y -= aa
+    print(' sum = %0.2e' % (x))
 
     
