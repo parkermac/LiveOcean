@@ -35,7 +35,7 @@ if testing:
 else:
     sect_list = list(sect_df.index)
 
-year = 2017
+year = 2019
 year_str = str(year)
 indir0 = Ldir['LOo'] + 'tef2/'
 indir = indir0 + 'cas6_v3_lo8b_' + year_str + '.01.01_' + year_str + '.12.31/'

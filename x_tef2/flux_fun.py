@@ -244,7 +244,8 @@ def get_dtr(year):
 def get_seg_list(X,N):
     sl = [X+str(n)+'_s' for n in range(1,N+1)]+[X+str(n)+'_f' for n in range(1,N+1)]
     return sl
-    # make a segment list
+    
+# make a segment list
 ic_seg2_dict = {'IC_HoodCanalInner': ['H'+str(n)+'_s' for n in range(3,9)],
             'IC_HoodCanal': get_seg_list('H',8),
             'IC_SouthSound': get_seg_list('S',4),
