@@ -190,7 +190,7 @@ def get_fn_list(list_type, Ldir, date_string0, date_string1, his_num=1):
             fn = (dir0 + f_string + '/ocean_his_0021.nc')
             fn_list.append(fn)
     elif list_type == 'daily_plus':
-        # list on history file each day (0001) along with all days in the final
+        # list one history file each day (0001) along with all days in the final
         # forecast folder
         fn_list = []
         date_list = date_list_utility(dt0, dt1)

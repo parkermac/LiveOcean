@@ -3,7 +3,8 @@ This code loads in the results of a tracker2 release for which we have ROMS
 diagnostics and averages.  It collects the u and v momentum budget terms
 along selected particle paths and saves them for later analysis.
 
-Performance: 1 minute per day on my mac (small number of particles)
+Performance: 1 minute per day on my mac (20 particles)
+           : 17 minutes per day on boiler (9000 particles)
 
 For testing run as:
 

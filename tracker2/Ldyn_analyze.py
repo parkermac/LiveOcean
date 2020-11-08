@@ -13,6 +13,9 @@ import Lfun
 import zfun
 import zrfun
 
+sys.path.append(os.path.abspath('../plotting'))
+import pfun
+
 Ldir = Lfun.Lstart()
 
 import numpy as np
@@ -32,11 +35,9 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('-exp_name', type=str, default='EJdF3d_ndiv12_3d_up1')
 parser.add_argument('-testing', type=zfun.boolean_string, default=False)
-parser.add_argument('-verbose', type=zfun.boolean_string, default=False)
 args = parser.parse_args()
 exp_name = args.exp_name
 testing = args.testing
-verbose = args.verbose
 
 t_dir = Ldir['LOo'] + 'tracks2/' + exp_name + '/'
 EI = Lfun.csv_to_dict(t_dir + 'exp_info.csv')
@@ -52,6 +53,8 @@ t_dt_list = [Lfun.modtime_to_datetime(ot) for ot in ot_vec]
 lon = t_ds['lon'][:]
 lat = t_ds['lat'][:]
 cs = t_ds['cs'][:]
+u = t_ds['u'][:]
+v = t_ds['v'][:]
 t_ds.close()
 
 # load results of Ldyn_gather.py
@@ -59,7 +62,15 @@ u_dict = pickle.load(open(t_dir + 'Ldyn_u_dict.p', 'rb'))
 v_dict = pickle.load(open(t_dir + 'Ldyn_v_dict.p', 'rb'))
 imask = pickle.load(open(t_dir + 'Ldyn_imask.p', 'rb'))
 
+# base names of the various acceleration diagnostics
+# (prsgrd0 is prsgrd at the surface)
 a_list = ['accel','hadv', 'vadv','cor','prsgrd','prsgrd0','vvisc']
+
+if testing == True:
+    imask = imask[::100]
+    for vn in a_list:
+        u_dict['u_'+vn] = u_dict['u_'+vn][imask]
+        v_dict['v_'+vn] = v_dict['v_'+vn][imask]
 
 # make sure everything is numeric
 for vn in a_list:
@@ -68,21 +79,36 @@ for vn in a_list:
     for cn in v_dict['v_'+vn].columns:
         v_dict['v_'+vn][cn] = pd.to_numeric(v_dict['v_'+vn][cn])
 
-# find dx and dy for the particles
+NTW, NPW = u_dict['u_accel'].shape
+
+# find x, y, etc. for the particles
 wlon = zfun.fillit(lon[:,imask])
 wlat = zfun.fillit(lat[:,imask])
 wcs = zfun.fillit(cs[:,imask])
+wu = zfun.fillit(u[:,imask])
+wv = zfun.fillit(v[:,imask])
 x, y = zfun.ll2xy(wlon,wlat, wlon.mean(), wlat.mean())
-dx = np.diff(x, axis=0)
-dy = np.diff(y, axis=0)
-dd = np.sqrt(dx**2 + dy**2)
 
-# rotate into along-track momeuntum budget
-u_cor = u_dict['u_cor'].to_numpy()
-v_cor = v_dict['v_cor'].to_numpy()
-theta = np.arctan2(u_cor, -v_cor) # radians
+# rotate into along-mean-track momeuntum budget
+# meaning there is one direction for each track,
+# defined by its end points
+theta = np.zeros((NTW, NPW))
+for ii in range(x.shape[1]):
+    DX = x[-1,ii] - x[0,ii]
+    DY = y[-1,ii] - y[0,ii]
+    theta[:,ii] = np.arctan2(DY,DX)
 sin_th = np.sin(theta)
 cos_th = np.cos(theta)
+
+# interpolate velocities onto the half hour (where we have diagnostics)
+# and rotate to track directions
+uu = (wu[1:,:]+wu[:-1,:])/2
+vv = (wv[1:,:]+wv[:-1,:])/2
+u_r = cos_th*uu + sin_th*vv
+v_r = cos_th*vv - sin_th*uu
+
+udf = pd.DataFrame(u_r, index=u_dict['u_accel'].index, columns=u_dict['u_accel'].columns)
+vdf = pd.DataFrame(v_r, index=u_dict['u_accel'].index, columns=u_dict['u_accel'].columns)
 
 s_dict = {}
 n_dict = {}
@@ -91,30 +117,75 @@ for vn in a_list:
     s_dict['s_'+vn] = cos_th*u_dict['u_'+vn] + sin_th*v_dict['v_'+vn]
     n_dict['n_'+vn] = cos_th*v_dict['v_'+vn] - sin_th*u_dict['u_'+vn]
     
-# form along-track spatial integrals
+# form along-track running-temporal means
 si_dict = {}
 ni_dict = {}
 for vn in a_list:
-    si_dict['s_'+vn] = (dd*s_dict['s_'+vn]).cumsum(axis=0)
-    ni_dict['n_'+vn] = (dd*n_dict['n_'+vn]).cumsum(axis=0)
+    si_dict['s_'+vn] = (s_dict['s_'+vn])#.cumsum(axis=0) / np.ones((NTW, NPW)).cumsum(axis=0)
+    ni_dict['n_'+vn] = (n_dict['n_'+vn])#.cumsum(axis=0) / np.ones((NTW, NPW)).cumsum(axis=0)
     
 # form more informative groupings of terms
 SI_dict = {}
-SI_dict['accel'] = si_dict['s_accel'] - si_dict['s_hadv'] - si_dict['s_vadv'] # LHS
-SI_dict['pg'] = si_dict['s_prsgrd'] # RHS
+#SI_dict['accel'] = si_dict['s_accel'] - si_dict['s_hadv'] - si_dict['s_vadv'] # LHS
+SI_dict['CAP'] = si_dict['s_prsgrd'] + si_dict['s_cor'] - (si_dict['s_accel'] - si_dict['s_hadv'] - si_dict['s_vadv']) # RHS
+#SI_dict['CAP0'] = si_dict['s_prsgrd0'] + si_dict['s_cor'] - (si_dict['s_accel'] - si_dict['s_hadv'] - si_dict['s_vadv']) # RHS
 SI_dict['fric'] = si_dict['s_vvisc'] # RHS
-SI_dict['sum'] = SI_dict['accel'] - SI_dict['pg'] - SI_dict['fric']
+#SI_dict['sum'] = SI_dict['accel'] - SI_dict['pg'] - SI_dict['fric']
+
+# filter
+SI_dict['CAP'].loc[:,:] = zfun.filt_godin_mat(SI_dict['CAP'].to_numpy())
+#SI_dict['CAP0'].loc[:,:] = zfun.filt_godin_mat(SI_dict['CAP0'].to_numpy())
+SI_dict['fric'].loc[:,:] = zfun.filt_godin_mat(SI_dict['fric'].to_numpy())
+udf.loc[:,:] = zfun.filt_godin_mat(udf.to_numpy())
+vdf.loc[:,:] = zfun.filt_godin_mat(vdf.to_numpy())
 
 # PLOTTING
 plt.close('all')
 fs = 16
 plt.rc('font', size=fs)
 
-for ii in range(5):
+if False:
+    for ii in range(10):
+    
+        fig = plt.figure(figsize=(16,8))
+    
+        ax = fig.add_subplot(121)
+        ax.plot(wlon[:,ii], wlat[:,ii],'-b', lw=3)
+        ax.plot(wlon[0,ii], wlat[0,ii],'ok', ms=20)
+        ax.plot(wlon[-1,ii], wlat[-1,ii],'*y', ms=20)
+        pfun.add_coast(ax)
+        pad = .1
+        ax.axis([wlon[:,ii].min()-pad, wlon[:,ii].max()+pad, wlat[:,ii].min()-pad, wlat[:,ii].max()+pad])
+        pfun.dar(ax)
+    
+        ax = fig.add_subplot(222)
+        for vn in SI_dict.keys():
+            SI_dict[vn][imask[ii]].plot(ax=ax, legend=True, label=vn, grid=True)
+        ax.set_xticklabels([])
+        ax.set_xticklabels([], minor=True)
+        
+        ax = fig.add_subplot(224)
+        udf[imask[ii]].plot(ax=ax, legend=True, label='Along-track Velocity', grid=True)
+else:
     fig = plt.figure(figsize=(16,8))
-    ax = fig.add_subplot(111)
-    for vn in SI_dict.keys():
-        SI_dict[vn][imask[ii]].plot(ax=ax, legend=True, label=vn)
+    
+    ax = fig.add_subplot(121)
+    ax.plot(wlon[:,:], wlat[:,:],'-b', lw=3)
+    ax.plot(wlon[0,:], wlat[0,:],'ok', ms=20)
+    ax.plot(wlon[-1,:], wlat[-1,:],'*y', ms=20)
+    pfun.add_coast(ax)
+    pad = .1
+    ax.axis([wlon[:,:].min()-pad, wlon[:,:].max()+pad, wlat[:,:].min()-pad, wlat[:,:].max()+pad])
+    pfun.dar(ax)
+
+    ax = fig.add_subplot(222)
+    SI_dict['fric'][imask[:]].plot(ax=ax, legend=False, label=vn, grid=True)
+    ax.set_xticklabels([])
+    ax.set_xticklabels([], minor=True)
+    
+    ax = fig.add_subplot(224)
+    udf[imask[:]].plot(ax=ax, legend=False, label='Along-track Velocity', grid=True)
+    
     
 plt.show()
 plt.rcdefaults()
