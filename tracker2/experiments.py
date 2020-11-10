@@ -111,6 +111,18 @@ def get_ic(EI, fn00):
         pcs_vec = np.linspace(-1,0,num=4000)
         plon00, plat00, pcs00 = ic_from_list(lonvec, latvec, pcs_vec)
         
+    elif exp_name == 'girton1': # single water column for James Girton
+        # 1) Date: 6 Nov 2017, 20:47 GMT
+        # Location: 47 42.812’ N, 122 25.055’ W
+        # Duration: 2.3 hours
+        # 2) Date: 2 Sep 2020, 18:00 GMT
+        # Location: SAME
+        # Duration: 4 hours
+        lonvec = np.array([-(122 + 25.055/60)])
+        latvec = np.array([47 + 42.812/60])
+        pcs_vec = np.linspace(-1,0,num=4000)
+        plon00, plat00, pcs00 = ic_from_list(lonvec, latvec, pcs_vec)
+        
     return plon00, plat00, pcs00
     
 def ic_from_meshgrid(lonvec, latvec, pcs_vec):

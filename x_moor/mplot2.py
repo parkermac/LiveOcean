@@ -1,5 +1,7 @@
 """
 Plots mooring records.
+
+Specific to a request from Evan Lahr, 2020_11.
 """
 
 # setup
