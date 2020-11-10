@@ -28,7 +28,7 @@ if False:
     indir = indir0 + item + '/'
     infile = Lfun.choose_item(indir, tag='.nc')
 else:
-    indir = ('/Users/pm7/Documents/LiveOcean_output/moor/'
+    indir = (Ldir['LOo'] + 'moor/'
         +'cas6_v3_lo8b_2017.01.01_2019.12.31/')
     infile = 'HCB003_hourly.nc'
 fn = indir + infile

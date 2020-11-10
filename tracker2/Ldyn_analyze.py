@@ -67,7 +67,7 @@ imask = pickle.load(open(t_dir + 'Ldyn_imask.p', 'rb'))
 a_list = ['accel','hadv', 'vadv','cor','prsgrd','prsgrd0','vvisc']
 
 if testing == True:
-    imask = imask[::100]
+    imask = imask[::50]
     for vn in a_list:
         u_dict['u_'+vn] = u_dict['u_'+vn][imask]
         v_dict['v_'+vn] = v_dict['v_'+vn][imask]
@@ -126,25 +126,25 @@ for vn in a_list:
     
 # form more informative groupings of terms
 SI_dict = {}
-#SI_dict['accel'] = si_dict['s_accel'] - si_dict['s_hadv'] - si_dict['s_vadv'] # LHS
+SI_dict['accel'] = si_dict['s_accel'] - si_dict['s_hadv'] - si_dict['s_vadv'] # LHS
 SI_dict['CAP'] = si_dict['s_prsgrd'] + si_dict['s_cor'] - (si_dict['s_accel'] - si_dict['s_hadv'] - si_dict['s_vadv']) # RHS
-#SI_dict['CAP0'] = si_dict['s_prsgrd0'] + si_dict['s_cor'] - (si_dict['s_accel'] - si_dict['s_hadv'] - si_dict['s_vadv']) # RHS
+SI_dict['CAP0'] = si_dict['s_prsgrd0'] + si_dict['s_cor'] - (si_dict['s_accel'] - si_dict['s_hadv'] - si_dict['s_vadv']) # RHS
 SI_dict['fric'] = si_dict['s_vvisc'] # RHS
-#SI_dict['sum'] = SI_dict['accel'] - SI_dict['pg'] - SI_dict['fric']
 
 # filter
-SI_dict['CAP'].loc[:,:] = zfun.filt_godin_mat(SI_dict['CAP'].to_numpy())
-#SI_dict['CAP0'].loc[:,:] = zfun.filt_godin_mat(SI_dict['CAP0'].to_numpy())
-SI_dict['fric'].loc[:,:] = zfun.filt_godin_mat(SI_dict['fric'].to_numpy())
+for vn in SI_dict.keys():
+    # also convert to m/s per day
+    SI_dict[vn].loc[:,:] = zfun.filt_godin_mat(SI_dict[vn].to_numpy())*86400
 udf.loc[:,:] = zfun.filt_godin_mat(udf.to_numpy())
 vdf.loc[:,:] = zfun.filt_godin_mat(vdf.to_numpy())
 
 # PLOTTING
 plt.close('all')
-fs = 16
+fs = 14
 plt.rc('font', size=fs)
 
 if False:
+    # plot individual tracks, one per figure
     for ii in range(10):
     
         fig = plt.figure(figsize=(16,8))
@@ -167,24 +167,43 @@ if False:
         ax = fig.add_subplot(224)
         udf[imask[ii]].plot(ax=ax, legend=True, label='Along-track Velocity', grid=True)
 else:
+    # plot many tracks on a figure
     fig = plt.figure(figsize=(16,8))
     
+    al = .3
+    
+    # map
     ax = fig.add_subplot(121)
-    ax.plot(wlon[:,:], wlat[:,:],'-b', lw=3)
-    ax.plot(wlon[0,:], wlat[0,:],'ok', ms=20)
-    ax.plot(wlon[-1,:], wlat[-1,:],'*y', ms=20)
+    ax.plot(wlon[:,:], wlat[:,:],'-g', lw=1, alpha=al)
+    ax.plot(wlon[0,:], wlat[0,:],'o',c='orange', ms=4, alpha=.8)
+    ax.plot(wlon[-1,:], wlat[-1,:],'o', c='m', ms=5, alpha=.8)
     pfun.add_coast(ax)
     pad = .1
-    ax.axis([wlon[:,:].min()-pad, wlon[:,:].max()+pad, wlat[:,:].min()-pad, wlat[:,:].max()+pad])
+    ax.axis([wlon.min()-pad, wlon.max()+pad, wlat.min()-pad, wlat.max()+pad])
     pfun.dar(ax)
+    ax.text(.05,.2,'START', c='orange', transform=ax.transAxes, weight='bold')
+    ax.text(.05,.1,'FINISH', c='m', transform=ax.transAxes, weight='bold')
+    ax.set_title(exp_name)
 
+    # forces/unit mass
     ax = fig.add_subplot(222)
-    SI_dict['fric'][imask[:]].plot(ax=ax, legend=False, label=vn, grid=True)
+    SI_dict['fric'].plot(ax=ax, legend=False, grid=True, alpha=al, c='k', lw=.5)
+    SI_dict['fric'].mean(axis=1).plot(ax=ax, legend=False, grid=True, alpha=1, lw=3, c='r')
+    SI_dict['CAP'].mean(axis=1).plot(ax=ax, legend=False, grid=True, alpha=1, lw=3, c='b')
+    SI_dict['CAP0'].mean(axis=1).plot(ax=ax, legend=False, grid=True, alpha=1, lw=3, c='c')
     ax.set_xticklabels([])
     ax.set_xticklabels([], minor=True)
+    ax.text(.05,.1,r'Friction $[m\ s^{-1}\ day^{-1}]$',transform=ax.transAxes, c='r')
+    ax.text(.05,.2,r'$CAP\ [m\ s^{-1}\ day^{-1}]$',transform=ax.transAxes, c='b')
+    ax.text(.05,.3,r'$CAP_{0}\ [m\ s^{-1}\ day^{-1}]$',transform=ax.transAxes, c='c')
+    ax.axhline(c='k', ls='--')
     
+    # velocity
     ax = fig.add_subplot(224)
-    udf[imask[:]].plot(ax=ax, legend=False, label='Along-track Velocity', grid=True)
+    udf.plot(ax=ax, legend=False, grid=True, alpha=al, c='k', lw=.5)
+    udf.mean(axis=1).plot(ax=ax, legend=False, grid=True, alpha=1, lw=3, c='k')
+    ax.text(.05,.1,r'Along-track Velocity $[m\ s^{-1}]$',transform=ax.transAxes)
+    ax.axhline(c='k', ls='--')
     
     
 plt.show()
