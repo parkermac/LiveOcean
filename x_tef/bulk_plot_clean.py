@@ -27,7 +27,7 @@ import flux_fun
 # get the DataFrame of all sections
 sect_df = tef_fun.get_sect_df()
 
-testing = False
+testing = True
 
 do_Eulerian = False
 
@@ -193,6 +193,13 @@ for sect_name in sect_list:
 
     ax.text(.03, .95, '(a)', va='top', weight='bold', transform=ax.transAxes, size=1.2*fs,
         bbox=dict(facecolor='w', edgecolor='None', alpha=0.5))
+        
+    if True:
+        # legend specifically of the paper 2020_11
+        ax.scatter(210, 28.75, s=np.abs(qscl*40000/(1000*qlim)), c='k')
+        ax.scatter(210, 28.25, s=np.abs(qscl*5000/(1000*qlim)), c='k')
+        ax.text(215, 28.75, r'40,000 $m^{3}s^{-1}$', va='center')
+        ax.text(215, 28.25, r'5,000 $m^{3}s^{-1}$', va='center')
 
     # Tranport vs. Time
     ax = fig.add_subplot(212)
