@@ -125,7 +125,7 @@ Input: cc_ocean_salt_[season].p (from flux_engine.py) and two_layer_[season].p
 
 Output:LiveOcean_output/tef/validation_plots/validation_plot_[year]_full.png
 
-NOTE: This is  only meaningful for the full annual average, because it finds an equilibrated solution.
+NOTE: This is only meaningful for the full annual average, because it finds an equilibrated solution.
 
 ------------------------------------------------------------------
 
