@@ -323,7 +323,12 @@ def get_tracks(fn_list, plon0, plat0, pcs0, TR, trim_loc=False):
                     Vwind3 = get_wind(Uwindf0, Uwindf1, Vwindf0, Vwindf1, plon, plat, frmid, windage)
                 else:
                     Vwind3 = np.zeros((NP,3))
-                plon, plat, pcs = update_position(dxg, dyg, maskr, (V0 + 2*V1 + 2*V2 + V3)/6 + Vwind3,
+                # add sinking speed
+                if TR['sink'] > 0:
+                    Vsink3 = -TR['sink'] * np.ones((NP,3)) / 86400
+                else:
+                    Vsink3 = np.zeros((NP,3))
+                plon, plat, pcs = update_position(dxg, dyg, maskr, (V0 + 2*V1 + 2*V2 + V3)/6 + Vwind3 + Vsink3,
                                                   (ZH0 + 2*ZH1 + 2*ZH2 + ZH3)/6,
                                                   S, delt, plon, plat, pcs, surface)
             elif TR['no_advection'] == True:

@@ -65,13 +65,13 @@ def inax(x,y,aa):
     is_in = x>aa[0] and x<aa[1] and y>aa[2] and y<aa[3]
     return is_in
 
-for year in [2017, 2018, 2019]:
+for year in [2017]:#, 2018, 2019]:
     
     year_str = str(year)
     item = 'cas6_v3_lo8b_' + year_str + '.01.01_' + year_str + '.12.31/'
     indir = indir0 + item + '/flux/'
 
-    outdir = indir0 + '/tef_all_sections_clean/'
+    outdir = indir0 + 'tef_all_sections_clean/'
     Lfun.make_dir(outdir)
 
     # PLOTTING
@@ -95,8 +95,8 @@ for year in [2017, 2018, 2019]:
     aa2 = [140, 300, -5, 50]
     aa3 = [-125.4, -122, 46.8, 50.4] # Salish Sea
 
-    #for season in ['full']:
-    for season in flux_fun.season_list:
+    for season in ['full']:
+    #for season in flux_fun.season_list:
     
         # load the "season" DataFrame made by flux_make_two_layer.py
         # which has columns=['q_s', 'q_f', 'f_s', 'f_f', 's_s', 's_f', 'lon', 'lat']
@@ -168,7 +168,7 @@ for year in [2017, 2018, 2019]:
                 yy = np.abs(q_s[counter])
                 if inax(xx,yy,aa1) and (ch_str == 'Juan de Fuca to Strait of Georgia'):
                     dy = aa1[3]-aa1[2]
-                    ax1.text(xx,yy + dy/10, sn, fontsize=.6*fs, color='k', va='center',ha='center',
+                    ax1.text(xx,yy + dy/10, sn, fontsize=.75*fs, color='k', va='center',ha='center',
                         rotation=45, style='italic', weight='bold')
                 counter += 1
             
@@ -191,10 +191,10 @@ for year in [2017, 2018, 2019]:
                 if inax(xx,yy,aa2):
                     dy = aa2[3]-aa2[2]
                     if ch_str == 'Hood Canal' and sn != 'ai3':
-                        ax2.text(xx,yy - dy/20, sn, fontsize=.6*fs, color='k', va='center',ha='center',
+                        ax2.text(xx,yy - dy/20, sn, fontsize=.75*fs, color='k', va='center',ha='center',
                             rotation=-45, style='italic', weight='bold')
                     else:
-                        ax2.text(xx,yy + dy/20, sn, fontsize=.6*fs, color='k', va='center',ha='center',
+                        ax2.text(xx,yy + dy/20, sn, fontsize=.75*fs, color='k', va='center',ha='center',
                             rotation=45, style='italic', weight='bold')
                 
                 counter += 1

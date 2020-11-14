@@ -61,14 +61,14 @@ aa1 = [-123.25, -122.1, 47, 48.5] # Puget Sound
 
 plt.close('all')
 
-for do_rivers in [False, True]:
+for do_rivers in [False]:#, True]:
     
     # plotting
     lw=3
-    fs=16
+    fs=18
     plt.rc('font', size=fs)
 
-    fig = plt.figure(figsize=(16,10))
+    fig = plt.figure(figsize=(14,10))
     ax1 = fig.add_subplot(121)
     ax2 = fig.add_subplot(122)
     
@@ -93,11 +93,11 @@ for do_rivers in [False, True]:
             if inax(xx,yy,aa):
                 ax.plot([x0,x1], [y0,y1], '-', color=sn_color, lw=lw)
                 if (ax_counter == 0) and not inax(xx,yy,aa1):
-                    ax.text(xx,yy, sn, fontsize=.6*fs, color='k', va='center',ha='center',
-                    bbox=dict(facecolor='w', edgecolor='None', alpha=0.5), style='italic', weight='bold')
+                    ax.text(xx,yy, sn, fontsize=.7*fs, color='k', va='center',ha='center',
+                    bbox=dict(facecolor='w', edgecolor='None', alpha=0.6), style='italic', weight='bold')
                 elif ax_counter == 1:
-                    ax.text(xx,yy, sn, fontsize=.6*fs, color='k', va='center',ha='center',
-                    bbox=dict(facecolor='w', edgecolor='None', alpha=0.5), style='italic', weight='bold')
+                    ax.text(xx,yy, sn, fontsize=.7*fs, color='k', va='center',ha='center',
+                    bbox=dict(facecolor='w', edgecolor='None', alpha=0.6), style='italic', weight='bold')
     
         # segments
         for Sn in v_df.index:
@@ -118,11 +118,11 @@ for do_rivers in [False, True]:
                     if Sn in ['T1', 'T2']:
                         ax.text(vx,vy, Sn,
                             va='center',ha='center', color=Sn_color,
-                                fontsize=0.5*fs, fontweight='bold')
+                                fontsize=0.5*fs, fontweight='bold', alpha=.8)
                     else:
                         ax.text(vx,vy, Sn,
                             va='center',ha='center', color=Sn_color,
-                                fontsize=fs, fontweight='bold')
+                                fontsize=fs, fontweight='bold', alpha=.8)
                         
                 elif ax_counter == 1:
                     if Sn in ['T1', 'T2']:

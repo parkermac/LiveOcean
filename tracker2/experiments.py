@@ -123,6 +123,13 @@ def get_ic(EI, fn00):
         pcs_vec = np.linspace(-1,0,num=4000)
         plon00, plat00, pcs00 = ic_from_list(lonvec, latvec, pcs_vec)
         
+    elif exp_name == 'leathermanWP': # single water column for Marissa Leatherman
+        # approximates West Point Sewage Treatment Plant outfall
+        lonvec = np.array([-122.46])
+        latvec = np.array([47.662])
+        pcs_vec = np.linspace(-.6,-.4,num=1000) # all around mid-depth
+        plon00, plat00, pcs00 = ic_from_list(lonvec, latvec, pcs_vec)
+        
     return plon00, plat00, pcs00
     
 def ic_from_meshgrid(lonvec, latvec, pcs_vec):

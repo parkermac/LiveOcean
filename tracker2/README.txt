@@ -12,6 +12,10 @@ This code is designed to be a flexible, and hopefully fast, tool for doing parti
 2020.10.04:
 - Introduced 3-point Hanning window (0.25, 0.5, 0.25) vertical smoothing on AKs, which improved WMC vmix results.  This fix was based on many experiments using test_dAKs_dz.py and modeled after work in North et al. (2006).
 
+2020.11.10:
+- Dropped the "_ndiv" from the output file name if the default (ndiv=12) is used.
+- Added optional "sink" flag, e.g. use "-sink 40" to add 40 meters per day sinking speed to all particles.  Then the tag "_sink40" is added to the output file.  It would be nice to generalize to allow floating and sinking with less confusing naming (e.g. floating would be _sink-40 which is not intuitive).
+
 ============================================================================
 ============================================================================
 
@@ -39,7 +43,7 @@ Then to create the initial positions of your release you make new entries in:
 
 ============================================================================
 
-3. Run tracker.py from the command line, with arguments that tell it which experiment to use, the start times, and some other choices like whether or not to track in 3d.  It should be run from the (linux terminal wondow) command line because, for reasons I don't understand, the performance gets slower after repeated runs in ipython.  A typical run command might be like:
+3. Run tracker.py from the command line, with arguments that tell it which experiment to use, the start times, and some other choices like whether or not to track in 3d.  It should be run from the (linux terminal window) command line because, for reasons I don't understand, the performance gets slower after repeated runs in ipython.  A typical run command might be like:
 
 python tracker.py -exp jdf0 -3d True -ds 2019.7.04 -dtt 2
 

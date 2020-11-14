@@ -207,7 +207,7 @@ for source in source_list:
                 ff[:,3] = f.loc[:,'river_f'].values # column 3 is the river inflow
     
             if 'IC_' in source:
-                if do_rx:
+                if do_nrx:
                     mask0 = np.zeros(NR) == 0 # mask for no-reflux case
                 seg2_list = flux_fun.ic_seg2_dict[source]
                 for seg_name in f.index:
