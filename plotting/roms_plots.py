@@ -82,6 +82,51 @@ def P_basic(in_dict):
     else:
         plt.show()
         
+def P_salt_1(in_dict):
+    # single panel of salinity
+
+    # START
+    fig = plt.figure(figsize=(7,12))
+    ds = nc.Dataset(in_dict['fn'])
+    
+
+    # PLOT CODE
+    fs=14
+    plt.rc('font', size=fs)
+    vn = 'salt'
+    
+    if True:
+        import cmocean
+        cmap = cmocean.cm.haline
+    else:
+        cmap = 'nipy_spectral'
+    
+    if in_dict['auto_vlims']:
+        pinfo.vlims_dict[vn] = ()
+    vlims_fac=.5
+    ax = fig.add_subplot(111)
+    cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict,
+            cmap=cmap, fac=pinfo.fac_dict[vn], vlims_fac=vlims_fac)
+    #cb = fig.colorbar(cs)
+    pfun.add_bathy_contours(ax, ds, txt=False)
+    pfun.add_coast(ax)
+    ax.axis(pfun.get_aa(ds))
+    pfun.dar(ax)
+    ax.set_title('Surface %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
+    ax.set_xlabel('Longitude')
+    ax.set_ylabel('Latitude')
+    pfun.add_info(ax, in_dict['fn'], fs=fs)
+    fig.tight_layout()
+    
+    # FINISH
+    ds.close()
+    if len(in_dict['fn_out']) > 0:
+        plt.savefig(in_dict['fn_out'])
+        plt.close()
+    else:
+        plt.show()
+    plt.rcdefaults()
+        
 def P_dye(in_dict):
 
     # START
