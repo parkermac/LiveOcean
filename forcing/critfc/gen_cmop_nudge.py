@@ -14,6 +14,12 @@ from scipy.io import FortranFile
 from scipy import interpolate
 import argparse
 
+sys.path.append(os.path.abspath('../../alpha'))
+import zrfun
+from time import time
+
+testing = True # PM flag
+
 #
 #  SELFE file reading functions #
 # 
@@ -68,18 +74,6 @@ class vc:
       #print i,words
       sigma[i] = float(words[1])
     return cls(nvrt,nz,h_s,h_c,theta_b,theta_f,ztot,sigma,h0=h0)
-    # self.nvrt = nvrt
-    # self.nz = nz
-    # self.h_s = h_s
-    # self.h_c = h_c
-    # self.theta_b = theta_b
-    # self.tehta_f = theta_f
-    # self.ztot = ztot
-    # self.sigma = sigma
-    # self.h0 = h0
-    # return self
-    #
-    # #return self(nvrt,nz,h_s,h_c,theta_b=theta_b,theta_f=theta_f,ztot=ztot,sigma=sigma,h0=h0)
 
   def compute_cs(self, sigma) :
     return ( (1-self.theta_b)*np.sinh(self.theta_f*sigma)/np.sinh(self.theta_f) +
@@ -141,7 +135,7 @@ class vc:
     idx2 = np.logical_and( hmod > hc, iwet )
     eta2 = eta[idx2]
     hmod2 = hmod[idx2]-hc
-    for k in xrange(nz, self.nvrt-1) :
+    for k in range(nz, self.nvrt-1) :
       kin = k - nz +1
       sigma = self.sigma[kin]
       ztmp[k,idx1] = sigma * H1 + eta1 # NOTE slow
@@ -152,7 +146,7 @@ class vc:
     kbp2[idx] = nz-1
     # find z-coordinates
     idx_zpart = (dp > hs)
-    for k in xrange(nz-1) :
+    for k in range(nz-1) :
       idx = idx_zpart & ( -dp >= self.ztot[k] ) & ( -dp < self.ztot[k+1] )
       kbp2[idx] = k
       ztmp[k,idx] = -dp[idx]
@@ -274,18 +268,18 @@ nvrt = vCoords.nvrt
 
 print(hgrid, startdate, nnodes)
 
-print('ocean depths')
+#print('ocean depths')
 pncid = nc.Dataset(depthfile, 'r');
 xrho = pncid.variables['lon_rho'][:]
 yrho = pncid.variables['lat_rho'][:]
-
-# PM Edit
-#depths = pncid.variables['depths'][:]
-depths = pncid.variables['h'][:]
-
 xr=xrho[:]
 yr=yrho[:]
 
+# PM Edit
+#depths = pncid.variables['depths'][:]
+# make the depths file
+G, S, T = zrfun.get_basic_info(depthfile)
+depths = -zrfun.get_z(G['h'], 0*G['h'], S, only_rho=True)
 depn = depths.shape[0]
 
 # ROMS depths interpolated to SELFE grid
@@ -304,19 +298,56 @@ dt= t2 -t1
 startf = dt.total_seconds() / 3600.0
 nfiles = ndays * 24 + 1
 basedir += '''f%4d.%02d.%02d''' % (year,month,day)
-print(basedir)
-outname = '%s/cmop_%%s_nu.%4d-%02d-%02d.in' % (outdir,year,month,day)
-sf = FortranFile(outname % 'salt', 'w')
-tf = FortranFile(outname % 'temp', 'w')
+#print(basedir)
+
+# initialize output files - NetCDF version
+salt_fn = '%scmop_salt_nu.%4d-%02d-%02d.nc' % (outdir,year,month,day)
+temp_fn = '%scmop_temp_nu.%4d-%02d-%02d.nc' % (outdir,year,month,day)
+print('=== OUTPUT FILE NAMES:=========================')
+print(salt_fn)
+print(temp_fn)
+print('===============================================')
+try:
+    os.remove(salt_fn)
+except OSError:
+    pass
+try:
+    os.remove(temp_fn)
+except OSError:
+    pass
+sf = nc.Dataset(salt_fn, 'w')
+tf = nc.Dataset(temp_fn, 'w')
+# create dimensions
+NZ, NX = Z.shape
+sf.createDimension('t', None)
+sf.createDimension('z', NZ)
+sf.createDimension('x', NX)
+tf.createDimension('t', None)
+tf.createDimension('z', NZ)
+tf.createDimension('x', NX)
+# create variables
+sf.createVariable('time', np.float32, ('t'))
+sf.createVariable('data', np.float32, ('t', 'z', 'x'))
+tf.createVariable('time', np.float32, ('t'))
+tf.createVariable('data', np.float32, ('t', 'z', 'x'))
+
+# original version - slow and buggy
+# outname = '%s/cmop_%%s_nu.%4d-%02d-%02d.in' % (outdir,year,month,day)
+# sf = FortranFile(outname % 'salt', 'w')
+# tf = FortranFile(outname % 'temp', 'w')
+    
 temp_prev=np.zeros((depn,nnodes))
 salt_prev=np.zeros((depn,nnodes))
 print('processing')
-for i in range(nfiles):
-#for i in range(3):
+
+for i in range(3):
+#for i in range(nfiles):
 # there is no file #1 use #2 twice
+    tt0 = time()
+    
     tfile = startf + i + 1 #add 1 because there is an offset between file # and time step
     ncfile = '''%s/ocean_his_%04d.nc''' % (basedir, tfile,)
-    print(ncfile)
+    #print(ncfile)
     otime = i * 3600
     #for i in range(len(x)):
     temp_new=np.zeros((depn,nnodes))
@@ -327,11 +358,13 @@ for i in range(nfiles):
         salt = psncid.variables['salt'][0]
         temp = psncid.variables['temp'][0]
         psncid.close()
+        
         for j in range(0,depn):
             ft=interpolate.RectBivariateSpline(xrho[0,:],yrho[:,0],temp[j,:,:].T,kx=1,ky=1)
             temp_new[j,:]=ft.ev(x,y)
             fs=interpolate.RectBivariateSpline(xrho[0,:],yrho[:,0],salt[j,:,:].T,kx=1,ky=1)
             salt_new[j,:]=fs.ev(x,y)
+        
         temp_new[np.where(salt_new>35)]=float('nan')
         salt_new[np.where(salt_new>35)]=float('nan')
         good=~np.isnan(salt_new[0,:])
@@ -340,27 +373,52 @@ for i in range(nfiles):
         xybad=np.array((x[bad],y[bad])).T    
         ind=np.arange(nnodes)
         map_tr=ind[good]
-        kdt=cKDTree(zip(x[good],y[good]))
+        #kdt=cKDTree(zip(x[good],y[good]))
+        XY = np.array((x[good],y[good])).T
+        kdt=cKDTree(XY)
         dists,neighs=kdt.query(xybad)
         min_index=map_tr[neighs]
+        
         ix_min=np.unravel_index(min_index,x.shape)
         salt_new[:,bad]=salt_new[:,ix_min][:,0,:]
         temp_new[:,bad]=temp_new[:,ix_min][:,0,:]
         salt_prev = salt_new
         temp_prev = temp_new
-    except:
+    except Exception as e:
+        print(e)
         print('Exception in loading new, using previous time step')
         salt_new = salt_prev
         temp_new = temp_prev
     print(i+1, ' of ', nfiles, tfile, otime, ocean_time, ncfile)
-    sf.write_record(np.array([otime], dtype=np.float32))
-    tf.write_record(np.array([otime], dtype=np.float32))
+    
+    # write time to output files
+    sf['time'][i] = otime
+    tf['time'][i] = otime
+    # sf.write_record(np.array([otime], dtype=np.float32))
+    # tf.write_record(np.array([otime], dtype=np.float32))
+    
+    # ** the slowest step? **
+    s1arr = np.empty((NZ,NX), dtype=np.float32)
+    t1arr = np.empty((NZ,NX), dtype=np.float32)
     for j in range(len(x)):
         s1=np.zeros(nvrt)
         t1=np.zeros(nvrt)
-        ss=interp(Z[:,j],dep[:,j],salt_new[:,j])
-        tt=interp(Z[:,j],dep[:,j],temp_new[:,j])
+        ss=np.interp(Z[:,j],dep[:,j],salt_new[:,j])
+        tt=np.interp(Z[:,j],dep[:,j],temp_new[:,j])
         s1[Z[:,j].mask==False]=ss[Z[:,j].mask==False]
         t1[Z[:,j].mask==False]=tt[Z[:,j].mask==False]
-        sf.write_record(s1.astype(np.float32))
-        tf.write_record(t1.astype(np.float32))
+        
+        s1arr[:,j] = s1
+        t1arr[:,j] = t1
+        # sf.write_record(s1.astype(np.float32))
+        # tf.write_record(t1.astype(np.float32))
+            
+    sf['data'][i,:,:] = s1arr
+    tf['data'][i,:,:] = t1arr
+
+    print(' >> time to process this hour %0.1f seconds' % (time()-tt0))
+    sys.stdout.flush()
+    
+sf.close()
+tf.close()
+    

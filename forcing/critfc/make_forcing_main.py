@@ -13,9 +13,16 @@ import forcing_functions as ffun
 Ldir, Lfun = ffun.intro()
 
 # ****************** CASE-SPECIFIC CODE *****************
+testing = True
+if testing:
+    ndays = 1
+else:
+    ndays = 3
 
 import subprocess
 from datetime import datetime
+import zrfun
+
 start_time = datetime.now()
 
 out_dir = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/f' + Ldir['date_string'] + '/'
@@ -30,7 +37,8 @@ basedir = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/'
 outdir = out_dir
 
     
-cmd = ['python', 'gen_cmop_nudge.py', hgrid, vgrid, depthfile, basedir, outdir, rundate]
+cmd = ['python', 'gen_cmop_nudge.py', hgrid, vgrid, depthfile, basedir, outdir, rundate,
+"--ndays", str(ndays)]
 proc = subprocess.Popen(cmd)
 proc.communicate()
 
@@ -58,7 +66,6 @@ echo $BINDIR/python gen_cmop_nudge.py $hgrid $vgrid $depthfile $basedir $outdir 
 $BINDIR/python gen_cmop_nudge.py $hgrid $vgrid $depthfile $basedir $outdir $rundate
 
 """
-
 
 #%% prepare for finale
 import collections
