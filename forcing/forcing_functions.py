@@ -22,6 +22,7 @@ def intro():
         sys.path.append(alp)
     # Note: the path "alp" will now also work for the calling function
     import Lfun
+    import zfun
 
     # set defaults
     gridname = 'cas6'
@@ -33,16 +34,17 @@ def intro():
 
     # optional command line arguments, can be input in any order
     parser = argparse.ArgumentParser()
-    parser.add_argument('-g', '--gridname', nargs='?', type=str, default=gridname)
-    parser.add_argument('-t', '--tag', nargs='?', type=str, default=tag)
-    parser.add_argument('-f', '--frc', nargs='?', type=str, default=frc)
-    parser.add_argument('-r', '--run_type', nargs='?', type=str, default=run_type)
-    parser.add_argument('-s', '--start_type', nargs='?', type=str, default=start_type)
-    parser.add_argument('-d', '--date_string', nargs='?', type=str, default=date_string)
-    parser.add_argument('-x', '--ex_name', nargs='?', type=str, default=ex_name)
+    parser.add_argument('-g', '--gridname', type=str, default=gridname)
+    parser.add_argument('-t', '--tag', type=str, default=tag)
+    parser.add_argument('-f', '--frc', type=str, default=frc)
+    parser.add_argument('-r', '--run_type', type=str, default=run_type)
+    parser.add_argument('-s', '--start_type', type=str, default=start_type)
+    parser.add_argument('-d', '--date_string', type=str, default=date_string)
+    parser.add_argument('-x', '--ex_name', type=str, default=ex_name)
+    parser.add_argument('-test', '--testing', type=zfun.boolean_string, default=False)
     # only used by make_dot_in.py
-    parser.add_argument('-np', '--np_num', nargs='?', type=int, default=196)
-    parser.add_argument('-bu', '--blow_ups', nargs='?', type=int, default=0)
+    parser.add_argument('-np', '--np_num', type=int, default=196)
+    parser.add_argument('-bu', '--blow_ups', type=int, default=0)
     args = parser.parse_args()
 
     # get the dict Ldir
@@ -58,6 +60,7 @@ def intro():
     Ldir['start_type'] = args.start_type
     Ldir['date_string'] = args.date_string
     Ldir['ex_name'] = args.ex_name
+    Ldir['testing'] = args.testing
     # only used by make_dot_in.py
     Ldir['np_num'] = args.np_num
     Ldir['blow_ups'] = args.blow_ups
