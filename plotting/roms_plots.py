@@ -84,14 +84,47 @@ def P_basic(in_dict):
         
 def P_salt_1(in_dict):
     # single panel of salinity
+    
+    # preamble: get a mooring recodr for this day
+    # write an abbreviated version of the Experiment Info to LiveOcean_output/tracks2
+    # so that the correct information is available when trackfun is loaded
+    import subprocess
+    from time import time
+    import os
+    fn = in_dict['fn']
+    gtagex = fn.split('/')[-3]
+    f_string = fn.split('/')[-2]
+    date_str = f_string.replace('f','')
+    import Lfun
+    cmd = ['python','../x_moor/mooring_extractor.py','-sn','salt1','-0',date_str,'-1',date_str,
+        '-lon',' -124.6','-lat','47']
+    moor_fn = Ldir['LOo'] + 'moor/' + gtagex + '_' + date_str + '_' + date_str + '/' + 'salt1_hourly.nc'
+    print(moor_fn)
+    tt0 = time()
+    proc = subprocess.Popen(cmd)
+    proc.communicate()
+    print('time to get mooring extraction = %0.1f sec' % (time()-tt0))
+    if proc.returncode == 0:
+        if os.path.isfile(moor_fn):
+            print('mooring file found')
+        else:
+            print('mooring file not found')
+    else:
+        print('proc failed')
+    m_ds = nc.Dataset(moor_fn)
+    ot = m_ds['ocean_time'][:]
+    m_dt = [Lfun.modtime_to_datetime(item) for item in ot]
+    zeta = m_ds['zeta'][:]
+    m_ser = pd.Series(zeta, index = m_dt)
+    
 
     # START
-    fig = plt.figure(figsize=(7,12))
+    fig = plt.figure(figsize=(6.5,12))
     ds = nc.Dataset(in_dict['fn'])
     
 
     # PLOT CODE
-    fs=14
+    fs=18
     plt.rc('font', size=fs)
     vn = 'salt'
     
@@ -104,7 +137,8 @@ def P_salt_1(in_dict):
     if in_dict['auto_vlims']:
         pinfo.vlims_dict[vn] = ()
     vlims_fac=.5
-    ax = fig.add_subplot(111)
+    ax = plt.subplot2grid((7,1), (0,0), rowspan=6)
+    #ax = fig.add_subplot(111)
     cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict,
             cmap=cmap, fac=pinfo.fac_dict[vn], vlims_fac=vlims_fac)
     #cb = fig.colorbar(cs)
@@ -112,10 +146,33 @@ def P_salt_1(in_dict):
     pfun.add_coast(ax)
     ax.axis(pfun.get_aa(ds))
     pfun.dar(ax)
-    ax.set_title('Surface %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
-    ax.set_xlabel('Longitude')
-    ax.set_ylabel('Latitude')
-    pfun.add_info(ax, in_dict['fn'], fs=fs)
+    ax.text(.9, .99,'Surface %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]),
+        transform=ax.transAxes, ha='right', va='top', weight='bold')
+    # ax.set_xlabel('Longitude')
+    # ax.set_ylabel('Latitude')
+    
+    #pfun.add_info(ax, in_dict['fn'], fs=fs)
+    
+    # Inset colorbar
+    from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+    cbaxes = inset_axes(ax, width="40%", height="4%", loc='upper right', borderpad=2) 
+    cb = fig.colorbar(cs, cax=cbaxes, orientation='horizontal')
+    #cb.ax.tick_params(labelsize=fs)
+    
+    ax.set_xticks(range(-129,-121,2))
+    ax.set_yticks(range(44,52,2))
+    
+    ax.tick_params(axis="y",direction="in", pad=-28, labelcolor='gray')
+    ax.tick_params(axis="x",direction="in", pad=-21, labelcolor='gray')
+    
+    # mooring time series
+    ax = plt.subplot2grid((7,1), (6,0), rowspan=1)
+    m_ser.plot(ax=ax)
+    ax.set_xticklabels([])
+    ax.set_xticklabels([], minor=True)
+    ax.set_yticklabels([])
+    
+    
     fig.tight_layout()
     
     # FINISH
