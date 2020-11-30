@@ -51,7 +51,7 @@ Ldir['gtagex'] = Ldir['gtag'] + '_' + in_dict['ex_name']
 if len(args.list_type) == 0:
     print(30*'*' + ' pan_plot ' + 30*'*')
     print('\n%s\n' % '** Choose List type (return for snapshot) **')
-    lt_list = ['snapshot', 'daily', 'hourly ', 'forecast', 'allhours']
+    lt_list = ['snapshot', 'daily', 'hourly ', 'allhours']
     Nlt = len(lt_list)
     lt_dict = dict(zip(range(Nlt), lt_list))
     for nlt in range(Nlt):
@@ -90,6 +90,8 @@ fn_list = Lfun.get_fn_list(list_type, Ldir,
 m_fn_list = Lfun.get_fn_list('hourly', Ldir, in_dict['date_string0'], in_dict['date_string1'])
 ot_list = []
 zeta_list = []
+uwind_list = []
+vwind_list = []
 G = zrfun.get_basic_info(m_fn_list[0], only_G=True)
 m_lon = -124.5; m_lat = 47
 mi = zfun.find_nearest_ind(G['lon_rho'][0,:], m_lon)
@@ -98,11 +100,19 @@ for fn in m_fn_list:
     ds = nc.Dataset(fn)
     ot_list.append(ds['ocean_time'][0])
     zeta_list.append(ds['zeta'][0,mj,mi])
+    uwind_list.append(ds['Uwind'][0,mj,mi])
+    vwind_list.append(ds['Vwind'][0,mj,mi])
     ds.close()
 ot_vec = zfun.fillit(np.array(ot_list))
 zeta_vec = zfun.fillit(np.array(zeta_list))
+uwind_vec = zfun.fillit(np.array(uwind_list))
+vwind_vec = zfun.fillit(np.array(vwind_list))
 in_dict['ot_vec'] = ot_vec
 in_dict['zeta_vec'] = zeta_vec
+in_dict['uwind_vec'] = uwind_vec
+in_dict['vwind_vec'] = vwind_vec
+in_dict['m_lon'] = m_lon
+in_dict['m_lat'] = m_lat
         
 # PLOTTING
 

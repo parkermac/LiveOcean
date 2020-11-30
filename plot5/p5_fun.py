@@ -97,7 +97,7 @@ def add_bathy_contours(ax, ds, depth_levs = [], txt=False):
                         transform=ax.transAxes)
                 ii += 1
         
-def add_map_field(ax, ds, vn, vlims_dict, slev=-1, cmap='rainbow', fac=1, alpha=1, do_mask_salish=False, aa=[], vlims_fac=3):
+def add_map_field(ax, ds, vn, vlims_dict, slev=-1, cmap='rainbow', fac=1, alpha=1, aa=[], vlims_fac=3):
     cmap = plt.get_cmap(name=cmap)
     if 'lon_rho' in ds[vn].coordinates:
         x = ds['lon_psi'][:]
@@ -145,9 +145,6 @@ def add_map_field(ax, ds, vn, vlims_dict, slev=-1, cmap='rainbow', fac=1, alpha=
         vlims_dict[vn] = vlims
         # dicts have essentially global scope, so setting it here sets it everywhere
         
-    if do_mask_salish:
-        v_scaled = mask_salish(v_scaled, ds['lon_rho'][1:-1, 1:-1], ds['lat_rho'][1:-1, 1:-1])  
-    
     cs = ax.pcolormesh(x, y, v_scaled, vmin=vlims[0], vmax=vlims[1], cmap=cmap, alpha=alpha)
     return cs
 
@@ -199,68 +196,16 @@ def add_velocity_vectors(ax, ds, fn, v_scl=3, v_leglen=0.5, nngrid=80, zlev='top
     ax.text(xc+.05, yc, str(v_leglen) + ' m/s',
         horizontalalignment='left', transform=ax.transAxes)
     # note: I could also use plt.quiverkey() 
-
-def add_velocity_streams(ax, ds, fn, nngrid=80, zlev=0):
-    # slower than adding quivers, but informative in a different way
-    # GET DATA
-    G = zrfun.get_basic_info(fn, only_G=True)
-    if zlev == 0:
-        u = ds['u'][0, -1, :, :].squeeze()
-        v = ds['v'][0, -1, :, :].squeeze()
-    else:
-        zfull_u = get_zfull(ds, fn, 'u')
-        zfull_v = get_zfull(ds, fn, 'v')
-        u = get_laym(ds, zfull_u, ds['mask_u'][:], 'u', zlev).squeeze()
-        v = get_laym(ds, zfull_v, ds['mask_v'][:], 'v', zlev).squeeze()
-    # ADD VELOCITY STREAMS
-    # set masked values to 0
-    ud = u.data; ud[u.mask]=0
-    vd = v.data; vd[v.mask]=0
-    # create interpolant
-    import scipy.interpolate as intp
-    ui = intp.interp2d(G['lon_u'][0, :], G['lat_u'][:, 0], ud)
-    vi = intp.interp2d(G['lon_v'][0, :], G['lat_v'][:, 0], vd)
-    # create regular grid
-    aaa = ax.axis()
-    daax = aaa[1] - aaa[0]
-    daay = aaa[3] - aaa[2]
-    axrat = np.cos(np.deg2rad(aaa[2])) * daax / daay
-    x = np.linspace(aaa[0], aaa[1], round(nngrid * axrat))
-    y = np.linspace(aaa[2], aaa[3], nngrid)
-    xx, yy = np.meshgrid(x, y)
-    # interpolate to regular grid
-    uu = ui(x, y)
-    vv = vi(x, y)
-    mask = uu != 0
-    # plot velocity streams
-    spd = np.sqrt(uu**2 + vv**2)
-    ax.streamplot(x, y, uu, vv, density = 6,
-    color='k', linewidth=spd*3, arrowstyle='-')
-
-def add_windstress_flower(ax, ds, t_scl=0.2, t_leglen=0.1, center=(.85,.25), fs=12):
-    # ADD MEAN WINDSTRESS VECTOR
-    # t_scl: scale windstress vector (smaller to get longer arrows)
-    # t_leglen: # Pa for wind stress vector legend
-    taux = ds['sustr'][:].squeeze()
-    tauy = ds['svstr'][:].squeeze()
-    tauxm = taux.mean()
-    tauym = tauy.mean()
-    x = center[0]
-    y = center[1]
-    ax.quiver([x, x] , [y, y], [tauxm, tauxm], [tauym, tauym],
-        units='y', scale=t_scl, scale_units='y', color='k',
-        transform=ax.transAxes)
-    tt = 1./np.sqrt(2)
-    t_alpha = 0.4
-    ax.quiver([x, x] , [y, y],
-        t_leglen*np.array([0,tt,1,tt,0,-tt,-1,-tt]),
-        t_leglen*np.array([1,tt,0,-tt,-1,-tt,0,tt]),
-        units='y', scale=t_scl, scale_units='y', color='k', alpha=t_alpha,
-        transform=ax.transAxes)
-    ax.text(x, y-.13,'Windstress',
-        horizontalalignment='center', alpha=t_alpha, transform=ax.transAxes, fontsize=fs)
-    ax.text(x, y-.1, str(t_leglen) + ' Pa',
-        horizontalalignment='center', alpha=t_alpha, transform=ax.transAxes, fontsize=fs)
+        
+def add_wind(ax, lon, lat, uwind, vwind, scl=10):
+    """Add a windspeed vector with circles for scale."""
+    color = 'gray'
+    # scl is windspeed [miles per hour] for a 1 inch circle or arrow
+    # this makes a circle 1 inch (72 points) in radius
+    # and a vector 1 inch long for a 10 m/s windspeed
+    ax.plot(lon,lat,'o', ms=144, mfc='None', mec=color, lw=4)
+    ax.quiver(lon, lat, uwind*2.23694, vwind*2.23694, scale=scl, scale_units='inches',
+            headwidth=5,headlength=5, color=color)
 
 def add_info(ax, fn, fs=12, loc='lower_right'):
     # put info on plot
@@ -297,11 +242,6 @@ def get_aa(ds):
     aa = [x[0], x[-1], y[0], y[-1]]
     return aa
     
-def get_aa_ex(ds):
-    x = ds['lon_psi_ex'][0,:]
-    y = ds['lat_psi_ex'][:,0]
-    aa = [x[0], x[-1], y[0], y[-1]]
-    return aa
 
 def get_zfull(ds, fn, which_grid):
     # get zfull field on "which_grid" ('rho', 'u', or 'v')
@@ -428,30 +368,6 @@ def make_full(flt):
             fld_bot = fld_mid[0].copy()
             fld_top = fld_mid[-1].copy()
             fld = np.concatenate((fld_bot, fld_mid, fld_top), axis=0)
-    return fld
-    
-def mask_salish(fld, lon, lat):
-    """
-    Mask out map fields inside the Salish Sea.   
-    Input:
-        2D fields of data (masked array), and associated lon and lat
-        all must be the same shap
-    Output:
-        The data field, now masked in the Salish Sea.
-    """
-    x = [-125.5, -123.5, -122, -122]
-    y = [50, 46.8, 46.8, 50]
-    V = np.ones((len(x),2))
-    V[:,0] = x
-    V[:,1] = y
-    P = mpath.Path(V)
-    Rlon = lon.flatten()
-    Rlat = lat.flatten()
-    R = np.ones((len(Rlon),2))
-    R[:,0] = Rlon
-    R[:,1] = Rlat
-    RR = P.contains_points(R) # boolean    
-    fld = np.ma.masked_where(RR.reshape(lon.shape), fld)
     return fld
     
 def get_section(ds, vn, x, y, in_dict):
