@@ -87,7 +87,7 @@ fn_list = Lfun.get_fn_list(list_type, Ldir,
     in_dict['date_string0'], in_dict['date_string1'], his_num=in_dict['his_num'])
     
 # get a mooring record (eventually put in a function)
-m_fn_list = Lfun.get_fn_list('hourly', Ldir, in_dict['date_string0'], in_dict['date_string1'])
+m_fn_list = Lfun.get_fn_list(in_dict['list_type'], Ldir, in_dict['date_string0'], in_dict['date_string1'])
 ot_list = []
 zeta_list = []
 uwind_list = []
