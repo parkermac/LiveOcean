@@ -70,31 +70,23 @@ def get_units(ds, vn):
         units = ''
     return units
 
-def add_bathy_contours(ax, ds, depth_levs = [], txt=False):
+def add_bathy_contours(ax, ds, depth_levs = [200, 2000], txt=False):
     # this should work with ds being a history file Dataset, or the G dict.
     h = ds['h'][:]
     lon = ds['lon_rho'][:]
     lat = ds['lat_rho'][:]
-    c1 = 'k'
-    c2 = 'k'
+    c = 'k'
+    ax.contour(lon, lat, h, depth_levs, colors=c, linewidths=0.5)
     if len(depth_levs) == 0:
-        ax.contour(lon, lat, h, [200], colors=c1, linewidths=0.5)
-        ax.contour(lon, lat, h, [2000], colors=c2, linewidths=0.5)
         if txt==True:
-            ax.text(.95, .95, '200 m', color=c1,
-                    horizontalalignment='right',
-                    transform=ax.transAxes)
-            ax.text(.95, .92, '2000 m', color=c2,
-                    horizontalalignment='right',transform=ax.transAxes)
+            ax.text(.95, .95, '200 m', ha='right', transform=ax.transAxes, c=c)
+            ax.text(.95, .92, '2000 m', ha='right', transform=ax.transAxes, c=c)
     else:
-        cs = ax.contour(lon, lat, h, depth_levs, colors='k',
-            linewidths=0.5, linestyles='dashed')
         if txt==True:
             ii = 0
             for lev in depth_levs:
-                ax.text(.95, .95 - ii*.03, str(lev)+' m', color=c1,
-                        horizontalalignment='right',
-                        transform=ax.transAxes)
+                ax.text(.95, .95 - ii*.03, str(lev)+' m', c=c,
+                        ha='right', transform=ax.transAxes)
                 ii += 1
         
 def add_map_field(ax, ds, vn, vlims_dict, slev=-1, cmap='rainbow', fac=1, alpha=1, aa=[], vlims_fac=3):
@@ -197,14 +189,13 @@ def add_velocity_vectors(ax, ds, fn, v_scl=3, v_leglen=0.5, nngrid=80, zlev='top
         horizontalalignment='left', transform=ax.transAxes)
     # note: I could also use plt.quiverkey() 
         
-def add_wind(ax, lon, lat, uwind, vwind, scl=10):
+def add_wind(ax, lon, lat, uwind, vwind, scl=10, color='purple'):
     """Add a windspeed vector with circles for scale."""
-    color = 'gray'
-    # scl is windspeed [miles per hour] for a 1 inch circle or arrow
+    # scl is windspeed [knots] for a 1 inch circle or arrow
     # this makes a circle 1 inch (72 points) in radius
-    # and a vector 1 inch long for a 10 m/s windspeed
-    ax.plot(lon,lat,'o', ms=144, mfc='None', mec=color, lw=4)
-    ax.quiver(lon, lat, uwind*2.23694, vwind*2.23694, scale=scl, scale_units='inches',
+    # and a vector 1 inch long for a windspeed of "scl" knots.
+    ax.plot(lon,lat,'o', ms=144, mfc='None', mec=color, mew=1.5, alpha=.6)
+    ax.quiver(lon, lat, uwind*1.94384, vwind*1.94384, scale=scl, scale_units='inches',
             headwidth=5,headlength=5, color=color)
 
 def add_info(ax, fn, fs=12, loc='lower_right'):

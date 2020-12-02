@@ -191,7 +191,7 @@ def filt_AB8d(data):
         smooth[ii] = (filt*data[ii-fl+1: ii + 1]).sum()
     return smooth
 
-def filt_hanning(data, n=40):
+def filt_hanning(data, n=40, nanpad=True):
     """
     Input: 1D numpy array data
     Output: Array of the same size, filtered with Hanning window of length n,
@@ -204,8 +204,13 @@ def filt_hanning(data, n=40):
         filt = hanning_shape(n=n)
         npad = np.floor(len(filt)/2).astype(int)
         smooth = np.convolve(data, filt, mode = 'same')
-        smooth[:npad] = np.nan
-        smooth[-npad:] = np.nan
+        if nanpad:
+            smooth[:npad] = np.nan
+            smooth[-npad:] = np.nan
+        else:
+            smooth[:npad] = data[:npad]
+            smooth[-npad:] = data[-npad:]
+            
     return smooth
     
 def filt_hanning_mat(data, n=40):
@@ -233,10 +238,10 @@ def filt_godin(data):
     """
     filt = godin_shape()
     filt = filt / filt.sum()
-    n = np.ceil(len(filt)/2).astype(int)
+    npad = np.floor(len(filt)/2).astype(int)
     smooth = np.convolve(data, filt, mode = 'same')
-    smooth[:n] = np.nan
-    smooth[-n:] = np.nan
+    smooth[:npad] = np.nan
+    smooth[-npad:] = np.nan
     return smooth
 
 def filt_godin_mat(data):

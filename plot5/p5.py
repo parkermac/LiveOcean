@@ -51,7 +51,7 @@ Ldir['gtagex'] = Ldir['gtag'] + '_' + in_dict['ex_name']
 if len(args.list_type) == 0:
     print(30*'*' + ' pan_plot ' + 30*'*')
     print('\n%s\n' % '** Choose List type (return for snapshot) **')
-    lt_list = ['snapshot', 'daily', 'hourly ', 'allhours']
+    lt_list = ['snapshot', 'daily', 'hourly ', 'allhours'] # forecast?
     Nlt = len(lt_list)
     lt_dict = dict(zip(range(Nlt), lt_list))
     for nlt in range(Nlt):
@@ -83,12 +83,19 @@ else:
 whichplot = getattr(p5_plots, plot_type)
 
 # get list of history files to plot
-fn_list = Lfun.get_fn_list(list_type, Ldir,
-    in_dict['date_string0'], in_dict['date_string1'], his_num=in_dict['his_num'])
+ds0 = in_dict['date_string0']
+ds1 = in_dict['date_string1']
+fn_list = Lfun.get_fn_list(list_type, Ldir, ds0, ds1, his_num=in_dict['his_num'])
     
 # get a mooring record (eventually put in a function)
-m_fn_list = Lfun.get_fn_list(in_dict['list_type'], Ldir, in_dict['date_string0'], in_dict['date_string1'])
+if ds0 == ds1:
+    # should work for forecast or snapshot
+    m_fn_list = Lfun.get_fn_list('allhours', Ldir, ds0, ds1)
+else:
+    # and this is for longer time spans
+    m_fn_list = Lfun.get_fn_list('hourly', Ldir, ds0, ds1)
 ot_list = []
+dt_list = []
 zeta_list = []
 uwind_list = []
 vwind_list = []
@@ -97,6 +104,8 @@ m_lon = -124.5; m_lat = 47
 mi = zfun.find_nearest_ind(G['lon_rho'][0,:], m_lon)
 mj = zfun.find_nearest_ind(G['lat_rho'][:,0], m_lat)
 for fn in m_fn_list:
+    T = zrfun.get_basic_info(fn, only_T=True)
+    dt_list.append(T['tm'])
     ds = nc.Dataset(fn)
     ot_list.append(ds['ocean_time'][0])
     zeta_list.append(ds['zeta'][0,mj,mi])
@@ -109,10 +118,40 @@ uwind_vec = zfun.fillit(np.array(uwind_list))
 vwind_vec = zfun.fillit(np.array(vwind_list))
 in_dict['ot_vec'] = ot_vec
 in_dict['zeta_vec'] = zeta_vec
-in_dict['uwind_vec'] = uwind_vec
-in_dict['vwind_vec'] = vwind_vec
+in_dict['uwind_vec'] = zfun.filt_hanning(uwind_vec, n=5, nanpad=False)
+in_dict['vwind_vec'] = zfun.filt_hanning(vwind_vec, n=5, nanpad=False)
 in_dict['m_lon'] = m_lon
 in_dict['m_lat'] = m_lat
+
+# get sunrise/sunset info
+city = 'Westport'
+if city == 'Seattle':
+    city = 'Seattle'
+    zone='US/Pacific'
+elif city == 'Westport':
+    city = 'Westport'
+    zone='US/Pacific'
+import ephem_functions as efun
+import pytz
+tz_utc, tz_local, obs = efun.make_info(city=city, zone=zone)
+D0 = dt_list[0] - timedelta(days=1)
+D1 = dt_list[-1] + timedelta(days=1)
+D_list = []
+D = D0
+while D <= D1:
+    D_list.append(D)
+    D += timedelta(days=1)
+Srise = []
+Sset = []
+for D in D_list:
+    D_local = datetime(D.year, D.month, D.day, tzinfo=tz_local)
+    S0, M0 = efun.get_times(D_local, tz_utc, tz_local, obs)
+    Srise.append(S0['rise'].astimezone(tz=pytz.timezone('UTC')))
+    Sset.append(S0['set'].astimezone(tz=pytz.timezone('UTC')))
+Srise = [dt.replace(tzinfo=None) for dt in Srise]
+Sset = [dt.replace(tzinfo=None) for dt in Sset]
+in_dict['Srise'] = Srise
+in_dict['Sset'] = Sset
         
 # PLOTTING
 
@@ -125,9 +164,9 @@ if len(fn_list) == 1:
     
 elif len(fn_list) > 1:
     # prepare a directory for results
-    outdir0 = Ldir['LOo'] + 'plots/'
+    outdir0 = Ldir['LOo'] + 'p5/'
     Lfun.make_dir(outdir0, clean=False)
-    outdir = outdir0 + list_type + '_' + plot_type + '_' + Ldir['gtagex'] + '/'
+    outdir = outdir0 + plot_type + '_' + list_type + '_' + Ldir['gtagex'] + '/'
     Lfun.make_dir(outdir, clean=True)
     # plot to a folder of files
     jj = 0
