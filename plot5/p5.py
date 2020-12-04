@@ -17,6 +17,8 @@ import numpy as np
 from importlib import reload
 import p5_plots
 reload(p5_plots)
+import p5_fun as pfun
+reload(pfun)
 
 import matplotlib.pyplot as plt
 plt.close('all')
@@ -66,7 +68,7 @@ else:
 
 # choose the type of plot to make
 if len(args.plot_type) == 0:
-    print('\n%s\n' % '** Choose Plot type (return for P_salt_1) **')
+    print('\n%s\n' % '** Choose Plot type (return for P_full_salt) **')
     pt_list_raw = dir(p5_plots)
     pt_list = [item for item in pt_list_raw if item[:2] == 'P_']
     Npt = len(pt_list)
@@ -75,7 +77,7 @@ if len(args.plot_type) == 0:
         print(str(npt) + ': ' + pt_list[npt])
     my_npt = input('-- Input number -- ')
     if len(my_npt)==0:
-        plot_type = 'P_salt_1'
+        plot_type = 'P_full_salt'
     else:
         plot_type = pt_dict[int(my_npt)]
 else:
@@ -86,72 +88,29 @@ whichplot = getattr(p5_plots, plot_type)
 ds0 = in_dict['date_string0']
 ds1 = in_dict['date_string1']
 fn_list = Lfun.get_fn_list(list_type, Ldir, ds0, ds1, his_num=in_dict['his_num'])
-    
-# get a mooring record (eventually put in a function)
-if ds0 == ds1:
-    # should work for forecast or snapshot
-    m_fn_list = Lfun.get_fn_list('allhours', Ldir, ds0, ds1)
-else:
-    # and this is for longer time spans
-    m_fn_list = Lfun.get_fn_list('hourly', Ldir, ds0, ds1)
-ot_list = []
-dt_list = []
-zeta_list = []
-uwind_list = []
-vwind_list = []
-G = zrfun.get_basic_info(m_fn_list[0], only_G=True)
-m_lon = -124.5; m_lat = 47
-mi = zfun.find_nearest_ind(G['lon_rho'][0,:], m_lon)
-mj = zfun.find_nearest_ind(G['lat_rho'][:,0], m_lat)
-for fn in m_fn_list:
-    T = zrfun.get_basic_info(fn, only_T=True)
-    dt_list.append(T['tm'])
-    ds = nc.Dataset(fn)
-    ot_list.append(ds['ocean_time'][0])
-    zeta_list.append(ds['zeta'][0,mj,mi])
-    uwind_list.append(ds['Uwind'][0,mj,mi])
-    vwind_list.append(ds['Vwind'][0,mj,mi])
-    ds.close()
-ot_vec = zfun.fillit(np.array(ot_list))
-zeta_vec = zfun.fillit(np.array(zeta_list))
-uwind_vec = zfun.fillit(np.array(uwind_list))
-vwind_vec = zfun.fillit(np.array(vwind_list))
-in_dict['ot_vec'] = ot_vec
-in_dict['zeta_vec'] = zeta_vec
-in_dict['uwind_vec'] = zfun.filt_hanning(uwind_vec, n=5, nanpad=False)
-in_dict['vwind_vec'] = zfun.filt_hanning(vwind_vec, n=5, nanpad=False)
-in_dict['m_lon'] = m_lon
-in_dict['m_lat'] = m_lat
 
-# get sunrise/sunset info
-city = 'Westport'
-if city == 'Seattle':
-    city = 'Seattle'
-    zone='US/Pacific'
-elif city == 'Westport':
-    city = 'Westport'
-    zone='US/Pacific'
-import ephem_functions as efun
-import pytz
-tz_utc, tz_local, obs = efun.make_info(city=city, zone=zone)
-D0 = dt_list[0] - timedelta(days=1)
-D1 = dt_list[-1] + timedelta(days=1)
-D_list = []
-D = D0
-while D <= D1:
-    D_list.append(D)
-    D += timedelta(days=1)
-Srise = []
-Sset = []
-for D in D_list:
-    D_local = datetime(D.year, D.month, D.day, tzinfo=tz_local)
-    S0, M0 = efun.get_times(D_local, tz_utc, tz_local, obs)
-    Srise.append(S0['rise'].astimezone(tz=pytz.timezone('UTC')))
-    Sset.append(S0['set'].astimezone(tz=pytz.timezone('UTC')))
-Srise = [dt.replace(tzinfo=None) for dt in Srise]
-Sset = [dt.replace(tzinfo=None) for dt in Sset]
-in_dict['Srise'] = Srise
-in_dict['Sset'] = Sset
+# get mooring record
+if 'full' in plot_type:
+    m_lon=-124.5
+    m_lat=47
+    city='Westport'
+    in_dict['aa'] = []
+    in_dict['xtr'] = range(-129,-121,2)
+    in_dict['ytr'] = range(44,52,2)
+    in_dict['xwt'] = -123.08
+    in_dict['ywt'] = 46.64
+elif 'PS' in plot_type:
+    m_lon=-122.433
+    m_lat=47.86
+    city='Seattle'
+    in_dict['aa'] = [-124, -122, 47, 49.5]
+    in_dict['xtr'] = [-123]
+    in_dict['ytr'] = [48, 49]
+    in_dict['xwt'] = -122.2
+    in_dict['ywt'] = 47.5    
+    
+pfun.get_moor(ds0, ds1, Ldir, in_dict, m_lon, m_lat, city)
+
         
 # PLOTTING
 
@@ -184,6 +143,6 @@ elif len(fn_list) > 1:
     # and make a movie
     if args.make_movie:
         ff_str = ("ffmpeg -r 8 -i " + 
-        outdir+"plot_%04d.png -vcodec libx264 -pix_fmt yuv420p -crf 25 "
-        +outdir+"movie.mp4")
+            outdir + "plot_%04d.png -vcodec libx264 -pix_fmt yuv420p -crf 25 "
+            + outdir + plot_type+".mp4")
         os.system(ff_str)

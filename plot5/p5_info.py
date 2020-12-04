@@ -19,20 +19,6 @@ vlims_dict = {'salt': (14, 35),
         'ARAG': (.2, 2.2),
         'Ldetritus': ()}
 
-# Colormaps (use _r for reverse)
-cmap_dict = {'salt': 'Spectral_r',#'rainbow',
-             'temp': 'bwr',#run 'jet',
-             'NO3': 'jet',
-             'phytoplankton': 'ocean_r',
-             'zooplankton': 'jet',
-             'oxygen': 'rainbow_r',#'jet_r',
-             'TIC': 'rainbow',
-             'alkalinity': 'rainbow',
-             'PH': 'jet',
-             'ARAG': 'rainbow',
-             'Ldetritus': 'rainbow',
-             'w': 'rainbow'}
-
 # Units (after multiplying by scaling factor)
 units_dict = {'salt': '[ppt]',
              'temp': r' $[^{\circ}C]$',

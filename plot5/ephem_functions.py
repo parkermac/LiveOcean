@@ -16,6 +16,37 @@ import ephem
 
 AU2km = 149597871 # convert AU (astronomcal units) to km
 
+def get_sunrise_sunset(dt0, dt1, city='Seattle'):
+    """
+    This returns lists of the datetimes sunrise and sunset
+    at a given location (specified by the city argument).  The
+    lists span the days given by the arguments dt0 and dt1 (datetimes).
+    
+    It calculates these in local time but then converts them to UTC.
+    """
+    if city == 'Seattle':
+        city = 'Seattle'
+        zone='US/Pacific'
+    elif city == 'Westport':
+        city = 'Westport'
+        zone='US/Pacific'
+    import ephem_functions as efun
+    import pytz
+    tz_utc, tz_local, obs = make_info(city=city, zone=zone)
+    D_list = []
+    D = dt0
+    while D <= dt1:
+        D_list.append(D)
+        D += timedelta(days=1)
+    Srise = []
+    Sset = []
+    for D in D_list:
+        D_local = datetime(D.year, D.month, D.day, tzinfo=tz_local)
+        S0, M0 = get_times(D_local, tz_utc, tz_local, obs)
+        Srise.append(S0['rise'].astimezone(tz=pytz.timezone('UTC')))
+        Sset.append(S0['set'].astimezone(tz=pytz.timezone('UTC')))
+    return Srise, Sset
+
 def make_info(city='Seattle', zone='US/Pacific'):
     # get timezone and observer info
     # use pytz.common_timezones to see a list of possibilities

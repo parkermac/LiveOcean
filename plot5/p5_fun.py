@@ -16,10 +16,14 @@ import Lfun
 Ldir = Lfun.Lstart()
 import zrfun
 import zfun
+import netCDF4 as nc
 
 import numpy as np
-from datetime import datetime
+from datetime import datetime, timedelta
 import pytz
+
+import ephem_functions as efun
+
 
 if Ldir['lo_env'] == 'pm_mac': # mac version
     pass
@@ -30,6 +34,59 @@ else: # regular (remote, linux) version
 import matplotlib.pyplot as plt
 import matplotlib.path as mpath
 import pandas as pd
+
+def get_moor(ds0, ds1, Ldir, in_dict, m_lon, m_lat, city):
+    """
+    Gets a simple mooring record somewhere in the domain, to use in the plotting.
+    It packs all its data in the dictionary in_dict, which - because of the odd
+    scope behaviour of python dictionaries, is modified even as far as the
+    calling function is concerned, and so does not have to be returned.
+    """
+    if ds0 == ds1:
+        # should work for forecast or snapshot
+        m_fn_list = Lfun.get_fn_list('allhours', Ldir, ds0, ds1)
+    else:
+        # and this is for longer time spans
+        m_fn_list = Lfun.get_fn_list('hourly', Ldir, ds0, ds1)
+    ot_list = []
+    dt_list = []
+    zeta_list = []
+    uwind_list = []
+    vwind_list = []
+    G = zrfun.get_basic_info(m_fn_list[0], only_G=True)
+    
+    mi = zfun.find_nearest_ind(G['lon_rho'][0,:], m_lon)
+    mj = zfun.find_nearest_ind(G['lat_rho'][:,0], m_lat)
+    for fn in m_fn_list:
+        T = zrfun.get_basic_info(fn, only_T=True)
+        dt_list.append(T['tm'])
+        ds = nc.Dataset(fn)
+        ot_list.append(ds['ocean_time'][0])
+        zeta_list.append(ds['zeta'][0,mj,mi])
+        uwind_list.append(ds['Uwind'][0,mj,mi])
+        vwind_list.append(ds['Vwind'][0,mj,mi])
+        ds.close()
+    ot_vec = zfun.fillit(np.array(ot_list))
+    zeta_vec = zfun.fillit(np.array(zeta_list))
+    uwind_vec = zfun.fillit(np.array(uwind_list))
+    vwind_vec = zfun.fillit(np.array(vwind_list))
+    uwind_vec = zfun.filt_hanning(uwind_vec, n=5, nanpad=False)
+    vwind_vec = zfun.filt_hanning(vwind_vec, n=5, nanpad=False)
+    
+    in_dict['ot_vec'] = ot_vec
+    in_dict['zeta_vec'] = zeta_vec
+    in_dict['uwind_vec'] = uwind_vec
+    in_dict['vwind_vec'] = vwind_vec
+    in_dict['m_lon'] = m_lon
+    in_dict['m_lat'] = m_lat
+    
+    # get sunrise and sunset
+    sdt0 = dt_list[0] - timedelta(days=1)
+    sdt1 = dt_list[-1] + timedelta(days=1)
+    Srise, Sset = efun.get_sunrise_sunset(sdt0, sdt1, city=city)
+    # these are lists of datetimes in the UTC time zone
+    in_dict['Srise'] = Srise
+    in_dict['Sset'] = Sset
 
 def dar(ax):
     """
@@ -70,75 +127,19 @@ def get_units(ds, vn):
         units = ''
     return units
 
-def add_bathy_contours(ax, ds, depth_levs = [200, 2000], txt=False):
+def add_bathy_contours(ax, ds, depth_levs = [200], txt=False):
     # this should work with ds being a history file Dataset, or the G dict.
     h = ds['h'][:]
     lon = ds['lon_rho'][:]
     lat = ds['lat_rho'][:]
     c = 'k'
     ax.contour(lon, lat, h, depth_levs, colors=c, linewidths=0.5)
-    if len(depth_levs) == 0:
-        if txt==True:
-            ax.text(.95, .95, '200 m', ha='right', transform=ax.transAxes, c=c)
-            ax.text(.95, .92, '2000 m', ha='right', transform=ax.transAxes, c=c)
-    else:
-        if txt==True:
-            ii = 0
-            for lev in depth_levs:
-                ax.text(.95, .95 - ii*.03, str(lev)+' m', c=c,
-                        ha='right', transform=ax.transAxes)
-                ii += 1
-        
-def add_map_field(ax, ds, vn, vlims_dict, slev=-1, cmap='rainbow', fac=1, alpha=1, aa=[], vlims_fac=3):
-    cmap = plt.get_cmap(name=cmap)
-    if 'lon_rho' in ds[vn].coordinates:
-        x = ds['lon_psi'][:]
-        y = ds['lat_psi'][:]
-        m = ds['mask_psi'][:]
-        if vn == 'zeta':
-            v = ds[vn][0, 1:-1, 1:-1].squeeze()
-        else:
-            v = ds[vn][0, slev, 1:-1, 1:-1].squeeze()
-    elif 'lon_v' in ds[vn].coordinates:
-        x = ds['lon_u'][:]
-        y = ds['lat_u'][:]
-        m = ds['mask_u'][:]
-        if vn == 'vbar':
-            v = ds[vn][0, :, 1:-1].squeeze()
-        else:
-            v = ds[vn][0, slev, :, 1:-1].squeeze()
-    elif 'lon_u' in ds[vn].coordinates:
-        x = ds['lon_v'][:]
-        y = ds['lat_v'][:]
-        m = ds['mask_v'][:]
-        if vn == 'ubar':
-            v = ds[vn][0, 1:-1, :].squeeze()
-        else:
-            v = ds[vn][0, slev, 1:-1, :].squeeze()
-        
-    v_scaled = fac*v
-    
-    # SETTING COLOR LIMITS
-    # First see if they are already set. If so then we are done.
-    vlims = vlims_dict[vn]
-    if len(vlims) == 0:
-        # If they are not set then set them.
-        if len(aa) == 4:
-            # make a mask to isolate field for chosing color limits
-            x0 = aa[0]; x1 = aa[1]
-            y0 = aa[2]; y1 = aa[3]
-            m[x<x0] = 0; m[x>x1] = 0
-            m[y<y0] = 0; m[y>y1] = 0
-            # set section color limits
-            fldm = v_scaled[m[1:,1:]==1]
-            vlims = auto_lims(fldm, vlims_fac=vlims_fac)
-        else:
-            vlims = auto_lims(v_scaled, vlims_fac=vlims_fac)
-        vlims_dict[vn] = vlims
-        # dicts have essentially global scope, so setting it here sets it everywhere
-        
-    cs = ax.pcolormesh(x, y, v_scaled, vmin=vlims[0], vmax=vlims[1], cmap=cmap, alpha=alpha)
-    return cs
+    if txt==True:
+        ii = 0
+        for lev in depth_levs:
+            ax.text(.95, .95 - ii*.03, str(lev)+' m', c=c,
+                    ha='right', transform=ax.transAxes)
+            ii += 1
 
 def add_velocity_vectors(ax, ds, fn, v_scl=3, v_leglen=0.5, nngrid=80, zlev='top', center=(.8,.05)):
     # v_scl: scale velocity vector (smaller to get longer arrows)
@@ -232,7 +233,6 @@ def get_aa(ds):
     y = ds['lat_psi'][:,0]
     aa = [x[0], x[-1], y[0], y[-1]]
     return aa
-    
 
 def get_zfull(ds, fn, which_grid):
     # get zfull field on "which_grid" ('rho', 'u', or 'v')
