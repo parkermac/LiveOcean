@@ -10,7 +10,7 @@ sys.path.append(os.path.abspath('../plotting'))
 import pfun
 
 import matplotlib.pyplot as plt
-import netCDF4 as nc4
+import netCDF4 as nc
 import numpy as np
 
 Ldir = Lfun.Lstart()
@@ -50,8 +50,10 @@ else:
     rel = rel_list[int(my_nrl)]
 
 # get Datasets
-dsr = nc4.Dataset(indir0 + indir + rel)
-dsg = nc4.Dataset(indir0 + indir + 'grid.nc')
+fn = indir0 + indir + rel
+fng = indir0 + indir + 'grid.nc'
+dsr = nc.Dataset(fn)
+dsg = nc.Dataset(fng)
 
 NT, NP = dsr['lon'].shape
 

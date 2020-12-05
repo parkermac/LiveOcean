@@ -3,9 +3,34 @@ Dictionaries of defaults to be used for plotting.
 
 """
 
+from cmocean import cm
+cmap_dict =  {'salt': cm.haline,
+             'temp': cm.thermal,
+             'NO3': cm.turbid,
+             'phytoplankton': 'Spectral_r',
+             'zooplankton': 'Spectral_r',
+             'oxygen': cm.oxy,
+             'TIC': cm.matter,
+             'alkalinity': cm.matter,
+             'PH': cm.matter,
+             'ARAG': cm.matter,
+             'speed': cm.speed}
+             
+vlims_fac_dict =  {'salt': .5,
+             'temp': 3,
+             'NO3': 1,
+             'phytoplankton': 3,
+             'zooplankton': 3,
+             'oxygen': 1,
+             'TIC': 1,
+             'alkalinity': 1,
+             'PH': 1,
+             'ARAG': 1,
+             'speed': 1}
+
 # Color limits
-# If you use () then the limits will be set by the first plot
-# and then held constant at those levels thereafter.    
+# If you use -avl True (the default) then the limits will be set by the first plot
+# and then held constant at those levels thereafter.
 vlims_dict = {'salt': (14, 35),
         'temp': (7, 18),
         'dye_01': (0,1),
@@ -17,7 +42,7 @@ vlims_dict = {'salt': (14, 35),
         'alkalinity': (2000,2400),
         'PH': (7, 8.5),
         'ARAG': (.2, 2.2),
-        'Ldetritus': ()}
+        'speed': (0, 2)}
 
 # Units (after multiplying by scaling factor)
 units_dict = {'salt': '[ppt]',
@@ -30,13 +55,7 @@ units_dict = {'salt': '[ppt]',
              'alkalinity': r'$[\mu\ equivalents\ L^{-1}]$',
              'PH': '',
              'ARAG': '',
-             'Ldetritus': '',
-             'w': r'$[m s^{-1}]$',
-             'u': r'$[m s^{-1}]$',
-             'v': r'$[m s^{-1}]$',
-             'ubar': r'$[m s^{-1}]$',
-             'vbar': r'$[m s^{-1}]$',
-             'zeta': r'[m]'}
+             'speed': r'&[m\ s^{-1}]&'}
 
 # Scaling factors
 fac_dict =  {'salt': 1,
@@ -49,13 +68,7 @@ fac_dict =  {'salt': 1,
              'alkalinity': 1,
              'PH': 1,
              'ARAG': 1,
-             'Ldetritus': 1,
-             'w': 1,
-             'u': 1,
-             'v': 1,
-             'ubar': 1,
-             'vbar': 1,
-             'zeta': 1}
+             'speed': ()}
              
 # String form to use in titles
 tstr_dict = {'salt': 'Salinity',
@@ -68,11 +81,5 @@ tstr_dict = {'salt': 'Salinity',
              'alkalinity': 'Alkalinity',
              'PH': 'pH',
              'ARAG': '$\Omega_{arag}$',
-             'Ldetritus': 'Ldetritus',
-             'w': 'W',
-             'u': 'U',
-             'v': 'V',
-             'ubar': 'Ubar',
-             'vbar': 'Vbar',
-             'zeta': 'Zeta'}
+             'speed': ()}
              

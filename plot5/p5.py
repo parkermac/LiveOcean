@@ -15,9 +15,9 @@ import netCDF4 as nc
 import numpy as np
 
 from importlib import reload
-import p5_plots
-reload(p5_plots)
-import p5_fun as pfun
+import plots
+reload(plots)
+import pfun
 reload(pfun)
 
 import matplotlib.pyplot as plt
@@ -25,107 +25,58 @@ plt.close('all')
 
 parser = argparse.ArgumentParser()
 # standard arguments
-parser.add_argument('-g', '--gridname', type=str, default='cas6')
-parser.add_argument('-t', '--tag', type=str, default='v3')
-parser.add_argument('-x', '--ex_name', type=str, default='lo8b')
-parser.add_argument('-0', '--date_string0', type=str, default='2019.07.04')
-parser.add_argument('-1', '--date_string1', type=str, default='')
+parser.add_argument('-gridname', type=str, default='cas6')
+parser.add_argument('-tag', type=str, default='v3')
+parser.add_argument('-ex_name', type=str, default='lo8b')
+parser.add_argument('-ds0', type=str, default='2019.07.04')
+parser.add_argument('-ds1', type=str, default='')
 # arguments that allow you to bypass the interactive choices
-parser.add_argument('-hn', '--his_num', type=int, default=1)
-parser.add_argument('-lt', '--list_type', type=str, default='')
-parser.add_argument('-pt', '--plot_type', type=str, default='')
+parser.add_argument('-hn', type=int, default=1) # history file number
+parser.add_argument('-lt', type=str, default='snapshot')
+parser.add_argument('-pt', type=str, default='P_1')
+parser.add_argument('-vn', type=str, default='salt')
+parser.add_argument('-dom', type=str, default='full')
 # arguments that influence other behavior
 #  e.g. make a movie, override auto color limits
-parser.add_argument('-mov', '--make_movie', default=False, type=zfun.boolean_string)
-parser.add_argument('-avl', '--auto_vlims', default=True, type=zfun.boolean_string)
-parser.add_argument('-test', '--testing', default=False, type=zfun.boolean_string)
+parser.add_argument('-mov', default=False, type=zfun.boolean_string)
+parser.add_argument('-avl', default=True, type=zfun.boolean_string)
+parser.add_argument('-emask', default=False, type=zfun.boolean_string)
 
 args = parser.parse_args()
-in_dict = args.__dict__
+Q = args.__dict__
 
-if len(in_dict['date_string1']) == 0:
-    in_dict['date_string1'] = in_dict['date_string0']
+if len(Q['ds1']) == 0:
+    Q['ds1'] = Q['ds0']
     
 Ldir = Lfun.Lstart(args.gridname, args.tag)
-Ldir['gtagex'] = Ldir['gtag'] + '_' + in_dict['ex_name']
+Ldir['gtagex'] = Ldir['gtag'] + '_' + Q['ex_name']
 
-# choose the type of list to make
-if len(args.list_type) == 0:
-    print(30*'*' + ' pan_plot ' + 30*'*')
-    print('\n%s\n' % '** Choose List type (return for snapshot) **')
-    lt_list = ['snapshot', 'daily', 'hourly ', 'allhours'] # forecast?
-    Nlt = len(lt_list)
-    lt_dict = dict(zip(range(Nlt), lt_list))
-    for nlt in range(Nlt):
-        print(str(nlt) + ': ' + lt_list[nlt])
-    my_nlt = input('-- Input number -- ')
-    if len(my_nlt)==0:
-        list_type = 'snapshot'
-    else:
-        list_type = lt_dict[int(my_nlt)]
-else:
-    list_type = in_dict['list_type']
-
-# choose the type of plot to make
-if len(args.plot_type) == 0:
-    print('\n%s\n' % '** Choose Plot type (return for P_full_salt) **')
-    pt_list_raw = dir(p5_plots)
-    pt_list = [item for item in pt_list_raw if item[:2] == 'P_']
-    Npt = len(pt_list)
-    pt_dict = dict(zip(range(Npt), pt_list))
-    for npt in range(Npt):
-        print(str(npt) + ': ' + pt_list[npt])
-    my_npt = input('-- Input number -- ')
-    if len(my_npt)==0:
-        plot_type = 'P_full_salt'
-    else:
-        plot_type = pt_dict[int(my_npt)]
-else:
-    plot_type = in_dict['plot_type']
-whichplot = getattr(p5_plots, plot_type)
+whichplot = getattr(plots, Q['pt'])
 
 # get list of history files to plot
-ds0 = in_dict['date_string0']
-ds1 = in_dict['date_string1']
-fn_list = Lfun.get_fn_list(list_type, Ldir, ds0, ds1, his_num=in_dict['his_num'])
+ds0 = Q['ds0']
+ds1 = Q['ds1']
+fn_list = Lfun.get_fn_list(Q['lt'], Ldir, ds0, ds1, his_num=Q['hn'])
 
-# get mooring record
-if 'full' in plot_type:
-    m_lon=-124.5
-    m_lat=47
-    city='Westport'
-    in_dict['aa'] = []
-    in_dict['xtr'] = range(-129,-121,2)
-    in_dict['ytr'] = range(44,52,2)
-    in_dict['xwt'] = -123.08
-    in_dict['ywt'] = 46.64
-elif 'PS' in plot_type:
-    m_lon=-122.433
-    m_lat=47.86
-    city='Seattle'
-    in_dict['aa'] = [-124, -122, 47, 49.5]
-    in_dict['xtr'] = [-123]
-    in_dict['ytr'] = [48, 49]
-    in_dict['xwt'] = -122.2
-    in_dict['ywt'] = 47.5    
-    
-pfun.get_moor(ds0, ds1, Ldir, in_dict, m_lon, m_lat, city)
+pfun.get_limits(Q)
 
+M = pfun.get_moor_info(Q)
+pfun.get_moor(ds0, ds1, Ldir, Q, M)
         
 # PLOTTING
 
 if len(fn_list) == 1:
     # plot a single image to screen
     fn = fn_list[0]
-    in_dict['fn'] = fn
-    in_dict['fn_out'] = ''
-    whichplot(in_dict)
+    Q['fn'] = fn
+    Q['fn_out'] = ''
+    whichplot(Q, M)
     
 elif len(fn_list) > 1:
     # prepare a directory for results
     outdir0 = Ldir['LOo'] + 'p5/'
     Lfun.make_dir(outdir0, clean=False)
-    outdir = outdir0 + plot_type + '_' + list_type + '_' + Ldir['gtagex'] + '/'
+    outdir = outdir0 + Q['pt'] + '_' + Q['lt'] + '_' + Ldir['gtagex'] + '/'
     Lfun.make_dir(outdir, clean=True)
     # plot to a folder of files
     jj = 0
@@ -134,15 +85,15 @@ elif len(fn_list) > 1:
         outname = 'plot_' + nouts + '.png'
         outfile = outdir + outname
         print('Plotting ' + fn)
-        in_dict['fn'] = fn
-        in_dict['fn_out'] = outfile
-        whichplot(in_dict)
+        Q['fn'] = fn
+        Q['fn_out'] = outfile
+        whichplot(Q, M)
         # after the first plot we no longer change vlims
-        in_dict['auto_vlims'] = False
+        Q['avl'] = False
         jj += 1
     # and make a movie
-    if args.make_movie:
+    if Q['mov']:
         ff_str = ("ffmpeg -r 8 -i " + 
             outdir + "plot_%04d.png -vcodec libx264 -pix_fmt yuv420p -crf 25 "
-            + outdir + plot_type+".mp4")
+            + outdir + Q['pt'] + ".mp4")
         os.system(ff_str)
