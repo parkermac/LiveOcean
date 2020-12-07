@@ -20,6 +20,7 @@
 
 # defaults
 roms2="BLANK"
+roms3="BLANK"
 
 if [ $HOME == "/Users/pm8" ] ; then
   lo_env='pm_mac'
@@ -57,6 +58,7 @@ elif [ $HOME == "/home/parker" ] && [[ $HOSTNAME == *"perigee"* ]] ; then
   LOo=$parent"LiveOcean_output/"
   roms=$parent"LiveOcean_roms/"
   roms2="/pmr1/parker/LiveOcean_roms/"
+  roms3="/data2/parker/LiveOcean_roms/"
   which_matlab="/usr/local/bin/matlab"
 
 elif [ $HOME == "/home/parker" ] && [[ $HOSTNAME == *"gaggle"* ]] ; then
@@ -98,4 +100,5 @@ echo "data",$data >> $outfile
 echo "LOo",$LOo >> $outfile
 echo "roms",$roms >> $outfile
 echo "roms2",$roms2 >> $outfile
+echo "roms3",$roms3 >> $outfile
 echo "which_matlab",$which_matlab >> $outfile

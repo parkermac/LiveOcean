@@ -5,6 +5,7 @@ based on an experiment name passed by the calling code.
 """
 
 import numpy as np
+import sys
 
 def get_exp_info(exp_name):
     
@@ -208,9 +209,12 @@ def ic_from_TEFsegs(fn00, gridname, seg_list, DZ, NPmax=10000):
                 pcs00 = np.append(pcs00, svec)
     # subsample the I.C. vectors to around max length around NPmax
     NP = len(plon00)
+    print(len(plon00))
     nstep = max(1,int(NP/NPmax))
     plon00 = plon00[::nstep]
     plat00 = plat00[::nstep]
     pcs00 = pcs00[::nstep]
+    print(len(plon00))
+    sys.stdout.flush()
     return plon00, plat00, pcs00
     

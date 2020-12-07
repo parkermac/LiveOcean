@@ -47,6 +47,7 @@ import os, sys
 sys.path.append(os.path.abspath('../alpha'))
 import Lfun
 Ldir = Lfun.Lstart()
+import zfun
 
 from importlib import reload
 
@@ -74,7 +75,7 @@ parser = argparse.ArgumentParser()
 # Set the experiment name
 # (details set in experiments.py, or, if it exists, user_experiments.py)
 parser.add_argument('-exp', '--exp_name', default='jdf0', type=str)
-parser.add_argument('-clb', '--clobber', default=False, type=boolean_string)
+parser.add_argument('-clb', '--clobber', default=False, type=zfun.boolean_string)
 # overwrite existing output folder if clobber == True
 parser.add_argument('-t', '--tag', default='', type=str)
 # append an optional tag to the end of the output folder name
@@ -83,9 +84,9 @@ parser.add_argument('-t', '--tag', default='', type=str)
 # so if you do NOT use these flags the run will be:
 # - trapped to the surface
 # - no vertical turbulent diffusion
-parser.add_argument('-3d', default=False, type=boolean_string) # do 3d tracking
-parser.add_argument('-laminar', default=False, type=boolean_string) # no turbulence
-parser.add_argument('-no_advection', default=False, type=boolean_string) # no advection
+parser.add_argument('-3d', default=False, type=zfun.boolean_string) # do 3d tracking
+parser.add_argument('-laminar', default=False, type=zfun.boolean_string) # no turbulence
+parser.add_argument('-no_advection', default=False, type=zfun.boolean_string) # no advection
 parser.add_argument('-sink', default=0, type=float) # particle sinking speed (m per day, e.g. 40)
 
 # windage = a small number: 0 <= windage << 1 (e.g. 0.03)
