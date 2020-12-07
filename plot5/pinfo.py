@@ -13,7 +13,7 @@ cmap_dict =  {'salt': cm.haline,
              'TIC': cm.matter,
              'alkalinity': cm.matter,
              'PH': cm.matter,
-             'ARAG': cm.matter,
+             'ARAG': 'coolwarm_r',
              'speed': 'YlOrBr'}
              
 vlims_fac_dict =  {'salt': .5,
@@ -41,7 +41,7 @@ vlims_dict = {'salt': (14, 35),
         'TIC': (2000, 2400),
         'alkalinity': (2000,2400),
         'PH': (7, 8.5),
-        'ARAG': (.2, 2.2),
+        'ARAG': (0, 3),
         'speed': (0, 2)}
 
 # Units (after multiplying by scaling factor)
@@ -80,6 +80,6 @@ tstr_dict = {'salt': 'Salinity',
              'TIC': 'DIC',
              'alkalinity': 'Alkalinity',
              'PH': 'pH',
-             'ARAG': '$\Omega_{arag}$',
+             'ARAG': r'$\Omega_{arag}$',
              'speed': 'Speed'}
              

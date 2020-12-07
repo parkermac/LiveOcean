@@ -39,6 +39,7 @@ parser.add_argument('-bot', default=False, type=zfun.boolean_string)
 parser.add_argument('-mov', default=False, type=zfun.boolean_string)
 parser.add_argument('-avl', default=True, type=zfun.boolean_string)
 parser.add_argument('-emask', default=False, type=zfun.boolean_string)
+parser.add_argument('-tracks', default=False, type=zfun.boolean_string)
 
 args = parser.parse_args()
 Q = args.__dict__
@@ -64,6 +65,9 @@ if Q['avl'] == False:
 
 M = pfun.get_moor_info(Q)
 pfun.get_moor(ds0, ds1, Ldir, Q, M)
+
+if Q['tracks']:
+    pfun.get_tracks(Q, Ldir)
 
 # PLOTTING
 

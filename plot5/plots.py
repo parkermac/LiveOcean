@@ -46,16 +46,12 @@ def P_1(Q, M):
         nlev = -1
         tstr = 'Surface'
         
+    px = ds['lon_psi'][:]
+    py = ds['lat_psi'][:]
     if vn == 'speed':
-        u = ds['u'][0,nlev,:,:]
-        v = ds['v'][0,nlev,:,:]
-        u[u.mask] = 0
-        v[v.mask] = 0
-        fld0 = 0 * ds['salt'][0,-1,1:-1,1:-1]
-        uu = (u[1:-1,:-1] + u[1:-1,1:])/2
-        vv = (v[:-1,1:-1] + v[1:,1:-1])/2
-        fld = np.sqrt(uu*uu + vv*vv)
-        fld = np.ma.masked_where(fld0.mask, fld)
+        fld = pfun.get_speed(ds, nlev)
+    elif vn == 'ARAG':
+        px, py, fld = pfun.get_arag(ds, Q, aa, nlev)
     else:
         fld = ds[vn][0,nlev,1:-1,1:-1]*pinfo.fac_dict[vn]
         
@@ -67,7 +63,7 @@ def P_1(Q, M):
         
     # MAP FIELD
     ax = plt.subplot2grid((7,1), (0,0), rowspan=6)
-    cs = ax.pcolormesh(ds['lon_psi'][:], ds['lat_psi'][:], fld,
+    cs = ax.pcolormesh(px, py, fld,
         cmap=pinfo.cmap_dict[vn], vmin=Q['vmin'], vmax=Q['vmax'])
     ax.text(.95, .99,'%s %s %s' % (tstr, pinfo.tstr_dict[vn],pinfo.units_dict[vn]),
         transform=ax.transAxes, ha='right', va='top', weight='bold')
@@ -93,6 +89,10 @@ def P_1(Q, M):
     T = zrfun.get_basic_info(Q['fn'], only_T=True)
     pfun.add_wind(ax, M, T)
     pfun.add_wind_text(ax, aa, M, fs)
+    
+    if Q['tracks']:
+        tr_ds = nc.Dataset(Q['tr_fn'])
+        ax.plot(tr_ds['lon'][:], tr_ds['lat'][:],'-')
         
     # axes labeling
     ax.set_xticks(Q['xtl'])

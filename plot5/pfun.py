@@ -37,6 +37,66 @@ import pinfo
 from warnings import filterwarnings
 filterwarnings('ignore') # skip some warning messages
 
+def get_tracks(Q, Ldir, exp_name='eddy0'):
+    import subprocess
+    cmd = ['python', '../tracker2/tracker.py', '-exp', exp_name,
+        '-ds', Q['ds0'],'-clb','True']
+    proc = subprocess.Popen(cmd)
+    proc.communicate()
+    tr_fn = Ldir['LOo'] + 'tracks2/' + exp_name + '_surf/release_' + Q['ds0'] + '.nc'
+    Q['tr_fn'] = tr_fn
+    
+def get_speed(ds, nlev):
+    u = ds['u'][0,nlev,:,:]
+    v = ds['v'][0,nlev,:,:]
+    u[u.mask] = 0
+    v[v.mask] = 0
+    fld0 = 0 * ds['salt'][0,-1,1:-1,1:-1]
+    uu = (u[1:-1,:-1] + u[1:-1,1:])/2
+    vv = (v[:-1,1:-1] + v[1:,1:-1])/2
+    fld = np.sqrt(uu*uu + vv*vv)
+    fld = np.ma.masked_where(fld0.mask, fld)
+    return fld
+
+def get_arag(ds, Q, aa, nlev):
+    from PyCO2SYS import CO2SYS
+    import seawater as sw
+    G = zrfun.get_basic_info(Q['fn'], only_G=True)
+    # find indices that encompass region aa
+    i0 = zfun.find_nearest_ind(G['lon_rho'][0,:], aa[0]) - 1
+    i1 = zfun.find_nearest_ind(G['lon_rho'][0,:], aa[1]) + 2
+    j0 = zfun.find_nearest_ind(G['lat_rho'][:,0], aa[2]) - 1
+    j1 = zfun.find_nearest_ind(G['lat_rho'][:,0], aa[3]) + 2
+    px = G['lon_psi'][j0:j1-1, i0:i1-1]
+    py = G['lat_psi'][j0:j1-1, i0:i1-1]
+    lat = G['lat_rho'][j0:j1,i0:i1] # used in sw.pres
+    # first extract needed fields and save in v_dict
+    v_dict = {}
+    vn_in_list = ['temp', 'salt' , 'rho', 'alkalinity', 'TIC']
+    for cvn in vn_in_list:
+        L = zfun.fillit(ds[cvn][0,nlev,j0:j1,i0:i1])
+        v_dict[cvn] = L
+    # ------------- the CO2SYS steps -------------------------
+    # create pressure
+    Ld = G['h'][j0:j1,i0:i1]
+    Lpres = sw.pres(Ld, lat)
+    # get in situ temperature from potential temperature
+    Ltemp = sw.ptmp(v_dict['salt'], v_dict['temp'], 0, Lpres)
+    # convert from umol/L to umol/kg using in situ dentity
+    Lalkalinity = 1000 * v_dict['alkalinity'] / (v_dict['rho'] + 1000)
+    Lalkalinity[Lalkalinity < 100] = np.nan
+    LTIC = 1000 * v_dict['TIC'] / (v_dict['rho'] + 1000)
+    LTIC[LTIC < 100] = np.nan
+    Lpres = zfun.fillit(Lpres)
+    Ltemp = zfun.fillit(Ltemp)
+    CO2dict = CO2SYS(Lalkalinity, LTIC, 1, 2, v_dict['salt'], Ltemp, Ltemp,
+        Lpres, Lpres, 50, 2, 1, 10, 1, NH3=0.0, H2S=0.0)
+    # PH = CO2dict['pHout']
+    # PH = zfun.fillit(PH.reshape((v_dict['salt'].shape)))
+    ARAG = CO2dict['OmegaARout']
+    ARAG = zfun.fillit(ARAG.reshape((v_dict['salt'].shape)))
+    fld = ARAG[1:-1, 1:-1]
+    return px, py, fld
 
 def get_ax_limits(Q):
     # set limits and ticklabels
@@ -49,6 +109,11 @@ def get_ax_limits(Q):
         Q['aa'] = [-123.6, -122, 47, 49]
         Q['xtl'] = [-123, -122.5]
         Q['ytl'] = [47.5, 48, 48.5]
+        Q['v_scl'] = 25
+    elif Q['dom'] == 'willapa':
+        Q['aa'] = [-124.6, -123.65, 46, 47.2]
+        Q['xtl'] = [-124.4, -124.2, -124, -123.8]
+        Q['ytl'] = [46, 46.5, 47]
         Q['v_scl'] = 25
         
 def get_moor_info(Q):
@@ -64,6 +129,11 @@ def get_moor_info(Q):
         M['lat'] = 47.86
         M['city'] = 'Seattle'
         M['wscl'] = 10
+    elif Q['dom'] == 'willapa':
+        M['lon'] = -124.4
+        M['lat'] = 46.6
+        M['city'] = 'Westport'
+        M['wscl'] = 20
     return M
 
 def plot_time_series(ax, M, T):
@@ -257,7 +327,6 @@ def add_velocity_vectors(ax, aa, ds, fn, v_scl=3, nngrid=80, zlev='top'):
     # plot velocity vectors
     ax.quiver(xx[mask], yy[mask], uu[mask], vv[mask],
         units='y', scale=v_scl, scale_units='y', color='b')
-        
         
 def add_wind(ax, M, T):
     """Add a windspeed vector with circles for scale."""
