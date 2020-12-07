@@ -39,7 +39,26 @@ def P_1(Q, M):
     aa = Q['aa']
     
     vn = Q['vn']
-    fld = ds[vn][0,-1,1:-1,1:-1]*pinfo.fac_dict[vn]
+    if Q['bot']:
+        nlev = 0
+        tstr = 'Bottom'
+    else:
+        nlev = -1
+        tstr = 'Surface'
+        
+    if vn == 'speed':
+        u = ds['u'][0,nlev,:,:]
+        v = ds['v'][0,nlev,:,:]
+        u[u.mask] = 0
+        v[v.mask] = 0
+        fld0 = 0 * ds['salt'][0,-1,1:-1,1:-1]
+        uu = (u[1:-1,:-1] + u[1:-1,1:])/2
+        vv = (v[:-1,1:-1] + v[1:,1:-1])/2
+        fld = np.sqrt(uu*uu + vv*vv)
+        fld = np.ma.masked_where(fld0.mask, fld)
+    else:
+        fld = ds[vn][0,nlev,1:-1,1:-1]*pinfo.fac_dict[vn]
+        
     if Q['emask']:
         fld = pfun.mask_edges(ds, fld, Q)
     if Q['avl']:
@@ -50,10 +69,15 @@ def P_1(Q, M):
     ax = plt.subplot2grid((7,1), (0,0), rowspan=6)
     cs = ax.pcolormesh(ds['lon_psi'][:], ds['lat_psi'][:], fld,
         cmap=pinfo.cmap_dict[vn], vmin=Q['vmin'], vmax=Q['vmax'])
-    ax.text(.95, .99,'Surface %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]),
+    ax.text(.95, .99,'%s %s %s' % (tstr, pinfo.tstr_dict[vn],pinfo.units_dict[vn]),
         transform=ax.transAxes, ha='right', va='top', weight='bold')
     
-    pfun.add_bathy_contours(ax, ds, txt=False, depth_levs=[200])
+    if Q['dom'] == 'full':
+        pfun.add_bathy_contours(ax, ds, txt=False, depth_levs=[200])
+        
+    if vn == 'speed':
+        pfun.add_velocity_vectors(ax, aa, ds, Q['fn'], v_scl=Q['v_scl'])
+        
     pfun.add_coast(ax, color='k')
     ax.axis(aa)
     pfun.dar(ax)
@@ -73,8 +97,9 @@ def P_1(Q, M):
     # axes labeling
     ax.set_xticks(Q['xtl'])
     ax.set_yticks(Q['ytl'])
-    ax.tick_params(axis="y",direction="in", pad=-28)#, labelcolor='gray')
-    ax.tick_params(axis="x",direction="in", pad=-21)#, labelcolor='gray')
+    ax.tick_params(labelsize=.7*fs)
+    # ax.tick_params(axis="y",direction="in", pad=-28)#, labelcolor='gray')
+    # ax.tick_params(axis="x",direction="in", pad=-21)#, labelcolor='gray')
     
         
     # MOORING TIME SERIES

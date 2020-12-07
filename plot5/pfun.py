@@ -34,16 +34,22 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import pinfo
 
-def get_limits(Q):
+from warnings import filterwarnings
+filterwarnings('ignore') # skip some warning messages
+
+
+def get_ax_limits(Q):
     # set limits and ticklabels
     if Q['dom'] == 'full':
         Q['aa'] = []
         Q['xtl'] = range(-129,-121,2)
         Q['ytl'] = range(44,52,2)
+        Q['v_scl'] = 3 # used for velocity vectors
     elif Q['dom'] == 'PS':
-        Q['aa'] = [-124, -122, 47, 49.5]
-        Q['xtl'] = [-123]
-        Q['ytl'] = [48, 49]
+        Q['aa'] = [-123.6, -122, 47, 49]
+        Q['xtl'] = [-123, -122.5]
+        Q['ytl'] = [47.5, 48, 48.5]
+        Q['v_scl'] = 25
         
 def get_moor_info(Q):
     # set mooring info
@@ -161,7 +167,7 @@ def add_coast(ax, dir0=Ldir['data'], color='k'):
     ax.plot(C['lon'].values, C['lat'].values, '-', color=color, linewidth=0.5)
 
 def mask_edges(ds, fld, Q):
-    # mask to help with choosing color limits
+    # mask off selected edges, e.g. for NPZD variables
     xr = ds['lon_rho'][1:-1,1:-1]
     yr = ds['lat_rho'][1:-1,1:-1]
     aa = Q['aa']
@@ -219,11 +225,8 @@ def add_bathy_contours(ax, ds, depth_levs = [200], txt=False):
                     ha='right', transform=ax.transAxes)
             ii += 1
 
-def add_velocity_vectors(ax, ds, fn, v_scl=3, v_leglen=0.5, nngrid=80, zlev='top', center=(.8,.05)):
+def add_velocity_vectors(ax, aa, ds, fn, v_scl=3, nngrid=80, zlev='top'):
     # v_scl: scale velocity vector (smaller to get longer arrows)
-    # v_leglen: m/s for velocity vector legend
-    xc = center[0]
-    yc = center[1]
     # GET DATA
     G = zrfun.get_basic_info(fn, only_G=True)
     if zlev == 'top':
@@ -232,11 +235,6 @@ def add_velocity_vectors(ax, ds, fn, v_scl=3, v_leglen=0.5, nngrid=80, zlev='top
     elif zlev == 'bot':
         u = ds['u'][0, 0, :, :].squeeze()
         v = ds['v'][0, 0, :, :].squeeze()
-    else:
-        zfull_u = get_zfull(ds, fn, 'u')
-        zfull_v = get_zfull(ds, fn, 'v')
-        u = get_laym(ds, zfull_u, ds['mask_u'][:], 'u', zlev).squeeze()
-        v = get_laym(ds, zfull_v, ds['mask_v'][:], 'v', zlev).squeeze()
     # ADD VELOCITY VECTORS
     # set masked values to 0
     ud = u.data; ud[u.mask]=0
@@ -246,12 +244,11 @@ def add_velocity_vectors(ax, ds, fn, v_scl=3, v_leglen=0.5, nngrid=80, zlev='top
     ui = intp.interp2d(G['lon_u'][0, :], G['lat_u'][:, 0], ud)
     vi = intp.interp2d(G['lon_v'][0, :], G['lat_v'][:, 0], vd)
     # create regular grid
-    aaa = ax.axis()
-    daax = aaa[1] - aaa[0]
-    daay = aaa[3] - aaa[2]
-    axrat = np.cos(np.deg2rad(aaa[2])) * daax / daay
-    x = np.linspace(aaa[0], aaa[1], int(round(nngrid * axrat)))
-    y = np.linspace(aaa[2], aaa[3], int(nngrid))
+    daax = aa[1] - aa[0]
+    daay = aa[3] - aa[2]
+    axrat = np.cos(np.deg2rad(aa[2])) * daax / daay
+    x = np.linspace(aa[0], aa[1], int(round(nngrid * axrat)))
+    y = np.linspace(aa[2], aa[3], int(nngrid))
     xx, yy = np.meshgrid(x, y)
     # interpolate to regular grid
     uu = ui(x, y)
@@ -259,14 +256,8 @@ def add_velocity_vectors(ax, ds, fn, v_scl=3, v_leglen=0.5, nngrid=80, zlev='top
     mask = uu != 0
     # plot velocity vectors
     ax.quiver(xx[mask], yy[mask], uu[mask], vv[mask],
-        units='y', scale=v_scl, scale_units='y', color='k')
-    ax.quiver([xc, xc] , [yc, yc], [v_leglen, v_leglen],
-              [v_leglen, v_leglen],
-        units='y', scale=v_scl, scale_units='y', color='k',
-        transform=ax.transAxes)
-    ax.text(xc+.05, yc, str(v_leglen) + ' m/s',
-        horizontalalignment='left', transform=ax.transAxes)
-    # note: I could also use plt.quiverkey() 
+        units='y', scale=v_scl, scale_units='y', color='b')
+        
         
 def add_wind(ax, M, T):
     """Add a windspeed vector with circles for scale."""

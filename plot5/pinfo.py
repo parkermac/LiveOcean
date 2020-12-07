@@ -14,7 +14,7 @@ cmap_dict =  {'salt': cm.haline,
              'alkalinity': cm.matter,
              'PH': cm.matter,
              'ARAG': cm.matter,
-             'speed': cm.speed}
+             'speed': 'YlOrBr'}
              
 vlims_fac_dict =  {'salt': .5,
              'temp': 3,
@@ -55,7 +55,7 @@ units_dict = {'salt': '[ppt]',
              'alkalinity': r'$[\mu\ equivalents\ L^{-1}]$',
              'PH': '',
              'ARAG': '',
-             'speed': r'&[m\ s^{-1}]&'}
+             'speed': r'$[m\ s^{-1}]$'}
 
 # Scaling factors
 fac_dict =  {'salt': 1,
@@ -68,7 +68,7 @@ fac_dict =  {'salt': 1,
              'alkalinity': 1,
              'PH': 1,
              'ARAG': 1,
-             'speed': ()}
+             'speed': 1}
              
 # String form to use in titles
 tstr_dict = {'salt': 'Salinity',
@@ -81,5 +81,5 @@ tstr_dict = {'salt': 'Salinity',
              'alkalinity': 'Alkalinity',
              'PH': 'pH',
              'ARAG': '$\Omega_{arag}$',
-             'speed': ()}
+             'speed': 'Speed'}
              
