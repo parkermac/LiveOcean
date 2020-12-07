@@ -101,6 +101,10 @@ parser.add_argument('-ds', '--ds_first_day', default='2019.07.04', type=str)
 parser.add_argument('-nsd', '--number_of_start_days', default=1, type=int)
 parser.add_argument('-dbs', '--days_between_starts', default=1, type=int)
 parser.add_argument('-dtt', '--days_to_track', default=1, type=int)
+# the "long_last_day" flag means that on the last day of each release the
+# code will make a file list to loop over that has "allhours" in that day folder,
+# to allow for the daily forecast.
+parser.add_argument('-lld', '--long_last_day', default=False, type=zfun.boolean_string)
 
 # number of divisions to make between saves for the integration
 # e.g. if ndiv = 12 and we have hourly saves, we use a 300 sec step
@@ -114,13 +118,18 @@ parser.add_argument('-sph', default=1, type=int)
 # between Ldir['roms'] or Ldir['roms2'] by passing "roms" or "roms2", or any other
 # choice that eventually appears in Ldir.
 parser.add_argument('-rd', '--roms_dir', default='roms', type=str)
-# valid arguments to pass are: roms, roms2
+# valid arguments to pass are: roms, roms2, roms3
 
 args = parser.parse_args()
 TR = args.__dict__ 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 # set dependent and default fields
+
+if TR['long_last_day'] & (TR['days_to_track'] < 3):
+    print('Warning: Need at least three days_to_track when using long_last_day!!')
+    print('-- tracker run not started --')
+    sys.exit()
 
 TR['turb'] = False
 
@@ -239,7 +248,23 @@ for idt0 in idt_list:
         idt_str = datetime.strftime(idt,'%Y.%m.%d')
         print(' - working on ' + idt_str)
         sys.stdout.flush()
-        fn_list = tfun.get_fn_list(idt, Ldir)
+        
+        # this long_last_day logic is hard-coded to assume a 3-day forecast
+        # in the last folder
+        if TR['long_last_day']:
+            if (nd == TR['days_to_track']-2):
+                f2_idt = idt0 + timedelta(days=nd-1)
+                fn_list = tfun.get_fn_list(f2_idt, Ldir, noffset=24)
+            elif (nd == TR['days_to_track']-1):
+                f3_idt = idt0 + timedelta(days=nd-2)
+                fn_list = tfun.get_fn_list(f3_idt, Ldir, noffset=48)
+            else:
+                fn_list = tfun.get_fn_list(idt, Ldir)
+                
+        else:
+            fn_list = tfun.get_fn_list(idt, Ldir)
+        print('   '+fn_list[0])
+        print('   '+fn_list[-1])
         
         # write the grid file (once per experiment) for plotting
         if write_grid == True:
@@ -247,7 +272,7 @@ for idt0 in idt_list:
             g_outfile = outdir + 'grid.nc'
             tfnc.write_grid(g_infile, g_outfile)
             write_grid = False
-           
+
         # DO THE TRACKING
         if nd == 0: # first day
             # set IC
