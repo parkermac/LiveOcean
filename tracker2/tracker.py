@@ -140,14 +140,14 @@ EI = exp.get_exp_info(TR['exp_name'])
 TR['gtagex'] = EI['gtagex']
 TR['gridname'] = EI['gridname']
 
+# pass some info to Ldir
+Ldir['gtagex'] = TR['gtagex']
+Ldir['roms'] = Ldir[TR['roms_dir']]
+
 # get the full path to a valid history file
 fn00 = (Ldir['roms'] + 'output/' + TR['gtagex'] +
     '/f' + TR['ds_first_day'] + '/ocean_his_0001.nc')
 TR['fn00'] = fn00
-
-# pass some info to Ldir
-Ldir['gtagex'] = TR['gtagex']
-Ldir['roms'] = Ldir[TR['roms_dir']]
 
 # set the name of the output folder
 out_name = TR['exp_name']
