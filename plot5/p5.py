@@ -88,7 +88,7 @@ elif len(fn_list) > 1:
     if Q['bot'] == True:
         bot_tag = '_bot'
     else:
-        bot_tag = ''
+        bot_tag = 'top'
         
     moviename = Q['vn'] + '_' + Q['dom'] + bot_tag
     outdir = outdir0 + moviename + '/'
