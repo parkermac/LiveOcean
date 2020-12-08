@@ -89,7 +89,8 @@ elif len(fn_list) > 1:
         bot_tag = '_bot'
     else:
         bot_tag = ''
-    outdir = outdir0 + Q['vn'] + '_' + Q['dom'] + bot_tag + '/'
+    outname = Q['vn'] + '_' + Q['dom'] + bot_tag
+    outdir = outdir0 + outname + '/'
     Lfun.make_dir(outdir, clean=True)
     # plot to a folder of files
     jj = 0
@@ -109,5 +110,5 @@ elif len(fn_list) > 1:
     if Q['mov']:
         ff_str = ("ffmpeg -r 8 -i " + 
             outdir + "plot_%04d.png -vcodec libx264 -pix_fmt yuv420p -crf 25 "
-            + outdir + "movie.mp4")
+            + outdir + outname + ".mp4")
         os.system(ff_str)
