@@ -29,6 +29,8 @@ moviename_list = ['full_salt_top', 'full_oxygen_bot',
                     'PS_temp_top', 'PS_speed_top',
                     'willapa_ARAG_top', 'willapa_ARAG_bot']
                     
+os.chdir(Ldir['LO'] + 'plot5/')
+
 for moviename in moviename_list:
     (dom,vn,BOT) = moviename.split('_')
     tracks = 'False'
@@ -44,7 +46,7 @@ for moviename in moviename_list:
     if vn == 'salt':
         tracks = 'True'
         
-    cmd = ['python', '../../plot5/p5.py', '-ds0', ds0, '-lt', 'allhours', '-mov', 'True',
+    cmd = ['python', 'p5.py', '-ds0', ds0, '-lt', 'allhours', '-mov', 'True',
         '-dom', dom, '-vn', vn, '-tracks', tracks, '-emask', emask, '-avl', avl, '-bot', bot]
         
     print('\n' + moviename)
