@@ -35,6 +35,7 @@ def run_sub(cmd):
     proc = subprocess.Popen(cmd)
     return proc
 
+tt0 = time()
 for moviename in moviename_list:
     (dom,vn,BOT) = moviename.split('_')
     tracks = 'False'
@@ -54,13 +55,16 @@ for moviename in moviename_list:
         '-dom', dom, '-vn', vn, '-tracks', tracks, '-emask', emask, '-avl', avl, '-bot', bot]
         
     print('\n' + moviename)
+    sys.stdout.flush()
     sleep(1)
     proc = run_sub(cmd)
     procs.append(proc)
-    proc.communicate()
 
 for proc in procs:
     proc.communicate()
+    
+print('time to run all jobs = %0.1f sec' % (time() - tt0))
+sys.stdout.flush()
 
 for moviename in moviename_list:
     input_filename = Ldir['LOo'] + 'p5/' + Ldir['gtagex'] + '/' + moviename + '/' + moviename + '.mp4'
@@ -68,6 +72,7 @@ for moviename in moviename_list:
 
     # send file to homer (only works from boiler)
     print('\nCopying '+output_filename+' to homer')
+    sys.stdout.flush()
     cmd_list = ['scp',input_filename,
         'pmacc@homer.u.washington.edu:/hw00/d47/pmacc/LO/Figs_active_forecast/'+output_filename]
     ret = subprocess.call(cmd_list)
