@@ -85,7 +85,11 @@ elif len(fn_list) > 1:
     Lfun.make_dir(outdir00, clean=False)
     outdir0 = outdir00 + Ldir['gtagex'] + '/'
     Lfun.make_dir(outdir0, clean=False)
-    outdir = outdir0 + Q['vn'] + '_' + Q['dom'] + '/'
+    if Q['bot'] == True:
+        bot_tag = '_bot'
+    else:
+        bot_tag = ''
+    outdir = outdir0 + Q['vn'] + '_' + Q['dom'] + bot_tag + '/'
     Lfun.make_dir(outdir, clean=True)
     # plot to a folder of files
     jj = 0
