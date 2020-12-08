@@ -89,6 +89,7 @@ elif len(fn_list) > 1:
         bot_tag = '_bot'
     else:
         bot_tag = ''
+        
     moviename = Q['vn'] + '_' + Q['dom'] + bot_tag
     outdir = outdir0 + moviename + '/'
     Lfun.make_dir(outdir, clean=True)
