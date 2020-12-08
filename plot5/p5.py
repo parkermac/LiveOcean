@@ -40,6 +40,7 @@ parser.add_argument('-mov', default=False, type=zfun.boolean_string)
 parser.add_argument('-avl', default=True, type=zfun.boolean_string)
 parser.add_argument('-emask', default=False, type=zfun.boolean_string)
 parser.add_argument('-tracks', default=False, type=zfun.boolean_string)
+parser.add_argument('-test', default=False, type=zfun.boolean_string)
 
 args = parser.parse_args()
 Q = args.__dict__

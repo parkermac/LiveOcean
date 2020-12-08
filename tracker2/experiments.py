@@ -34,7 +34,45 @@ def get_ic(EI, fn00):
     
     exp_name = EI['exp_name']
     
-    if exp_name == 'HC3d': # Hood Canal 3d using rectangle
+    if exp_name == 'p5_PS':
+        rloc_dict = {'Whidbey NW': (-122.749, 48.2927),
+                    'Penn Cove': (-122.695, 48.2309)}
+        rnp = 100
+        count = 0
+        for rloc in rloc_dict:
+            rx = rloc_dict[rloc][0]; ry = rloc_dict[rloc][1]
+            px00 = rx + 0.01*np.random.randn(rnp)
+            py00 = ry + 0.01*np.random.randn(rnp)
+            if count == 0:
+                plon00 = px00.copy(); plat00 = py00.copy()
+            else:
+                plon00 = np.concatenate((plon00, px00.copy()))
+                plat00 = np.concatenate((plat00, py00.copy()))
+            count += 1
+        pcs00 = np.zeros_like(plon00)
+        
+    elif exp_name == 'p5_merhab':
+        nyp = 7
+        x0 = -126; x1 = -125; y0 = 48; y1 = 49
+        clat_1 = np.cos(np.pi*(np.mean([y0, y1]))/180)
+        xyRatio = clat_1 * (x1 - x0) / (y1 - y0)
+        lonvec = np.linspace(x0, x1, (nyp * xyRatio).astype(int))
+        latvec = np.linspace(y0, y1, nyp)
+        lonmat_1, latmat_1 = np.meshgrid(lonvec, latvec)
+        #
+        x0 = -125; x1 = -124; y0 = 44; y1 = 45
+        clat_2 = np.cos(np.pi*(np.mean([y0, y1]))/180)
+        xyRatio = clat_2 * (x1 - x0) / (y1 - y0)
+        lonvec = np.linspace(x0, x1, (nyp * xyRatio).astype(int))
+        latvec = np.linspace(y0, y1, nyp)
+        lonmat_2, latmat_2 = np.meshgrid(lonvec, latvec)
+        lonmat = np.concatenate((lonmat_1.flatten(), lonmat_2.flatten()))
+        latmat = np.concatenate((latmat_1.flatten(), latmat_2.flatten()))
+        #
+        plon00 = lonmat.flatten(); plat00 = latmat.flatten()
+        pcs00 = np.zeros_like(plon00)
+        
+    elif exp_name == 'HC3d': # Hood Canal 3d using rectangle
         # This fills a volume defined by a rectangular lon, lat region
         # with particles spaced every DZ m from the surface to near the bottom
         lonvec = np.linspace(-123.15, -122.9, 30)

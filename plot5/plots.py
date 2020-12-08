@@ -92,14 +92,15 @@ def P_1(Q, M):
     
     if Q['tracks']:
         tr_ds = nc.Dataset(Q['tr_fn'])
-        ax.plot(tr_ds['lon'][:], tr_ds['lat'][:],'-')
+        ax.plot(tr_ds['lon'][:], tr_ds['lat'][:],'-k', alpha=.5)
+        iot = zfun.find_nearest_ind(tr_ds['ot'][:], T['ocean_time'])
+        ax.plot(tr_ds['lon'][iot], tr_ds['lat'][iot],'o', mec='k', mfc='r')
+        tr_ds.close()
         
     # axes labeling
     ax.set_xticks(Q['xtl'])
     ax.set_yticks(Q['ytl'])
     ax.tick_params(labelsize=.7*fs)
-    # ax.tick_params(axis="y",direction="in", pad=-28)#, labelcolor='gray')
-    # ax.tick_params(axis="x",direction="in", pad=-21)#, labelcolor='gray')
     
         
     # MOORING TIME SERIES

@@ -37,13 +37,20 @@ import pinfo
 from warnings import filterwarnings
 filterwarnings('ignore') # skip some warning messages
 
-def get_tracks(Q, Ldir, exp_name='eddy0'):
+def get_tracks(Q, Ldir):
+    # need to set -dtt and -lld True
+    if Q['test']:
+        dtt = 1
+        lld = 'False'
+    else:
+        dtt = 3
+        lld = 'True'
     import subprocess
-    cmd = ['python', '../tracker2/tracker.py', '-exp', exp_name,
-        '-ds', Q['ds0'],'-clb','True']
+    cmd = ['python', '../tracker2/tracker.py', '-exp', Q['exp'],
+        '-ds', Q['ds0'], '-dtt', str(dtt), '-lld', lld, '-clb', 'True']
     proc = subprocess.Popen(cmd)
     proc.communicate()
-    tr_fn = Ldir['LOo'] + 'tracks2/' + exp_name + '_surf/release_' + Q['ds0'] + '.nc'
+    tr_fn = Ldir['LOo'] + 'tracks2/' + Q['exp'] + '_surf/release_' + Q['ds0'] + '.nc'
     Q['tr_fn'] = tr_fn
     
 def get_speed(ds, nlev):
@@ -99,17 +106,19 @@ def get_arag(ds, Q, aa, nlev):
     return px, py, fld
 
 def get_ax_limits(Q):
-    # set limits and ticklabels
+    # set limits and ticklabels, and other info
     if Q['dom'] == 'full':
         Q['aa'] = []
         Q['xtl'] = range(-129,-121,2)
         Q['ytl'] = range(44,52,2)
         Q['v_scl'] = 3 # used for velocity vectors
+        Q['exp'] = 'p5_merhab' # particle tracking
     elif Q['dom'] == 'PS':
         Q['aa'] = [-123.6, -122, 47, 49]
         Q['xtl'] = [-123, -122.5]
         Q['ytl'] = [47.5, 48, 48.5]
         Q['v_scl'] = 25
+        Q['exp'] = 'p5_PS'
     elif Q['dom'] == 'willapa':
         Q['aa'] = [-124.6, -123.65, 46, 47.2]
         Q['xtl'] = [-124.4, -124.2, -124, -123.8]
