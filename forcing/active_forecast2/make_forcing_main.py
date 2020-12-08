@@ -18,7 +18,7 @@ Ldir, Lfun = ffun.intro()
 from datetime import datetime, timedelta
 start_time = datetime.now()
 import subprocess
-from time import time
+from time import time, sleep
 
 print(' - Creating wesite images for ' + Ldir['date_string'])
 
