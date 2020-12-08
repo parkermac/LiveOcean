@@ -43,8 +43,8 @@ def vlines(ax, lims):
     
 
 plt.close('all')
-#vol_list = ['Puget Sound', 'Puget Sound Inner', 'Salish Sea', 'Hood Canal']
-vol_list = ['Puget Sound Inner']
+vol_list = ['Puget Sound', 'Puget Sound Inner', 'Salish Sea', 'Hood Canal']
+#vol_list = ['Puget Sound Inner']
 for which_vol in vol_list:
 
     qr_dict = {} # save annual mean river flow
