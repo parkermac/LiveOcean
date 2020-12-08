@@ -86,9 +86,9 @@ elif len(fn_list) > 1:
     outdir0 = outdir00 + Ldir['gtagex'] + '/'
     Lfun.make_dir(outdir0, clean=False)
     if Q['bot'] == True:
-        bot_tag = '_bot'
+        bot_tag = 'bot'
     else:
-        bot_tag = '_top'
+        bot_tag = 'top'
         
     moviename = Q['dom'] + '_' + Q['vn'] + '_' + bot_tag
     outdir = outdir0 + moviename + '/'

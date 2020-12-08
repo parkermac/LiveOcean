@@ -32,7 +32,7 @@ moviename_list = ['full_salt_top', 'full_oxygen_bot',
 os.chdir(Ldir['LO'] + 'plot5/')
 
 def run_sub(cmd):
-    proc = subprocess.Popen(cmd)
+    proc = subprocess.Popen(cmd,stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     return proc
 
 tt0 = time()
@@ -61,7 +61,7 @@ for moviename in moviename_list:
     procs.append(proc)
 
 for proc in procs:
-    proc.communicate()
+    output, errors = proc.communicate()
     
 print('time to run all jobs = %0.1f sec' % (time() - tt0))
 sys.stdout.flush()
