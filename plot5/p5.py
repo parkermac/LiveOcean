@@ -88,9 +88,9 @@ elif len(fn_list) > 1:
     if Q['bot'] == True:
         bot_tag = '_bot'
     else:
-        bot_tag = 'top'
+        bot_tag = '_top'
         
-    moviename = Q['vn'] + '_' + Q['dom'] + bot_tag
+    moviename = Q['dom'] + '_' + Q['vn'] + '_' + bot_tag
     outdir = outdir0 + moviename + '/'
     Lfun.make_dir(outdir, clean=True)
     # plot to a folder of files

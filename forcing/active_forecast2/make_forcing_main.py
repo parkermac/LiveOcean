@@ -31,6 +31,10 @@ moviename_list = ['full_salt_top', 'full_oxygen_bot',
                     
 os.chdir(Ldir['LO'] + 'plot5/')
 
+def run_sub(cmd):
+    proc = subprocess.Popen(cmd)
+    return proc
+
 for moviename in moviename_list:
     (dom,vn,BOT) = moviename.split('_')
     tracks = 'False'
@@ -51,7 +55,7 @@ for moviename in moviename_list:
         
     print('\n' + moviename)
     sleep(1)
-    proc = subprocess.Popen(cmd)
+    proc = run_sub(cmd)
     procs.append(proc)
     proc.communicate()
 
