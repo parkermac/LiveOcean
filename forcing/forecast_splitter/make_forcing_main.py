@@ -45,7 +45,7 @@ if NF != 73:
     print('Expecting 73 history files but only %d found.' % (NF))
     sys.exit()
     
-testing = True
+testing = False
 
 result = 'success'
 try:
