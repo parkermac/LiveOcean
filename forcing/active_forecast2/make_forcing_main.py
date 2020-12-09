@@ -59,14 +59,9 @@ for moviename in moviename_list:
     proc = subprocess.Popen(cmd,stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
     procs.append(proc)
 
-ii = 0
 for proc in procs:
     # note "error" appears to be where the ffmpeg screen output goes
     output, errors = proc.communicate()
-    if proc.returncode != 0:
-        print('WARNING: problem with movie %d' % (ii))
-        result = 'fail'
-    ii += 1
     
 print('time to run all jobs = %0.1f sec' % (time() - tt0))
 sys.stdout.flush()
@@ -74,18 +69,22 @@ sys.stdout.flush()
 alt_outdir = Ldir['LOo'] + 'Figs_active_forecast/'
 Lfun.make_dir(alt_outdir, clean=True)
 
+result = 'success'
 for moviename in moviename_list:
     input_filename = Ldir['LOo'] + 'p5/' + Ldir['gtagex'] + '/' + moviename + '/' + moviename + '.mp4'
     output_filename = moviename + '.mp4'
 
     # send file to homer (only works from boiler)
-    print('\nCopying '+output_filename+' to homer')
+    # print('\nCopying '+output_filename+' to homer')
     sys.stdout.flush()
     cmd_list = ['scp',input_filename,
         'pmacc@homer.u.washington.edu:/hw00/d47/pmacc/LO/Figs_active_forecast/'+output_filename]
     ret = subprocess.call(cmd_list)
-    print('Return code = ' + str(ret) + ' (0=success)')
-    print('  -- took %0.1f seconds' % (tt0-time()))
+    if ret != 0:
+        print('WARNING: problem with movie ' + moviename)
+        result = 'fail'
+    # print('Return code = ' + str(ret) + ' (0=success)')
+    # print('  -- took %0.1f seconds' % (tt0-time()))
     
     # and save a local copy
     shutil.copyfile(input_filename, alt_outdir + output_filename)
