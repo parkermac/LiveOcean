@@ -32,7 +32,7 @@ moviename_list = ['full_salt_top', 'full_oxygen_bot',
 os.chdir(Ldir['LO'] + 'plot5/')
 
 def run_sub(cmd):
-    proc = subprocess.Popen(cmd,stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    proc = subprocess.Popen(cmd,stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
     return proc
 
 tt0 = time()
@@ -52,7 +52,8 @@ for moviename in moviename_list:
         tracks = 'True'
         
     cmd = ['python', 'p5.py', '-ds0', ds0, '-lt', 'allhours', '-mov', 'True',
-        '-dom', dom, '-vn', vn, '-tracks', tracks, '-emask', emask, '-avl', avl, '-bot', bot]
+        '-dom', dom, '-vn', vn, '-tracks', tracks, '-emask', emask,
+        '-avl', avl, '-bot', bot]
         
     print('\n' + moviename)
     sys.stdout.flush()
@@ -61,6 +62,7 @@ for moviename in moviename_list:
     procs.append(proc)
 
 for proc in procs:
+    # note "error" appears to be where the ffmpeg screen output goes
     output, errors = proc.communicate()
     
 print('time to run all jobs = %0.1f sec' % (time() - tt0))
