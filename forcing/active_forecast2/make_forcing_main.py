@@ -5,7 +5,7 @@ This is the main program for creating movies and images from a forecast
 
 To test on boiler from ipython:
 
-run make_forcing_main.py -d 2020.08.10
+run make_forcing_main.py -d [YYYY.MM.DD for today]
 """
 
 import os, sys
@@ -19,6 +19,7 @@ from datetime import datetime, timedelta
 start_time = datetime.now()
 import subprocess
 from time import time, sleep
+import shutil
 
 print(' - Creating wesite images for ' + Ldir['date_string'])
 
@@ -31,11 +32,8 @@ moviename_list = ['full_salt_top', 'full_oxygen_bot',
                     
 os.chdir(Ldir['LO'] + 'plot5/')
 
-def run_sub(cmd):
-    proc = subprocess.Popen(cmd,stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
-    return proc
-
 tt0 = time()
+result = 'success'
 for moviename in moviename_list:
     (dom,vn,BOT) = moviename.split('_')
     tracks = 'False'
@@ -58,15 +56,23 @@ for moviename in moviename_list:
     print('\n' + moviename)
     sys.stdout.flush()
     sleep(1)
-    proc = run_sub(cmd)
+    proc = subprocess.Popen(cmd,stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
     procs.append(proc)
 
+ii = 0
 for proc in procs:
     # note "error" appears to be where the ffmpeg screen output goes
     output, errors = proc.communicate()
+    if proc.returncode != 0:
+        print('WARNING: problem with movie %d' % (ii))
+        result = 'fail'
+    ii += 1
     
 print('time to run all jobs = %0.1f sec' % (time() - tt0))
 sys.stdout.flush()
+
+alt_outdir = Ldir['LOo'] + 'Figs_active_forecast/'
+Lfun.make_dir(alt_outdir, clean=True)
 
 for moviename in moviename_list:
     input_filename = Ldir['LOo'] + 'p5/' + Ldir['gtagex'] + '/' + moviename + '/' + moviename + '.mp4'
@@ -80,6 +86,9 @@ for moviename in moviename_list:
     ret = subprocess.call(cmd_list)
     print('Return code = ' + str(ret) + ' (0=success)')
     print('  -- took %0.1f seconds' % (tt0-time()))
+    
+    # and save a local copy
+    shutil.copyfile(input_filename, alt_outdir + output_filename)
 
 #%% prepare for finale
 import collections
@@ -90,7 +99,7 @@ end_time = datetime.now()
 result_dict['end_time'] = end_time.strftime(time_format)
 dt_sec = (end_time - start_time).seconds
 result_dict['total_seconds'] = str(dt_sec)
-result_dict['result'] = 'success'
+result_dict['result'] = result
 
 #%% ************** END CASE-SPECIFIC CODE *****************
 
