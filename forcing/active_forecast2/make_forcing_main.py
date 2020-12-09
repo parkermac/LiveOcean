@@ -24,6 +24,10 @@ import shutil
 print(' - Creating wesite images for ' + Ldir['date_string'])
 
 ds0 = Ldir['date_string']
+# for the purposes of this driver we always assume we are plotting over a forecast
+dt0 = datetime.strptime(ds0,'%Y.%m.%d')
+dt1 = dt0 + timedelta(days=Ldir['forecast_days']-1)
+ds1 = dt1.strftime('%Y.%m.%d')
     
 procs = []
 moviename_list = ['full_salt_top', 'full_oxygen_bot',
@@ -49,7 +53,7 @@ for moviename in moviename_list:
     if vn == 'salt':
         tracks = 'True'
         
-    cmd = ['python', 'p5.py', '-ds0', ds0, '-lt', 'allhours', '-mov', 'True',
+    cmd = ['python', 'p5.py', '-ds0', ds0, '-ds1', ds1, '-lt', 'hourly', '-mov', 'True',
         '-dom', dom, '-vn', vn, '-tracks', tracks, '-emask', emask,
         '-avl', avl, '-bot', bot]
         

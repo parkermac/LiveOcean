@@ -38,16 +38,12 @@ from warnings import filterwarnings
 filterwarnings('ignore') # skip some warning messages
 
 def get_tracks(Q, Ldir):
-    # need to set -dtt and -lld True
-    if Q['test']:
-        dtt = 1
-        lld = 'False'
-    else:
-        dtt = 3
-        lld = 'True'
+    dt0 = datetime.strptime(Q['ds0'],'%Y.%m.%d')
+    dt1 = datetime.strptime(Q['ds1'],'%Y.%m.%d')
+    dtt = (dt1-dt0).days + 1
     import subprocess
     cmd = ['python', '../tracker2/tracker.py', '-exp', Q['exp'],
-        '-ds', Q['ds0'], '-dtt', str(dtt), '-lld', lld, '-clb', 'True']
+        '-ds', Q['ds0'], '-dtt', str(dtt), '-clb', 'True']
     proc = subprocess.Popen(cmd)
     proc.communicate()
     tr_fn = Ldir['LOo'] + 'tracks2/' + Q['exp'] + '_surf/release_' + Q['ds0'] + '.nc'
@@ -189,12 +185,7 @@ def get_moor(ds0, ds1, Ldir, Q, M):
     scope behaviour of python dictionaries, is modified even as far as the
     calling function is concerned, and so does not have to be returned.
     """
-    if ds0 == ds1:
-        # should work for forecast or snapshot
-        m_fn_list = Lfun.get_fn_list('allhours', Ldir, ds0, ds1)
-    else:
-        # and this is for longer time spans
-        m_fn_list = Lfun.get_fn_list('hourly', Ldir, ds0, ds1)
+    m_fn_list = Lfun.get_fn_list('hourly', Ldir, ds0, ds1)
     ot_list = []
     dt_list = []
     zeta_list = []

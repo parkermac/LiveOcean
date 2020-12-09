@@ -95,7 +95,7 @@ def P_1(Q, M):
         iot = zfun.find_nearest_ind(tr_ds['ot'][:], T['ocean_time'])
         if iot > 2:
             ax.plot(tr_ds['lon'][0,:], tr_ds['lat'][0,:],'og', ms=5)
-        ax.plot(tr_ds['lon'][:iot+1,:], tr_ds['lat'][:iot+1,:],'-k', alpha=.5, lw=.5)
+        ax.plot(tr_ds['lon'][:iot+1,:], tr_ds['lat'][:iot+1,:],'-r', alpha=.5, lw=1)
         ax.plot(tr_ds['lon'][iot,:], tr_ds['lat'][iot,:],'o', mec='k', mfc='r')
         tr_ds.close()
         
