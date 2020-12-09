@@ -55,7 +55,7 @@ try:
         h0 = ('0000' + str(ii+24))[-4:]
         h1 = ('0000' + str(ii))[-4:]
         fn0 = dir0 + 'ocean_his_' + h0 + '.nc'
-        fn1 = dir0 + 'ocean_his_' + h1 + '.nc'
+        fn1 = dir1 + 'ocean_his_' + h1 + '.nc'
         if testing:
             print('\n'+fn0)
             print(fn1)
@@ -64,8 +64,8 @@ try:
     for ii in range(1,26):
         h0 = ('0000' + str(ii+48))[-4:]
         h2 = ('0000' + str(ii))[-4:]
-        fn0 = dir0 + '/ocean_his_' + h0 + '.nc'
-        fn2 = dir0 + '/ocean_his_' + h2 + '.nc'
+        fn0 = dir0 + 'ocean_his_' + h0 + '.nc'
+        fn2 = dir2 + 'ocean_his_' + h2 + '.nc'
         if testing:
             print('\n'+fn0)
             print(fn2)
