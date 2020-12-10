@@ -220,8 +220,7 @@ def filt_hanning_mat(data, n=40):
         padded with nan's
     """
     filt = hanning_shape(n=n)
-    filt = filt / filt.sum()
-    n = np.ceil(len(filt)/2).astype(int)
+    n = np.floor(len(filt)/2).astype(int)
     sh = data.shape
     df = data.flatten('F')
     dfs = np.convolve(df, filt, mode = 'same')
@@ -237,7 +236,6 @@ def filt_godin(data):
         padded with nan's
     """
     filt = godin_shape()
-    filt = filt / filt.sum()
     npad = np.floor(len(filt)/2).astype(int)
     smooth = np.convolve(data, filt, mode = 'same')
     smooth[:npad] = np.nan
@@ -251,8 +249,7 @@ def filt_godin_mat(data):
         padded with nan's
     """
     filt = godin_shape()
-    filt = filt / filt.sum()
-    n = np.ceil(len(filt)/2).astype(int)
+    n = np.floor(len(filt)/2).astype(int)
     sh = data.shape
     df = data.flatten('F')
     dfs = np.convolve(df, filt, mode = 'same')
