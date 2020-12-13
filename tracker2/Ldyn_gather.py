@@ -35,6 +35,7 @@ reload(Ldf)
 import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('-exp_name', type=str, default='EJdF3d_3d_up4')
+parser.add_argument('-release', type=str, default='2018.05.15')
 parser.add_argument('-testing', type=zfun.boolean_string, default=False)
 parser.add_argument('-verbose', type=zfun.boolean_string, default=False)
 parser.add_argument('-roms', type=str, default='roms3')
@@ -48,10 +49,7 @@ EI = Lfun.csv_to_dict(t_dir + 'exp_info.csv')
 
 Ldir['roms'] = Ldir[args.roms]
 
-
-t_fn = Lfun.choose_item(t_dir, tag='release', exclude_tag='', itext='** Choose release **')
-rds = t_fn.split('_')[-1].replace('.nc','') # should be like 2018.05.15
-out_dir = t_dir + 'Ldyn_' + rds + '/'
+out_dir = t_dir + 'Ldyn_' + args.release + '/'
 if verbose:
     print(t_fn)
     print(rds)
