@@ -43,13 +43,16 @@ args = parser.parse_args()
 exp_name = args.exp_name
 testing = args.testing
 verbose = args.verbose
+rds = args.release
 
 t_dir = Ldir['LOo'] + 'tracks2/' + exp_name + '/'
 EI = Lfun.csv_to_dict(t_dir + 'exp_info.csv')
 
 Ldir['roms'] = Ldir[args.roms]
 
-out_dir = t_dir + 'Ldyn_' + args.release + '/'
+t_fn = 'release_' + rds + '.nc'
+
+out_dir = t_dir + 'Ldyn_' + rds + '/'
 if verbose:
     print(t_fn)
     print(rds)
