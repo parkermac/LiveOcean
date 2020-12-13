@@ -46,7 +46,7 @@ verbose = args.verbose
 t_dir = Ldir['LOo'] + 'tracks2/' + exp_name + '/'
 EI = Lfun.csv_to_dict(t_dir + 'exp_info.csv')
 
-Ldir['roms'] = args.roms
+Ldir['roms'] = Ldir[args.roms]
 
 
 t_fn = Lfun.choose_item(t_dir, tag='release', exclude_tag='', itext='** Choose release **')
