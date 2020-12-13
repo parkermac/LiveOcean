@@ -47,7 +47,7 @@ EI = Lfun.csv_to_dict(t_dir + 'exp_info.csv')
 
 
 t_fn = Lfun.choose_item(t_dir, tag='release', exclude_tag='', itext='** Choose release **')
-rds = t_fn.split('_').replace('.nc','') # should be like 2018.05.15
+rds = t_fn.split('_')[-1].replace('.nc','') # should be like 2018.05.15
 out_dir = t_dir + 'Ldyn_' + rds + '/'
 if verbose:
     print(t_fn)
