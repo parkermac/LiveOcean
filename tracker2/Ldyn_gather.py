@@ -46,7 +46,7 @@ t_dir = Ldir['LOo'] + 'tracks2/' + exp_name + '/'
 EI = Lfun.csv_to_dict(t_dir + 'exp_info.csv')
 
 
-t_fn = Lfun.choose_item(indir, tag='release', exclude_tag='', itext='** Choose release **')
+t_fn = Lfun.choose_item(t_dir, tag='release', exclude_tag='', itext='** Choose release **')
 rds = t_fn.split(t_fn,'_').replace('.nc','') # should be like 2018.05.15
 out_dir = t_dir + 'Ldyn_' + rds + '/'
 if verbose:
