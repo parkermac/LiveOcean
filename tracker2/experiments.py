@@ -169,6 +169,20 @@ def get_ic(EI, fn00):
         pcs_vec = np.linspace(-.6,-.4,num=1000) # all around mid-depth
         plon00, plat00, pcs00 = ic_from_list(lonvec, latvec, pcs_vec)
         
+    elif exp_name == 'leathermanNavy': # single water column for Marissa Leatherman
+        # approximates Puget Sound Naval Shipyard
+        lonvec = np.array([-122.64])
+        latvec = np.array([47.55])
+        pcs_vec = np.zeros(1000) # surface
+        plon00, plat00, pcs00 = ic_from_list(lonvec, latvec, pcs_vec)
+        
+    elif exp_name == 'leathermanPuy': # single water column for Marissa Leatherman
+        # approximates Puyallup River
+        lonvec = np.array([-122.43])
+        latvec = np.array([47.27])
+        pcs_vec = np.linspace(-1,0,num=1000) # all depths
+        plon00, plat00, pcs00 = ic_from_list(lonvec, latvec, pcs_vec)
+        
     return plon00, plat00, pcs00
     
 def ic_from_meshgrid(lonvec, latvec, pcs_vec):
