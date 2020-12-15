@@ -140,7 +140,7 @@ class vc:
           #ztmp[kk,idx] = ztmp[kk+1,idx] - hGapShaved
     ztmp = np.ma.masked_invalid(ztmp)
     #print '  done.'
-    return ztmp, kbp2, iwet
+    return -ztmp, kbp2, iwet
 
 """
 lopezj - 08/06/2012
