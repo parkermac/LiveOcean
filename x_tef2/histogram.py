@@ -78,20 +78,18 @@ Lfun.make_dir(outdir)
 v_df = pd.read_pickle(voldir + 'volumes.p')
 bathy_dict = pickle.load(open(voldir + 'bathy_dict.p', 'rb'))
 ji_dict = pickle.load(open(voldir + 'ji_dict.p', 'rb'))
-
 seg_list = list(v_df.index)
 
-
-
 if testing:
-    verbose = True
-    seg_list = seg_list[-2:]
+    verbose = False
+    seg_list = [item for item in seg_list if ('G' not in item) and ('J' not in item)]
 else:
     verbose = False
 
+# get the ji dict entries
 N = S['N']
 j_dict = {}; i_dict = {}
-nji = 0
+nji_tot = 0
 nji_dict = {}
 for seg_name in seg_list:
     jj = []; ii = []
@@ -103,60 +101,98 @@ for seg_name in seg_list:
     iii = np.array(ii)
     j_dict[seg_name] = jjj
     i_dict[seg_name] = iii
-    nji += len(jjj) * N
-    nji_dict[seg_name] = nji
+    this_nji = len(jjj) * N
+    nji_tot += this_nji
+    nji_dict[seg_name] = this_nji
     
-# preallocate an array to hold the salinity and volume
-sa = np.nan + np.ones(nji)
-va = np.nan + np.ones(nji)
+# preallocate arrays to hold the salinity and volume
+sa = np.nan + np.ones(nji_tot)
+va = np.nan + np.ones(nji_tot)
 
 fn = fn_list[0]
-    
-tt0 = time()
-        
 print(fn)
-    
 ds = nc.Dataset(fn)
 salt = ds['salt'][0,:,:,:]
 zeta = ds['zeta'][0,:,:]
 ds.close()
     
-# find the volume and volume-mean salinity
+# find the volume and salinity in each grid cell
 ii0 = 0
 for seg_name in seg_list:
-    
     jjj = j_dict[seg_name]
     iii = i_dict[seg_name]
     z_r, z_w = zrfun.get_z(h[jjj,iii], zeta[jjj,iii], S)
     dz = np.diff(z_w, axis=0)
-    DV = dz * DA3[0,jjj,iii]
-    
-    s = salt[:,jjj,iii]
-    s = s.flatten()
-    DV = DV.flatten()
-    
+    dv = (dz * DA3[0,jjj,iii]).flatten()
+    s = (salt[:,jjj,iii]).flatten()
     nji = nji_dict[seg_name]
-    
     ii1 = ii0 + nji
-    
-    print('%s %d:%d' % (seg_name, ii0, ii1))
-    
     sa[ii0:ii1] = s
-    va[ii0:ii1] = DV
-    
+    va[ii0:ii1] = dv
     ii0 = ii1
+    if verbose:
+        print('%s %d:%d' % (seg_name, ii0, ii1))
+        sys.stdout.flush()
+        
+# find volume-mean salinity
+smean = (sa*va).sum() / va.sum()
 
-    print('  ** took %0.1f sec' % (time()-tt0))
-    sys.stdout.flush()
+# make salinity bins
+smin = sa.min()
+smax = sa.max()
+sedges = np.linspace(smin, smax, 101)
+sbins = sedges[:-1] + np.diff(sedges)/2
+dels = sedges[1] - sedges[0]
+
+# initialize array to hold volume in salinity bins
+V = np.zeros_like(sbins)
+
+tt0 = time()
+# sort into salinity bins
+inds = np.digitize(sa, sedges, right=True)
+if True:
+    # RESULT this way is about 10x faster
+    inds = inds - 1
+    for bb in range(inds.min(),inds.max()+1):
+        mask = inds == bb
+        V[bb] = va[mask].sum()
+else:
+    counter = 0
+    for ii in inds:
+        V[ii-1] += va[counter]
+        counter += 1
     
+print('Time to sort into bins = %.2f sec' % (time()-tt0))
+    
+# normalized version
+Vn = V / V.sum()
+
+# version weighted by salinity variance
+svar = (sbins-smean)**2
+VV = V * svar
+VVn = VV / VV.sum()
+
+# version weighted by mixedness
+mix = (smax - sbins) * sbins
+VM = V * mix
+VMn = VM / VM.sum()
+
+# PLOTTING
+
 plt.close('all')
 fig = plt.figure(figsize=(14,8))
-ax = fig.add_subplot(111)
 
-ax.hist(sa, bins=np.linspace())
+ax = fig.add_subplot(311)
+ax.bar(sbins, Vn, width=.8*dels)
+ax.axvline(x=smean, c='c', lw=2)
+
+ax = fig.add_subplot(312)
+ax.bar(sbins, VVn, width=.8*dels)
+ax.axvline(x=smean, c='c', lw=2)
+
+ax = fig.add_subplot(313)
+ax.bar(sbins, VMn, width=.8*dels)
+ax.axvline(x=smean, c='c', lw=2)
 
 plt.show()
 
-    
-        
-    
