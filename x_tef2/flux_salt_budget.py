@@ -152,6 +152,7 @@ for which_vol in vol_list:
         sh_df = pd.read_pickle(indir0 + 'flux/hourly_segment_salinity.p')
         vh_df = vh_df[seg_list]
         sh_df = sh_df[seg_list]
+        Socn = sh_df.max().max() # used in mixedness budget
         svh_df = sh_df * vh_df # net salt in each segment (hourly)
         smeanh = svh_df.sum(axis=1).to_numpy() / vh_df.sum(axis=1).to_numpy()
         smean2h = smeanh * smeanh
@@ -273,6 +274,14 @@ for which_vol in vol_list:
         sp2n_df = sp2_df.copy()
         for cn in sp2n_df.columns:
             sp2n_df[cn] = sp2n_df[cn]/QSS
+            
+        # Mixedness budget
+        m_df = pd.DataFrame(index=indall)
+        m_df['dmnet_dt'] = Socn*salt_df['dSnet_dt'] - salt2_df['dS2net_dt']
+        m_df['Qmin'] = vol_df['Qin']*(Socn*misc_df['Sin'] - misc_df['S2in'])
+        m_df['Qmout'] = vol_df['Qout']*(Socn*misc_df['Sout'] - misc_df['S2out'])
+        m_df['Mixing'] = -salt2_df['Mixing']
+        m_df['Error'] = m_df['dmnet_dt'] - m_df['Qmin'] - m_df['Qmout'] - m_df['Mixing']
         
         # make sure everything is numeric
         for cn in misc_df.columns:
@@ -289,6 +298,8 @@ for which_vol in vol_list:
             sp2_df[cn] = pd.to_numeric(sp2_df[cn])
         for cn in sp2n_df.columns:
             sp2n_df[cn] = pd.to_numeric(sp2n_df[cn])
+        for cn in m_df.columns:
+            m_df[cn] = pd.to_numeric(m_df[cn])
             
         # save DataFrames to pickle files
         misc_df.to_pickle(outdir + 'misc_df_' + year_str + '_' + which_vol.replace(' ','_') + '.p')
@@ -297,6 +308,7 @@ for which_vol in vol_list:
         salt2_df.to_pickle(outdir + 'salt2_df_' + year_str + '_' + which_vol.replace(' ','_') + '.p')
         sp2_df.to_pickle(outdir + 'sp2_df_' + year_str + '_' + which_vol.replace(' ','_') + '.p')
         sp2n_df.to_pickle(outdir + 'sp2n_df_' + year_str + '_' + which_vol.replace(' ','_') + '.p')
+        m_df.to_pickle(outdir + 'm_df_' + year_str + '_' + which_vol.replace(' ','_') + '.p')
             
         # accumulate error statistics (all %)
         err_df_vol.loc[year, which_vol] = vol_rel_err*100
@@ -377,18 +389,30 @@ for which_vol in vol_list:
             outname3 = outdir + 'sp2n_budget_' + year_str + '_' + which_vol.replace(' ','_')
             fig3.savefig(outname3 + '.png')
         
-        # ----------------------------------------------------------------------------        
         
-        # --------------- Checking ------------------------------------------
-        fig4 = plt.figure(figsize=(12,6))
-        
+        # --------------- Mixedness squared Budget ------------------------------------
+        fig4 = plt.figure(figsize=(12,7))
+                
         ax = fig4.add_subplot(111)
-        salt2_df[['Mixing']].plot(ax=ax, grid=True, label='from salt2',style='-r').legend(loc='upper right')
-        sp2_df[['Mixing']].plot(ax=ax, grid=True, label='from sp2',style='-b').legend(loc='upper right')
-        ax.set_title(year_str + ' ' + which_vol + ' Mixing (g2/kg2 m3/s)')
-        ax.text(.05, .9, 'Mean Mixing from salt2 = %.5e' % (salt2_df['Mixing'].mean()), transform=ax.transAxes, c='r')
-        ax.text(.05, .8, 'Mean Mixing from sp2 = %.5e' % (sp2_df['Mixing'].mean()), transform=ax.transAxes, c='b')
-        ax.text(.05, .2, 'Ratio = %.3f' % (salt2_df['Mixing'].mean()/sp2_df['Mixing'].mean()), transform=ax.transAxes, c='purple')
+        m_df[['dmnet_dt', 'Qmin', 'Qmout', 'Mixing', 'Error']].plot(ax=ax, grid=True).legend(loc='upper right')
+        ax.set_title(year_str + ' ' + which_vol + ' Mixedness Budget')
+        #ax.set_ylim(-4,4)
+        
+        if save_figs:
+            outname4 = outdir + 'm_budget_' + year_str + '_' + which_vol.replace(' ','_')
+            fig4.savefig(outname3 + '.png')
+        
+        
+        # --------------- Checking ---------------------------------------------------
+        # fig5 = plt.figure(figsize=(12,6))
+        #
+        # ax = fig5.add_subplot(111)
+        # salt2_df[['Mixing']].plot(ax=ax, grid=True, label='from salt2',style='-r').legend(loc='upper right')
+        # sp2_df[['Mixing']].plot(ax=ax, grid=True, label='from sp2',style='-b').legend(loc='upper right')
+        # ax.set_title(year_str + ' ' + which_vol + ' Mixing (g2/kg2 m3/s)')
+        # ax.text(.05, .9, 'Mean Mixing from salt2 = %.5e' % (salt2_df['Mixing'].mean()), transform=ax.transAxes, c='r')
+        # ax.text(.05, .8, 'Mean Mixing from sp2 = %.5e' % (sp2_df['Mixing'].mean()), transform=ax.transAxes, c='b')
+        # ax.text(.05, .2, 'Ratio = %.3f' % (salt2_df['Mixing'].mean()/sp2_df['Mixing'].mean()), transform=ax.transAxes, c='purple')
         
 plt.show()
 
