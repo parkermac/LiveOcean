@@ -5,7 +5,7 @@ README for x_moor
 
 Input: LiveOcean ROMS history files
 
-Output: A NetCDF file of the extracted mooring, typically packed as varname(time, z).
+Output: A NetCDF file of the extracted mooring, typically packed as varname(time, z).  As of 2020.12.23 the output directory is named like [job_name]_[gtagex]_[date_string0]_[date_string1]/.
 
 NOTE: mooring_extractor_fast.py is development code - not likely to be useful.
 

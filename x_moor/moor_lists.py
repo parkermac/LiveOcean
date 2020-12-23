@@ -16,6 +16,15 @@ def get_sta_dict(job_name):
         sta_dict = {
             'wbc': (-123.9516, 46.6290)
             }
+    
+    elif job_name == 'mickett_test':
+        sta_dict = {
+            'ORCA_Hansville': (-122.6270, 47.9073),
+            'ORCA_Hoodsport': (-123.1126, 47.4218),
+            'ORCA_Point_Wells': (-122.3972, 47.7612),
+            'Central_Main_Stem_Hood_Canal': (-122.989507, 47.574352),
+            'North_Central_Main_Basin': (-122.440755, 47.825099)
+        }
             
     elif job_name == 'alma':
         sta_dict = {

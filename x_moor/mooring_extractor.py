@@ -43,10 +43,6 @@ else:
     import moor_lists as ml
 reload(ml)
 
-def boolean_string(s):
-    if s not in ['False', 'True']:
-        raise ValueError('Not a valid boolean string')
-    return s == 'True' # note use of ==
 
 # command line arguments
 import argparse
@@ -58,7 +54,7 @@ parser.add_argument('-x', '--ex_name', nargs='?', type=str, default='lo8b')
 parser.add_argument('-0', '--date_string0', nargs='?', type=str, default='2019.07.04')
 parser.add_argument('-1', '--date_string1', nargs='?', type=str, default='2019.07.05')
 parser.add_argument('-lt', '--list_type', nargs='?', type=str, default='hourly')
-parser.add_argument('-v', '--verbose', default=False, type=boolean_string)
+parser.add_argument('-v', '--verbose', default=False, type=zfun.boolean_string)
 # see alpha/Lfun.get_fn_list() for acceptable list_type values
 
 # Mooring arguments.  You MUST supply all arguments for either (1) or (2)
@@ -108,7 +104,7 @@ for sta_name in sta_dict.keys():
     # make sure the output directory exists
     outdir0 = Ldir['LOo'] + 'moor/'
     Lfun.make_dir(outdir0)
-    mod_string = (Ldir['gtagex'] + '_' + args.date_string0 + '_' + args.date_string1)
+    mod_string = (args.job_name + '_' + Ldir['gtagex'] + '_' + args.date_string0 + '_' + args.date_string1)
     outdir = outdir0 + mod_string + '/'
     Lfun.make_dir(outdir)
     # name output file
