@@ -80,9 +80,11 @@ bathy_dict = pickle.load(open(voldir + 'bathy_dict.p', 'rb'))
 ji_dict = pickle.load(open(voldir + 'ji_dict.p', 'rb'))
 seg_list = list(v_df.index)
 
+# just do Puget Sound
+seg_list = [item for item in seg_list if ('G' not in item) and ('J' not in item)]
+
 if testing:
     verbose = False
-    seg_list = [item for item in seg_list if ('G' not in item) and ('J' not in item)]
 else:
     verbose = False
 
@@ -185,14 +187,18 @@ fig = plt.figure(figsize=(14,8))
 ax = fig.add_subplot(311)
 ax.bar(sbins, Vn, width=.8*dels)
 ax.axvline(x=smean, c='c', lw=2)
+ax.set_title('Puget Sound')
+ax.text(.05,.9,'Salinity Histogam', transform=ax.transAxes)
 
 ax = fig.add_subplot(312)
 ax.bar(sbins, VVn, width=.8*dels)
 ax.axvline(x=smean, c='c', lw=2)
+ax.text(.05,.9,'Weighted by Variance', transform=ax.transAxes)
 
 ax = fig.add_subplot(313)
 ax.bar(sbins, VMn, width=.8*dels)
 ax.axvline(x=smean, c='c', lw=2)
+ax.text(.05,.9,'Weighted by Mixedness', transform=ax.transAxes)
 
 plt.show()
 

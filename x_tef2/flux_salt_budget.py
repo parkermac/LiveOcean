@@ -393,9 +393,12 @@ for which_vol in vol_list:
         # --------------- Mixedness squared Budget ------------------------------------
         fig4 = plt.figure(figsize=(12,7))
                 
-        ax = fig4.add_subplot(111)
+        ax = fig4.add_subplot(211)
         m_df[['dmnet_dt', 'Qmin', 'Qmout', 'Mixing', 'Error']].plot(ax=ax, grid=True).legend(loc='upper right')
         ax.set_title(year_str + ' ' + which_vol + ' Mixedness Budget')
+        
+        ax = fig4.add_subplot(212)
+        misc_df['Qprism'].plot(ax=ax, grid=True)
         #ax.set_ylim(-4,4)
         
         if save_figs:
