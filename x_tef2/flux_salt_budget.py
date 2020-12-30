@@ -152,7 +152,6 @@ for which_vol in vol_list:
         sh_df = pd.read_pickle(indir0 + 'flux/hourly_segment_salinity.p')
         vh_df = vh_df[seg_list]
         sh_df = sh_df[seg_list]
-        Socn = sh_df.max().max() # used in mixedness budget
         svh_df = sh_df * vh_df # net salt in each segment (hourly)
         smeanh = svh_df.sum(axis=1).to_numpy() / vh_df.sum(axis=1).to_numpy()
         smean2h = smeanh * smeanh
@@ -202,6 +201,8 @@ for which_vol in vol_list:
         
         misc_df['Sin'] = salt_df['QSin']/vol_df['Qin']
         misc_df['Sout'] = salt_df['QSout']/vol_df['Qout']
+        Socn = misc_df['Sin'].max() # used in mixedness budget
+        
         
         # re-express the salt budget using Qe notation
         salt_qe_df = pd.DataFrame(index=indall)
@@ -283,6 +284,9 @@ for which_vol in vol_list:
         m_df['Mixing'] = -salt2_df['Mixing']
         m_df['Error'] = m_df['dmnet_dt'] - m_df['Qmin'] - m_df['Qmout'] - m_df['Mixing']
         
+        # normalized mixedness
+        mn_df = m_df * (365 * 86400) / (misc_df['V'].mean() * (Socn/2) * (Socn/2))
+        
         # make sure everything is numeric
         for cn in misc_df.columns:
             misc_df[cn] = pd.to_numeric(misc_df[cn])
@@ -300,6 +304,8 @@ for which_vol in vol_list:
             sp2n_df[cn] = pd.to_numeric(sp2n_df[cn])
         for cn in m_df.columns:
             m_df[cn] = pd.to_numeric(m_df[cn])
+        for cn in m_df.columns:
+            mn_df[cn] = pd.to_numeric(mn_df[cn])
             
         # save DataFrames to pickle files
         misc_df.to_pickle(outdir + 'misc_df_' + year_str + '_' + which_vol.replace(' ','_') + '.p')
@@ -390,7 +396,7 @@ for which_vol in vol_list:
             fig3.savefig(outname3 + '.png')
         
         
-        # --------------- Mixedness squared Budget ------------------------------------
+        # --------------- Mixedness Budget ------------------------------------
         fig4 = plt.figure(figsize=(12,7))
                 
         ax = fig4.add_subplot(211)
@@ -403,7 +409,23 @@ for which_vol in vol_list:
         
         if save_figs:
             outname4 = outdir + 'm_budget_' + year_str + '_' + which_vol.replace(' ','_')
-            fig4.savefig(outname3 + '.png')
+            fig4.savefig(outname4 + '.png')
+
+        # --------------- Normalized Mixedness Budget ------------------------------------
+        fig5 = plt.figure(figsize=(12,7))
+                
+        ax = fig5.add_subplot(211)
+        mn_df[['dmnet_dt', 'Qmin', 'Qmout', 'Mixing', 'Error']].plot(ax=ax, grid=True).legend(loc='upper right')
+        ax.set_title(year_str + ' ' + which_vol + ' Normalized Mixedness Budget')
+        ax.set_ylabel('V*(Socn/2)^2 per year')
+        
+        ax = fig5.add_subplot(212)
+        misc_df['Qprism'].plot(ax=ax, grid=True)
+        #ax.set_ylim(-4,4)
+        
+        if save_figs:
+            outname5 = outdir + 'm_budget_' + year_str + '_' + which_vol.replace(' ','_')
+            fig5.savefig(outname5 + '.png')
         
         
         # --------------- Checking ---------------------------------------------------
