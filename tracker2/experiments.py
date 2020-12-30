@@ -51,6 +51,12 @@ def get_ic(EI, fn00):
             count += 1
         pcs00 = np.zeros_like(plon00)
         
+    elif exp_name == 'full': # the whole domain of cas6, with some edges trimmed
+        lonvec = np.linspace(-129, -122, 30)
+        latvec = np.linspace(43, 51, 60)
+        pcs_vec = np.array([0])
+        plon00, plat00, pcs00 = ic_from_meshgrid(lonvec, latvec, pcs_vec)
+        
     elif exp_name == 'p5_merhab':
         nyp = 7
         x0 = -126; x1 = -125; y0 = 48; y1 = 49
