@@ -58,8 +58,8 @@ def get_ic(EI, fn00):
         plon00, plat00, pcs00 = ic_from_meshgrid(lonvec, latvec, pcs_vec)
         
     elif exp_name == 'PS': # nominally Puget Sound
-            lonvec = np.linspace(-123.6, -122, 60)
-            latvec = np.linspace(47, 49, 120)
+            lonvec = np.linspace(-123.6, -122, 50)
+            latvec = np.linspace(47, 49, 100)
             pcs_vec = np.array([0])
             plon00, plat00, pcs00 = ic_from_meshgrid(lonvec, latvec, pcs_vec)
                 
