@@ -81,7 +81,7 @@ for exp in exp_list:
     if exp == 'full':
         skp = 3
     else:
-        skp = 1
+        skp = 2
     fn = out_fn_dict[exp]
     ds = nc.Dataset(fn)
     # packed time, particle
