@@ -316,21 +316,24 @@ dall_list = zip(d2_list, d3_list, d4_list)
 for fn2, fn3, fn4 in dall_list:
     print('Working on ' + fn2.split('/')[-1] + ' and etc.')
     
-    # if we are missing a d3 or d4 file then we don't do ANY of
-    # that resolution after that
+    # new flags to allow processing more files
+    do_this_d3 = True
+    do_this_d4 = True
+    
+    # if we are missing a d3 or d4 file then we don't work on it
     if not os.path.isfile(fn3):
         print(' - missing ' + fn3)
-        do_d3 = False
+        do_this_d3 = False
     if not os.path.isfile(fn4):
         print(' - missing ' + fn4)
-        do_d4 = False
+        do_this_d4 = False
     
     tt0 = time.time()
     ov2_dict = gather_and_process_fields(fn2, imax2, ca2, sa2)
     ovi2_dict = interp_to_roms_alt(ov2_dict, outvar_list, IM2)
     print(' - d2: gather, process, and interp took %0.1f seconds' % (time.time() - tt0))
     
-    if do_d3:
+    if do_this_d3:
         try:
             tt0 = time.time()
             ov3_dict = gather_and_process_fields(fn3, imax3, ca3, sa3)
@@ -338,9 +341,9 @@ for fn2, fn3, fn4 in dall_list:
             print(' - d3: gather, process, and interp took %0.1f seconds' % (time.time() - tt0))
         except:
             print(' - could not process ' + fn3)
-            do_d3 = False
+            do_this_d3 = False
     
-    if do_d4:
+    if do_this_d4:
         try:
             tt0 = time.time()
             ov4_dict = gather_and_process_fields(fn4, imax4, ca4, sa4)
@@ -348,7 +351,7 @@ for fn2, fn3, fn4 in dall_list:
             print(' - d4: gather, process, and interp took %0.1f seconds' % (time.time() - tt0))
         except:
             print(' - could not process ' + fn4)
-            do_d4 = False
+            do_this_d4 = False
     
     tt0 = time.time()
     # combine the grids
@@ -356,10 +359,10 @@ for fn2, fn3, fn4 in dall_list:
     for ovn in outvar_list:
         v2 = ovi2_dict[ovn]
         v = v2.copy()
-        if do_d3:
+        if do_this_d3:
             v3 = ovi3_dict[ovn]
             v[M3] = v3[M3]
-        if do_d4:
+        if do_this_d4:
             v4 = ovi4_dict[ovn]
             v[M4] = v4[M4]
         if np.sum(np.isnan(v)) > 0:
