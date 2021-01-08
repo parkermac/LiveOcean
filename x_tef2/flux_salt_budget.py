@@ -429,15 +429,15 @@ for which_vol in vol_list:
         
         
         # --------------- Checking ---------------------------------------------------
-        # fig5 = plt.figure(figsize=(12,6))
-        #
-        # ax = fig5.add_subplot(111)
-        # salt2_df[['Mixing']].plot(ax=ax, grid=True, label='from salt2',style='-r').legend(loc='upper right')
-        # sp2_df[['Mixing']].plot(ax=ax, grid=True, label='from sp2',style='-b').legend(loc='upper right')
-        # ax.set_title(year_str + ' ' + which_vol + ' Mixing (g2/kg2 m3/s)')
-        # ax.text(.05, .9, 'Mean Mixing from salt2 = %.5e' % (salt2_df['Mixing'].mean()), transform=ax.transAxes, c='r')
-        # ax.text(.05, .8, 'Mean Mixing from sp2 = %.5e' % (sp2_df['Mixing'].mean()), transform=ax.transAxes, c='b')
-        # ax.text(.05, .2, 'Ratio = %.3f' % (salt2_df['Mixing'].mean()/sp2_df['Mixing'].mean()), transform=ax.transAxes, c='purple')
+        fig6 = plt.figure(figsize=(12,6))
+
+        ax = fig6.add_subplot(111)
+        salt2_df[['Mixing']].plot(ax=ax, grid=True, label='from salt2',style='-r').legend(loc='upper right')
+        sp2_df[['Mixing']].plot(ax=ax, grid=True, label='from sp2',style='-b').legend(loc='upper right')
+        ax.set_title(year_str + ' ' + which_vol + ' Mixing (g2/kg2 m3/s)')
+        ax.text(.05, .9, 'Mean Mixing from salt2 = %.5e' % (salt2_df['Mixing'].mean()), transform=ax.transAxes, c='r')
+        ax.text(.05, .8, 'Mean Mixing from sp2 = %.5e' % (sp2_df['Mixing'].mean()), transform=ax.transAxes, c='b')
+        ax.text(.05, .2, 'Ratio = %.3f' % (salt2_df['Mixing'].mean()/sp2_df['Mixing'].mean()), transform=ax.transAxes, c='purple')
         
 plt.show()
 
