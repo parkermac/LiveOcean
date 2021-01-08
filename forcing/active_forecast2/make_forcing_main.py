@@ -79,19 +79,28 @@ for moviename in moviename_list:
     output_filename = moviename + '.mp4'
 
     # send file to homer (only works from boiler)
-    # print('\nCopying '+output_filename+' to homer')
+    print('\nCopying '+output_filename+' to homer')
     sys.stdout.flush()
-    cmd_list = ['scp',input_filename,
-        'pmacc@homer.u.washington.edu:/hw00/d47/pmacc/LO/Figs_active_forecast/'+output_filename]
-    ret = subprocess.call(cmd_list)
-    if ret != 0:
-        print('WARNING: problem with movie ' + moviename)
-        result = 'fail'
-    # print('Return code = ' + str(ret) + ' (0=success)')
-    # print('  -- took %0.1f seconds' % (tt0-time()))
+    try:
+        cmd_list = ['scp',input_filename,
+            'pmacc@homer.u.washington.edu:/hw00/d47/pmacc/LO/Figs_active_forecast/'+output_filename]
+        ret = subprocess.call(cmd_list)
+        if ret != 0:
+            print('WARNING: problem with movie ' + moviename)
+            result = 'fail'
+        print('Return code = ' + str(ret) + ' (0=success)')
+        print('  -- took %0.1f seconds' % (tt0-time()))
+    except Exception as e:
+        print(e)
+        pass
     
     # and save a local copy
-    shutil.copyfile(input_filename, alt_outdir + output_filename)
+    print(' -- saving local copy of movie')
+    try:
+        shutil.copyfile(input_filename, alt_outdir + output_filename)
+    except Exception as e:
+        print(e)
+        pass
 
 #%% prepare for finale
 import collections
