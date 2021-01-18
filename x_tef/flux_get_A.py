@@ -24,7 +24,7 @@ Ldir = Lfun.Lstart(gridname='cas6', tag='v3')
 import tef_fun
 import flux_fun
 
-testing = False
+testing = True
 
 verbose = True
 
@@ -43,7 +43,7 @@ seg_name_list = list(segs.keys())
 if testing:
     year_list = [2017]
     season_list = ['full']
-    verbose_list = ['G4','W4','M1']
+    verbose_list = ['A1','A2','A3']
     #verbose_list = seg_name_list
 else:
     year_list = [2017, 2018, 2019]
@@ -383,14 +383,24 @@ for year in year_list:
 
             # store results in the DataFrame of fluxes used for the flux engine
             def update_q(q_df, q_sal, seg_name, Seg_name, q, Q, sss):
-                # transport in from adjoining segment
-                # and vertical transport up from below or down from above
-                if q_sal[sss] == 's':
-                    q_df.loc[seg_name+'_s',Seg_name+'_s'] += q[sss]*(1-A[sss,sss])
-                    q_df.loc[seg_name+'_f',seg_name+'_s'] += q[sss] * A[sss,sss]
-                elif q_sal[sss] == 'f':
-                    q_df.loc[seg_name+'_f',Seg_name+'_f'] += q[sss]*(1-A[sss,sss])
-                    q_df.loc[seg_name+'_s',seg_name+'_f'] += q[sss] * A[sss,sss]
+                if True: # ORIGINAL VERSION
+                    # transport in from adjoining segment
+                    # and vertical transport up from below or down from above
+                    if q_sal[sss] == 's':
+                        q_df.loc[seg_name+'_s',Seg_name+'_s'] += q[sss]*(1-A[sss,sss])
+                        q_df.loc[seg_name+'_f',seg_name+'_s'] += q[sss] * A[sss,sss]
+                    elif q_sal[sss] == 'f':
+                        q_df.loc[seg_name+'_f',Seg_name+'_f'] += q[sss]*(1-A[sss,sss])
+                        q_df.loc[seg_name+'_s',seg_name+'_f'] += q[sss] * A[sss,sss]
+                else: # NEW VERSION: Result = slightly worse validation so we don't use.
+                    # transport in from adjoining segment
+                    # and vertical transport up from below or down from above
+                    if q_sal[sss] == 's':
+                        q_df.loc[seg_name+'_s',Seg_name+'_s'] += q[sss]*(1-A[sss,sss])
+                        q_df.loc[seg_name+'_f',Seg_name+'_s'] += q[sss] * A[sss,sss]
+                    elif q_sal[sss] == 'f':
+                        q_df.loc[seg_name+'_f',Seg_name+'_f'] += q[sss]*(1-A[sss,sss])
+                        q_df.loc[seg_name+'_s',Seg_name+'_f'] += q[sss] * A[sss,sss]
                 # transport out to adjoining segment
                 # in this case the column (where tracer comes from) is the segment itself
                 if Q_sal[sss] == 's':
@@ -431,12 +441,14 @@ for year in year_list:
                 # upward transport
                 if verbose and seg_name in verbose_list:
                     print('adding upward transport %0.1f (%0.1f pct)' % (qx_s, 100*qx_s/qxm_s))
+                    #print(q)
                 q_df.loc[seg_name+'_s',seg_name+'_s'] -=  qx_s
                 q_df.loc[seg_name+'_f',seg_name+'_s'] +=  qx_s
             elif qx_s <= 0:
                 # downward transport
                 if verbose and seg_name in verbose_list:
                     print('adding downward transport %0.1f (%0.1f pct)' % (qx_s, 100*qx_s/qxm_s))
+                    #print(q)
                 q_df.loc[seg_name+'_f',seg_name+'_f'] +=  qx_s
                 q_df.loc[seg_name+'_s',seg_name+'_f'] -=  qx_s
             # check again

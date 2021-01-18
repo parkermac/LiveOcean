@@ -80,7 +80,7 @@ if source == 'S_OceanSalt':
 else:
     season_list = ['winter','spring','summer','fall','full']
         
-testing = False
+testing = True
 if testing:
     year_list = [2017]
     season_list = ['full']
