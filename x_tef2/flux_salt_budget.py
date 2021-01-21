@@ -48,7 +48,7 @@ Ldir = Lfun.Lstart(args.gridname, args.tag)
 gtagex = args.gridname + '_' + args.tag + '_' + args.ex_name
 
 if testing:
-    year_list = [2017]
+    year_list = [2019]
     vol_list = ['Puget Sound']
     save_figs = False
 else:

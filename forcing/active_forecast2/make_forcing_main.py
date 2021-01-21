@@ -89,7 +89,6 @@ for moviename in moviename_list:
             print('WARNING: problem with movie ' + moviename)
             result = 'fail'
         print('Return code = ' + str(ret) + ' (0=success)')
-        print('  -- took %0.1f seconds' % (tt0-time()))
     except Exception as e:
         print(e)
         pass
