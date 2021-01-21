@@ -59,7 +59,7 @@ for moviename in moviename_list:
         
     print('\n' + moviename)
     sys.stdout.flush()
-    sleep(1)
+    sleep(4)
     proc = subprocess.Popen(cmd,stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
     procs.append(proc)
 
