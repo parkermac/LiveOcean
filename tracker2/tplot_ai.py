@@ -101,6 +101,8 @@ for rds in ['2018.05.15', '2018.05.22', '2018.05.29', '2018.06.05']:
     ax.set_xticks([-124, -123, -122])
     ax.set_yticks([47, 48, 49])
     ax.set_title(exp_name + ' ' + rds)
+    ax.text(.05, .1, 'Winners = %0d%%' % (int(100*NPM/NP)), weight='bold',
+        transform=ax.transAxes)
 
     # Histogram
     ax = fig.add_subplot(222)
@@ -136,6 +138,7 @@ for rds in ['2018.05.15', '2018.05.22', '2018.05.29', '2018.06.05']:
     ax.axis(aa)
 
     #plt.show()
+    fig.tight_layout()
     fig.savefig(out_name)
     
     plt.rcdefaults()
