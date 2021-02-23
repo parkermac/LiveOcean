@@ -19,7 +19,7 @@ def get_sta_dict(job_name):
             
     elif job_name == 'mickett_test2':
         sta_dict = {
-            'Carr_Inlet_ORCA': (-122 - 43.8/60, 47 + 16.8/60)
+            'Carr_Inlet_ORCA': (-122 - 43.8/60, 47 + 16.8/60),
             'East_of_Fox_Island': (-122 - 35.158/60, 47 + 13.185/60)
         }
     
