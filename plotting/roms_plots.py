@@ -1529,8 +1529,11 @@ def P_layer_JdF_Eddy(in_dict):
 def P_sect(in_dict):
     # plots a map and a section (distance, z)
     
+    fs=12
+    plt.rc('font', size=fs)
+    
     # START
-    fig = plt.figure(figsize=(24,8))
+    fig = plt.figure(figsize=(15,6))
     ds = nc.Dataset(in_dict['fn'])
 
     # PLOT CODE
@@ -1543,6 +1546,12 @@ def P_sect(in_dict):
     if in_dict['auto_vlims']:
         pinfo.vlims_dict[vn] = ()
         pinfo.vlims_dict['sect_'+vn] = ()
+    # override
+    if vn == 'phytoplankton':
+        pinfo.vlims_dict[vn] = (0,25)
+        pinfo.vlims_dict['sect_'+vn] = (0,25)
+        pinfo.cmap_dict[vn] = 'Spectral_r'
+    
     #
     # GET DATA
     G, S, T = zrfun.get_basic_info(in_dict['fn'])
@@ -1590,21 +1599,25 @@ def P_sect(in_dict):
     # map with section line
     ax = fig.add_subplot(1, 3, 1)
     cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict,
-            cmap=pinfo.cmap_dict[vn], fac=pinfo.fac_dict[vn])
-    fig.colorbar(cs)
-    pfun.add_bathy_contours(ax, ds, txt=True)
+            cmap=pinfo.cmap_dict[vn], fac=pinfo.fac_dict[vn], do_mask_edges=True)
+    #fig.colorbar(cs)
+    #pfun.add_bathy_contours(ax, ds, txt=True)
     pfun.add_coast(ax)
-    ax.axis(pfun.get_aa(ds))
+    aaf = [-125.5, -122.1, 46.8, 50.3] # focus domain
+    #ax.axis(pfun.get_aa(ds))
+    ax.axis(aaf)
     pfun.dar(ax)
     ax.set_title('Surface %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
     ax.set_xlabel('Longitude')
     ax.set_ylabel('Latitude')
-    pfun.add_info(ax, in_dict['fn'])
-    pfun.add_windstress_flower(ax, ds)
+    #pfun.add_info(ax, in_dict['fn'])
+    #pfun.add_windstress_flower(ax, ds)
     # add section track
     ax.plot(x, y, '-r', linewidth=2)
     ax.plot(x[idist0], y[idist0], 'or', markersize=5, markerfacecolor='w',
         markeredgecolor='r', markeredgewidth=2)
+    ax.set_xticks([-125, -124, -123])
+    ax.set_yticks([47, 48, 49, 50])
     #
     # section
     ax = fig.add_subplot(1, 3, (2, 3))
@@ -1622,9 +1635,9 @@ def P_sect(in_dict):
     cs = ax.pcolormesh(v3['distf'], v3['zrf'], sf,
                        vmin=svlims[0], vmax=svlims[1], cmap=pinfo.cmap_dict[vn])
     fig.colorbar(cs)
-    cs = ax.contour(v3['distf'], v3['zrf'], sf,
-        np.linspace(np.floor(svlims[0]), np.ceil(svlims[1]), 20),
-        colors='k', linewidths=0.5)
+    # cs = ax.contour(v3['distf'], v3['zrf'], sf,
+    #     np.linspace(np.floor(svlims[0]), np.ceil(svlims[1]), 20),
+    #     colors='k', linewidths=0.5)
     ax.set_xlabel('Distance (km)')
     ax.set_ylabel('Z (m)')
     ax.set_title('Section %s %s' % (pinfo.tstr_dict[vn],pinfo.units_dict[vn]))
@@ -1637,6 +1650,8 @@ def P_sect(in_dict):
         plt.close()
     else:
         plt.show()
+        
+    plt.rcdefaults()
 
 def P_sect2(in_dict):
     # Plots a map and a section (distance, z) for 2 variables.
@@ -1676,8 +1691,8 @@ def P_sect2(in_dict):
 
     # PLOTTING
     #vn_list = ['NO3', 'phytoplankton']
-    #vn_list = ['NO3', 'oxygen']
-    vn_list = ['PH', 'ARAG']
+    vn_list = ['NO3', 'oxygen']
+    #vn_list = ['PH', 'ARAG']
     # override colors
     pinfo.vlims_dict['NO3'] = (0,40)
     pinfo.vlims_dict['phytoplankton'] = (0,20)

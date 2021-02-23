@@ -7,21 +7,16 @@ import netCDF4 as nc
 import matplotlib.pyplot as plt
 import numpy as np
 
-import os
-import sys
-pth = os.path.abspath('../alpha')
-if pth not in sys.path:
-    sys.path.append(pth)
+import os, sys
+sys.path.append(os.path.abspath('../alpha'))
 import Lfun
 import zfun
 
-pth = os.path.abspath('../plotting')
-if pth not in sys.path:
-    sys.path.append(pth)
+sys.path.append(os.path.abspath('../plotting'))
 import pfun
 
 Ldir = Lfun.Lstart()
-fn = Ldir['LOo'] + 'layer/cas4_v2_lo6biom_2017.01.01_2017.12.31/zeta_hourly.nc'
+fn = Ldir['LOo'] + 'layer/cas6_v3_lo8b_2019.06.01_2019.08.31/surface_hourly.nc'
 ds = nc.Dataset(fn)
 
 # gather fields
@@ -42,9 +37,10 @@ for tt in range(NT):
 
 # PLOTTING
 plt.close('all')
-fig = plt.figure(figsize=(16,8))
+fig = plt.figure(figsize=(14,10))
 ax = fig.add_subplot(111)
-cs = ax.pcolormesh(xp,yp,zr[1:-1,1:-1], vmin=.13, vmax=.2)
+cs = ax.pcolormesh(xp,yp,zr[1:-1,1:-1], vmin=-.1, vmax=.1, cmap='nipy_spectral')
+ax.axis([-126, -122, 47, 50])
 fig.colorbar(cs)
 pfun.dar(ax)
 plt.show()

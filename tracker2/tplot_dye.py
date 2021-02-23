@@ -178,7 +178,7 @@ fig = plt.figure(figsize=(18,10))
 
 # Map
 ax = fig.add_subplot(121)
-ax.plot(x[NT-1,:],y[NT-1,:], '.', color='c', ms=1, alpha=.2)
+ax.plot(x[NT-1,:],y[NT-1,:], '.', color='k', ms=1, alpha=.1)
 # the lines below were for testing the path.contains_points(xyp) call
 # RESULT: it works great!
 #ax.plot(xh, yh, 'r-', lw=2)
@@ -193,19 +193,28 @@ ax.set_xticks([-124, -123, -122])
 ax.set_yticks([47, 48, 49])
 ax.set_title(indir.replace('/',''))
 
-# time series
+c_list = ['r','b','g','y','m','c','k','orange']
+c_dict = dict(zip(hc_segs,c_list))
+for sn in hc_segs:
+    ax.text(v_df.loc[sn,'lon'],v_df.loc[sn,'lat'],sn,c=c_dict[sn],weight='bold', ha='center', va='center')
+ax.text(.95,.9,'(a)',weight='bold',transform=ax.transAxes, ha='right')
 
+# time series
 ax = fig.add_subplot(222)
-np_norm_hc_df.plot(ax=ax, ls='--', color=['r','b','g','y','m','c','k','orange'], alpha=1)
-dye_norm_hc_df.plot(ax=ax, ls='-', color=['r','b','g','y','m','c','k','orange'], alpha=1, legend=False)
-CC.plot(ax=ax, ls=':', color=['r','b','g','y','m','c','k','orange'], alpha=1, legend=False)
+lw=1
+np_norm_HC_df.plot(ax=ax, lw=lw, color='k', ls='--', label='Particles', legend=True)
+dye_HC_df.plot(ax=ax, lw=lw, color='k', ls='-', label='Dye', legend=True)
+CC_net.plot(ax=ax, lw=lw, color='k', ls=':', label='Box Model', legend=True)
+ax.set_ylim(0,1)
+ax.set_xticklabels([])
+ax.text(.95,.9,'(b)',weight='bold',transform=ax.transAxes, ha='right')
 
 ax = fig.add_subplot(224)
-lw=1
-np_norm_HC_df.plot(ax=ax, lw=lw, color='b', ls='--', label='Particles', legend=True)
-dye_HC_df.plot(ax=ax, lw=lw, color='b', ls='-', label='Dye', legend=True)
-CC_net.plot(ax=ax, lw=lw, color='b', ls=':', label='Box Model', legend=True)
-ax.set_ylim(0,1)
+np_norm_hc_df.plot(ax=ax, ls='--', color=c_list, alpha=1, legend=False)
+dye_norm_hc_df.plot(ax=ax, ls='-', color=c_list, alpha=1, legend=False)
+CC.plot(ax=ax, ls=':', color=c_list, alpha=1, legend=False)
+ax.text(.95,.9,'(c)',weight='bold',transform=ax.transAxes, ha='right')
+
 
 plt.show()
 plt.rcdefaults()

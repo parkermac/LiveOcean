@@ -100,7 +100,7 @@ def add_bathy_contours(ax, ds, depth_levs = [], txt=False):
                         transform=ax.transAxes)
                 ii += 1
         
-def add_map_field(ax, ds, vn, vlims_dict, slev=-1, cmap='rainbow', fac=1, alpha=1, do_mask_salish=False, aa=[], vlims_fac=3):
+def add_map_field(ax, ds, vn, vlims_dict, slev=-1, cmap='rainbow', fac=1, alpha=1, do_mask_salish=False, aa=[], vlims_fac=3, do_mask_edges=False):
     cmap = plt.get_cmap(name=cmap)
     if 'lon_rho' in ds[vn].coordinates:
         x = ds['lon_psi'][:]
@@ -150,6 +150,9 @@ def add_map_field(ax, ds, vn, vlims_dict, slev=-1, cmap='rainbow', fac=1, alpha=
         
     if do_mask_salish:
         v_scaled = mask_salish(v_scaled, ds['lon_rho'][1:-1, 1:-1], ds['lat_rho'][1:-1, 1:-1])  
+        
+    if do_mask_edges:
+        v_scaled = mask_edges(v_scaled, ds['lon_rho'][1:-1, 1:-1], ds['lat_rho'][1:-1, 1:-1])  
     
     cs = ax.pcolormesh(x, y, v_scaled, vmin=vlims[0], vmax=vlims[1], cmap=cmap, alpha=alpha)
     return cs
@@ -438,7 +441,7 @@ def mask_salish(fld, lon, lat):
     Mask out map fields inside the Salish Sea.   
     Input:
         2D fields of data (masked array), and associated lon and lat
-        all must be the same shap
+        all must be the same shape
     Output:
         The data field, now masked in the Salish Sea.
     """
@@ -455,6 +458,20 @@ def mask_salish(fld, lon, lat):
     R[:,1] = Rlat
     RR = P.contains_points(R) # boolean    
     fld = np.ma.masked_where(RR.reshape(lon.shape), fld)
+    return fld
+    
+def mask_edges(fld, lon, lat):
+    """
+    Mask out map fields at open ocean edges.   
+    Input:
+        2D fields of data (masked array), and associated lon and lat
+        all must be the same shape
+    Output:
+        The data field, now masked at edges.
+    """
+    mm = 6
+    mask = (lon < lon[0,mm]) | (lat < lat[mm,0]) | (lat > lat[-mm,0])
+    fld = np.ma.masked_where(mask, fld)
     return fld
     
 def get_section(ds, vn, x, y, in_dict):

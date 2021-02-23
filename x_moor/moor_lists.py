@@ -16,6 +16,12 @@ def get_sta_dict(job_name):
         sta_dict = {
             'wbc': (-123.9516, 46.6290)
             }
+            
+    elif job_name == 'mickett_test2':
+        sta_dict = {
+            'Carr_Inlet_ORCA': (-122 - 43.8/60, 47 + 16.8/60)
+            'East_of_Fox_Island': (-122 - 35.158/60, 47 + 13.185/60)
+        }
     
     elif job_name == 'mickett_test':
         sta_dict = {
