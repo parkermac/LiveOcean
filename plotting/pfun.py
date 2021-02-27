@@ -258,7 +258,7 @@ def add_windstress_flower(ax, ds, t_scl=0.2, t_leglen=0.1, center=(.85,.25), fs=
         transform=ax.transAxes)
     tt = 1./np.sqrt(2)
     t_alpha = 0.4
-    ax.quiver([x, x] , [y, y],
+    ax.quiver(x*np.ones(8) , y*np.ones(8),
         t_leglen*np.array([0,tt,1,tt,0,-tt,-1,-tt]),
         t_leglen*np.array([1,tt,0,-tt,-1,-tt,0,tt]),
         units='y', scale=t_scl, scale_units='y', color='k', alpha=t_alpha,

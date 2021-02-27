@@ -5,7 +5,7 @@ This is the main program for creating movies and images from a forecast
 
 To test on boiler from ipython:
 
-run make_forcing_main.py -d [YYYY.MM.DD for today]
+run make_forcing_main.py -d [YYYY.MM.DD for today] -test True
 """
 
 import os, sys
@@ -30,16 +30,23 @@ dt1 = dt0 + timedelta(days=Ldir['forecast_days']-1)
 ds1 = dt1.strftime('%Y.%m.%d')
     
 procs = []
-moviename_list = ['full_salt_top', 'full_oxygen_bot',
-                    'PS_temp_top', 'PS_speed_top',
-                    'willapa_ARAG_top', 'willapa_ARAG_bot']
+
+if Ldir['testing'] == True:
+    moviename_list = ['P1_full_oxygen_bot', 'Phab_full_salt_top']
+    dt1 = dt0
+    ds1 = dt1.strftime('%Y.%m.%d')
+else:
+    moviename_list = ['P1_full_salt_top', 'P1_full_oxygen_bot',
+                        'P1_PS_temp_top', 'P1_PS_speed_top',
+                        'P1_willapa_ARAG_top', 'P1_willapa_ARAG_bot',
+                        'Phab_full_salt_top']
                     
 os.chdir(Ldir['LO'] + 'plot5/')
 
 tt0 = time()
 result = 'success'
 for moviename in moviename_list:
-    (dom,vn,BOT) = moviename.split('_')
+    (pt,dom,vn,BOT) = moviename.split('_')
     tracks = 'False'
     emask = 'False'
     avl = 'True'
@@ -54,6 +61,7 @@ for moviename in moviename_list:
         tracks = 'True'
         
     cmd = ['python', 'p5.py', '-ds0', ds0, '-ds1', ds1, '-lt', 'hourly', '-mov', 'True',
+        '-pt', pt,
         '-dom', dom, '-vn', vn, '-tracks', tracks, '-emask', emask,
         '-avl', avl, '-bot', bot]
         
@@ -78,20 +86,21 @@ for moviename in moviename_list:
     input_filename = Ldir['LOo'] + 'p5/' + Ldir['gtagex'] + '/' + moviename + '/' + moviename + '.mp4'
     output_filename = moviename + '.mp4'
 
-    # send file to homer (only works from boiler)
-    print('\nCopying '+output_filename+' to homer')
-    sys.stdout.flush()
-    try:
-        cmd_list = ['scp',input_filename,
-            'pmacc@homer.u.washington.edu:/hw00/d47/pmacc/LO/Figs_active_forecast/'+output_filename]
-        ret = subprocess.call(cmd_list)
-        if ret != 0:
-            print('WARNING: problem with movie ' + moviename)
-            result = 'fail'
-        print('Return code = ' + str(ret) + ' (0=success)')
-    except Exception as e:
-        print(e)
-        pass
+    if Ldir['testing'] == False:
+        # send file to homer (only works from boiler)
+        print('\nCopying '+output_filename+' to homer')
+        sys.stdout.flush()
+        try:
+            cmd_list = ['scp',input_filename,
+                'pmacc@homer.u.washington.edu:/hw00/d47/pmacc/LO/Figs_active_forecast/'+output_filename]
+            ret = subprocess.call(cmd_list)
+            if ret != 0:
+                print('WARNING: problem with movie ' + moviename)
+                result = 'fail'
+            print('Return code = ' + str(ret) + ' (0=success)')
+        except Exception as e:
+            print(e)
+            pass
     
     # and save a local copy
     print(' -- saving local copy of movie')

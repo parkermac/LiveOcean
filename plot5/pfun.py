@@ -38,14 +38,18 @@ from warnings import filterwarnings
 filterwarnings('ignore') # skip some warning messages
 
 def get_tracks(Q, Ldir):
-    dt0 = datetime.strptime(Q['ds0'],'%Y.%m.%d')
-    dt1 = datetime.strptime(Q['ds1'],'%Y.%m.%d')
-    dtt = (dt1-dt0).days + 1
-    import subprocess
-    cmd = ['python', '../tracker2/tracker.py', '-exp', Q['exp'],
-        '-ds', Q['ds0'], '-dtt', str(dtt), '-clb', 'True']
-    proc = subprocess.Popen(cmd)
-    proc.communicate()
+    if Q['test'] == False:
+        dt0 = datetime.strptime(Q['ds0'],'%Y.%m.%d')
+        dt1 = datetime.strptime(Q['ds1'],'%Y.%m.%d')
+        dtt = (dt1-dt0).days + 1
+        import subprocess
+        cmd = ['python', '../tracker2/tracker.py', '-exp', Q['exp'],
+            '-ds', Q['ds0'], '-dtt', str(dtt), '-clb', 'True']
+        proc = subprocess.Popen(cmd)
+        proc.communicate()
+    else:
+        # using test = True allows us to use pre-calculated tracks
+        pass
     tr_fn = Ldir['LOo'] + 'tracks2/' + Q['exp'] + '_surf/release_' + Q['ds0'] + '.nc'
     Q['tr_fn'] = tr_fn
     
@@ -231,10 +235,10 @@ def dar(ax):
     yav = (yl[0] + yl[1])/2
     ax.set_aspect(1/np.sin(np.pi*yav/180))
 
-def add_coast(ax, dir0=Ldir['data'], color='k'):
+def add_coast(ax, dir0=Ldir['data'], color='k', lw=0.5):
     fn = dir0 + 'coast/coast_pnw.p'
     C = pd.read_pickle(fn)
-    ax.plot(C['lon'].values, C['lat'].values, '-', color=color, linewidth=0.5)
+    ax.plot(C['lon'].values, C['lat'].values, '-', color=color, linewidth=lw)
 
 def mask_edges(ds, fld, Q):
     # mask off selected edges, e.g. for NPZD variables

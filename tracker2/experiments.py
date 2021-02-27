@@ -72,7 +72,7 @@ def get_ic(EI, fn00):
         latvec = np.linspace(y0, y1, nyp)
         lonmat_1, latmat_1 = np.meshgrid(lonvec, latvec)
         #
-        x0 = -125; x1 = -124; y0 = 44; y1 = 45
+        x0 = -125.2; x1 = -124.2; y0 = 44; y1 = 45
         clat_2 = np.cos(np.pi*(np.mean([y0, y1]))/180)
         xyRatio = clat_2 * (x1 - x0) / (y1 - y0)
         lonvec = np.linspace(x0, x1, (nyp * xyRatio).astype(int))

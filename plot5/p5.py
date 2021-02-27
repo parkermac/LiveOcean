@@ -32,7 +32,7 @@ parser.add_argument('-ds1', type=str, default='')
 # arguments that allow you to bypass the interactive choices
 parser.add_argument('-hn', type=int, default=1) # history file number
 parser.add_argument('-lt', type=str, default='snapshot')
-parser.add_argument('-pt', type=str, default='P_1')
+parser.add_argument('-pt', type=str, default='P1')
 parser.add_argument('-vn', type=str, default='salt')
 parser.add_argument('-dom', type=str, default='full')
 parser.add_argument('-bot', default=False, type=zfun.boolean_string)
@@ -90,7 +90,7 @@ elif len(fn_list) > 1:
     else:
         bot_tag = 'top'
         
-    moviename = Q['dom'] + '_' + Q['vn'] + '_' + bot_tag
+    moviename = Q['pt'] + '_' + Q['dom'] + '_' + Q['vn'] + '_' + bot_tag
     outdir = outdir0 + moviename + '/'
     Lfun.make_dir(outdir, clean=True)
     # plot to a folder of files
