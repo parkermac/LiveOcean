@@ -233,7 +233,7 @@ def dar(ax):
     """
     yl = ax.get_ylim()
     yav = (yl[0] + yl[1])/2
-    ax.set_aspect(1/np.sin(np.pi*yav/180))
+    ax.set_aspect(1/np.cos(np.pi*yav/180))
 
 def add_coast(ax, dir0=Ldir['data'], color='k', lw=0.5):
     fn = dir0 + 'coast/coast_pnw.p'

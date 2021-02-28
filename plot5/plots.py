@@ -123,7 +123,7 @@ def P1(Q, M):
 def Phab(Q, M):
     # This is a modified version of P_1 that is designed for the HAB Bulletin.
     # Adds two panels to the right that are close-ups of selected regions
-    fig = plt.figure(figsize=(12,12))
+    fig = plt.figure(figsize=(11.5,12))
     fs=18
     plt.rc('font', size=fs)
     
@@ -204,14 +204,11 @@ def Phab(Q, M):
     pfun.plot_time_series(axm, M, T)
     
     # Focus plot 1
-    ax1 = fig.add_subplot(222)
-    pad = .7
-    bb = [-126, -125, 48, 49]
-    clat = np.cos(np.pi*(np.mean(bb[2:]))/180)
-    aa1 = [ bb[0] - pad/clat - pad/3, bb[1] + pad/clat - pad/3, bb[2] - pad, bb[3] + pad]
+    ax1 = plt.subplot2grid((2,2), (0,1))
+    aa1 = [-127, -124, 47.2, 49.8]
     pfun.draw_box(ax, aa1, linestyle='-', color='c', alpha=1, linewidth=3)
     pfun.draw_box(ax1, aa1, linestyle='-', color='c', alpha=1, linewidth=5, inset=.01)
-    ax1.set_xticks([-127, -126, -125])
+    ax1.set_xticks([ -126, -125])
     ax1.set_yticks([48, 49])
     ax1.tick_params(labelsize=.7*fs)
     pfun.add_coast(ax1, lw=1.5)
@@ -234,11 +231,8 @@ def Phab(Q, M):
     pfun.dar(ax1)
     
     # Focus plot 2
-    ax2 = fig.add_subplot(224)
-    pad = .7
-    bb = [-125, -124, 44, 45]
-    clat = np.cos(np.pi*(np.mean(bb[2:]))/180)
-    aa2 = [ bb[0] - pad/clat - pad/3, bb[1] + pad/clat - pad/3, bb[2] - pad, bb[3] + pad]
+    ax2 = plt.subplot2grid((2,2), (1,1))
+    aa2 = [-126.5, -123.5, 43.2, 45.8]
     pfun.draw_box(ax, aa2, linestyle='-', color='purple', alpha=1, linewidth=3)
     pfun.draw_box(ax2, aa2, linestyle='-', color='purple', alpha=1, linewidth=5, inset=.01)
     ax2.set_xticks([-126, -125, -124])
@@ -263,7 +257,9 @@ def Phab(Q, M):
     ax2.axis(aa2)
     pfun.dar(ax2)
     
-    fig.tight_layout()
+    plt.tight_layout()
+    
+    plt.subplots_adjust(left=.03, bottom=.03, right=.97, top=.97, wspace=0, hspace=None)
     
     # FINISH
     ds.close()
