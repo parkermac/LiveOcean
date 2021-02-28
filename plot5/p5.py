@@ -1,6 +1,11 @@
 """
 Plot fields in one or more history files.
 
+Testing calls from ipython on mac:
+
+run p5
+run p5 -tracks True -mov True -lt hourly
+
 """
 
 #%% setup
@@ -40,6 +45,7 @@ parser.add_argument('-mov', default=False, type=zfun.boolean_string)
 parser.add_argument('-avl', default=True, type=zfun.boolean_string)
 parser.add_argument('-emask', default=False, type=zfun.boolean_string)
 parser.add_argument('-tracks', default=False, type=zfun.boolean_string)
+parser.add_argument('-ttag', default='base', type=str) # tag for tracking
 parser.add_argument('-test', default=False, type=zfun.boolean_string)
 
 args = parser.parse_args()

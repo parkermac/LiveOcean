@@ -4,8 +4,15 @@
 This is the main program for creating movies and images from a forecast
 
 To test on boiler from ipython:
-
 run make_forcing_main.py -d [YYYY.MM.DD for today] -test True
+
+To run on boiler for today's forecast, from command line:
+python make_forcing_main.py -d [YYYY.MM.DD for today] > log &
+
+To test on mac from ipython:
+cd /Users/pm8/Documents/LiveOcean/forcing/active_forecast2
+run make_forcing_main.py -d 2019.07.04 -test True
+
 """
 
 import os, sys
@@ -32,7 +39,7 @@ ds1 = dt1.strftime('%Y.%m.%d')
 procs = []
 
 if Ldir['testing'] == True:
-    moviename_list = ['P1_full_oxygen_bot', 'Phab_full_salt_top']
+    moviename_list = ['Phab_full_salt_top']
     dt1 = dt0
     ds1 = dt1.strftime('%Y.%m.%d')
 else:
@@ -60,9 +67,14 @@ for moviename in moviename_list:
     if vn == 'salt':
         tracks = 'True'
         
+    if moviename == 'Phab_full_salt_top':
+        ttag = 'hab'
+    else:
+        ttag = 'base'
+        
     cmd = ['python', 'p5.py', '-ds0', ds0, '-ds1', ds1, '-lt', 'hourly', '-mov', 'True',
         '-pt', pt,
-        '-dom', dom, '-vn', vn, '-tracks', tracks, '-emask', emask,
+        '-dom', dom, '-vn', vn, '-tracks', tracks, '-emask', emask, '-ttag', ttag,
         '-avl', avl, '-bot', bot]
         
     print('\n' + moviename)
