@@ -43,7 +43,7 @@ def get_tracks(Q, Ldir):
         dt1 = datetime.strptime(Q['ds1'],'%Y.%m.%d')
         dtt = (dt1-dt0).days + 1
         import subprocess
-        cmd = ['python', '../tracker2/tracker.py', '-exp', Q['exp'],
+        cmd = ['python', '../tracker/tracker.py', '-exp', Q['exp'],
             '-ds', Q['ds0'], '-dtt', str(dtt), '-t', Q['ttag'], '-clb', 'True']
         #print(cmd)
         proc = subprocess.Popen(cmd)
@@ -51,7 +51,7 @@ def get_tracks(Q, Ldir):
     else:
         # using test = True allows us to use pre-calculated tracks
         pass
-    tr_fn = Ldir['LOo'] + 'tracks2/' + Q['exp'] + '_surf_' + Q['ttag'] + '/release_' + Q['ds0'] + '.nc'
+    tr_fn = Ldir['LOo'] + 'tracks/' + Q['exp'] + '_surf_' + Q['ttag'] + '/release_' + Q['ds0'] + '.nc'
     #print(tr_fn)
     Q['tr_fn'] = tr_fn
     

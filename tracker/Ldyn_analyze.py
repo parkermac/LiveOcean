@@ -54,7 +54,7 @@ for rds in rds_list:
     pname = p_dir + 'Ldyn_' + rds + '.png'
 
     t_fn = 'release_' + rds + '.nc'
-    # get the tracker2 output for this release
+    # get the tracker output for this release
     t_ds = nc.Dataset(t_dir + t_fn)
     NT, NP = t_ds['lon'].shape
     # get a list of datetimes

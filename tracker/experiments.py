@@ -17,7 +17,7 @@ def get_exp_info(exp_name):
         ex_name = 'lo8da'
     
     EI = {}
-    EI['exp_name'] = exp_name # tracker2 experiment name
+    EI['exp_name'] = exp_name # tracker experiment name
     # ROMS names
     EI['gridname'] = gridname
     EI['tag'] = tag

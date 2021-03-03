@@ -1,6 +1,6 @@
 """
 Plot a mooring record just focused on physical variables for the
-tracker2 experiments in EJdF3d_3d_up4.
+tracker experiments in EJdF3d_3d_up4.
 """
 
 # setup

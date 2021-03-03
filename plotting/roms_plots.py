@@ -3120,7 +3120,7 @@ def P_tracks_barber(in_dict):
     # hours in the folder.
     #
     # NOTE: this is the first particle tracking plotting code to use
-    # the new, faster tracker2.
+    # the new, faster tracker.
     
     # NOTE: use List type = merhab
     
@@ -3131,7 +3131,7 @@ def P_tracks_barber(in_dict):
     import os, sys
     import pickle
     
-    # write an abbreviated version of the Experiment Info to LiveOcean_output/tracks2
+    # write an abbreviated version of the Experiment Info to LiveOcean_output/tracks
     # so that the correct information is available when trackfun is loaded
     fn = in_dict['fn']
     gtagex = fn.split('/')[-3]
@@ -3166,9 +3166,9 @@ def P_tracks_barber(in_dict):
         'fn00':fn,
         }
         
-        Lfun.dict_to_csv(EI,Ldir['LOo'] + 'tracks2/exp_info.csv')
+        Lfun.dict_to_csv(EI,Ldir['LOo'] + 'tracks/exp_info.csv')
     
-        sys.path.append(os.path.abspath('../tracker2'))
+        sys.path.append(os.path.abspath('../tracker'))
         import trackfun
 
         # Specific release locations
@@ -3212,7 +3212,7 @@ def P_tracks_barber(in_dict):
         else:
             ndiv = 12
         # Note: We have to set all the TR entries here because we are not going
-        # through tracker2/tracker.py where they would be set by the
+        # through tracker/tracker.py where they would be set by the
         # argparse defaults.
         TR = {'3d': False, 'rev': False, 'turb': False, 'no_advection': False,
             'ndiv': ndiv, 'windage': 0, 'sph': 1}

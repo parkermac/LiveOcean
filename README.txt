@@ -76,11 +76,7 @@ Most of the code in forcing shares some input ant output structure that is conta
 
 =====================================================================================
 
-* tracker/ is particle tracking code code.  Mostly obsolete at this point.
-
-=====================================================================================
-
-* tracker2/ is the current particle tracking code, which is significantly faster becasue of extensive use of nearest-neighbor search using pre-created search trees.
+* tracker/ is the current particle tracking code, which is significantly faster becasue of extensive use of nearest-neighbor search using pre-created search trees (was called tracker2 until 2021.03.03).
 
 =====================================================================================
 

@@ -43,7 +43,7 @@ else:
     dsr = dtr0.strftime('%Y.%m.%d')
 
 # RUN TRACKER JOBS - parallelize using subprocess
-os.chdir(Ldir['LO'] + 'tracker2')
+os.chdir(Ldir['LO'] + 'tracker')
 start = time()
 procs = []
 exp_list = ['full', 'PS']
@@ -68,8 +68,8 @@ os.chdir(Ldir['LO'] + 'forcing/drifters')
 out_fn_dict = {}
 out_json_dict = {}
 for exp in exp_list:
-    out_fn_dict[exp] = (Ldir['LOo'] + 'tracks2/' + exp + '_surf_forWeb/release_' + dsr + '.nc')
-    out_json_dict[exp] = (Ldir['LOo'] + 'tracks2/' + exp + '_surf_forWeb/tracks_' + exp + '.json')
+    out_fn_dict[exp] = (Ldir['LOo'] + 'tracks/' + exp + '_surf_forWeb/release_' + dsr + '.nc')
+    out_json_dict[exp] = (Ldir['LOo'] + 'tracks/' + exp + '_surf_forWeb/tracks_' + exp + '.json')
 result = 'success'
 for exp in exp_list:
     if not os.path.isfile(out_fn_dict[exp]):

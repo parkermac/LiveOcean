@@ -61,7 +61,7 @@ if verbose:
 Lfun.make_dir(out_dir, clean = True)
 
 if testing == False:
-    # get the tracker2 output for this release
+    # get the tracker output for this release
     t_ds = nc.Dataset(t_dir + t_fn)
     NT, NP = t_ds['lon'].shape
     # get a list of datetimes
