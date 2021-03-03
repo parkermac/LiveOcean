@@ -52,10 +52,6 @@ LiveOcean_roms
 
 =====================================================================================
 
-* co2sys/ is the MATLAB program CO2SYS.m and some wrappers I use for running it.
-
-=====================================================================================
-
 * driver/ has all the drivers, mainly shell scripts (.sh) that you use to control pre- and post-processing operations.
 
 =====================================================================================
