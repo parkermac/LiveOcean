@@ -27,7 +27,7 @@ parser.add_argument('-exp_name', type=str, default='EJdF3d_3d_up4')
 args = parser.parse_args()
 exp_name = args.exp_name
 
-t_dir = Ldir['LOo'] + 'tracks2/' + exp_name + '/'
+t_dir = Ldir['LOo'] + 'tracks/' + exp_name + '/'
 EI = Lfun.csv_to_dict(t_dir + 'exp_info.csv')
 p_dir = t_dir + 'plots/'
 Lfun.make_dir(p_dir, clean=True)

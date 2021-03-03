@@ -23,8 +23,8 @@ are explained in the argparse section below.
 
 NOTE: To improve usefulness for people other than me, this driver will
 first look for:
-- LiveOcean_user/tracker2/user_experiments.py and
-- LiveOcean_user/tracker2/user_trackfun.py
+- LiveOcean_user/tracker/user_experiments.py and
+- LiveOcean_user/tracker/user_trackfun.py
 before loading my versions.
 This allows you to create yout own experiments, and modifications
 to the tracking (e.g. for diurnal depth behavior) while still being able
@@ -51,8 +51,8 @@ import zfun
 
 from importlib import reload
 
-if os.path.isfile(Ldir['LOu'] + 'tracker2/user_experiments.py'):
-    sys.path.append(os.path.abspath(Ldir['LOu'] + 'tracker2'))
+if os.path.isfile(Ldir['LOu'] + 'tracker/user_experiments.py'):
+    sys.path.append(os.path.abspath(Ldir['LOu'] + 'tracker'))
     import user_experiments as exp
 else:
     import experiments as exp
@@ -177,10 +177,10 @@ for nic in range(TR['number_of_start_days']):
     idt_list.append(dt)
     dt = dt + timedelta(TR['days_between_starts'])
 
-# make sure the output parent directory "tracks2" exists
+# make sure the output parent directory "tracks" exists
 outdir00 = Ldir['LOo']
 Lfun.make_dir(outdir00)
-outdir0 = Ldir['LOo'] + 'tracks2/'
+outdir0 = Ldir['LOo'] + 'tracks/'
 Lfun.make_dir(outdir0)
 
 # make the output directory (empty)
@@ -205,8 +205,8 @@ Lfun.dict_to_csv(TR, outdir + 'exp_info.csv')
 # Load the trackfun module.
 # NOTE: we have to load this module AFTER we write [outdir0]/exp_info.csv
 # because it uses that information to decide which KDTrees to load.  Crude.
-if os.path.isfile(Ldir['LOu'] + 'tracker2/user_trackfun.py'):
-    sys.path.append(os.path.abspath(Ldir['LOu'] + 'tracker2'))
+if os.path.isfile(Ldir['LOu'] + 'tracker/user_trackfun.py'):
+    sys.path.append(os.path.abspath(Ldir['LOu'] + 'tracker'))
     import user_trackfun as tfun
 else:
     import trackfun as tfun

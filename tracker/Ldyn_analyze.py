@@ -39,7 +39,7 @@ args = parser.parse_args()
 exp_name = args.exp_name
 testing = args.testing
 
-t_dir = Ldir['LOo'] + 'tracks2/' + exp_name + '/'
+t_dir = Ldir['LOo'] + 'tracks/' + exp_name + '/'
 EI = Lfun.csv_to_dict(t_dir + 'exp_info.csv')
 p_dir = t_dir + 'Lplots/'
 Lfun.make_dir(p_dir, clean=True)

@@ -1,4 +1,4 @@
-**** Information and directions for the tracker2 code ****
+**** Information and directions for the tracker code ****
 
 This code is designed to be a flexible, and hopefully fast, tool for doing particle tracking experiments using saved history files from ROMS.  It assumes that you save fields hourly, and that the file structure follows LiveOcean standards (hours 0-24, numbered 00[01-25]) in a single folder named by date, e.g. f2019.12.18.  Along the way it often relies on some of the LiveOcean code machinery, such as LiveOcean/alpha/Lfun.py.  I suspect that it could be made more general with only a little work, but I won't do that now.  The old version of tracker relied extensively on the assumption that the underlying grid was "plaid."  This new code instead uses nearest neighbor for most everything and so might work with more complex ROMS grids, but that is untested.
 
@@ -15,6 +15,9 @@ This code is designed to be a flexible, and hopefully fast, tool for doing parti
 2020.11.10:
 - Dropped the "_ndiv" from the output file name if the default (ndiv=12) is used.
 - Added optional "sink" flag, e.g. use "-sink 40" to add 40 meters per day sinking speed to all particles.  Then the tag "_sink40" is added to the output file.  It would be nice to generalize to allow floating and sinking with less confusing naming (e.g. floating would be _sink-40 which is not intuitive).
+
+2021.03.03:
+- Got rid of old tracker folder and renames this one tracker (was tracker2)
 
 ============================================================================
 ============================================================================
@@ -33,7 +36,7 @@ You only need to do this once for a given gridname.
 
 ============================================================================
 
-2. Create a copy of experiments.py called "LiveOcean_user/tracker2/user_experiments.py".  You will be able to edit this, and the code will look for it first.
+2. Create a copy of experiments.py called "LiveOcean_user/tracker/user_experiments.py".  You will be able to edit this, and the code will look for it first.
 
 Then to create the initial positions of your release you make new entries in:
 
@@ -53,7 +56,7 @@ which would track in 3d (including turbulence by default) for two days, starting
 
 The output appears as NetCDF files in, for example:
 
-LiveOcean_output/tracks2/fast0_ndiv12_3d/
+LiveOcean_output/tracks/fast0_ndiv12_3d/
 		exp_info.csv (a record of the experiment choices)
 		grid.nc (bathy info, used for plotting)
 		release_2019.07.04.nc (there would be more than one of these if you used more start days)
@@ -62,7 +65,7 @@ NOTE: the default is to save output every hour, even though the underlying calcu
 
 ============================================================================
 
-4. Plot the results using tplot.py as a first generic tool.  Copy this to a new name in LiveOcean_user/tracker2 to start making your own plotting tool.
+4. Plot the results using tplot.py as a first generic tool.  Copy this to a new name in LiveOcean_user/tracker to start making your own plotting tool.
 
 Run from ipython on your laptop, because it creates a screen plot.  It will prompt you to choose the output you want to plot.
 
@@ -76,7 +79,7 @@ trackfun_nc.py handles creating and appending to the NetCDF output files
 
 trackfun.py is the real heart of the program.  It is a module of functions that does all steps of an experiment, typically in one-day chunks as orchestrated by the calling code tracker.py.
 
-NOTE: tracker.py will automatically look first for "LiveOcean_user/tracker2/user_trackfun.py" which is a placeholder name in case you want to make your own edited version of the functions to do something exotic like adding diurnal cycling behavoior to particles.
+NOTE: tracker.py will automatically look first for "LiveOcean_user/tracker/user_trackfun.py" which is a placeholder name in case you want to make your own edited version of the functions to do something exotic like adding diurnal cycling behavoior to particles.
 
 LIMITATIONS: Currently the code is hardwired to only save time series of particle positions, velocity, salinity and temperature.  I will need to do a bit more work to simplify adding more tracers.
 

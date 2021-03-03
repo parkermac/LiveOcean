@@ -24,7 +24,7 @@ from datetime import datetime, timedelta
 Ldir = Lfun.Lstart()
 
 # get release Dataset
-indir0 = Ldir['LOo'] + 'tracks2/'
+indir0 = Ldir['LOo'] + 'tracks/'
 indir = 'AllHC3d_ndiv12_3d_3mo/'
 rel = 'release_2019.07.04.nc'
 dsr = nc4.Dataset(indir0 + indir + rel)

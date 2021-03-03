@@ -1,5 +1,5 @@
 """
-This code loads in the results of a tracker2 release for which we have ROMS
+This code loads in the results of a tracker release for which we have ROMS
 diagnostics and averages.  It collects the u and v momentum budget terms
 along selected particle paths and saves them for later analysis.
 
@@ -45,7 +45,7 @@ testing = args.testing
 verbose = args.verbose
 rds = args.release
 
-t_dir = Ldir['LOo'] + 'tracks2/' + exp_name + '/'
+t_dir = Ldir['LOo'] + 'tracks/' + exp_name + '/'
 EI = Lfun.csv_to_dict(t_dir + 'exp_info.csv')
 
 Ldir['roms'] = Ldir[args.roms]

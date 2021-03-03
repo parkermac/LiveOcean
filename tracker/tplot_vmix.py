@@ -22,7 +22,7 @@ Ldir = Lfun.Lstart()
 
 if True:
     # Choose an experiment to plot from.
-    indir0 = Ldir['LOo'] + 'tracks2/'
+    indir0 = Ldir['LOo'] + 'tracks/'
     indir_list_raw = os.listdir(indir0)
     indir_list = []
     for d in indir_list_raw:
@@ -52,7 +52,7 @@ if True:
     rel = rel_list[int(my_nrl)]
 else:
     # get release Dataset
-    indir0 = Ldir['LOo'] + 'tracks2/'
+    indir0 = Ldir['LOo'] + 'tracks/'
     indir = 'vmix_ndiv12_3d_nadv/'
     rel = 'release_2019.07.04.nc'
 dsr = nc4.Dataset(indir0 + indir + rel)

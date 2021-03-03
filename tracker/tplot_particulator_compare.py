@@ -20,7 +20,7 @@ from scipy import io
 Ldir = Lfun.Lstart()
 
 # get release Dataset
-indir0 = Ldir['LOo'] + 'tracks2/'
+indir0 = Ldir['LOo'] + 'tracks/'
 
 indir = 'eddy0_ndiv12_3d/'
 rel = 'release_2019.07.04.nc'
@@ -67,7 +67,7 @@ ax.plot(lon[-1,:], lat[-1,:],'.b', ms=ms)
 pfun.dar(ax)
 pfun.add_coast(ax)
 ax.axis(aa)
-ax.set_title('tracker2')
+ax.set_title('tracker')
 
 ax = fig.add_subplot(222)
 ax.plot(lonp[0,:], latp[0,:],'.r', alpha=alpha, ms=ms)

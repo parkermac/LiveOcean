@@ -20,7 +20,7 @@ from time import time
 Ldir = Lfun.Lstart()
 
 # get Datasets
-indir0 = '/Users/pm8/Documents/LiveOcean_output/tracks2/'
+indir0 = '/Users/pm8/Documents/LiveOcean_output/tracks/'
 indir = 'EAB_3d/'
 rel = 'release_2017.09.24.nc'
 fn = indir0 + indir + rel
