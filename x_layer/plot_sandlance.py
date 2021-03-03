@@ -27,7 +27,7 @@ def dar(ax):
     """
     yl = ax.get_ylim()
     yav = (yl[0] + yl[1])/2
-    ax.set_aspect(1/np.sin(np.pi*yav/180))
+    ax.set_aspect(1/np.cos(np.pi*yav/180))
 def find_nearest_ind(array, value):
     # gives the index of the item in array that is closest to value
     idx = (np.abs(array-value)).argmin()
