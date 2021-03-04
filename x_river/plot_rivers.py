@@ -9,6 +9,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.dates as mdates
+from datetime import datetime, timedelta
 
 
 import os
@@ -21,7 +22,7 @@ import zrfun
 import zfun
 
 Ldir = Lfun.Lstart('cas6', 'v3')
-fnr = Ldir['gtag'] + '_2017.01.01_2018.12.31.p'
+fnr = Ldir['gtag'] + '_2017.01.01_2020.12.31.p'
 fn = Ldir['LOo'] + 'river/' + fnr
 df = pd.read_pickle(fn)
 
@@ -50,7 +51,7 @@ dt1 = rind[-1]
 # plotting
 plt.close('all')
 
-for ff in range(5):
+for ff in range(5): # range(5)
     
     fig = plt.figure(figsize=(12,10))
     
@@ -62,13 +63,18 @@ for ff in range(5):
         df_clim.iloc[:,rr].plot(ax=ax, color='orange')
         ax.set_xlim(dt0, dt1)
         ax.text(.05, .9, riv_name, transform=ax.transAxes, fontweight='bold')
+        for year in range(2018,2021):
+            ax.axvline(x=datetime(year,1,1), c='k')
+        ax.set_xticks([], minor=True)
         if ii+1 <=6:
             ax.set_xticklabels([])
         else:
-            ax.xaxis.set_major_locator(mdates.MonthLocator())
-            ax.xaxis.set_major_formatter(mdates.DateFormatter('%b'))
-            ax.xaxis.set_tick_params(labelrotation=45)
-            ax.set_xlabel('Date 2017')
+            ax.set_xticks([datetime(2017,1,1),datetime(2017,7,1),datetime(2018,1,1),
+                datetime(2018,7,1),datetime(2019,1,1),datetime(2019,7,1),datetime(2019,12,31),
+                datetime(2020,7,1),datetime(2020,12,31)])
+            ax.set_xticklabels(['','2017','','2018','','2019','','2020',''], rotation=0,
+                fontdict={'horizontalalignment':'center'})
+            ax.set_xlabel('Year')
     fig.suptitle(fnr)
     #fig.tight_layout()
         

@@ -16,9 +16,6 @@ pinfo.vlims_dict:
 Example of an analytical run:
 run pan_plot.py -g aestus1 -t A1 -x ae1 -0 2013.03.01
 
-And a test of the MERHAB tracks:
-run pan_plot.py -g cascadia1 -t base -x lobio5 -0 2013.01.31 -lt merhab -pt P_tracks_MERHAB -mov True
-
 """
 
 #%% setup
@@ -71,7 +68,7 @@ if len(args.list_type) == 0:
     print(30*'*' + ' pan_plot ' + 30*'*')
     print('\n%s\n' % '** Choose List type (return for snapshot) **')
     lt_list = ['snapshot', 'low_passed', 'daily', 'daily4', 'hourly ', 'forecast',
-               'merhab', 'allhours']
+               'allhours']
     Nlt = len(lt_list)
     lt_dict = dict(zip(range(Nlt), lt_list))
     for nlt in range(Nlt):
