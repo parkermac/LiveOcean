@@ -117,6 +117,7 @@ def get_ax_limits(Q):
         Q['exp'] = 'p5_merhab' # particle tracking
     elif Q['dom'] == 'PS':
         Q['aa'] = [-123.6, -122, 47, 49]
+        # a good aspect ration is dlat/dlon = 1/.8
         Q['xtl'] = [-123, -122.5]
         Q['ytl'] = [47.5, 48, 48.5]
         Q['v_scl'] = 25
@@ -125,6 +126,12 @@ def get_ax_limits(Q):
         Q['aa'] = [-124.6, -123.65, 46, 47.2]
         Q['xtl'] = [-124.4, -124.2, -124, -123.8]
         Q['ytl'] = [46, 46.5, 47]
+        Q['v_scl'] = 25
+    elif Q['dom'] == 'nshelf':
+        # north part of the Washington shelf
+        Q['aa'] = [-126.1, -123.7, 45.8, 48.8]
+        Q['xtl'] = [-126, -125, -124]
+        Q['ytl'] = [46, 47, 48]
         Q['v_scl'] = 25
         
 def get_moor_info(Q):
@@ -140,7 +147,7 @@ def get_moor_info(Q):
         M['lat'] = 47.86
         M['city'] = 'Seattle'
         M['wscl'] = 10
-    elif Q['dom'] == 'willapa':
+    elif Q['dom'] in ['willapa', 'nshelf']:
         M['lon'] = -124.4
         M['lat'] = 46.6
         M['city'] = 'Westport'
@@ -287,13 +294,13 @@ def get_units(ds, vn):
         units = ''
     return units
 
-def add_bathy_contours(ax, ds, depth_levs = [200], txt=False):
+def add_bathy_contours(ax, ds, depth_levs = [200], txt=False, c='k', lw=0.5):
     # this should work with ds being a history file Dataset, or the G dict.
     h = ds['h'][:]
     lon = ds['lon_rho'][:]
     lat = ds['lat_rho'][:]
-    c = 'k'
-    ax.contour(lon, lat, h, depth_levs, colors=c, linewidths=0.5)
+    c = c
+    ax.contour(lon, lat, h, depth_levs, colors=c, linewidths=lw)
     if txt==True:
         ii = 0
         for lev in depth_levs:

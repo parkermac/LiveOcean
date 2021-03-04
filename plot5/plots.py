@@ -69,7 +69,9 @@ def P1(Q, M):
         transform=ax.transAxes, ha='right', va='top', weight='bold')
     
     if Q['dom'] == 'full':
-        pfun.add_bathy_contours(ax, ds, txt=False, depth_levs=[200])
+        pfun.add_bathy_contours(ax, ds, depth_levs=[200])
+    elif Q['dom'] == 'nshelf':
+        pfun.add_bathy_contours(ax, ds, depth_levs=[100, 200], c='c', lw=1)
         
     if vn == 'speed':
         pfun.add_velocity_vectors(ax, aa, ds, Q['fn'], v_scl=Q['v_scl'])
