@@ -167,19 +167,6 @@ def get_fn_list(list_type, Ldir, date_string0, date_string1, his_num=1):
     elif list_type == 'hourly':
         # list of hourly files over a date range
         fn_list = fn_list_utility(dt0,dt1,Ldir)
-    elif list_type == 'forecast':
-        # list of all history files in a directory
-        hourmax = Ldir['forecast_days'] * 24
-        dt0 = datetime.now()
-        fn_list = fn_list_utility(dt0, dt0, Ldir, hourmax=hourmax)
-    elif list_type == 'low_passed':
-        # list of low passed files over a date range
-        fn_list = []
-        date_list = date_list_utility(dt0, dt1)
-        for dl in date_list:
-            f_string = 'f' + dl
-            fn = (dir0 + f_string + '/low_passed.nc')
-            fn_list.append(fn)
     elif list_type == 'daily':
         # list of history file 21 over a date range
         # which is Noon Pacific Standard Time

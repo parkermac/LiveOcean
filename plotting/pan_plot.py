@@ -67,8 +67,7 @@ Ldir['gtagex'] = Ldir['gtag'] + '_' + args.ex_name
 if len(args.list_type) == 0:
     print(30*'*' + ' pan_plot ' + 30*'*')
     print('\n%s\n' % '** Choose List type (return for snapshot) **')
-    lt_list = ['snapshot', 'low_passed', 'daily', 'daily4', 'hourly ', 'forecast',
-               'allhours']
+    lt_list = ['snapshot', 'daily', 'hourly ', 'allhours']
     Nlt = len(lt_list)
     lt_dict = dict(zip(range(Nlt), lt_list))
     for nlt in range(Nlt):
@@ -101,11 +100,6 @@ if len(args.plot_type) == 0:
 else:
     plot_type = args.plot_type
 whichplot = getattr(roms_plots, plot_type)
-if plot_type == 'P_tracks_MERHAB':
-    # enforce list_type
-    if list_type != 'merhab':
-        list_type = 'merhab'
-        print('NOTE: Overriding chosen list_type and using merhab instead.')
 
 in_dict = dict()
 in_dict['auto_vlims'] = args.auto_vlims
@@ -113,34 +107,12 @@ in_dict['testing'] = args.testing
 
 # get list of history files to plot
 fn_list = Lfun.get_fn_list(list_type, Ldir,
-    args.date_string0, args.date_string1, his_num=args.his_num)
-    
-if (list_type == 'daily_plus') and (args.testing == True):
-    for fn in fn_list:
-        print(fn)
-    os.sys.exit()
+    args.date_string0, args.date_string1, his_num=args.his_num)    
     
 if (list_type == 'allhours') and (args.testing == True):
     fn_list = fn_list[:4]
-
-if (list_type == 'merhab') and (args.testing == True):
-    fn_list = [fn_list[-1]] # just plot last day
-    outdir0 = Ldir['LOo'] + 'plots/'
-    outdir = outdir0 + list_type + '_' + plot_type + '_' + Ldir['gtagex'] + '/'
-    in_dict['outdir'] = outdir
-    
-if (list_type == 'forecast') and (args.testing == True):
-    # list of all history files in a directory
-    hourmax = 4 #Ldir['forecast_days'] * 24
-    dt0 = datetime.strptime(args.date_string0, '%Y.%m.%d')
-    fn_list = Lfun.fn_list_utility(dt0, dt0, Ldir, hourmax=hourmax)
-        
+            
 # PLOTTING
-
-if plot_type == 'P_3day':
-    # special additions for this plot type
-    in_dict['list_type'] = list_type
-    fn_list = [fn_list[0], fn_list[0]] # two repeats so that we save to a file
 
 if len(fn_list) == 1:
     # plot a single image to screen
