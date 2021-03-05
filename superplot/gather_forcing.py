@@ -25,7 +25,7 @@ Lfun.make_dir(outdir)
 
 gtag = 'cas6_v3'
 gtagex = gtag + '_lo8b'
-year = '2020'
+year = '2019'
 
 # River forcing
 # created by x_river/extract_rivers.py
