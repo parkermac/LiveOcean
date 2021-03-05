@@ -1868,7 +1868,7 @@ def P_superplot_salt(in_dict):
     pfun.add_coast(ax)
     ax.axis(aa)
     pfun.dar(ax)
-    pfun.draw_box(ax, aa, color='c', alpha=.5, linewidth=5, inset=.005)
+    pfun.draw_box(ax, aa, color='c', alpha=.5, linewidth=5, inset=.01)
     ax.set_axis_off()
     # add section track
     sect_color = 'violet'
