@@ -65,7 +65,7 @@ parser.add_argument('-lon', '--lon_str', nargs='?', type=str, default='')
 parser.add_argument('-lat', '--lat_str', nargs='?', type=str, default='')
 #
 # (2) Specify the job name to use in mfun.get_sta_dict(job_name).
-parser.add_argument('-jn', '--job_name', nargs='?', type=str, default='blank')
+parser.add_argument('-jn', '--job_name', nargs='?', type=str, default='custom')
 
 args = parser.parse_args()
 verbose = args.verbose
