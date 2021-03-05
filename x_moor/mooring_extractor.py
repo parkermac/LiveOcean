@@ -173,7 +173,7 @@ else:
             and ('s_w' not in vdim)
             and (vv != 'ocean_time') and (vv != 'ssflux')):
             v2_list.append(vv)
-        elif ( ('ocean_time' in vdim) and ('s_rho' in vdim) and (vv != 'CaCO3')):
+        elif ( ('ocean_time' in vdim) and ('s_rho' in vdim) and (vv not in ['CaCO3','PH','ARAG'])):
             v3_list_rho.append(vv)
         elif ( ('ocean_time' in vdim) and ('s_w' in vdim) ):
             v3_list_w.append(vv)
