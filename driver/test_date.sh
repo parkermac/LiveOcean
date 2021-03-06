@@ -1,6 +1,14 @@
 #!/bin/bash
 
-# Code to test the date increment and decrement functions
+# Code to test the date increment and decrement functions in common.lib
+
+# Required command line arguments
+#
+# -0 start date: yyyymmdd
+# -1 end date: yyyymmdd
+#
+# Example call
+# ./test_date.sh -0 20200226 -1 20200304
 
 # run the code to put the environment into a csv
 if [ -e ../../LiveOcean_user/alpha/get_lo_info.sh ] ; then
@@ -39,10 +47,10 @@ D0=$[10#$y*10000 + 10#$m*100 + 10#$d]
 D=$D0
 D1=$[10#$y1*10000 + 10#$m1*100 + 10#$d1]
 
-
 # start the main loop over days
 while [ $D -le $D1 ]
 do
+  # This function changes the value in $DPP to be two days before that in $D
   two_days_before $y $m $d
   echo "Day = "$D" (Two Days Before = "$DPP")"
 
