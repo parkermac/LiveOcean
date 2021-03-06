@@ -39,8 +39,9 @@ ds1 = dt1.strftime('%Y.%m.%d')
 procs = []
 
 if Ldir['testing'] == True:
-    moviename_list = ['Phab_full_salt_top']
-    dt1 = dt0
+    moviename_list = ['P1_nshelf_oxygen_bot']
+    dt0 = dt0 - timedelta(days=2) # start earlier
+    ds0 = dt0.strftime('%Y.%m.%d')
     ds1 = dt1.strftime('%Y.%m.%d')
 else:
     moviename_list = ['P1_full_salt_top', 'P1_full_oxygen_bot',
@@ -71,6 +72,11 @@ for moviename in moviename_list:
         ttag = 'hab'
     else:
         ttag = 'base'
+        
+    if moviename == 'P1_nshelf_oxygen_bot':
+        # start this one earlier
+        pass # placeholder
+        
         
     cmd = ['python', 'p5.py', '-ds0', ds0, '-ds1', ds1, '-lt', 'hourly', '-mov', 'True',
         '-pt', pt,
