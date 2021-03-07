@@ -2012,6 +2012,243 @@ def P_superplot_salt(in_dict):
     else:
         plt.show()
 
+def P_superplot_oxygen(in_dict):
+    # Plot bottom oxygen maps and section, with forcing time-series.
+    # Super clean design.  Updated to avoid need for tide data, which it
+    # now just gets from the same mooring extraction it uses for wind.
+
+    vn = 'oxygen'
+    vlims = (0, 8) # full map
+    vlims2 = (0, 8) # PS map
+    vlims3 = (0, 8) # PS section
+    from cmocean import cm
+    cmap = cm.oxy
+
+    # get model fields
+    fn = in_dict['fn']
+    ds = nc.Dataset(fn)
+    
+    gtagex = in_dict['fn'].split('/')[-3]
+    year_str = in_dict['fn'].split('/')[-2].split('.')[0][1:]
+
+    # get forcing fields
+    ffn = Ldir['LOo'] + 'superplot/forcing_'+gtagex+'_'+year_str+'.p'
+    fdf = pd.read_pickle(ffn)
+    fdf['yearday'] = fdf.index.dayofyear - 0.5 # .5 to 364.5
+
+    # get section
+    G, S, T = zrfun.get_basic_info(in_dict['fn'])
+    # read in a section (or list of sections)
+    tracks_path = Ldir['data'] + 'tracks_new/'
+    tracks = ['Line_HC_thalweg_long.p']
+    zdeep = -300
+    xx = np.array([])
+    yy = np.array([])
+    for track in tracks:
+        track_fn = tracks_path + track
+        # get the track to interpolate onto
+        pdict = pickle.load(open(track_fn, 'rb'))
+        xx = np.concatenate((xx,pdict['lon_poly']))
+        yy = np.concatenate((yy,pdict['lat_poly']))
+    for ii in range(len(xx)-1):
+        x0 = xx[ii]
+        x1 = xx[ii+1]
+        y0 = yy[ii]
+        y1 = yy[ii+1]
+        nn = 20
+        if ii == 0:
+            x = np.linspace(x0, x1, nn)
+            y = np.linspace(y0,y1, nn)
+        else:
+            x = np.concatenate((x, np.linspace(x0, x1, nn)[1:]))
+            y = np.concatenate((y, np.linspace(y0, y1, nn)[1:]))
+    v2, v3, dist, idist0 = pfun.get_section(ds, vn, x, y, in_dict)
+
+    # PLOTTING
+    fig = plt.figure(figsize=(17,9))
+    fs = 18 # fontsize
+
+    # Full map
+    ax = fig.add_subplot(131)
+    lon = ds['lon_psi'][:]
+    lat = ds['lat_psi'][:]
+    v =ds[vn][0, 0, 1:-1, 1:-1]
+    fac=pinfo.fac_dict[vn]
+    vv = fac * v
+    vv[:, :6] = np.nan
+    vv[:6, :] = np.nan
+    cs = ax.pcolormesh(lon, lat, vv, vmin=vlims[0], vmax=vlims[1], cmap=cmap)
+    pfun.add_coast(ax)
+    ax.axis(pfun.get_aa(ds))
+    pfun.dar(ax)
+    ax.set_axis_off()
+    # add a box for the subplot
+    aa = [-123.5, -122.1, 47.03, 48.8]
+    pfun.draw_box(ax, aa, color='c', alpha=.5, linewidth=5, inset=.01)
+    # labels
+    ax.text(.95, .03, 'LiveOcean\nBottom Oxygen\n'
+        + datetime.strftime(T['tm'], '%Y'), fontsize=fs, color='k',
+        transform=ax.transAxes, horizontalalignment='center',
+        fontweight='bold')
+    # ax.text(.99,.97,'DO range\n'+ str(vlims), transform=ax.transAxes,
+    #     va='top', ha='right', c='orange', size=.6*fs, weight='bold')
+    from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+    cbaxes = inset_axes(ax, width="40%", height="4%", loc='upper right', borderpad=2) 
+    cb = fig.colorbar(cs, cax=cbaxes, orientation='horizontal')
+    cb.ax.tick_params(labelsize=.85*fs)
+    ax.text(1, .85, r'$[mg\ L^{-1}]$', transform=ax.transAxes, fontsize=fs, ha='right')
+
+    # PS map
+    ax = fig.add_subplot(132)
+    cs = ax.pcolormesh(lon, lat, vv, vmin=vlims2[0], vmax=vlims2[1],
+        cmap=cmap)
+    #fig.colorbar(cs)
+    pfun.add_coast(ax)
+    ax.axis(aa)
+    pfun.dar(ax)
+    pfun.draw_box(ax, aa, color='c', alpha=.5, linewidth=5, inset=.01)
+    ax.set_axis_off()
+    # add section track
+    sect_color = 'violet'
+    n_ai = int(len(x)/6)
+    n_tn = int(4.5*len(x)/7)
+    ax.plot(x, y, linestyle='--', color='k', linewidth=2)
+    ax.plot(x[n_ai], y[n_ai], marker='*', color=sect_color, markersize=14,
+        markeredgecolor='k')
+    ax.plot(x[n_tn], y[n_tn], marker='o', color=sect_color, markersize=10,
+        markeredgecolor='k')
+    # ax.text(.93,.97,'S range\n'+ str(vlims2), transform=ax.transAxes,
+    #     va='top', ha='right', c='orange', size=.6*fs, weight='bold')
+    
+
+    # Section
+    ax =  fig.add_subplot(433)
+    ax.plot(dist, v2['zeta']+5, linestyle='--', color='k', linewidth=2)
+    ax.plot(dist[n_ai], v2['zeta'][n_ai] + 5, marker='*', color=sect_color,
+        markersize=14, markeredgecolor='k')
+    ax.plot(dist[n_tn], v2['zeta'][n_tn] + 5, marker='o', color=sect_color,
+        markersize=10, markeredgecolor='k')
+    ax.set_xlim(dist.min(), dist.max())
+    ax.set_ylim(zdeep, 25)
+    sf = pinfo.fac_dict[vn] * v3['sectvarf']
+    # plot section
+    cs = ax.pcolormesh(v3['distf'], v3['zrf'], sf,
+                       vmin=vlims3[0], vmax=vlims3[1], cmap=cmap)
+    # ax.text(.99,.4,'S range\n'+ str(vlims3), transform=ax.transAxes,
+    #     va='bottom', ha='right', c='orange', size=.6*fs, weight='bold')
+                       
+    #fig.colorbar(cs)
+    # labels
+    ax.text(0, 0, 'SECTION\nHood Canal', fontsize=fs, color='b',
+        transform=ax.transAxes)
+    ax.set_axis_off()
+
+    # get the day
+    tm = T['tm'] # datetime
+    TM = datetime(tm.year, tm.month, tm.day)
+    # get yearday
+    yearday = fdf['yearday'].values
+    this_yd = fdf.loc[TM, 'yearday']
+
+    # Tides
+    alpha = .4
+    ax = fig.add_subplot(436)
+    ax.plot(yearday, fdf['RMS Tide Height (m)'].values, '-k',
+        lw=3, alpha=alpha)
+    # time marker
+    ax.plot(this_yd, fdf.loc[TM, 'RMS Tide Height (m)'],
+        marker='o', color='r', markersize=7)
+    # labels
+    ax.text(1, .05, 'NEAP TIDES', transform=ax.transAxes,
+        alpha=alpha, fontsize=fs, horizontalalignment='right')
+    ax.text(1, .85, 'SPRING TIDES', transform=ax.transAxes,
+        alpha=alpha, fontsize=fs, horizontalalignment='right')
+    # limits
+    ax.set_xlim(0,365)
+    ax.set_ylim(0,1.5)
+    ax.set_axis_off()
+
+    # Wind
+    alpha=.5
+    ax = fig.add_subplot(439)
+    w = fdf['8-day NS Wind Stress (Pa)'].values
+    wp = w.copy()
+    wp[w<0] = np.nan
+    wm = w.copy()
+    wm[w>0] = np.nan
+    tt = np.arange(len(w))
+    ax.fill_between(yearday, wp, y2=0*w, color='g', alpha=alpha)
+    ax.fill_between(yearday, wm, y2=0*w, color='b', alpha=alpha)
+    # time marker
+    ax.plot(this_yd, fdf.loc[TM,'8-day NS Wind Stress (Pa)'],
+        marker='o', color='r', markersize=7)
+    # labels
+    ax.text(0, .85, 'DOWNWELLING WIND', transform=ax.transAxes,
+        color='g', alpha=alpha, fontsize=fs)
+    ax.text(0, .05, 'UPWELLING WIND', transform=ax.transAxes,
+        color='b', alpha=alpha, fontsize=fs)
+    # limits
+    ax.set_xlim(0,365)
+    ax.set_ylim(-.15, .25)
+    ax.set_axis_off()
+
+    # Rivers
+    alpha = .6
+    cr = fdf['Columbia R. Flow (1000 m3/s)'].values
+    fr = fdf['Fraser R. Flow (1000 m3/s)'].values
+    sr = fdf['Skagit R. Flow (1000 m3/s)'].values
+    this_yd = fdf.loc[TM, 'yearday']
+    ax = fig.add_subplot(4,3,12)
+    ax.fill_between(yearday, cr, 0*yearday, color='orange', alpha=alpha)
+    ax.fill_between(yearday, fr, 0*yearday, color='violet', alpha=alpha)
+    ax.fill_between(yearday, sr, 0*yearday, color='brown', alpha=alpha)
+    # time markers
+    ax.plot(this_yd, fdf.loc[TM, 'Columbia R. Flow (1000 m3/s)'],
+        marker='o', color='r', markersize=7)
+    ax.plot(this_yd, fdf.loc[TM, 'Fraser R. Flow (1000 m3/s)'],
+        marker='o', color='r', markersize=7)
+    ax.plot(this_yd, fdf.loc[TM, 'Skagit R. Flow (1000 m3/s)'],
+        marker='o', color='r', markersize=7)
+    # labels
+    ax.text(.9, .85, 'Columbia River', transform=ax.transAxes,
+        color='orange', fontsize=fs, horizontalalignment='right', alpha=alpha)
+    ax.text(.9, .70, 'Fraser River', transform=ax.transAxes,
+        color='violet', fontsize=fs, horizontalalignment='right', alpha=alpha)
+    ax.text(.9, .55, 'Skagit River', transform=ax.transAxes,
+        color='brown', fontsize=fs, horizontalalignment='right', alpha=alpha)
+    # limits
+    ax.set_xlim(0,365)
+    ax.set_ylim(-5,20)
+    ax.set_axis_off()
+
+    # Time Axis
+    clist = ['gray', 'gray', 'gray', 'gray']
+    if tm.month in [1, 2, 3]:
+        clist[0] = 'r'
+    if tm.month in [4, 5, 6]:
+        clist[1] = 'r'
+    if tm.month in [7, 8, 9]:
+        clist[2] = 'r'
+    if tm.month in [10, 11, 12]:
+        clist[3] = 'r'
+    ax.text(0, 0, 'WINTER', transform=ax.transAxes, color=clist[0],
+        fontsize=fs, horizontalalignment='left', style='italic')
+    ax.text(.4, 0, 'SPRING', transform=ax.transAxes, color=clist[1],
+        fontsize=fs, horizontalalignment='center', style='italic')
+    ax.text(.68, 0, 'SUMMER', transform=ax.transAxes, color=clist[2],
+        fontsize=fs, horizontalalignment='center', style='italic')
+    ax.text(1, 0, 'FALL', transform=ax.transAxes, color=clist[3],
+        fontsize=fs, horizontalalignment='right', style='italic')
+
+    fig.tight_layout()
+
+    # FINISH
+    ds.close()
+    if len(in_dict['fn_out']) > 0:
+        plt.savefig(in_dict['fn_out'])
+        plt.close()
+    else:
+        plt.show()
 
 def P_superplot(in_dict):
     # Plot salinity maps and section, with forcing time-series.
