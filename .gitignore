@@ -1,3 +1,4 @@
 *.pyc
 .DS_Store
 alpha/lo_info.csv
+.ipynb_checkpoints*
