@@ -30,19 +30,13 @@ import shutil
 
 print(' - Creating wesite images for ' + Ldir['date_string'])
 
-ds0 = Ldir['date_string']
-# for the purposes of this driver we always assume we are plotting over a forecast
-dt0 = datetime.strptime(ds0,'%Y.%m.%d')
-dt1 = dt0 + timedelta(days=Ldir['forecast_days']-1)
-ds1 = dt1.strftime('%Y.%m.%d')
+ds00 = Ldir['date_string']
+dt00 = datetime.strptime(ds00,'%Y.%m.%d')
     
 procs = []
 
 if Ldir['testing'] == True:
     moviename_list = ['P1_nshelf_oxygen_bot']
-    dt0 = dt0 - timedelta(days=2) # start earlier
-    ds0 = dt0.strftime('%Y.%m.%d')
-    ds1 = dt1.strftime('%Y.%m.%d')
 else:
     moviename_list = ['P1_full_salt_top', 'P1_full_oxygen_bot', 'P1_nshelf_oxygen_bot',
                         'P1_PS_temp_top', 'P1_PS_speed_top',
@@ -75,9 +69,13 @@ for moviename in moviename_list:
         
     if moviename == 'P1_nshelf_oxygen_bot':
         # start this one a couple day s earlier
-        dt0 = dt0 - timedelta(days=2) # start earlier
-        ds0 = dt0.strftime('%Y.%m.%d')
-        ds1 = dt1.strftime('%Y.%m.%d')
+        dt0 = dt00 - timedelta(days=2) # start earlier
+        dt1 = dt00 + timedelta(days=Ldir['forecast_days']-1)
+    else:
+        dt0 = dt00
+        dt1 = dt0 + timedelta(days=Ldir['forecast_days']-1)
+    ds0 = dt0.strftime('%Y.%m.%d')
+    ds1 = dt1.strftime('%Y.%m.%d')
         
     cmd = ['python', 'p5.py', '-ds0', ds0, '-ds1', ds1, '-lt', 'hourly', '-mov', 'True',
         '-pt', pt,
