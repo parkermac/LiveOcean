@@ -42,6 +42,7 @@ fi
 #
 # example call to do backfill:
 # ./driver_forcing2.sh -g cascadia1 -t base -f atm -r backfill -0 20140201 -1 20140203
+# ./driver_forcing2.sh -g cas6 -t v3 -f tide2 -r backfill -0 20190704 -1 20190704
 #
 # example call to do forecast:
 # ./driver_forcing2.sh -g cascadia1 -t base -f atm -r forecast

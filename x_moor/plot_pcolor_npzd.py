@@ -23,7 +23,7 @@ Ldir = Lfun.Lstart()
 indir0 = Ldir['LOo'] + 'moor/'
 
 # choose the mooring extraction to plot
-if False:
+if True:
     item = Lfun.choose_item(indir0)
     indir = indir0 + item + '/'
     infile = Lfun.choose_item(indir, tag='.nc')

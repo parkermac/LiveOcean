@@ -91,7 +91,7 @@ def add_bathy_contours(ax, ds, depth_levs = [], txt=False):
                     horizontalalignment='right',transform=ax.transAxes)
     else:
         cs = ax.contour(lon, lat, h, depth_levs, colors='k',
-            linewidths=0.5, linestyles='dashed')
+            linewidths=0.5)#, linestyles='dashed')
         if txt==True:
             ii = 0
             for lev in depth_levs:
