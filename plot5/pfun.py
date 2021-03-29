@@ -1,9 +1,4 @@
-# -*- coding: utf-8 -*-
 """
-Created on Mon Jul 25 16:02:43 2016
-
-@author: PM5
-
 Module of basic utilities for plotting.  The goal is to make the code in
 pfun less cumbersome to write and edit.
 
@@ -108,7 +103,8 @@ def get_arag(ds, Q, aa, nlev):
     return px, py, fld
 
 def get_ax_limits(Q):
-    # set limits and ticklabels, and other info
+    # Set limits and ticklabels, and other info.
+    # A good aspect ratio is dlat/dlon = 1/.8
     if Q['dom'] == 'full':
         Q['aa'] = []
         Q['xtl'] = range(-129,-121,2)
@@ -117,11 +113,16 @@ def get_ax_limits(Q):
         Q['exp'] = 'p5_merhab' # particle tracking
     elif Q['dom'] == 'PS':
         Q['aa'] = [-123.6, -122, 47, 49]
-        # a good aspect ration is dlat/dlon = 1/.8
         Q['xtl'] = [-123, -122.5]
         Q['ytl'] = [47.5, 48, 48.5]
         Q['v_scl'] = 25
         Q['exp'] = 'p5_PS'
+    elif Q['dom'] == 'Psouth':
+        # South Sound
+        Q['aa'] = [-123.15, -122.5, 47, 47.5]#.8125]
+        Q['xtl'] = [-123, -122.5]
+        Q['ytl'] = [47, 47.5]
+        Q['v_scl'] = 40
     elif Q['dom'] == 'willapa':
         Q['aa'] = [-124.6, -123.65, 46, 47.2]
         Q['xtl'] = [-124.4, -124.2, -124, -123.8]
@@ -142,9 +143,14 @@ def get_moor_info(Q):
         M['lat'] = 47
         M['city'] = 'Westport'
         M['wscl'] = 20
-    elif Q['dom'] == 'PS':
+    elif Q['dom'] =='PS':
         M['lon'] = -122.433
         M['lat'] = 47.86
+        M['city'] = 'Seattle'
+        M['wscl'] = 10
+    elif Q['dom'] =='Psouth':
+        M['lon'] = -122.712
+        M['lat'] = 47.31
         M['city'] = 'Seattle'
         M['wscl'] = 10
     elif Q['dom'] in ['willapa', 'nshelf']:
