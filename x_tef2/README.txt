@@ -6,7 +6,7 @@ In order to get to where you can run flux_salt_budget.py you first need to go th
 (1) TEF sections:
  - extract_sections.py
  - process_sections.py
- - bluk_calc.py (bulk_plot_clean.py is not required)
+ - bulk_calc.py (bulk_plot_clean.py is not required)
  
 (2) Segments (the _flux code):
  - flux_get_vol.py
@@ -165,6 +165,7 @@ To document:
  - profile_plot.py
  - flux_sill_dyn_all.py
  - flux_get_dye.py
+ - flux_mixing_diagram.py
 
 ------------------------------------------------------------------
 ------------------------------------------------------------------

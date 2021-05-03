@@ -95,8 +95,8 @@ def get_fluxes(indir, sect_name):
         import sys
         sys.stdout.flush()
         
-    fnet = in_sign * bulk['fnet_lp']/1e6 # net tidal energy flux [MWW]
-    qabs = bulk['qabs_lp'] # low pass of absolute value of net transport [1000 m3/s]
+    fnet = in_sign * bulk['fnet_lp']/1e6 # net tidal energy flux [MW]
+    qabs = bulk['qabs_lp'] # low pass of absolute value of net transport [m3/s]
     
     tef_df = pd.DataFrame(index=dt)
     tef_df['Qin']=Qin
@@ -120,7 +120,8 @@ def get_fluxes_alt(indir, sect_name):
     # Much like get_fluxes() above, but it includes additional fields used by
     # bluk_plot_clean.py, especially related to tidal pumping.
     
-    # WARNING: I don't like the "- convert transports to 1000 m3/s" bit.
+    # WARNING: I don't like the "- convert transports to 1000 m3/s" bit.  At this
+    # point 2021.04.28 this function is only used by bulk_plot_clean.py.
     
     # Form time series of 2-layer TEF quantities, from the multi-layer bulk values.
     # - convert transports to 1000 m3/s
@@ -214,7 +215,7 @@ def get_fluxes_alt(indir, sect_name):
         import sys
         sys.stdout.flush()
         
-    fnet = in_sign * bulk['fnet_lp']/1e6 # net tidal energy flux [MWW]
+    fnet = in_sign * bulk['fnet_lp']/1e6 # net tidal energy flux [MW]
     qabs = bulk['qabs_lp']/1000 # low pass of absolute value of net transport [1000 m3/s]
     
     tef_df = pd.DataFrame(index=dt)

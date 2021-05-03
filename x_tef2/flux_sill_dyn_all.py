@@ -57,9 +57,9 @@ q_df = pd.DataFrame(index=sect_df.index, columns=['Qe','Qprism','Ftide'])
 for sect_name in q_df.index:
     tef_df, in_sign = flux_fun.get_fluxes(indir0, sect_name)
     qe = (tef_df['Qin'] - tef_df['Qout'])/2
-    QE = qe.mean()
-    QT = tef_df['Qtide'].mean()
-    FT = tef_df['Ftide'].mean()
+    QE = qe.mean()/1000 # convert to 1000 m3/s
+    QT = tef_df['Qtide'].mean()/1000 # convert to 1000 m3/s
+    FT = tef_df['Ftide'].mean() # units are MW
     q_df.loc[sect_name,'Qe'] = QE
     q_df.loc[sect_name,'Qprism'] = QT/2
     q_df.loc[sect_name,'Ftide'] = FT
@@ -69,7 +69,7 @@ x = q_df['Qprism'].to_numpy(dtype=float)
 y = q_df['Qe'].to_numpy(dtype=float)
 BB = np.polyfit(x,y,1)
 dydx = BB[0] # slope
-y0 = BB[1] # y-intercept
+y0 = 0 #BB[1] # y-intercept [force to zero]
 
 xx = np.linspace(.1,x.max(),1000)
 yy = y0 + dydx*xx
