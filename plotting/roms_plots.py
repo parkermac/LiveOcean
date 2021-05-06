@@ -1816,6 +1816,9 @@ def P_sect_sji0(in_dict):
     # START
     fig = plt.figure(figsize=(18,10))
     ds = nc.Dataset(in_dict['fn'])
+    
+    from cmocean import cm
+    
 
     # PLOT CODE
     #
@@ -1848,10 +1851,11 @@ def P_sect_sji0(in_dict):
     # PLOTTING
     vn_list = ['salt', 'temp']
     # override colors
-    pinfo.vlims_dict['salt'] = (24,33)
+    pinfo.vlims_dict['salt'] = (28,32)
     pinfo.vlims_dict['temp'] = (8,16)
     ci = 0.2 # contour interval
-    pinfo.cmap_dict['temp'] = 'jet'
+    pinfo.cmap_dict['salt'] = cm.haline
+    pinfo.cmap_dict['temp'] = cm.thermal
     aa = pfun.get_aa(ds)
     counter = 0
     for vn in vn_list:
