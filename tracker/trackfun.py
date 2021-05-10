@@ -324,7 +324,7 @@ def get_tracks(fn_list, plon0, plat0, pcs0, TR, trim_loc=False):
                 else:
                     Vwind3 = np.zeros((NP,3))
                 # add sinking speed
-                if TR['sink'] > 0:
+                if TR['sink'] != 0:
                     Vsink3 = -TR['sink'] * np.ones((NP,3)) / 86400
                 else:
                     Vsink3 = np.zeros((NP,3))
