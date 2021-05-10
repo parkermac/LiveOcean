@@ -61,7 +61,7 @@ else:
 
 # initialize DataFrame
 q_df = pd.DataFrame(index=sect_list,
-    columns=['Ut', 'Qprism','H', 'Qr','Ur', 'M', 'Fr', 'Qe', 'Ue', 'DS', 'c', 'Ue_non', 'DS_non'])
+    columns=['Ut', 'Qprism','H', 'Qr','Ur', 'M', 'Fr', 'Qe', 'Ue', 'DS', 'Sbar', 'c', 'Ue_non', 'DS_non'])
 
 # get Socn
 jdf1_tef_df, jdf1_in_sign = flux_fun.get_fluxes(indir0, 'jdf1')
@@ -79,6 +79,14 @@ for sect_name in sect_list:
     tef_df, in_sign = flux_fun.get_fluxes(indir0, sect_name)
     Qe = (tef_df['Qin'] - tef_df['Qout']).mean()/2
     DS = (tef_df['Sin'] - tef_df['Sout']).mean()
+    Sbar = (tef_df['Sin'] + tef_df['Sout']).mean()/2
+    
+    if False:
+        if sect_name in ['jdf1', 'sog5']:
+            # check out mean net salt flux through a couple of sections
+            print(sect_name)
+            print((tef_df['Qin']*tef_df['Sin']).mean()
+                + (tef_df['Qout']*tef_df['Sout']).mean())
         
     ds = nc.Dataset(x_indir + sect_name + '.nc')
     H = ds['h'][:].max() # max depth [m]
@@ -117,6 +125,7 @@ for sect_name in sect_list:
     
         q_df.loc[sect_name,'Ue'] = Ue
         q_df.loc[sect_name,'DS'] = DS
+        q_df.loc[sect_name,'Sbar'] = Sbar
     
         # derived quantities
         M2 = (Cd*Ut*Ut)/(om*N0*H*H)
@@ -131,10 +140,35 @@ for sect_name in sect_list:
         # non-dimensional versions
         q_df.loc[sect_name,'Ue_non'] = Ue / c
         q_df.loc[sect_name,'DS_non'] = DS / Socn
+        
+Q_df = q_df.copy() # keep a copy before dropping Deception Pass
 
-plt.close('all')
-    
+#plt.close('all')
+
 if True:
+    # plotting
+    fs = 16
+    plt.rc('font', size=fs)
+    
+    # does the salt budget close?
+    q_df['lhs'] = q_df['Qr'] * q_df['Sbar']/1000
+    q_df['rhs'] = q_df['Qe'] * q_df['DS']/1000
+    # plotting
+    fs = 16
+    plt.rc('font', size=fs)
+    fig = plt.figure(figsize=(11,11))
+    ax = fig.add_subplot(111)
+    q_df.plot(x='lhs', y ='rhs', style='ob', alpha=.5, legend=False, ax=ax, grid=True)
+    for sn in q_df.index:
+        ax.text(q_df.loc[sn,'lhs'], q_df.loc[sn, 'rhs'], sn, size=fs/2)
+    ax.set_xlabel('Qr * Sbar [1000 g/kg m3/s]')
+    ax.set_ylabel('Qe * DS [1000 g/kg m3/s]')
+    ax.plot([0,250],[0,250], '-k')
+    fig.tight_layout()
+    plt.show()
+    plt.rcdefaults()
+    
+if False:
     
     # plotting
     fs = 16
@@ -169,7 +203,7 @@ if True:
     plt.show()
     plt.rcdefaults()
 
-if True:
+if False:
     # plot result vs M and Fr
 
     # plotting
@@ -210,7 +244,7 @@ if True:
     plt.show()
     plt.rcdefaults()
     
-if True:
+if False:
     # plot exchange vs. tide in various ways
 
     # plotting

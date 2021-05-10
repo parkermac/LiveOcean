@@ -17,7 +17,7 @@ This code is designed to be a flexible, and hopefully fast, tool for doing parti
 - Added optional "sink" flag, e.g. use "-sink 40" to add 40 meters per day sinking speed to all particles.  Then the tag "_sink40" is added to the output file.  It would be nice to generalize to allow floating and sinking with less confusing naming (e.g. floating would be _sink-40 which is not intuitive).
 
 2021.03.03:
-- Got rid of old tracker folder and renames this one tracker (was tracker2)
+- Got rid of old tracker folder and renamed this one tracker (was tracker2)
 
 ============================================================================
 ============================================================================

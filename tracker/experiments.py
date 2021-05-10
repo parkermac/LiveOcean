@@ -50,7 +50,41 @@ def get_ic(EI, fn00):
                 plat00 = np.concatenate((plat00, py00.copy()))
             count += 1
         pcs00 = np.zeros_like(plon00)
+    
+    elif exp_name == 'dcrab1':
+        rloc_dict = {'South Sound': (-122.7, 47.11),
+                    'Hood Canal': (-122.86, 47.67),
+                    'Whidbey': (-122.6, 48.25)}
+        rnp = 100
+        count = 0
+        for rloc in rloc_dict:
+            rx = rloc_dict[rloc][0]; ry = rloc_dict[rloc][1]
+            px00 = rx + 0.01*np.random.randn(rnp)
+            py00 = ry + 0.01*np.random.randn(rnp)
+            if count == 0:
+                plon00 = px00.copy(); plat00 = py00.copy()
+            else:
+                plon00 = np.concatenate((plon00, px00.copy()))
+                plat00 = np.concatenate((plat00, py00.copy()))
+            count += 1
+        pcs00 = np.zeros_like(plon00)
         
+    elif exp_name == 'dcrab2':
+        rloc_dict = {'Grays Harbor': (-124.3, 46.9)}
+        rnp = 100
+        count = 0
+        for rloc in rloc_dict:
+            rx = rloc_dict[rloc][0]; ry = rloc_dict[rloc][1]
+            px00 = rx + 0.01*np.random.randn(rnp)
+            py00 = ry + 0.01*np.random.randn(rnp)
+            if count == 0:
+                plon00 = px00.copy(); plat00 = py00.copy()
+            else:
+                plon00 = np.concatenate((plon00, px00.copy()))
+                plat00 = np.concatenate((plat00, py00.copy()))
+            count += 1
+        pcs00 = np.zeros_like(plon00)
+    
     elif exp_name == 'full': # the whole domain of cas6, with some edges trimmed
         lonvec = np.linspace(-129, -122, 30)
         latvec = np.linspace(43, 51, 60)
