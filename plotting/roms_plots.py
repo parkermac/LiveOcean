@@ -89,8 +89,6 @@ def P_AI_Rocky(in_dict):
     These don't have the usual LiveOcean naming, but you can plot with commands like:
     
     run pan_plot.py -lt snapshot -pt P_AI_Rocky -g ainlet -t v0 -x old -0 2006.06.01 -hn 700
-    or
-    run pan_plot.py -lt snapshot -pt P_AI_Rocky -g ainlet -t v0 -x old -0 2006.06.01 -hn 700
     
     We use gourad shading, which means that the coordinates have the same size as the data:
     - dive is on the clipped rho grid
@@ -174,6 +172,96 @@ def P_AI_Rocky(in_dict):
     ax.set_title(tstr)    
     
     #fig.tight_layout()
+    # FINISH
+    ds.close()
+    if len(in_dict['fn_out']) > 0:
+        plt.savefig(in_dict['fn_out'])
+        plt.close()
+    else:
+        plt.show()
+    plt.rcdefaults()
+    
+def P_AI_Rocky2(in_dict):
+    """
+    This plots maps of surface currents and salinity.  It is
+    optimized for the old Admiralty Inlet simulations that Dave Sutherland did.
+    100 m grid, saves every half hour.  History file 700 is about max ebb at 6:30 PM PDT
+    on 2006.06.06.
+    
+    These don't have the usual LiveOcean naming, but you can plot with commands like:
+    
+    run pan_plot.py -lt snapshot -pt P_AI_Rocky2 -g ainlet -t v0 -x old -0 2006.06.01 -hn 700
+    
+    or
+    
+    run pan_plot.py -lt allhours -pt P_AI_Rocky2 -g ainlet -t v0 -x old -0 2006.06.01 -mov True
+    
+    """
+    # START
+    fs = 16
+    plt.rc('font', size=fs)
+    fig = plt.figure(figsize=(8,12))
+    ds = nc.Dataset(in_dict['fn'])
+
+    # PLOT CODE
+    aa = [-122.8, -122.54, 47.92, 48.22]
+    # import cmocean
+    # cmap = cmocean.cm.speed
+    # cmap = 'RdYlBu_r'
+    cmap = 'Spectral_r'
+
+    from warnings import filterwarnings
+    filterwarnings('ignore') # skip some warning messages
+    
+    # plot Code
+    
+    # calculate speed
+    uu = ds['u'][0, -1, :, :]
+    vv = ds['v'][0, -1, :, :]
+    u = zfun.fillit(uu)
+    v = zfun.fillit(vv)
+    u[np.isnan(u)] = 0
+    v[np.isnan(v)] = 0
+    # interpolate to the clipped rho grid
+    ur = (u[1:-1,1:] + u[1:-1,:-1])/2
+    vr = (v[1:,1:-1] + v[:-1,1:-1])/2
+    spd = np.sqrt(ur**2 + vr**2)
+    spd[spd==0] = np.nan
+    
+    G = zrfun.get_basic_info(in_dict['fn'], only_G=True)
+        
+    # panel 1
+    ax = fig.add_subplot(111)
+    cs = plt.pcolormesh(G['lon_psi'], G['lat_psi'], spd, cmap=cmap,
+                        vmin=0, vmax=1.5)
+    tstr = (r'Admiralty Inlet Surface Speed ($m\ s^{-1}$)')
+    #pfun.add_bathy_contours(ax, ds, txt=True)
+    pfun.add_coast(ax)
+    ax.axis(aa)
+    pfun.dar(ax)
+    ax.set_xlabel('Longitude')
+    ax.set_ylabel('Latitude')
+    ax.set_title(tstr)
+    pfun.add_info(ax, in_dict['fn'])
+    ax.set_xticks([-122.8, -122.7, -122.6])
+    ax.set_yticks([48, 48.1, 48.2])
+    
+    # Inset colorbar
+    from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+    cbaxes = inset_axes(ax, width="4%", height="30%", loc='upper right', borderpad=3)
+    fig.colorbar(cs, cax=cbaxes, orientation='vertical')
+    
+    #pfun.add_bathy_contours(ax, ds)
+    pfun.add_coast(ax)
+    ax.axis(aa)
+    pfun.dar(ax)
+    ax.set_xlabel('Longitude')
+    ax.set_title(tstr)
+    
+    pfun.add_velocity_vectors(ax, ds, in_dict['fn'], v_scl=100, v_leglen=1,
+        nngrid=80, zlev='top', center=(.1,.05))
+    
+    fig.tight_layout()
     # FINISH
     ds.close()
     if len(in_dict['fn_out']) > 0:

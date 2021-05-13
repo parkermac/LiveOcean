@@ -85,6 +85,22 @@ def get_ic(EI, fn00):
             count += 1
         pcs00 = np.zeros_like(plon00)
     
+    elif exp_name == 'hat':
+        rloc_dict = {'Near Hat Island': (-122.27, 48)}
+        rnp = 100
+        count = 0
+        for rloc in rloc_dict:
+            rx = rloc_dict[rloc][0]; ry = rloc_dict[rloc][1]
+            px00 = rx + 0.01*np.random.randn(rnp)
+            py00 = ry + 0.006*np.random.randn(rnp)
+            if count == 0:
+                plon00 = px00.copy(); plat00 = py00.copy()
+            else:
+                plon00 = np.concatenate((plon00, px00.copy()))
+                plat00 = np.concatenate((plat00, py00.copy()))
+            count += 1
+        pcs00 = np.zeros_like(plon00)
+    
     elif exp_name == 'full': # the whole domain of cas6, with some edges trimmed
         lonvec = np.linspace(-129, -122, 30)
         latvec = np.linspace(43, 51, 60)
