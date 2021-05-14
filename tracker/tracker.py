@@ -59,6 +59,7 @@ else:
 reload(exp)
 
 import trackfun_nc as tfnc
+reload(tfnc)
 
 # The import of trackfun or user_trackfun is done later in this program,
 # about 100 lines down.
@@ -97,10 +98,11 @@ parser.add_argument('-wnd', '--windage', default=0, type=float)
 parser.add_argument('-ds', '--ds_first_day', default='2019.07.04', type=str)
 
 # You can make multiple releases using:
-# number_of_start_days > 1 & days_between_starts
+# number_of_start_days > 1 & days_between_starts, and which hour (UTC) to start on
 parser.add_argument('-nsd', '--number_of_start_days', default=1, type=int)
 parser.add_argument('-dbs', '--days_between_starts', default=1, type=int)
 parser.add_argument('-dtt', '--days_to_track', default=1, type=int)
+parser.add_argument('-sh', '--start_hour', default=0, type=int)
 
 # number of divisions to make between saves for the integration
 # e.g. if ndiv = 12 and we have hourly saves, we use a 300 sec step
@@ -216,7 +218,7 @@ reload(tfun)
 plon00, plat00, pcs00 = exp.get_ic(EI, fn00)
 
 # calculate total number of times per release for NetCDF output
-NT_full = (TR['sph']*24*TR['days_to_track']) + 1
+NT_full = (TR['sph']*24*TR['days_to_track']) + 1  - TR['start_hour']
 
 # step through the releases, one for each start day
 write_grid = True
@@ -240,8 +242,6 @@ for idt0 in idt_list:
         print(' - working on ' + idt_str)
         sys.stdout.flush()
         fn_list = tfun.get_fn_list(idt, Ldir)
-        print('   '+fn_list[0])
-        print('   '+fn_list[-1])
         
         # write the grid file (once per experiment) for plotting
         if write_grid == True:
@@ -257,9 +257,11 @@ for idt0 in idt_list:
             plat0 = plat00.copy()
             pcs0 = pcs00.copy()
             # do the tracking
+            if TR['start_hour'] > 0:
+                fn_list = fn_list[TR['start_hour']:]
             P = tfun.get_tracks(fn_list, plon0, plat0, pcs0, TR, trim_loc=True)
             it0 = 0
-            it1 = TR['sph']*24 + 1
+            it1 = TR['sph']*24 + 1 - TR['start_hour']
             # save the results to NetCDF
             tfnc.start_outfile(out_fn, P, NT_full, it0, it1)
         else: # subsequent days
@@ -269,10 +271,13 @@ for idt0 in idt_list:
             pcs0 = P['cs'][-1,:]
             # do the tracking
             P = tfun.get_tracks(fn_list, plon0, plat0, pcs0, TR)
-            it0 = TR['sph']*24*nd
+            it0 = TR['sph']*24*nd  - TR['start_hour']
             it1 = it0 +  TR['sph']*24 + 1
             tfnc.append_to_outfile(out_fn, P, it0, it1)
             
+        print('   '+fn_list[0])
+        print('   '+fn_list[-1])
+        
     print(' - Took %0.1f sec for %s day(s)' %
             (time.time() - tt0, str(TR['days_to_track'])))
     print(50*'=')
