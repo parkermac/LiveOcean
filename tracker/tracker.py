@@ -163,6 +163,8 @@ if TR['laminar']:
     out_name += '_laminar'
 if TR['windage'] > 0:
     out_name += '_wind' + str(int(100*TR['windage']))
+if TR['start_hour'] > 0:
+    out_name += '_sh' + str(int(TR['start_hour']))
 if TR['sink'] > 0:
     out_name += '_sink' + str(int(TR['sink']))
 if TR['no_advection'] == True:
@@ -218,7 +220,7 @@ reload(tfun)
 plon00, plat00, pcs00 = exp.get_ic(EI, fn00)
 
 # calculate total number of times per release for NetCDF output
-NT_full = (TR['sph']*24*TR['days_to_track']) + 1  - TR['start_hour']
+NT_full = (TR['sph']*24*TR['days_to_track']) + 1  - TR['sph']*TR['start_hour']
 
 # step through the releases, one for each start day
 write_grid = True
@@ -261,7 +263,7 @@ for idt0 in idt_list:
                 fn_list = fn_list[TR['start_hour']:]
             P = tfun.get_tracks(fn_list, plon0, plat0, pcs0, TR, trim_loc=True)
             it0 = 0
-            it1 = TR['sph']*24 + 1 - TR['start_hour']
+            it1 = TR['sph']*(24 - TR['start_hour']) + 1
             # save the results to NetCDF
             tfnc.start_outfile(out_fn, P, NT_full, it0, it1)
         else: # subsequent days
@@ -271,12 +273,13 @@ for idt0 in idt_list:
             pcs0 = P['cs'][-1,:]
             # do the tracking
             P = tfun.get_tracks(fn_list, plon0, plat0, pcs0, TR)
-            it0 = TR['sph']*24*nd  - TR['start_hour']
+            it0 = TR['sph']*(24*nd  - TR['start_hour'])
             it1 = it0 +  TR['sph']*24 + 1
             tfnc.append_to_outfile(out_fn, P, it0, it1)
             
-        print('   '+fn_list[0])
-        print('   '+fn_list[-1])
+        # debugging
+        # print('   '+fn_list[0])
+        # print('   '+fn_list[-1])
         
     print(' - Took %0.1f sec for %s day(s)' %
             (time.time() - tt0, str(TR['days_to_track'])))
