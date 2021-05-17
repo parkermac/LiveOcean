@@ -5,7 +5,7 @@ Created on Tue Aug 29 13:29:04 2017
 
 @author: pm7
 
-Functions that make use of eht ephem module.
+Functions that make use of the ephem module.
 
 """
 from datetime import datetime, timedelta

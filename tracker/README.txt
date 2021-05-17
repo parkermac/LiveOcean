@@ -19,6 +19,9 @@ This code is designed to be a flexible, and hopefully fast, tool for doing parti
 2021.03.03:
 - Got rid of old tracker folder and renamed this one tracker (was tracker2)
 
+2021.05.15:
+- Added a new flag "sh" for start hour, allowing the release to begin on an arbitrary GMT hour of the first day.
+
 ============================================================================
 ============================================================================
 
