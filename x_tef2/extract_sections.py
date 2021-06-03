@@ -85,7 +85,7 @@ else: # single item
         sys.exit()
 
 # get list of history files to process
-if 'LO_roms' in args.rundir:
+if 'LO_roms' in args.run_directory:
     LO_version = True
 else:
     LO_version = False
