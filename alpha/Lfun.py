@@ -135,10 +135,13 @@ def date_list_utility(dt0, dt1):
         dt = dt + timedelta(1)
     return date_list
 
-def fn_list_utility(dt0, dt1, Ldir, hourmax=24):
+def fn_list_utility(dt0, dt1, Ldir, hourmax=24, LO_version=False):
     # INPUT: start and end datetimes
     # OUTPUT: list of all history files expected to span the dates
-    dir0 = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/'
+    if LO_version:
+        dir0 = Ldir['roms'] + Ldir['gtagex'] + '/'
+    else:
+        dir0 = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/'
     fn_list = []
     date_list = date_list_utility(dt0, dt1)
     for dl in date_list:
@@ -169,7 +172,7 @@ def get_fn_list(list_type, Ldir, date_string0, date_string1, his_num=1, LO_versi
                    '/ocean_his_' + his_string + '.nc']
     elif list_type == 'hourly':
         # list of hourly files over a date range
-        fn_list = fn_list_utility(dt0,dt1,Ldir)
+        fn_list = fn_list_utility(dt0,dt1,Ldir, LO_version=LO_version)
     elif list_type == 'daily':
         # list of history file 21 over a date range
         # which is Noon Pacific Standard Time
