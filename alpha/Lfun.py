@@ -155,10 +155,13 @@ def fn_list_utility(dt0, dt1, Ldir, hourmax=24):
             fn_list.append(fn)
     return fn_list
     
-def get_fn_list(list_type, Ldir, date_string0, date_string1, his_num=1):
+def get_fn_list(list_type, Ldir, date_string0, date_string1, his_num=1, LO_version=False):
     dt0 = datetime.strptime(date_string0, '%Y.%m.%d')
     dt1 = datetime.strptime(date_string1, '%Y.%m.%d')
-    dir0 = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/'
+    if LO_version:
+        dir0 = Ldir['roms'] + Ldir['gtagex'] + '/'
+    else:
+        dir0 = Ldir['roms'] + 'output/' + Ldir['gtagex'] + '/'
     if list_type == 'snapshot':
         # a single file name in a list
         his_string = ('0000' + str(his_num))[-4:]

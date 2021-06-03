@@ -85,7 +85,11 @@ else: # single item
         sys.exit()
 
 # get list of history files to process
-fn_list = Lfun.get_fn_list('hourly', Ldir, ds0, ds1)
+if 'LO_roms' in args.rundir:
+    LO_version = True
+else:
+    LO_version = False
+fn_list = Lfun.get_fn_list('hourly', Ldir, ds0, ds1, LO_version=LO_version)
 NT = len(fn_list)
 
 # get grid info
