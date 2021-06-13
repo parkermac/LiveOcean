@@ -151,7 +151,7 @@ for ii = 1:np
 	% that negative phase_shift would cause the forcing to happen EARLIER
 	% which is like what I want to accomplish, typically.
   
-  adjustment_factor = 1.25; % change the tidal forcing by this factor, 2021.06.06 PM
+  adjustment_factor = 1.1; % change the tidal forcing by this factor, 2021.06.06 PM
 	
     disp([cons_nb, ': pf after = ',num2str(pf)])
 	%disp([cons_nb, ': phase_shift = ',num2str(phase_shift)])    

@@ -24,12 +24,12 @@ reload(flux_fun)
 # get the DataFrame of all sections
 sect_df = tef_fun.get_sect_df()
 
-sect_name = 'ai1'
+sect_name = 'ai2'
 testing = True
 
 indir0 = Ldir['LOo'] + 'tef2/'
 indir_a = indir0 + 'cas6_v3_lo8b_2018.01.01_2018.12.31/'
-indir_b = indir0 + 'cas6_v3t075_lo8_2018.07.01_2018.08.31/'
+indir_b = indir0 + 'cas6_v3t075_lo8_2018.01.01_2018.12.31/'
 
 outdir = indir0 + 'bulk_plots_compare/'
 Lfun.make_dir(outdir)
@@ -78,15 +78,15 @@ for indir in [indir_a, indir_b]:
     
     # ---------------------------------------------------------
     
-    dt0 = datetime(2018,7,1)
-    dt1 = datetime(2018,8,31)
+    dt0 = datetime(2018,1,1)
+    dt1 = datetime(2018,12,31)
         
     # Salinity vs. Time
     ax = fig.add_subplot(3,2,ii)
     tef_df['Sin'].plot(c='r', lw=lw, ax=ax)
     tef_df['Sout'].plot(c='b', lw=lw, ax=ax)
     ax.set_xlim(dt0,dt1)
-    ax.set_ylim(30,33)
+    ax.set_ylim(29,33)
     ax.set_title(indir.split('/')[-2])
     ax.grid(True)
     ax.set_xticklabels([])
