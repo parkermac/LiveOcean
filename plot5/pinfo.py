@@ -5,7 +5,7 @@ Dictionaries of defaults to be used for plotting.
 
 from cmocean import cm
 cmap_dict =  {'salt': cm.haline,
-             'temp': cm.thermal,
+             'temp': 'rainbow',# cm.thermal,
              'NO3': cm.turbid,
              'phytoplankton': 'Spectral_r',
              'zooplankton': 'Spectral_r',

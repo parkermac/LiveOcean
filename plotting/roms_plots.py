@@ -36,6 +36,7 @@ import matplotlib.pyplot as plt
 import pickle
 from datetime import datetime, timedelta
 import pandas as pd
+from cmocean import cm
 
 def P_basic(in_dict):
 
@@ -540,14 +541,16 @@ def P_splash(in_dict):
     ds = nc.Dataset(in_dict['fn'])
 
     # PLOT CODE
-    vn = 'phytoplankton'
+    vn = 'temp'#'phytoplankton'
+    cmap = 'RdYlBu_r'#'nipy_spectral'
     # things about color limits
     if in_dict['auto_vlims']:
         pinfo.vlims_dict[vn] = ()
     ax = fig.add_subplot(111)
     # colormap contenders: brg, nipy_spectral, winter, twilight_shifted, ocean_r
+    # cm.curl
     cs = pfun.add_map_field(ax, ds, vn, pinfo.vlims_dict,
-            cmap='ocean_r', vlims_fac=3)
+            cmap=cmap, vlims_fac=2.5)
     pfun.add_coast(ax)
     ax.axis([-129, -122, 42.5, 51.5])
     #ax.axis(pfun.get_aa(ds))
