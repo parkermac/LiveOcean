@@ -35,7 +35,7 @@ dt00 = datetime.strptime(ds00,'%Y.%m.%d')
     
 procs = []
 
-if False:#Ldir['testing'] == True:
+if Ldir['testing'] == True:
     moviename_list = ['P1_nshelf_oxygen_bot']
 else:
     moviename_list = ['P1_full_salt_top', 'P1_full_oxygen_bot', 'P1_nshelf_oxygen_bot',
@@ -104,7 +104,7 @@ for moviename in moviename_list:
     input_filename = Ldir['LOo'] + 'p5/' + Ldir['gtagex'] + '/' + moviename + '/' + moviename + '.mp4'
     output_filename = moviename + '.mp4'
 
-    if True:#Ldir['testing'] == False:
+    if Ldir['testing'] == False:
         sleep(4)
         # send file to homer (only works from boiler)
         print('\nCopying '+output_filename+' to homer')
@@ -114,7 +114,6 @@ for moviename in moviename_list:
                 'pmacc@homer.u.washington.edu:/hw00/d47/pmacc/LO/Figs_active_forecast/'+output_filename]
                 
             proc = subprocess.Popen(cmd_list,stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            # note "error" appears to be where the ffmpeg screen output goes
             stdout, stderr = proc.communicate()
             if len(stdout) > 0:
                 print(' sdtout '.center(60,'-'))
