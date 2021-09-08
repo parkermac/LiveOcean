@@ -104,6 +104,7 @@ for moviename in moviename_list:
     output_filename = moviename + '.mp4'
 
     if Ldir['testing'] == False:
+        sleep(4)
         # send file to homer (only works from boiler)
         print('\nCopying '+output_filename+' to homer')
         sys.stdout.flush()
