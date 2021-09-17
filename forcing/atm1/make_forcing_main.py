@@ -7,6 +7,15 @@ run make_forcing_main.py -g cas6 -t v3 -d 2017.04.20
 
 Note: we set rain to zero because its units are uncertain and
 we don't currently use it in the simulations.
+
+2021.09.16: I finally added a planB, to test it, first do a forecast:
+
+run make_forcing_main.py -g cas6 -t v3 -d 2017.04.20 -r forecast
+
+and then try to do a forecast for the next day - for which we don't have
+WRF files:
+
+run make_forcing_main.py -g cas6 -t v3 -d 2017.04.21 -r forecast
 """
 
 import os; import sys
