@@ -56,9 +56,15 @@ def get_basic_info(fn, only_G=False, only_S=False, only_T=False):
         year = int(tu[isdash[0]-4:isdash[0]])
         month = int(tu[isdash[1]-2:isdash[1]])
         day = int(tu[isdash[1]+1:isdash[1]+3])
-        hour = int(tu[iscolon[0]-2:iscolon[0]])
-        minute = int(tu[iscolon[1]-2:iscolon[1]])
-        second = int(tu[iscolon[1]+1:iscolon[1]+3])
+        try:
+            hour = int(tu[iscolon[0]-2:iscolon[0]])
+            minute = int(tu[iscolon[1]-2:iscolon[1]])
+            second = int(tu[iscolon[1]+1:iscolon[1]+3])
+        except:
+            # seems to be needed for compressed files?
+            hour = 0
+            minute = 0
+            second = 0
         import datetime
         tt = datetime.datetime(year, month, day, hour, minute, second)
         delta = datetime.timedelta(0, int(T['ocean_time']))
