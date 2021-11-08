@@ -146,7 +146,7 @@ do
   elif [ $lo_env == "pm_boiler" ] && [ $all_files_here -eq 1 ]; then
     sleep 60
     # for frc in 'forecast_splitter' 'surface' 'layers' 'ubc2' 'azu1' 'active_forecast2' 'critfc' 'drifters' ; do
-    for frc in 'forecast_splitter' 'surface' 'layers' 'ubc2' 'azu1' 'critfc' ; do
+    for frc in 'forecast_splitter' 'layers' 'critfc' ; do
       # echo "Would be working on "$frc
       ./driver_forcing2.sh -g $gridname -t $tag -x $ex_name -f $frc -r $run_type > $LO"driver/dlog_"$frc &
       # Check that the job has finished successfully.
