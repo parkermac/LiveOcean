@@ -106,7 +106,7 @@ for which_vol in vol_list:
 
         ax = fig.add_subplot(121)
         salt_df[['dSnet_dt','QSin','-QSout']].plot(ax=ax, grid=True)
-        ax.legend(labels=[r'$Storage^{ADJ}$',r'$Q_{in}\Delta S$',r'$-Q_{R}S_{out}$',r'$Error$']loc='upper right')
+        ax.legend(loc='upper right')
         ax.set_title(year_str + ' ' + which_vol + ' Salt Budget (g/kg m3/s)')
         ax.text(.05,.9, 'Mean Error / Mean QSin = %0.2f%%' % (salt_rel_err*100), transform=ax.transAxes, fontsize=14)
 
