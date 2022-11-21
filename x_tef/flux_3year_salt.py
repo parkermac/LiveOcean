@@ -73,14 +73,20 @@ for which_vol in vol_list:
             seg_list = flux_fun.ssA + flux_fun.ssM + flux_fun.ssT + flux_fun.ssS + flux_fun.ssW + flux_fun.ssH
             sect_sign_dict = {'ai1':1, 'dp':1}
             slim = (29,33); stick=range(slim[0],slim[1]+1,1)
-            qlim = (30,50); qtick=range(qlim[0],qlim[1]+10,10)
+            if False:
+                qlim = (30,50); qtick=range(qlim[0],qlim[1]+10,10)
+            else:
+                qlim = (0,50); qtick=range(qlim[0],qlim[1]+10,10)
             rlim = (0,3); rtick=range(rlim[0],rlim[1]+1,1)
             blim = (-100,100); btick=range(blim[0],blim[1]+50,50)
         elif which_vol == 'Puget Sound Inner':
             seg_list = flux_fun.ssM + flux_fun.ssT + flux_fun.ssS + flux_fun.ssW
             sect_sign_dict = {'ai4':1, 'dp':1}
             slim = (27,32); stick=range(slim[0],slim[1]+1,1)
-            qlim = (15,35); qtick=range(qlim[0],qlim[1]+10,10)
+            if False:
+                qlim = (15,35); qtick=range(qlim[0],qlim[1]+10,10)
+            else:
+                qlim = (0,35); qtick=range(qlim[0],qlim[1]+10,10)
             rlim = (0,3); rtick=range(rlim[0],rlim[1]+1,1)
             blim = (-100,100); btick=range(blim[0],blim[1]+50,50)
         elif which_vol == 'Hood Canal':
@@ -169,7 +175,7 @@ for which_vol in vol_list:
     ax = fig.add_subplot(222)
     vol_df_all[['Qin', '-Qout']].plot(ax=ax, grid=False, color=['r','b'], linewidth=lw)
     ax.legend(labels=[r'$Q_{in}$',r'$-Q_{out}$'], loc='lower right')
-    ax.set_ylim(bottom=0)
+    # ax.set_ylim(bottom=0)
     ax.text(tx, ty2, r'(b) Exchange Flow $[1000\ m^{3}s^{-1}]$', size=fs, transform=ax.transAxes,
         bbox=dict(facecolor='w', edgecolor='None',alpha=.5), weight='bold')
     ax.set_xticklabels([])
@@ -182,7 +188,7 @@ for which_vol in vol_list:
         datetime(2018,7,1),datetime(2019,1,1),datetime(2019,7,1),datetime(2019,12,31)])
     #add annual means
     for year in [2017,2018,2019]:
-        ax.text(datetime(year,7,1), qlim[0] + (qlim[1]-qlim[0])*2.5/3,
+        ax.text(datetime(year,7,1), qlim[0] + (qlim[1]-qlim[0])*2/3,
             'Mean:\n%0.1f $[10^{3} m^{3}s^{-1}]$' % (qe_dict[year]/1000),
             ha='center', va='center',
             color = 'purple', weight='bold')
